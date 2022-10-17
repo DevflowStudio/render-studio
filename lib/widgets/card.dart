@@ -12,8 +12,6 @@ class InteractiveCard extends StatefulWidget {
     this.padding,
     this.onTap,
     this.onLongPress,
-    this.color,
-    this.shape
   }) : super(key: key);
 
   final Widget child;
@@ -21,8 +19,6 @@ class InteractiveCard extends StatefulWidget {
   final EdgeInsets? padding;
   final Function()? onTap;
   final Function()? onLongPress;
-  final Color? color;
-  final ShapeBorder? shape;
 
   @override
   _InteractiveCardState createState() => _InteractiveCardState();
@@ -32,9 +28,6 @@ class _InteractiveCardState extends State<InteractiveCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: widget.margin,
-      color: widget.color,
-      shape: widget.shape,
       child: InkWell(
         borderRadius: Constants.borderRadius,
         onTap: widget.onTap,

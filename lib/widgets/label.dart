@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../rehmat.dart';
 
 class Label extends StatefulWidget {
@@ -21,7 +22,7 @@ class _LabelState extends State<Label> {
   Widget build(BuildContext context) {
     return Text(
       widget.label,
-      style: (widget.subtitle ? Theme.of(context).textTheme.subtitle1 : Theme.of(context).textTheme.headline6)!.copyWith(
+      style: (widget.subtitle ? Theme.of(context).textTheme.subtitle1 : Theme.of(context).textTheme.headlineSmall)!.copyWith(
         color: Palette.of(context).onSurfaceVariant
       ),
     );
@@ -33,7 +34,7 @@ class FormGroup extends StatefulWidget {
   const FormGroup({
     Key? key,
     this.margin,
-    this.padding = 10,
+    this.padding = 12,
     this.title,
     this.description,
     required this.textField
@@ -59,14 +60,14 @@ class _FormGroupState extends State<FormGroup> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: widget.margin ?? const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      padding: widget.margin ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.title != null) Label(label: widget.title ?? ''),
           if (widget.description != null) Text(
             widget.description ?? '',
-            style: Theme.of(context).textTheme.subtitle1,
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
           Container(height: 10,),
           widget.textField

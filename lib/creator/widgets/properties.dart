@@ -1,14 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:image_cropper/image_cropper.dart';
 
 import '../../rehmat.dart';
 
 class CreatorPageProperties extends CreatorWidget {
 
-  CreatorPageProperties({required CreatorPage page, required Project project}) : super(page: page, project: project);
+  CreatorPageProperties({required CreatorPage page, required Project project, uid}) : super(page: page, project: project, uid: uid);
 
   // Inherited
   final String name = 'Page';
@@ -16,6 +13,7 @@ class CreatorPageProperties extends CreatorWidget {
   final String id = 'page';
 
   bool isResizable = false;
+  bool isBackgroundWidget = true;
   bool isDraggable = false;
 
   @override
@@ -29,7 +27,7 @@ class CreatorPageProperties extends CreatorWidget {
   List<Color>? gradient;
   BackgroundGradient gradientType = BackgroundGradient.type2;
 
-  File? image;
+  Asset? image;
 
   BackgroundType type = BackgroundType.color;
 
@@ -70,7 +68,7 @@ class CreatorPageProperties extends CreatorWidget {
                     'onTap': () async {}
                   },
                   'Design Asset': {
-                    'icon': FontAwesomeIcons.draftingCompass,
+                    'icon': FontAwesomeIcons.compassDrafting,
                     'onTap': () async {
                       Navigator.of(context).pop(await CreatorDesignAsset.create(page: page, project: project));
                     }
@@ -145,6 +143,7 @@ class CreatorPageProperties extends CreatorWidget {
                   ListTile(
                     leading: const Icon(Icons.color_lens),
                     title: const Text('Color'),
+                    tileColor: Palette.of(context).surface,
                     onTap: () async {
                       TapFeedback.light();
                       Navigator.of(context).pop();
@@ -162,6 +161,7 @@ class CreatorPageProperties extends CreatorWidget {
                   ListTile(
                     leading: const Icon(Icons.gradient),
                     title: const Text('Gradient'),
+                    tileColor: Palette.of(context).surface,
                     onTap: () async {
                       TapFeedback.light();
                       Navigator.of(context).pop();
@@ -218,21 +218,9 @@ class CreatorPageProperties extends CreatorWidget {
           title: 'Image',
           tooltip: 'Tap to select an image as background',
           onTap: (context) async {
-            File? _image = await FilePicker.picker(context);
-            if (_image != null) {
-              AndroidUiSettings uiSettings = AndroidUiSettings(
-                backgroundColor: Theme.of(context).backgroundColor,
-                cropFrameColor: Palette.of(context).primary,
-                activeControlsWidgetColor: Palette.of(context).primary,
-                toolbarColor: Theme.of(context).appBarTheme.backgroundColor,
-                statusBarColor: Theme.of(context).appBarTheme.backgroundColor,
-                toolbarTitle: 'Crop Image',
-              );
-              image = await ImageCropper().cropImage(
-                sourcePath: _image.path,
-                androidUiSettings: uiSettings,
-                aspectRatio: project.size!.cropRatio,
-              );
+            Asset? _asset = await Asset.create(project, context: context, type: FileType.image, crop: true, cropRatio: project.size!.cropRatio);
+            if (_asset != null) {
+              image = _asset;
               changeBackgroundType(BackgroundType.image);
               updateListeners(WidgetChange.update);
             }
@@ -275,29 +263,32 @@ class CreatorPageProperties extends CreatorWidget {
   ];
 
   @override
-  Widget widget(BuildContext context) => Center(
-    child: SizedBox.fromSize(
-      size: project.actualSize(context),
-      child: Container(
-        decoration: BoxDecoration(
-          color: type == BackgroundType.color ? color : Colors.white,
-          image: type == BackgroundType.image ? DecorationImage(
-            image: FileImage(image!),
-            onError: (exception, stackTrace) {
-              Alerts.snackbar(context, text: 'The background image could not be loaded. It might have been deleted.');
-              changeBackgroundType(BackgroundType.color);
-              updateListeners(WidgetChange.misc);
-            },
-          ) : null,
-          gradient: (type == BackgroundType.gradient && gradient != null) ? LinearGradient(
-            colors: gradient!,
-            begin: gradientType.begin,
-            end: gradientType.end,
-          ) : null
+  Widget widget(BuildContext context) {
+    if (image == null) type = BackgroundType.color;
+    return Center(
+      child: SizedBox.fromSize(
+        size: project.contentSize(context),
+        child: Container(
+          decoration: BoxDecoration(
+            color: type == BackgroundType.color ? color : Colors.white,
+            image: type == BackgroundType.image ? DecorationImage(
+              image: FileImage(image!.file),
+              onError: (exception, stackTrace) {
+                Alerts.snackbar(context, text: 'The background image could not be loaded. It might have been deleted.');
+                changeBackgroundType(BackgroundType.color);
+                updateListeners(WidgetChange.misc);
+              },
+            ) : null,
+            gradient: (type == BackgroundType.gradient && gradient != null) ? LinearGradient(
+              colors: gradient!,
+              begin: gradientType.begin,
+              end: gradientType.end,
+            ) : null
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 
   @override
   void updateGrids({
@@ -343,7 +334,7 @@ class CreatorPageProperties extends CreatorWidget {
   Map<String, dynamic> toJSON() => {
     ... super.toJSON(),
     'color': color.toHex(),
-    'image': image?.path,
+    'image': image?.id,
     'gradient': _generateGradientsHex()
   };
 
@@ -353,7 +344,7 @@ class CreatorPageProperties extends CreatorWidget {
     try {
       color = HexColor.fromHex(json['color']);
       if (json['image'] != null) {
-        image = File(json['image']);
+        image = project.assetManager.get(json['image']);
         type = BackgroundType.image;
       }
       if (json['gradient'] != null) {

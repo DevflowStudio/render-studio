@@ -10,7 +10,11 @@ class Preferences {
 
   bool vibrateOnSnap = true;
 
+  double snapSensitivity = 2;
+
   bool allowAnalytics = true;
+
+  bool showDebugBorder = false;
 
   static Preferences get instance {
     Preferences preferences = Preferences();

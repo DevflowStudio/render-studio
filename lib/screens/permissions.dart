@@ -36,8 +36,8 @@ class _PermissionScreenState extends State<PermissionScreen> {
               Container(height: 20,),
               SizedBox(
                 width: double.maxFinite,
-                child: Button(
-                  text: 'Allow',
+                child: SecondaryButton(
+                  child: Text('Allow'),
                   onPressed: () => PermissionManager.request(context, widget.child),
                 ),
               )

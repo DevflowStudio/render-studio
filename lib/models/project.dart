@@ -9,7 +9,7 @@ class Project {
     this.fromSaves = false
   }) {
     pages = PageManager(this);
-    id ??= Constants.generateUID(6);
+    id ??= Constants.generateID(6);
     created ??= DateTime.now();
     edited ??= DateTime.now(); // if (edited == null) edited = DateTime.now();
     deviceSize = MediaQuery.of(context).size;
@@ -19,8 +19,6 @@ class Project {
   final bool fromSaves;
 
   String? id;
-
-  Map<String, dynamic>? data;
 
   DateTime? created;
 
@@ -38,9 +36,37 @@ class Project {
   
   List<String> thumbnails = [];
 
+  late AssetManager assetManager;
+
   bool editorVisible = true;
 
-  Size actualSize(BuildContext context) {
+  /// Render Project: Canvas Size
+  /// The interactive area as a whole is referred to as the canvas
+  /// Canvas is larger than the actual project's content size
+  /// i.e. the interactive area is more to enhance experience even though the content size will be smaller
+  Size canvasSize(BuildContext context) {
+    double height = size!.size.height;
+    double width = size!.size.width;
+    double ratio = width/height;
+
+    double actualWidth = MediaQuery.of(context).size.width;
+    double actualHeight = MediaQuery.of(context).size.width / ratio;
+
+    Size actualSize = Size(actualWidth, actualHeight);
+
+    double maxCanvasRatio = editorVisible ? 0.6 : 0.7;
+
+    if (actualHeight > MediaQuery.of(context).size.height * maxCanvasRatio) {
+      double _height = MediaQuery.of(context).size.height * maxCanvasRatio;
+      actualSize = Size(_height * ratio, _height);
+    }
+
+    return actualSize;
+  }
+
+  /// This is the actual size of the page
+  /// and will be used to export the image
+  Size contentSize(BuildContext context) {
     double height = size!.size.height;
     double width = size!.size.width;
     double ratio = width/height;
@@ -94,8 +120,10 @@ class Project {
       'meta': {
         'created': created?.millisecondsSinceEpoch,
         'edited': DateTime.now().millisecondsSinceEpoch,
-      }
+      },
+      'assets': assetManager.toJSON(),
     };
+
     return json;
   }
 
@@ -127,8 +155,9 @@ class Project {
   //   } catch (e) { }
   // }
 
-  static void create(BuildContext context) {
+  static void create(BuildContext context) async {
     Project project = Project(context);
+    project.assetManager = await AssetManager.initialize(project, data: {});
     AppRouter.push(context, page: Information(project: project, isNewPost: true,));
   }
 

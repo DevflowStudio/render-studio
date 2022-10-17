@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../rehmat.dart';
@@ -18,6 +19,9 @@ class _CreateState extends State<Create> {
 
   CreatorWidget? clipboard;
 
+  bool isLoading = false;
+  DateTime? _lastSaved;
+
   @override
   void initState() {
     project = widget.project;
@@ -26,7 +30,7 @@ class _CreateState extends State<Create> {
     project.pages.pages.forEach((page) {
       page.updateListeners();
     });
-    WidgetsBinding.instance?.addPostFrameCallback((_) => setState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
     super.initState();
   }
 
@@ -48,35 +52,28 @@ class _CreateState extends State<Create> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        if (project.pages.pages.where((page) => page.history.length > 1).isEmpty) return true;
-        bool? discard = await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Discard Project'),
-            content: const Text('Do you want to discard this project? All the changes will be discarded. This cannot be reverted.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel')
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Discard')
-              ),
-            ],
-          ),
-        );
-        return discard ?? false;
-      },
+      onWillPop: canPagePop,
       child: Scaffold(
-        backgroundColor: App.getThemedObject(context, light: Colors.grey[50], dark: Palette.backgroundDarker),
         appBar: AppBar(
+          leading: IconButton(
+            onPressed: () async {
+              if (await canPagePop()) Navigator.of(context).pop();
+            },
+            icon: Icon(CupertinoIcons.arrow_turn_up_left),
+            iconSize: 20,
+          ),
           centerTitle: true,
-          backgroundColor: App.getThemedObject(context, light: Colors.grey[50], dark: Palette.backgroundDarker),
           elevation: 0,
           toolbarHeight: MediaQuery.of(context).size.height * 0.07, // Toolbar can cover a maximum of 5% of the screen area
+          title: isLoading ? TitleSpinnerWidget() : null,
           actions: [
+            // IconButton(
+            //   onPressed: () {
+            //     // print(project.pages.current.widgets.last.uid);
+            //   },
+            //   icon: Icon(Icons.science_rounded),
+            //   tooltip: 'Experiment',
+            // ),
             IconButton(
               onPressed: project.pages.current.undoFuntion,
               icon: const Icon(Icons.undo),
@@ -100,6 +97,10 @@ class _CreateState extends State<Create> {
                   value: 'page-add',
                 ),
                 if (project.pages.current.currentSelection.allowClipboard) ... [
+                  const PopupMenuItem(
+                    child: Text('Duplicate'),
+                    value: 'duplicate-widget',
+                  ),
                   const PopupMenuItem(
                     child: Text('Copy'),
                     value: 'copy-widget',
@@ -129,6 +130,10 @@ class _CreateState extends State<Create> {
                     project.pages.add();
                     setState(() { });
                     break;
+                  case 'duplicate-widget':
+                    copyToClipboard();
+                    pasteWidget();
+                    break;
                   case 'copy-widget':
                     copyToClipboard();
                     break;
@@ -146,11 +151,15 @@ class _CreateState extends State<Create> {
                     setState(() { });
                     break;
                   case 'project-save':
-                    await Spinner.fullscreen(
-                      context,
-                      task: () => handler.save(context, project: project)
-                    );
-                    AppRouter.removeAllAndPush(context, page: const Home());
+                    setState(() {
+                      isLoading = true;
+                    });
+                    await handler.save(context, project: project);
+                    _lastSaved = DateTime.now();
+                    if (mounted) setState(() {
+                      isLoading = false;
+                    });
+                    Alerts.snackbar(context, text: 'Project saved');
                     break;
                   case 'project-info':
                     AppRouter.push(context, page: Information(project: project));
@@ -169,17 +178,17 @@ class _CreateState extends State<Create> {
               Container(
                 decoration: BoxDecoration(
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 3,
-                      spreadRadius: 0,
-                    )
+                    // BoxShadow(
+                    //   color: Colors.black.withOpacity(0.1),
+                    //   blurRadius: 3,
+                    //   spreadRadius: 0,
+                    // )
                   ]
                 ),
                 child: AnimatedContainer(
                   duration: Constants.animationDuration,
-                  height: project.actualSize(context).height,
-                  width: project.actualSize(context).width,
+                  height: project.canvasSize(context).height,
+                  width: project.canvasSize(context).width,
                   child: project.pages.pages.isEmpty
                     ? const Center(
                       child: Spinner(),
@@ -212,7 +221,6 @@ class _CreateState extends State<Create> {
       behavior: HitTestBehavior.translucent,
       onTap: () {
         project.pages.current.changeSelection(project.pages.current.page);
-        setState(() { });
       },
       child: Container(
         color: Colors.transparent
@@ -221,7 +229,7 @@ class _CreateState extends State<Create> {
   );
 
   void copyToClipboard() {
-    CreatorWidget? widget = CreatorPage.createWidgetFromId(project.pages.current.currentSelection.id, page: project.pages.current, project: project);
+    CreatorWidget? widget = CreatorPage.createWidgetFromId(project.pages.current.currentSelection.id, page: project.pages.current, project: project, uid: project.pages.current.currentSelection.uid!);
     if (widget == null) {
       Alerts.snackbar(context, text: 'Failed to build widget');
       return;
@@ -235,7 +243,7 @@ class _CreateState extends State<Create> {
 
   void pasteWidget() {
     Map<String, dynamic> json = clipboard!.toJSON();
-    CreatorWidget? widget = CreatorPage.createWidgetFromId(clipboard!.id, page: project.pages.current, project: project);
+    CreatorWidget? widget = CreatorPage.createWidgetFromId(clipboard!.id, page: project.pages.current, project: project, uid: clipboard!.uid!);
     widget!.buildFromJSON(json);
     project.pages.current.addWidget(widget);
     clipboard = null;
@@ -244,5 +252,32 @@ class _CreateState extends State<Create> {
   }
 
   void onPageUpdate() => setState(() { });
+
+  Future<bool> canPagePop() async {
+    bool _hasHistory = project.pages.pages.where((page) => page.history.length > 1).isNotEmpty;
+    bool recentlySaved = _lastSaved != null && DateTime.now().difference(_lastSaved!).inMinutes < 1;
+  
+    if (!_hasHistory) return true;
+    else if (_hasHistory && recentlySaved) return true;
+    
+    bool? discard = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Saved Project?'),
+        content: const Text('Make sure to save your project before leaving. This action cannot be reverted.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel')
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Discard')
+          ),
+        ],
+      ),
+    );
+    return discard ?? false;
+  }
 
 }

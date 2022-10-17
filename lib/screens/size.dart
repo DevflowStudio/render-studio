@@ -129,7 +129,7 @@ extension PostSizePresetsExtension on PostSizePresets {
       case PostSizePresets.linkedInPostMobile:
         return FontAwesomeIcons.linkedinIn;
       case PostSizePresets.snapchatStory:
-        return FontAwesomeIcons.snapchatGhost;
+        return FontAwesomeIcons.snapchat;
       default:
         return Icons.error;
     }
@@ -169,6 +169,7 @@ class _SelectSizeState extends State<SelectSize> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
+            leading: NewBackButton(),
             pinned: true,
             centerTitle: false,
             expandedHeight: Constants.appBarExpandedHeight,
@@ -180,7 +181,7 @@ class _SelectSizeState extends State<SelectSize> {
               centerTitle: false,
               title: Text(
                 'Size',
-                style: AppTheme.flexibleSpaceBarStyle
+                // style: AppTheme.flexibleSpaceBarStyle
               ),
               titlePaddingTween: EdgeInsetsTween(
                 begin: const EdgeInsets.only(
@@ -257,9 +258,9 @@ class _SelectSizeState extends State<SelectSize> {
                                   padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
                                   child: SizedBox(
                                     width: double.maxFinite,
-                                    child: Button(
-                                      text: 'Select',
-                                      background: App.getThemedObject(context, light: Colors.black, dark: Colors.grey[800]),
+                                    child: PrimaryButton(
+                                      child: Text('Select'),
+                                      // background: App.getThemedObject(context, light: Colors.black, dark: Colors.grey[800]),
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                         project.size = PostSize.custom(width: double.tryParse(widthCtrl.text) ?? 1080, height: double.tryParse(heightCtrl.text) ?? 1080);

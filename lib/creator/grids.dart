@@ -1,7 +1,15 @@
+import 'package:align_positioned/align_positioned.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
 
 import '../rehmat.dart';
+
+class GridState extends ChangeNotifier {
+
+  List<Grid> grids = [];
+  List<Grid> visible = [];
+
+}
 
 class Grid {
 
@@ -91,5 +99,52 @@ extension GridLayoutExtension on GridLayout {
         return Container();
     }
   }
+
+}
+
+class PageGridView extends StatefulWidget {
+
+  PageGridView({
+    Key? key,
+    required this.state
+  }) : super(key: key);
+
+  final GridState state;
+
+  @override
+  State<PageGridView> createState() => PageGridViewState();
+}
+
+class PageGridViewState extends State<PageGridView> {
+
+  late GridState state;
+
+  @override
+  void initState() {
+    state = widget.state;
+    state.addListener(onUpdate);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    state.removeListener(onUpdate);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        for (Grid grid in state.visible) AlignPositioned(
+          dy: grid.position.dy,
+          dx: grid.position.dx,
+          child: grid.build(context)
+        )
+      ],
+    );
+  }
+
+  void onUpdate() => setState(() {});
 
 }

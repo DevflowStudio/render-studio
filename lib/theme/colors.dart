@@ -5,33 +5,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class Palette {
 
-  static Color get primary => HexColor.fromHex('#614FAD');
-  static Color get secondary => HexColor.fromHex('#605B71');
-  static Color get tertiary => HexColor.fromHex('#7D5263');
-
-  static Color get backgroundDarker => HexColor.fromHex('#18171A');
-
-  static ColorScheme get light => ColorScheme.fromSeed(
-    seedColor: Palette.primary,
-    secondary: Palette.secondary,
-    tertiary: Palette.tertiary,
-    brightness: Brightness.light,
-  );
-
-  static ColorScheme get dark => ColorScheme.fromSeed(
-    seedColor: Palette.primary,
-    secondary: Palette.secondary,
-    tertiary: Palette.tertiary,
-    brightness: Brightness.dark,
-  );
-
-  static ColorScheme of(BuildContext context) {
-    if (MediaQuery.of(context).platformBrightness == Brightness.light) {
-      return Palette.light;
-    } else {
-      return Palette.dark;
-    }
-  }
+  static ColorScheme of(BuildContext context) => Theme.of(context).colorScheme;
 
   static Future<Color?> showColorPicker({
     required BuildContext context,
@@ -90,60 +64,20 @@ extension HexColor on Color {
     '${red.toRadixString(16).padLeft(2, '0')}'
     '${green.toRadixString(16).padLeft(2, '0')}'
     '${blue.toRadixString(16).padLeft(2, '0')}';
-}
 
-class AppColors {
-
-  static MaterialColor get primaryLight => MaterialColor(Palette.light.primary.value, const {
-    50:Color.fromRGBO(136,14,79, .1),
-    100:Color.fromRGBO(136,14,79, .2),
-    200:Color.fromRGBO(136,14,79, .3),
-    300:Color.fromRGBO(136,14,79, .4),
-    400:Color.fromRGBO(136,14,79, .5),
-    500:Color.fromRGBO(136,14,79, .6),
-    600:Color.fromRGBO(136,14,79, .7),
-    700:Color.fromRGBO(136,14,79, .8),
-    800:Color.fromRGBO(136,14,79, .9),
-    900:Color.fromRGBO(136,14,79, 1),
-  });
-
-  static MaterialColor get primaryDark => MaterialColor(Palette.dark.primary.value, const {
-    50:Color.fromRGBO(136,14,79, .1),
-    100:Color.fromRGBO(136,14,79, .2),
-    200:Color.fromRGBO(136,14,79, .3),
-    300:Color.fromRGBO(136,14,79, .4),
-    400:Color.fromRGBO(136,14,79, .5),
-    500:Color.fromRGBO(136,14,79, .6),
-    600:Color.fromRGBO(136,14,79, .7),
-    700:Color.fromRGBO(136,14,79, .8),
-    800:Color.fromRGBO(136,14,79, .9),
-    900:Color.fromRGBO(136,14,79, 1),
-  });
-
-  static MaterialColor get accentLight => MaterialColor(Palette.light.secondary.value, const {
-    50:Color.fromRGBO(136,14,79, .1),
-    100:Color.fromRGBO(136,14,79, .2),
-    200:Color.fromRGBO(136,14,79, .3),
-    300:Color.fromRGBO(136,14,79, .4),
-    400:Color.fromRGBO(136,14,79, .5),
-    500:Color.fromRGBO(136,14,79, .6),
-    600:Color.fromRGBO(136,14,79, .7),
-    700:Color.fromRGBO(136,14,79, .8),
-    800:Color.fromRGBO(136,14,79, .9),
-    900:Color.fromRGBO(136,14,79, 1),
-  });
-
-  static MaterialColor get accentDark => MaterialColor(Palette.dark.secondary.value, const {
-    50:Color.fromRGBO(136,14,79, .1),
-    100:Color.fromRGBO(136,14,79, .2),
-    200:Color.fromRGBO(136,14,79, .3),
-    300:Color.fromRGBO(136,14,79, .4),
-    400:Color.fromRGBO(136,14,79, .5),
-    500:Color.fromRGBO(136,14,79, .6),
-    600:Color.fromRGBO(136,14,79, .7),
-    700:Color.fromRGBO(136,14,79, .8),
-    800:Color.fromRGBO(136,14,79, .9),
-    900:Color.fromRGBO(136,14,79, 1),
-  });
-
+  MaterialColor toMaterialColor() {
+    Map<int, Color> swatch = {
+      50:Color.fromRGBO(136,14,79, .1),
+      100:Color.fromRGBO(136,14,79, .2),
+      200:Color.fromRGBO(136,14,79, .3),
+      300:Color.fromRGBO(136,14,79, .4),
+      400:Color.fromRGBO(136,14,79, .5),
+      500:Color.fromRGBO(136,14,79, .6),
+      600:Color.fromRGBO(136,14,79, .7),
+      700:Color.fromRGBO(136,14,79, .8),
+      800:Color.fromRGBO(136,14,79, .9),
+      900:Color.fromRGBO(136,14,79, 1),
+    };
+    return MaterialColor(this.value, swatch);
+  }
 }

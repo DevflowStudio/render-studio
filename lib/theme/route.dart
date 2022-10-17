@@ -1,5 +1,6 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:animations/animations.dart';
 
 class AppRouter<T> extends PageRouteBuilder<T> {
@@ -28,14 +29,23 @@ class AppRouter<T> extends PageRouteBuilder<T> {
 
   static Future<T?> push<T extends Object?>(BuildContext context, {
     required Widget page
-  }) => Navigator.of(context).push<T>(AppRouter(page: page));
+  }) {
+    if (Platform.isIOS) return Navigator.of(context).push<T>(CupertinoPageRoute(builder: (context) => page,));
+    else return Navigator.of(context).push<T>(AppRouter(page: page));
+  }
 
   static Future<T?> replace<T extends Object?>(BuildContext context, {
     required Widget page
-  }) => Navigator.of(context).pushReplacement(AppRouter(page: page));
+  }) {
+    if (Platform.isIOS) return Navigator.of(context).pushReplacement(CupertinoPageRoute(builder: (context) => page,));
+    else return Navigator.of(context).pushReplacement(AppRouter(page: page));
+  }
 
   static Future<T?> removeAllAndPush<T extends Object?>(BuildContext context, {
     required Widget page
-  }) => Navigator.of(context).pushAndRemoveUntil<T>(AppRouter(page: page), (route) => false);
+  }) {
+    if (Platform.isIOS) return Navigator.of(context).pushAndRemoveUntil<T>(CupertinoPageRoute(builder: (context) => page), (route) => false);
+    else return Navigator.of(context).pushAndRemoveUntil<T>(AppRouter(page: page), (route) => false);
+  }
 
 }

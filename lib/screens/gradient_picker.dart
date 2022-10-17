@@ -17,6 +17,7 @@ class _GradientPickerState extends State<GradientPicker> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
+            leading: NewBackButton(),
             pinned: true,
             centerTitle: false,
             expandedHeight: Constants.appBarExpandedHeight,
@@ -28,7 +29,7 @@ class _GradientPickerState extends State<GradientPicker> {
               centerTitle: false,
               title: Text(
                 'Gradients',
-                style: AppTheme.flexibleSpaceBarStyle
+                // style: AppTheme.flexibleSpaceBarStyle
               ),
               titlePaddingTween: EdgeInsetsTween(
                 begin: const EdgeInsets.only(

@@ -16,7 +16,7 @@ class CreatorText extends CreatorWidget {
       options: [
         Option.button(
           title: 'Edit',
-          tooltip: 'Edit Text',
+          tooltip: 'Edit text',
           onTap: (context) async {
             await showEditTextModal(context);
           },
@@ -28,6 +28,59 @@ class CreatorText extends CreatorWidget {
           tooltip: 'Delete Text Widget',
           onTap: (context) async {
             page.delete(this);
+          },
+        ),
+        Option.button(
+          title: 'Auto Size',
+          tooltip: 'Auto size text when resizing the widget',
+          onTap: (context) async {
+            autoSize = !autoSize;
+            updateListeners(WidgetChange.misc);
+          },
+          icon: Icons.auto_awesome_rounded
+        ),
+        Option.button(
+          title: 'Size',
+          tooltip: 'Text size',
+          onTap: (context) async {
+            autoSize = false;
+            updateListeners(WidgetChange.misc);
+            await editor.showTab(
+              context,
+              tab: EditorTab.size(
+                current: fontSize,
+                min: 10,
+                max: 200,
+                onChange: (value) {
+                  fontSize = value;
+                  updateListeners(WidgetChange.misc);
+                }
+              )
+            );
+            updateListeners(WidgetChange.resize);
+          },
+          icon: Icons.format_size
+        ),
+        Option.button(
+          icon: Icons.height_rounded,
+          title: 'Height',
+          tooltip: 'Change line height of the text',
+          onTap: (context) async {
+            List<double> _options = [0.6, 0.77, 0.85, 0.9, 1, 1.5, 2];
+            await editor.showTab(
+              context,
+              tab: EditorTab.pickerBuilder(
+                title: 'Line Height',
+                itemBuilder: (context, index) => Text(_options[index].toString()),
+                childCount: _options.length,
+                initialIndex: _options.indexOf(lineHeight),
+                onSelectedItemChanged: (index) {
+                  lineHeight = _options[index];
+                  updateListeners(WidgetChange.misc);
+                },
+              )
+            );
+            updateListeners(WidgetChange.update);
           },
         ),
       ],
@@ -106,6 +159,7 @@ class CreatorText extends CreatorWidget {
           greyOut: !bold,
           onTap: (context) async {
             bold = !bold;
+            if (stroke != null) _updateStroke();
             updateListeners(WidgetChange.update);
           },
           icon: Icons.format_bold
@@ -660,6 +714,8 @@ class CreatorText extends CreatorWidget {
 
   String text = 'Double tap to edit text';
 
+  bool autoSize = true;
+
   TextAlign align = TextAlign.center;
 
   bool bold = false;
@@ -679,6 +735,8 @@ class CreatorText extends CreatorWidget {
   String fontFamily = 'Abril Fatface';
 
   double radius = 10;
+
+  double lineHeight = 0.77;
 
   double paddingLeft = 0;
   double paddingRight = 0;
@@ -700,7 +758,7 @@ class CreatorText extends CreatorWidget {
     child: textWidget,
   );
 
-  AutoSizeText get textWidget => AutoSizeText(
+  Widget get textWidget => autoSize ? AutoSizeText(
     text,
     textAlign: align,
     style: style,
@@ -711,10 +769,14 @@ class CreatorText extends CreatorWidget {
     onFontSizeChanged: (fontSize) {
       this.fontSize = fontSize;
     },
+  ) : Text(
+    text,
+    textAlign: align,
+    style: style,
   );
 
   TextStyle get style => GoogleFonts.getFont(fontFamily).copyWith(
-    fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+    fontWeight: bold ? (stroke != null ? FontWeight.normal : FontWeight.bold) : FontWeight.normal,
     backgroundColor: textBackground,
     decoration: underline ? TextDecoration.underline : (strikethrough ? TextDecoration.lineThrough : (overline ? TextDecoration.overline : null)),
     fontStyle: italics ? FontStyle.italic : null,
@@ -732,7 +794,7 @@ class CreatorText extends CreatorWidget {
     foreground: stroke,
     decorationStyle: decorationStyle,
     decorationColor: stroke == null ? decorationColor : null,
-    height: 0.77,
+    height: lineHeight,
   );
 
   @override
@@ -787,7 +849,7 @@ class CreatorText extends CreatorWidget {
                         style: const TextStyle(
                           fontSize: 30,
                         ),
-                      )
+                      ),
                       const Spacer(),
                     ],
                   ),
@@ -812,15 +874,16 @@ class CreatorText extends CreatorWidget {
   }
 
   void _removeExtraSpaceFromSize() {
+    if (textWidget is Text) return;
     final span = TextSpan(
-      style: textWidget.style,
+      style: (textWidget as AutoSizeText).style,
       text: text,
     );
     final words = span.toPlainText().split(RegExp('\\s+'));
     final TextPainter textPainter = TextPainter(
       text: TextSpan(
         text: text,
-        style: textWidget.style,
+        style: (textWidget as AutoSizeText).style,
       ),
       textAlign: align,
       maxLines: words.length,
@@ -841,7 +904,7 @@ class CreatorText extends CreatorWidget {
   void _updateStroke() {
     stroke = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = bold ? 5 : 1
+      ..strokeWidth = bold ? 2 : 1
       ..color = color;
   }
 
@@ -851,6 +914,9 @@ class CreatorText extends CreatorWidget {
     'text': {
       'text': text,
       'font': fontFamily,
+      'auto-size': autoSize,
+      'font-size': fontSize,
+      'line-height': lineHeight
     },
     'color': {
       'text': color.toHex(),
@@ -893,6 +959,9 @@ class CreatorText extends CreatorWidget {
     try {
       text = json['text']['text'];
       fontFamily = json['text']['font'];
+      lineHeight = json['text']['line-height'];
+      autoSize = json['text']['auto-size'];
+      fontSize = json['text']['font-size'];
 
       color = HexColor.fromHex(json['color']['text']);
       textBackground = HexColor.fromHex(json['color']['background']);
@@ -929,6 +998,7 @@ class CreatorText extends CreatorWidget {
 
       return true;
     } catch (e) {
+      print(e);
       return false;
     }
   }

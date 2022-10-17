@@ -22,7 +22,7 @@ class _OnboardingState extends State<Onboarding> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       background = SizedBox.fromSize(
         size: MediaQuery.of(context).size,
         child: OctoImage(
@@ -71,10 +71,9 @@ class _OnboardingState extends State<Onboarding> {
                     children: [
                       SizedBox(
                         width: double.maxFinite,
-                        child: Button(
-                          text: 'Google',
-                          icon: FontAwesomeIcons.google,
-                          isLoading: isGoogleAuthLoading,
+                        child: TextButton.icon(
+                          label: isGoogleAuthLoading ? Spinner(strokeWidth: 2,) : Text('Google'),
+                          icon: Icon(FontAwesomeIcons.google),
                           onPressed: () async {
                             setState(() {
                               isGoogleAuthLoading = true;
@@ -84,16 +83,15 @@ class _OnboardingState extends State<Onboarding> {
                               isGoogleAuthLoading = false;
                             });
                           },
-                          background: Colors.red,
+                          // background: Colors.red,
                         ),
                       ),
                       Container(height: 10,),
                       SizedBox(
                         width: double.maxFinite,
-                        child: Button(
-                          text: 'Apple',
-                          icon: FontAwesomeIcons.apple,
-                          isLoading: isAppleAuthLoading,
+                        child: TextButton.icon(
+                          label: isAppleAuthLoading ? Spinner(strokeWidth: 2,) : Text('Apple'),
+                          icon: Icon(FontAwesomeIcons.apple),
                           onPressed: () async {
                             setState(() {
                               isGoogleAuthLoading = true;

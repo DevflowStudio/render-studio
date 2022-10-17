@@ -31,7 +31,7 @@ class Editor extends StatefulWidget {
       builder: (context) => Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Palette.of(context).surface,
+          color: Palette.of(context).surfaceVariant,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -113,7 +113,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
         size: editorSize,
         child: Container(
           decoration: BoxDecoration(
-            color: App.getThemedObject(context, light: Colors.white, dark: Palette.of(context).surface),
+            color: Palette.of(context).surfaceVariant,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
@@ -129,10 +129,10 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
               TabBar(
                 enableFeedback: true,
                 indicatorSize: TabBarIndicatorSize.label,
-                indicatorColor: App.getThemedBlackAndWhite(context),
-                labelColor: App.getThemedBlackAndWhite(context),
+                indicatorColor: Constants.getThemedBlackAndWhite(context),
+                labelColor: Constants.getThemedBlackAndWhite(context),
                 indicator: widget.tabs.length > 1 ? null : const BoxDecoration(),
-                unselectedLabelColor: App.getThemedBlackAndWhite(context).withOpacity(0.5),
+                unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
                 isScrollable: true,
                 labelStyle: Theme.of(context).textTheme.subtitle2,
                 tabs: List.generate(
@@ -290,6 +290,68 @@ class EditorTab {
       )
     ],
     tab: 'Rotate'
+  );
+
+  static EditorTab size({
+    required double current,
+    required double min,
+    required double max,
+    required Function(double value) onChange,
+    Function(double value)? onChangeEnd,
+    Function(double value)? onChangeStart,
+  }) => EditorTab(
+    type: EditorTabType.single,
+    options: [
+      Option.slider(
+        value: current,
+        min: min,
+        max: max,
+        onChangeStart: onChangeStart,
+        onChange: onChange,
+        onChangeEnd: onChangeEnd,
+      )
+    ],
+    tab: 'Size'
+  );
+
+  static EditorTab picker({
+    required String title,
+    required List<Widget> children,
+    required void Function(int)? onSelectedItemChanged,
+    double itemExtent = 30,
+    int initialIndex = 0
+  }) => EditorTab(
+    type: EditorTabType.single,
+    options: [
+      Option.picker(
+        children: children,
+        onSelectedItemChanged: onSelectedItemChanged,
+        itemExtent: itemExtent,
+        initialIndex: initialIndex
+      )
+    ],
+    tab: title
+  );
+
+  static EditorTab pickerBuilder({
+    required String title,
+    required Widget? Function(BuildContext context, int index) itemBuilder,
+    required void Function(int index)? onSelectedItemChanged,
+    int? childCount,
+    double itemExtent = 30,
+    int initialIndex = 0
+  }) => EditorTab(
+    type: EditorTabType.single,
+    options: [
+      Option.pickerBuilder(
+        itemBuilder: itemBuilder,
+        onSelectedItemChanged: onSelectedItemChanged,
+        childCount: childCount,
+        initialIndex: initialIndex,
+        itemExtent: itemExtent
+      )
+    ],
+    tab: title
   );
 
   static EditorTab nudge({

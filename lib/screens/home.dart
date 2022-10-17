@@ -1,5 +1,4 @@
 import 'dart:io';
-// import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:octo_image/octo_image.dart';
@@ -75,14 +74,10 @@ class _HomeState extends State<Home> {
               centerTitle: false,
               title: Text(
                 'Render',
-                style: AppTheme.flexibleSpaceBarStyle.copyWith(
-                  fontFamily: Fonts.main,
+                style: TextStyle(
                   color: Palette.of(context).onBackground
                 ),
               ),
-              stretchModes: const [
-                StretchMode.fadeTitle
-              ],
               titlePadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
             ),
           ),
@@ -99,6 +94,8 @@ class _HomeState extends State<Home> {
                       ProjectGlance project = projects[index];
                       showModalBottomSheet(
                         context: context,
+                        // backgroundColor: Colors.transparent,
+                        // barrierColor: Palette.of(context).background.withOpacity(0.6),
                         builder: (context) => PostViewModal(project: project),
                       );
                     },
@@ -144,6 +141,7 @@ class _HomeState extends State<Home> {
                                         height: 20,
                                         child: Spinner(
                                           strokeWidth: 2,
+                                          adaptive: true,
                                         )
                                       ),
                                     );
@@ -156,14 +154,20 @@ class _HomeState extends State<Home> {
                             },
                           ),
                         ),
+                        Divider(
+                          height: 0,
+                          endIndent: 0,
+                          indent: 0,
+                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Label(
-                                label: projects[index].title!
+                              Text(
+                                projects[index].title!,
+                                style: Theme.of(context).textTheme.subtitle1,
                               ),
                               Text(
                                 getTimeAgo(projects[index].edited ?? projects[index].created!),
@@ -188,19 +192,16 @@ class _HomeState extends State<Home> {
                 children: [
                   Text(
                     'Welcome,',
-                    style: Theme.of(context).textTheme.headline5,
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   Text(
                     'Create your first project',
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   Container(height: 10,),
-                  SizedBox(
-                    width: 150,
-                    child: Button(
-                      text: 'Create Project',
-                      onPressed: () => Project.create(context),
-                    ),
+                  SecondaryButton(
+                    child: Text('Create Project'),
+                    onPressed: () => Project.create(context),
                   )
                 ],
               ),
@@ -216,27 +217,27 @@ class _HomeState extends State<Home> {
           color: Palette.of(context).onPrimaryContainer,
         ),
       ),
-      bottomNavigationBar: RenderNavigationBar(
-        backgroundColor: Palette.of(context).surface,
-        destinations: const [
-          NavigationBarDestination(
-            icon: Icons.window,
+      bottomNavigationBar: NavigationBar(
+        // backgroundColor: Palette.of(context).background,
+        destinations: [
+          NavigationDestination(
+            icon: Icon(Icons.window),
             label: 'Projects'
           ),
-          NavigationBarDestination(
-            icon: Icons.explore_outlined,
+          NavigationDestination(
+            icon: Icon(Icons.explore_outlined),
             label: 'Templates'
           ),
-          NavigationBarDestination(
-            icon: Icons.science_outlined,
+          NavigationDestination(
+            icon: Icon(Icons.science_outlined),
             label: 'Studio Lab'
           ),
-          NavigationBarDestination(
-            icon: Icons.people_outline,
+          NavigationDestination(
+            icon: Icon(Icons.people_outline),
             label: 'Sharing'
           ),
         ],
-        onTap: (value) {
+        onDestinationSelected: (value) {
           switch (value) {
             case 2:
               AppRouter.push(context, page: Lab());
@@ -277,6 +278,8 @@ class _HomeState extends State<Home> {
 
     projects.removeWhere((project) => deleted.contains(project.id));
     projects.addAll(_added);
+
+    projects.sort((a, b) => b.edited!.compareTo(a.edited!),);
 
     setState(() { });
   }

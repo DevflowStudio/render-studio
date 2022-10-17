@@ -1,4 +1,4 @@
-export 'information.dart';
+export 'meta.dart';
 export 'size.dart';
 export 'create.dart';
 export 'onboarding.dart';

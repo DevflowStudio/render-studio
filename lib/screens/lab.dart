@@ -29,7 +29,7 @@ class _LabState extends State<Lab> {
               centerTitle: false,
               title: Text(
                 'Lab',
-                style: AppTheme.flexibleSpaceBarStyle
+                // style: AppTheme.flexibleSpaceBarStyle
               ),
               titlePaddingTween: EdgeInsetsTween(
                 begin: const EdgeInsets.only(

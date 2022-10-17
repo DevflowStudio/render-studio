@@ -1,17 +1,15 @@
-import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
-import 'package:crypto/crypto.dart';
+import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:timeago/timeago.dart' as timeago;
+import '../rehmat.dart';
 
 class Constants {
 
   Constants(this.context);
   final BuildContext context;
 
-  static BorderRadius get borderRadius => BorderRadius.circular(20);
+  static BorderRadius get borderRadius => BorderRadius.circular(15);
 
   Size get gridSize {
     Size size = Size(MediaQuery.of(context).size.width / 2, MediaQuery.of(context).size.width / 2);
@@ -36,44 +34,164 @@ class Constants {
 
   static Duration get animationDuration => const Duration(milliseconds: 200);
 
-  static String generateUID(int length) {
-    String uid = '';
-    for (int i = 0; i < length; i++) {
-      int random = Random().nextInt(_randomList.length - 1);
-      uid += _randomList[random];
-    }
-    return uid;
-  }
-
-  static double get snapSenstivity => 0.8;
+  // static double get snapSenstivity => 5;
 
   static double get nudgeSenstivity => 2;
 
-  static double get appBarExpandedHeight => 170;
+  static double get appBarExpandedHeight => 150;
 
-  static String generateNonce([int length = 32]) {
-    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
-    final random = Random.secure();
-    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  static Future<Map> get device async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    Map<String, dynamic> info = {
+      'os': Platform.operatingSystem,
+      // 'token': tokenManager.token,
+      'timestamp': DateTime.now().millisecondsSinceEpoch
+    };
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      info.addAll({
+        'version': androidInfo.version.baseOS,
+        'model': androidInfo.model,
+        'device': androidInfo.device,
+        'emulator': !androidInfo.isPhysicalDevice,
+        'manufacturer': androidInfo.manufacturer,
+        'identifier': androidInfo.androidId
+      });
+    } else if (Platform.isIOS) {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      info.addAll({
+        'version': iosInfo.systemVersion,
+        'device': iosInfo.utsname.machine,
+        'model': iosInfo.localizedModel,
+        'emulator': !iosInfo.isPhysicalDevice,
+        'manufacturer': 'Apple',
+        'identifier': iosInfo.identifierForVendor
+      });
+    }
+    return info;
   }
 
-  /// Returns the sha256 hash of [input] in hex notation.
-  static String sha256ofString(String input) {
-    final bytes = utf8.encode(input);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
+  static T getThemedObject<T>(BuildContext context, {
+    required T light,
+    required T dark
+  }) {
+    if (MediaQuery.of(context).platformBrightness == Brightness.light) {
+      return light;
+    } else {
+      return dark;
+    }
   }
 
-  static Future<File> getImageFileFromAssets(String path) async {
-    final byteData = await rootBundle.load('assets/$path');
-    final file = File('${(await getTemporaryDirectory()).path}/$path');
-    await file.writeAsBytes(byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes));
-    return file;
+  static Color getThemedBlackAndWhite(BuildContext context) {
+    return getThemedObject<Color>(context, light: Colors.black, dark: Colors.white);
+  }
+
+  static Color textColorFromBackground(Color background) => background.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+  
+  static String convertNumberToFormat(int number) {
+    if (number > 999 && number < 99999) {
+      return "${(number / 1000).toStringAsFixed(1)} K";
+    } else if (number > 99999 && number < 999999) {
+      return "${(number / 1000).toStringAsFixed(0)} K";
+    } else if (number > 999999 && number < 999999999) {
+      return "${(number / 1000000).toStringAsFixed(1)} M";
+    } else if (number > 999999999) {
+      return "${(number / 1000000000).toStringAsFixed(1)} B";
+    } else {
+      return number.toString();
+    }
+  }
+
+  static Future<Map> getDeviceInfo() async {
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+
+    String _model;
+    String _version;
+    String _brand;
+    String _device;
+    bool _isEmulator;
+    String _id;
+    String _manufacturer;
+    
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+      _id = androidInfo.androidId;
+      _model = androidInfo.model;
+      _device = androidInfo.device;
+      _version = androidInfo.version.release;
+      _brand = androidInfo.brand;
+      _manufacturer = androidInfo.manufacturer;
+      _isEmulator = !androidInfo.isPhysicalDevice;
+    } else {
+      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+      _id = iosInfo.identifierForVendor;
+      _model = iosInfo.model;
+      _device = iosInfo.utsname.machine;
+      _version = iosInfo.systemVersion;
+      _brand = 'Apple';
+      _manufacturer = 'Apple';
+      _isEmulator = !iosInfo.isPhysicalDevice;
+    }
+
+    return {
+      'model': _model,
+      'version': _version,
+      'brand': _brand,
+      'device': _device,
+      'isEmulator': _isEmulator,
+      'id': _id,
+      'manufacturer': _manufacturer,
+    };
+
+  }
+
+  static String generateID([int length = 6]) {
+    String result = '';
+    for (var i = 0; i <= length; i++) {
+      var randomLetter = _randomIDlist.getRandom();
+      result = '${result}${randomLetter}';
+    }
+    return result;
   }
 
 }
 
-final List<String> _randomList = [
+final List<String> months = [
+  'Unknown Month', // DateTime months start from 1. So 0 cannot be accessed
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'Decemeber'
+];
+
+String getTimeAgo(DateTime date, {bool includeHour = false}) {
+  String timeAgo = timeago.format(date);
+
+  int timestamp = date.millisecondsSinceEpoch;
+
+  if (DateTime.now().subtract(const Duration(days: 30)).millisecondsSinceEpoch >
+      timestamp) {
+    // More than a month ago
+    timeAgo = getFormattedDate(date, includeHour: includeHour);
+  }
+
+  return timeAgo;
+}
+
+String getFormattedDate(DateTime date, {bool includeHour = false}) {
+  return "${date.day} ${months[date.month]}${date.year != DateTime.now().year ? ' ' + date.year.toString() : ''}" +
+      (includeHour ? (" at ${date.hour}.${date.minute}") : "");
+}
+
+List<String> _randomIDlist = [
   'A',
   'B',
   'C',

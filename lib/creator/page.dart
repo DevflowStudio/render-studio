@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
-import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/material.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
+import 'package:render_studio/creator/state.dart';
 import 'package:screenshot/screenshot.dart';
 
 import '../rehmat.dart';
@@ -34,7 +34,7 @@ class CreatorPage extends PropertyChangeNotifier {
     
     updateListeners();
 
-    grids.addAll([
+    gridManager.grids.addAll([
       Grid(
         position: const Offset(0, 0),
         color: Colors.red,
@@ -79,12 +79,16 @@ class CreatorPage extends PropertyChangeNotifier {
   }
   
   void changeSelection(CreatorWidget widget) {
+    (widgets.where((element) => element.uid == _selected).firstOrNull)?.stateCtrl.update();
+    // Update new selection
     _selected = widget.uid!;
-    grids.removeWhere((grid) => grid.widget is! CreatorPageProperties);
+    (widgets.where((element) => element.uid == _selected).firstOrNull)?.stateCtrl.update();
+    gridManager.grids.removeWhere((grid) => grid.widget is! CreatorPageProperties);
     for (var widget in widgets) {
       widget.updateGrids();
     }
-    visibleGrids.clear();
+    gridManager.visible.clear();
+    widget.stateCtrl.update();
     notifyListeners(PageChange.selection);
   }
 
@@ -92,35 +96,35 @@ class CreatorPage extends PropertyChangeNotifier {
 
   Widget build(BuildContext context) {
     return SizedBox.fromSize(
-      size: project.actualSize(context),
+      size: project.canvasSize(context),
       child: Stack(
-        clipBehavior: Clip.hardEdge,
+        clipBehavior: Clip.none,
         children: [
           ... List.generate(
             widgets.length,
-            (index) => widgets[index].build(context)
+            (index) => WidgetState(
+              key: UniqueKey(),
+              context: context,
+              controller: widgets[index].stateCtrl,
+              creator_widget: widgets[index]
+            )
           ),
-          for (Grid grid in visibleGrids) AlignPositioned(
-            dy: grid.position.dy,
-            dx: grid.position.dx,
-            child: grid.build(context)
-          )
+          PageGridView(state: gridManager)
         ],
       ),
     );
   }
 
-  List<Grid> grids = [];
-  List<Grid> visibleGrids = [];
+  GridState gridManager = GridState();
 
   /// Shows a grid and then hides it
   void showTemporaryGrid(Grid grid, {
     Duration? duration
   }) {
-    if (!visibleGrids.contains(grid)) visibleGrids.add(grid);
+    if (!gridManager.visible.contains(grid)) gridManager.visible.add(grid);
     notifyListeners(PageChange.update);
     Future.delayed(duration ?? Constants.animationDuration, () {
-      if (visibleGrids.contains(grid)) visibleGrids.remove(grid);
+      if (gridManager.visible.contains(grid)) gridManager.visible.remove(grid);
       notifyListeners(PageChange.update);
     });
   }
@@ -161,7 +165,7 @@ class CreatorPage extends PropertyChangeNotifier {
   /// Set the state of the page when a widget is updated.
   /// Also records history.
   void onWidgetUpdate() {
-    notifyListeners(PageChange.update);
+    // notifyListeners(PageChange.update);
     _writeHistory();
   }
 
@@ -169,7 +173,7 @@ class CreatorPage extends PropertyChangeNotifier {
   /// This is called when the widget is dragged, resized or rotated.
   /// This has to be separated because it does not record history.
   void onWidgetNotReallyUpdate() {
-    notifyListeners(PageChange.update);
+    // notifyListeners(PageChange.update);
   }
 
   @override
@@ -226,6 +230,7 @@ class CreatorPage extends PropertyChangeNotifier {
       history.add(event);
       historyDate = history.length - 1;
     }
+    notifyListeners(PageChange.update);
   }
 
   List<Map<String, dynamic>> _getJSON() {
@@ -239,26 +244,36 @@ class CreatorPage extends PropertyChangeNotifier {
   void _doFromHistory(List<Map<String, dynamic>> jsons) {
     List<CreatorWidget> _widgets = [];
     for (Map<String, dynamic> json in jsons) {
-      CreatorWidget? widget = CreatorPage.createWidgetFromId(json['id'], page: this, project: project);
+      CreatorWidget? widget = CreatorPage.createWidgetFromId(json['id'], page: this, project: project, uid: json['uid']);
       if (widget != null) {
         widget.buildFromJSON(json);
         _widgets.add(widget);
       }
     }
     widgets = _widgets;
-    page = widgets.where((element) => element.id == 'page').first as CreatorPageProperties;
+    page = _widgets.where((element) => element.id == 'page').first as CreatorPageProperties;
+    gridManager.grids.clear();
+    widgets.forEach((widget) {
+      widget.updateGrids();
+      widget.updateListeners(WidgetChange.misc);
+      // widget.stateCtrl.renewKey();
+    });
+    changeSelection(page);
     notifyListeners(PageChange.update);
   }
 
   static CreatorWidget? createWidgetFromId(String id, {
+    required String uid,
     required CreatorPage page,
     required Project project
   }) {
     switch (id) {
       case 'page':
-        return CreatorPageProperties(page: page, project: project);
+        return CreatorPageProperties(page: page, project: project, uid: uid);
       case 'text':
         return CreatorText(page: page, project: project);
+      case 'design_asset':
+        return CreatorDesignAsset(page: page, project: project);
       default:
         return null;
     }
@@ -266,14 +281,14 @@ class CreatorPage extends PropertyChangeNotifier {
 
   Future<String?> save(BuildContext context, {
     String? path,
-    bool download = false
+    bool saveToGallery = false
   }) async {
     changeSelection(page);
     String? _path;
     if (path != null) {
       _path = path;
     } else {
-      _path = '${(await getApplicationDocumentsDirectory()).path}/Render Project ${project.id}/Thumbnail-${Constants.generateUID(4)}.png';
+      _path = '${(await getApplicationDocumentsDirectory()).path}/Render Project ${project.id}/Thumbnail-${Constants.generateID(4)}.png';
     }
     try {
       Uint8List data = await screenshotController.captureFromWidget(
@@ -282,7 +297,7 @@ class CreatorPage extends PropertyChangeNotifier {
       );
       File file = await File(_path).create(recursive: true);
       _path = (await file.writeAsBytes(data)).path;
-      if (download) await ImageGallerySaver.saveFile(_path);
+      if (saveToGallery) await ImageGallerySaver.saveFile(_path);
     } catch (e) {
       return null;
     }
@@ -331,7 +346,7 @@ class CreatorPage extends PropertyChangeNotifier {
     bool success = true;
     json['widgets'].forEach((widget) {
       if (!success) return; // Don't continue if the build fails
-      CreatorWidget? _widget = CreatorPage.createWidgetFromId(widget['id'], page: page, project: project);
+      CreatorWidget? _widget = CreatorPage.createWidgetFromId(widget['id'], page: page, project: project, uid: widget['uid']);
       if (_widget == null) return;
       if (!_widget.buildFromJSON(Map.from(widget))) {
         // If the widget cannot be built, mark it as unsuccessful
@@ -348,6 +363,7 @@ class CreatorPage extends PropertyChangeNotifier {
     page.page = widgets.where((element) => element.id == 'page').first as CreatorPageProperties;
     page.history = [page._getJSON()];
     page.addListeners();
+    page.changeSelection(page.page);
     return page;
   }
 

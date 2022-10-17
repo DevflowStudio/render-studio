@@ -20,6 +20,7 @@ class ProjectManager {
     required Project project
   }) async {
     Map<String, dynamic> json = await project.toJSON(context);
+    await projects.delete(project.id);
     await projects.put(project.id, json);
   }
 

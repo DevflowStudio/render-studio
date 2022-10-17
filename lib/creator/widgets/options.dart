@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -16,11 +17,13 @@ class Option {
     required Function(BuildContext context) onTap,
     required IconData icon,
     required String tooltip,
+    Function(BuildContext context)? onLongPress,
     bool greyOut = false
   }) => Option(
     widget: (context) => ButtonWithIcon(
       title: title,
       onTap: onTap,
+      onLongPress: onLongPress,
       icon: icon,
       tooltip: tooltip,
     )
@@ -50,6 +53,48 @@ class Option {
       max: max,
       onChange: onChange
     ),
+  );
+
+  static Option picker({
+    required List<Widget> children,
+    required void Function(int)? onSelectedItemChanged,
+    double itemExtent = 30,
+    int initialIndex = 0
+  }) => Option(
+    widget: (context) => SizedBox(
+      width: MediaQuery.of(context).size.width - 24,
+      child: CupertinoPicker(
+        itemExtent: itemExtent,
+        onSelectedItemChanged: onSelectedItemChanged,
+        children: children,
+        scrollController: FixedExtentScrollController(initialItem: initialIndex),
+        magnification: 1.1,
+        diameterRatio: 1.3,
+        squeeze: 1,
+      ),
+    )
+  );
+
+  static Option pickerBuilder({
+    required Widget? Function(BuildContext context, int index) itemBuilder,
+    required void Function(int index)? onSelectedItemChanged,
+    int? childCount,
+    double itemExtent = 30,
+    int initialIndex = 0
+  }) => Option(
+    widget: (context) => SizedBox(
+      width: MediaQuery.of(context).size.width - 24,
+      child: CupertinoPicker.builder(
+        itemExtent: itemExtent,
+        onSelectedItemChanged: onSelectedItemChanged,
+        childCount: childCount,
+        itemBuilder: itemBuilder,
+        scrollController: FixedExtentScrollController(initialItem: initialIndex),
+        magnification: 1.1,
+        diameterRatio: 1.3,
+        squeeze: 1,
+      ),
+    )
   );
 
   static Option font({

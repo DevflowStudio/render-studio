@@ -130,68 +130,84 @@ extension ResizeHandlerProperties on ResizeHandler {
     /// Previous Size
     required CreatorWidget widget
   }) {
+    double changeInX = details.delta.dx;
+    double changeInY = details.delta.dy;
     switch (this) {
       case ResizeHandler.topLeft:
-        Size _size = Size(widget.size.width - details.delta.dx, widget.size.height - details.delta.dy);
+        Size _size = _calculateNewSize(widget, -changeInX, -changeInY);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx + details.delta.dx / 2, widget.position.dy + details.delta.dy / 2,);
+          if (widget.keepAspectRatio) changeInY = widget.size.height - _size.height;
+          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
       case ResizeHandler.topCenter:
-        Size _size = Size(widget.size.width, widget.size.height - details.delta.dy);
+        Size _size = _calculateNewSize(widget, 0, -changeInY);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx, widget.position.dy + details.delta.dy / 2,);
+          widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
       case ResizeHandler.topRight:
-        Size _size = Size(widget.size.width + details.delta.dx, widget.size.height - details.delta.dy);
+        Size _size = _calculateNewSize(widget, changeInX, -changeInY);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx + details.delta.dx / 2, widget.position.dy + details.delta.dy / 2,);
+          if (widget.keepAspectRatio) changeInY = widget.size.height - _size.height;
+          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
 
       case ResizeHandler.centerLeft:
-        Size _size = Size(widget.size.width - details.delta.dx, widget.size.height);
+        Size _size = _calculateNewSize(widget, -changeInX, 0);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx + details.delta.dx / 2, widget.position.dy);
+          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
           return _size;
         }
         return widget.size;
       case ResizeHandler.centerRight:
-        Size _size = Size(widget.size.width + details.delta.dx, widget.size.height);
+        Size _size = _calculateNewSize(widget, changeInX, 0);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx + details.delta.dx / 2, widget.position.dy);
+          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
           return _size;
         }
         return widget.size;
 
       case ResizeHandler.bottomLeft:
-        Size _size = Size(widget.size.width - details.delta.dx, widget.size.height + details.delta.dy);
+        Size _size = _calculateNewSize(widget, -changeInX, changeInY);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx + details.delta.dx / 2, widget.position.dy + details.delta.dy / 2,);
+          if (widget.keepAspectRatio) changeInY = _size.height - widget.size.height;
+          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
       case ResizeHandler.bottomCenter:
-        Size _size = Size(widget.size.width, widget.size.height + details.delta.dy);
+        Size _size = _calculateNewSize(widget, 0, changeInY);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx, widget.position.dy + details.delta.dy / 2,);
+          widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
       case ResizeHandler.bottomRight:
-        Size _size = Size(widget.size.width + details.delta.dx, widget.size.height + details.delta.dy);
-        if ((details.delta.dx > 0 && details.delta.dy > 0) || widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx + details.delta.dx / 2, widget.position.dy + details.delta.dy / 2,);
+        Size _size = _calculateNewSize(widget, changeInX, changeInY);
+        if ((changeInX > 0 && changeInY > 0) || widget.allowResize(_size)) {
+          if (widget.keepAspectRatio) changeInY = _size.height - widget.size.height;
+          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
       default:
         return null;
     }
+  }
+
+  Size _calculateNewSize(CreatorWidget widget, double changeInX, double changeInY) {
+    if (widget.keepAspectRatio) {
+      double ratio = widget.size.width/widget.size.height;
+      double _width = widget.size.width + changeInX;
+      double _height = _width / ratio;
+      return Size(_width, _height);
+    }
+    else return Size(widget.size.width + changeInX, widget.size.height + changeInY);
   }
 
   ResizeHandlerType get type {

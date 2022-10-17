@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Dev Beta",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_dev.dart",
+    },
+    {
+      "name": "Launch Beta",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_beta.dart",
+      "flutterMode": "release",
+    },
+    {
+      "name": "Launch Production",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_production.dart",
+      "flutterMode": "release",
+    }
+  ]
+}

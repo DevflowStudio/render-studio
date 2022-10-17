@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter/rendering.dart';
 
 import '../../rehmat.dart';
 
@@ -15,6 +14,7 @@ class CreatorDesignAsset extends CreatorWidget {
   @override
   final String id = 'design_asset';
 
+  bool keepAspectRatio = true;
   bool isResizable = true;
   bool isDraggable = true;
 
@@ -25,7 +25,7 @@ class CreatorDesignAsset extends CreatorWidget {
 
   Color? color;
 
-  late File asset;
+  late Asset asset;
   
   @override
   List<ResizeHandler> resizeHandlers = [
@@ -73,28 +73,85 @@ class CreatorDesignAsset extends CreatorWidget {
   ];
 
   @override
-  Widget widget(BuildContext context) => SvgPicture.file(
-    asset,
+  Widget widget(BuildContext context) => MeasureSize(
+    onChange: (size) { },
+    child: SvgPicture.file(
+      asset.file,
+      color: color,
+    )
   );
 
   @override
   Map<String, dynamic> toJSON() => {
     ... super.toJSON(),
+    'color': (color ?? Colors.black).toHex(),
+    'asset': asset.id,
   };
 
-  @override
-  bool buildFromJSON(Map<String, dynamic> json) {
-    return super.buildFromJSON(json);
-  }
-
-  static Future<CreatorDesignAsset> create({
+  static Future<CreatorDesignAsset?> create({
     required CreatorPage page,
     required Project project
   }) async {
     CreatorDesignAsset designAsset = CreatorDesignAsset(page: page, project: project);
-    File svg = await Constants.getImageFileFromAssets('test_svg.svg');
-    designAsset.asset = svg;
+    Asset? _asset = await Asset.create(project, type: FileType.svg);
+    if (_asset == null) return null;
+    designAsset.asset = _asset;
     return designAsset;
   }
 
+  @override
+  bool buildFromJSON(Map<String, dynamic> json) {
+    if (super.buildFromJSON(json)) {
+      if (json.containsKey('color') && json.containsKey('asset')) {
+        Asset? _asset = project.assetManager.get(json['asset']);
+        if (_asset == null) return false;
+        else asset = _asset;
+        color = HexColor.fromHex(json['color']);
+        return true;
+      } else return false;
+    } else return false;
+  }
+
+}
+
+
+
+/// 
+
+
+typedef void OnWidgetSizeChange(Size size);
+
+class MeasureSizeRenderObject extends RenderProxyBox {
+  Size? oldSize;
+  final OnWidgetSizeChange onChange;
+
+  MeasureSizeRenderObject(this.onChange);
+
+  @override
+  void performLayout() {
+    super.performLayout();
+
+    Size newSize = child!.size;
+    if (oldSize == newSize) return;
+
+    oldSize = newSize;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      onChange(newSize);
+    });
+  }
+}
+
+class MeasureSize extends SingleChildRenderObjectWidget {
+  final OnWidgetSizeChange onChange;
+
+  const MeasureSize({
+    Key? key,
+    required this.onChange,
+    required Widget child,
+  }) : super(key: key, child: child);
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    return MeasureSizeRenderObject(onChange);
+  }
 }

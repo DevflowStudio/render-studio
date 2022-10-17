@@ -1,14 +1,17 @@
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:align_positioned/align_positioned.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
+import 'package:render_studio/creator/state.dart';
 import 'package:supercharged/supercharged.dart';
 import '../../rehmat.dart';
 
 
 class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
-  CreatorWidget({required this.page, required this.project}) {
-    uid ??= Constants.generateUID(6);
+  CreatorWidget({required this.page, required this.project, this.uid}) {
+    uid ??= Constants.generateID(6);
+    stateCtrl = WidgetStateController(this);
     editor = Editor(
       tabs: tabs,
       project: project,
@@ -17,6 +20,19 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     );
     _defaultResizeHandlerSet = _resizeHandlers = resizeHandlers;
   }
+
+  late WidgetStateController stateCtrl;
+
+  bool firstBuildDone = false;
+
+  void doFirstBuild() {
+    // First build function is run once the rendering is over
+    // Only once for the widget lifecycle
+    firstBuildDone = true;
+    onFirstBuild();
+  }
+
+  void onFirstBuild() {}
 
   String? uid;
 
@@ -63,10 +79,18 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   Size size = const Size(0, 0);
   Size? minSize;
 
+  /// Setting this to `true` will allow
+  /// resizing but only in the fixed aspect ratio
+  final bool keepAspectRatio = false;
+
   /// Set to `false` if you want the widget
   /// to not be resizeable.
   /// Defaults to `true`
   final bool isResizable = true;
+
+  /// Set to `true` for widgets like background
+  /// to make sure that effects like border are not applied
+  final bool isBackgroundWidget = false;
 
   void onResizeStart({
     required DragStartDetails details,
@@ -103,7 +127,13 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }
 
   bool allowResize(Size _size) {
-    return (_size.width > ((minSize?.width) ?? 30) && _size.height > (minSize?.height ?? 30) && _size.width < (project.deviceSize.width - 40) && _size.height < (project.deviceSize.width - 40));
+    return (
+      _size.width > ((minSize?.width) ?? 30) &&
+      _size.height > (minSize?.height ?? 30) &&
+      _size.width < (project.deviceSize.width - 40) &&
+      _size.height < (project.deviceSize.width - 40)
+    // );
+    ) || (_size.width < size.width && _size.height < size.height);
   }
 
 
@@ -123,7 +153,7 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }
 
   void onDragFinish() {
-    // Update the listener to `update` changes. This will tell the parent to reload and save the change in history
+    // Update the listener to `update` changes. This will tell the parent to reload state and save the change in history
     updateListeners(WidgetChange.update, removeGrids: true);
   }
 
@@ -138,74 +168,106 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// @override this method to disable drag, resizing, tapping and others
   Widget build(BuildContext context) {
     // updateResizeHandlers();
+    if (!firstBuildDone) doFirstBuild();
     return AlignPositioned(
       dy: position.dy,
       dx: position.dx,
       rotateDegrees: angle,
       touch: Touch.inside,
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onDoubleTap: () => onDoubleTap(context),
-        onTap: () {
-          if (page.currentSelection.uid != uid) page.changeSelection(this);
-        },
-        onPanUpdate: isDraggable ? (details) {
-          if (page.currentSelection != this) page.changeSelection(this);
-          updatePosition(Offset(position.dx + details.delta.dx, position.dy + details.delta.dy));
-        } : null,
-        onPanEnd: isDraggable ? (details) {
-          onDragFinish();
-        } : null,
-        child: SizedBox.fromSize(
-          size: Size(size.width + 40, size.height + 40),
-          child: (page.currentSelection == this && isResizable) ? Stack(
-            clipBehavior: Clip.none,
-            children: [
-              
-              Center(
-                child: SizedBox.fromSize(
-                  size: Size(size.width + 2, size.height + 2), // 2 for the border
-                  child: Container(
-                    padding: EdgeInsets.zero,
-                    decoration: BoxDecoration(
-                      // color: Colors.red.withOpacity(0.3),
-                      border: Border.all(
-                        color: Colors.grey[400]!,
-                        width: 1
-                      ),
-                      boxShadow: const [ ]
-                    ),
+      child: Container(
+        decoration: BoxDecoration(
+          border: preferences.showDebugBorder ? Border.all(
+            color: <Color>[
+              // list of 10 random colors
+              Colors.red,
+              Colors.green,
+              Colors.blue,
+              Colors.yellow,
+              Colors.purple,
+              Colors.orange,
+              Colors.pink,
+              Colors.teal,
+              Colors.cyan,
+            ].getRandom(),
+            width: 4
+          ) : null
+        ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onDoubleTap: () => onDoubleTap(context),
+          onTap: () {
+            if (page.currentSelection.uid != uid) page.changeSelection(this);
+          },
+          onPanUpdate: isDraggable ? (details) {
+            if (page.currentSelection != this) page.changeSelection(this);
+            updatePosition(Offset(position.dx + details.delta.dx, position.dy + details.delta.dy));
+          } : null,
+          onPanEnd: isDraggable ? (details) {
+            updatePosition(Offset(position.dx, position.dy));
+            onDragFinish();
+          } : null,
+          child: SizedBox.fromSize(
+            size: Size(size.width + 40, size.height + 40),
+            child: (page.currentSelection == this && !isBackgroundWidget) ? Stack(
+              clipBehavior: Clip.none,
+              children: [
+                
+                Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Center(
                     child: SizedBox.fromSize(
-                      size: size,
-                      child: Opacity(
-                        opacity: opacity,
-                        child: widget(context)
-                      )
-                    )
+                      size: Size(size.width + 4, size.height + 4), // 4 for the border
+                      child: DottedBorder(
+                        borderType: BorderType.RRect,
+                        color: Colors.grey[400]!,
+                        strokeWidth: 2,
+                        dashPattern: [3, 0, 3],
+                        radius: Radius.circular(10),
+                        // padding: EdgeInsets.zero,
+                        // decoration: BoxDecoration(
+                        //   // color: Colors.red.withOpacity(0.3),
+                        //   border: Border.all(
+                        //     color: Colors.grey[400]!,
+                        //     width: 1
+                        //   ),
+                        //   boxShadow: const [ ]
+                        // ),
+                        child: SizedBox.fromSize(
+                          size: size,
+                          child: Opacity(
+                            opacity: opacity,
+                            child: widget(context)
+                          )
+                        )
+                      ),
+                    ),
                   ),
                 ),
-              ),
-      
-              for (ResizeHandler handler in resizeHandlers) ResizeHandlerBall(
-                type: handler,
-                widget: this,
-                onSizeChange: (Size size) {
-                  this.size = size;
-                  updateListeners(WidgetChange.resize);
-                },
-                onResizeEnd: onResizeFinished,
-                onResizeStart: (details) => onResizeStart(details: details, handler: handler),
-                isVisible: _resizeHandlers.contains(handler),
-              ),
-            ],
-          ) : Center(
-            child: SizedBox.fromSize(
-              size: size,
-              child: Opacity(
-                opacity: opacity,
-                child: widget(context)
+        
+                if (isResizable) for (ResizeHandler handler in resizeHandlers) ResizeHandlerBall(
+                  type: handler,
+                  widget: this,
+                  onSizeChange: (Size size) {
+                    this.size = size;
+                    updateListeners(WidgetChange.resize);
+                  },
+                  onResizeEnd: onResizeFinished,
+                  onResizeStart: (details) => onResizeStart(details: details, handler: handler),
+                  isVisible: _resizeHandlers.contains(handler),
+                ),
+              ],
+            ) : Center(
+              child: Padding(
+                padding: EdgeInsets.all(isBackgroundWidget ? 0 : 22),
+                child: SizedBox.fromSize(
+                  size: size,
+                  child: Opacity(
+                    opacity: opacity,
+                    child: widget(context)
+                  )
+                ),
               )
-            )
+            ),
           ),
         ),
       ),
@@ -226,8 +288,9 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     bool removeGrids = false
   }) {
     updateGrids();
-    if (removeGrids) page.visibleGrids.clear();
-    notifyListeners(change);
+    if (removeGrids) page.gridManager.visible.clear();
+    if (change == WidgetChange.update) notifyListeners(change);
+    stateCtrl.update(change);
   }
 
   /// Update all the grids present in the page for the current widget
@@ -239,17 +302,17 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
     List<Grid> _grids = [];
 
-    page.grids.removeWhere((grid) => grid.widget == this);
+    page.gridManager.grids.removeWhere((grid) => grid.widget == this);
 
-    List<Grid> centerHorizontalGrids = page.grids.where((grid) => ((grid.position.dy - position.dy).isBetween(-Constants.snapSenstivity, Constants.snapSenstivity) && grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal)).toList();
-    List<Grid> centerVerticalGrids = page.grids.where((grid) => ((grid.position.dx - position.dx).isBetween(-Constants.snapSenstivity, Constants.snapSenstivity) && grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical)).toList();
-    List<Grid> topGrids = page.grids.where((grid) => ((grid.position.dy - (position.dy - size.height / 2)).isBetween(-Constants.snapSenstivity, Constants.snapSenstivity) && grid.gridWidgetPlacement == GridWidgetPlacement.top)).toList();
-    List<Grid> leftGrids = page.grids.where((grid) => ((grid.position.dx - (position.dx - size.width / 2)).isBetween(-Constants.snapSenstivity, Constants.snapSenstivity) && grid.gridWidgetPlacement == GridWidgetPlacement.left)).toList();
-    List<Grid> rightGrids = page.grids.where((grid) => ((grid.position.dx - (position.dx + size.width / 2)).isBetween(-Constants.snapSenstivity, Constants.snapSenstivity) && grid.gridWidgetPlacement == GridWidgetPlacement.right)).toList();
-    List<Grid> bottomGrids = page.grids.where((grid) => ((grid.position.dy - (position.dy + size.height / 2)).isBetween(-Constants.snapSenstivity, Constants.snapSenstivity) && grid.gridWidgetPlacement == GridWidgetPlacement.bottom)).toList();
+    List<Grid> centerHorizontalGrids = page.gridManager.grids.where((grid) => ((grid.position.dy - position.dy).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal)).toList();
+    List<Grid> centerVerticalGrids = page.gridManager.grids.where((grid) => ((grid.position.dx - position.dx).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical)).toList();
+    List<Grid> topGrids = page.gridManager.grids.where((grid) => ((grid.position.dy - (position.dy - size.height / 2)).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.top)).toList();
+    List<Grid> leftGrids = page.gridManager.grids.where((grid) => ((grid.position.dx - (position.dx - size.width / 2)).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.left)).toList();
+    List<Grid> rightGrids = page.gridManager.grids.where((grid) => ((grid.position.dx - (position.dx + size.width / 2)).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.right)).toList();
+    List<Grid> bottomGrids = page.gridManager.grids.where((grid) => ((grid.position.dy - (position.dy + size.height / 2)).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.bottom)).toList();
 
     if (centerHorizontalGrids.isEmpty) {
-      page.grids.add(
+      page.gridManager.grids.add(
         Grid(
           position: Offset(0, position.dy),
           color: Colors.blue,
@@ -259,15 +322,15 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           gridWidgetPlacement: GridWidgetPlacement.centerHorizontal
         )
       );
-      page.visibleGrids.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal);
+      page.gridManager.visible.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal);
     } else {
       Offset newPosition = centerHorizontalGrids.first.position;
       dy = newPosition.dy;
-      if (!page.visibleGrids.contains(centerHorizontalGrids.first)) _grids.add(centerHorizontalGrids.first);
+      if (!page.gridManager.visible.contains(centerHorizontalGrids.first)) _grids.add(centerHorizontalGrids.first);
     }
 
     if (centerVerticalGrids.isEmpty) {
-      page.grids.add(
+      page.gridManager.grids.add(
         Grid(
           position: Offset(position.dx, 0),
           color: Colors.red,
@@ -277,15 +340,15 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           gridWidgetPlacement: GridWidgetPlacement.centerVertical
         )
       );
-      page.visibleGrids.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical);
+      page.gridManager.visible.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical);
     } else {
       Offset newPosition = centerVerticalGrids.first.position;
       dx = newPosition.dx;
-      if (!page.visibleGrids.contains(centerVerticalGrids.first)) _grids.add(centerVerticalGrids.first);
+      if (!page.gridManager.visible.contains(centerVerticalGrids.first)) _grids.add(centerVerticalGrids.first);
     }
 
     if (topGrids.isEmpty) {
-      page.grids.add(
+      page.gridManager.grids.add(
         Grid(
           position: Offset(0, position.dy - size.height / 2),
           color: Colors.blue,
@@ -295,15 +358,15 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           gridWidgetPlacement: GridWidgetPlacement.top
         )
       );
-      page.visibleGrids.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.top);
+      page.gridManager.visible.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.top);
     } else {
       Offset newPosition = topGrids.first.position;
       dy = newPosition.dy + size.height / 2;
-      if (!page.visibleGrids.contains(topGrids.first)) _grids.add(topGrids.first);
+      if (!page.gridManager.visible.contains(topGrids.first)) _grids.add(topGrids.first);
     }
 
     if (leftGrids.isEmpty) {
-      page.grids.add(
+      page.gridManager.grids.add(
         Grid(
           position: Offset(position.dx - size.width / 2, 0),
           color: Colors.red,
@@ -313,15 +376,15 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           gridWidgetPlacement: GridWidgetPlacement.left
         )
       );
-      page.visibleGrids.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.left);
+      page.gridManager.visible.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.left);
     } else {
       Offset newPosition = leftGrids.first.position;
       dx = newPosition.dx + size.width / 2;
-      if (!page.visibleGrids.contains(leftGrids.first)) _grids.add(leftGrids.first);
+      if (!page.gridManager.visible.contains(leftGrids.first)) _grids.add(leftGrids.first);
     }
 
     if (rightGrids.isEmpty) {
-      page.grids.add(
+      page.gridManager.grids.add(
         Grid(
           position: Offset(position.dx + size.width / 2, 0),
           color: Colors.red,
@@ -331,15 +394,15 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           gridWidgetPlacement: GridWidgetPlacement.right
         )
       );
-      page.visibleGrids.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.right);
+      page.gridManager.visible.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.right);
     } else {
       Offset newPosition = rightGrids.first.position;
       dx = newPosition.dx - size.width / 2;
-      if (!page.visibleGrids.contains(rightGrids.first)) _grids.add(rightGrids.first);
+      if (!page.gridManager.visible.contains(rightGrids.first)) _grids.add(rightGrids.first);
     }
 
     if (bottomGrids.isEmpty) {
-      page.grids.add(
+      page.gridManager.grids.add(
         Grid(
           position: Offset(0, position.dy + size.height / 2),
           color: Colors.blue,
@@ -349,17 +412,18 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           gridWidgetPlacement: GridWidgetPlacement.bottom
         )
       );
-      page.visibleGrids.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.bottom);
+      page.gridManager.visible.removeWhere((grid) => grid.gridWidgetPlacement == GridWidgetPlacement.bottom);
     } else {
       Offset newPosition = bottomGrids.first.position;
       dy = newPosition.dy - size.height / 2;
-      if (!page.visibleGrids.contains(bottomGrids.first)) _grids.add(bottomGrids.first);
+      if (!page.gridManager.visible.contains(bottomGrids.first)) _grids.add(bottomGrids.first);
     }
 
     if (showGridLines) {
+      page.gridManager.notifyListeners();
       // Only snap if the user has enabled it in settings
       if (preferences.snap) position = Offset(dx, dy);
-      page.visibleGrids.addAll(_grids);
+      page.gridManager.visible.addAll(_grids);
       if (preferences.snap && preferences.vibrateOnSnap && _grids.isNotEmpty) {
         TapFeedback.normal();
       }
@@ -370,6 +434,7 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Save the state of the widget in a json format
   Map<String, dynamic> toJSON() => {
     'id': id,
+    'uid': uid,
     'name': name,
     'properties': {
       'position': {
@@ -387,7 +452,12 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   bool buildFromJSON(Map<String, dynamic> json) {
     try {
-      return buildPropertiesFromJSON(Map.from(json['properties']));
+      uid = json['uid'];
+      bool built = buildPropertiesFromJSON(Map.from(json['properties']));
+      updateResizeHandlers();
+      updateGrids();
+      stateCtrl.update();
+      return built;
     } catch (e) {
       return false;
     }
@@ -399,7 +469,7 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       angle = properties['angle'];
       opacity = properties['opacity'];
       size = Size(properties['size']['width'], properties['size']['height']);
-      notifyListeners();
+      updateListeners(WidgetChange.misc);
       return true;
     } catch (e) {
       return false;

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:octo_image/octo_image.dart';
@@ -46,10 +47,11 @@ class ProjectGlance {
   }
 
   /// This function renders full project from the lite (glance) version
-  Project? renderFullProject(BuildContext context) {
+  Future<Project?> renderFullProject(BuildContext context) async {
     try {
       Project project = Project(context, id: id, fromSaves: true);
       bool pageError = false;
+      project.assetManager = await AssetManager.initialize(project, data: data);
       project.title = title;
       project.description = description;
       project.thumbnails = thumbnails;
@@ -113,13 +115,12 @@ class _PostViewModalState extends State<PostViewModal> {
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
           color: Palette.of(context).surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20))
+          // borderRadius: const BorderRadius.vertical(top: Radius.circular(20))
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(height: 10,),
             Row(
               children: [
                 SizedBox(
@@ -178,8 +179,8 @@ class _PostViewModalState extends State<PostViewModal> {
               spacing: 5,
               children: [
                 TextIconButton(
-                  text: 'Edit',
-                  icon: Icons.edit_outlined,
+                  text: 'Open',
+                  icon: Icons.open_in_new,
                   onPressed: () async {
                     if (originalPost == null) await createOriginalPost();
                     if (originalPost != null) AppRouter.replace(context, page: Create(project: originalPost!));
@@ -219,9 +220,9 @@ class _PostViewModalState extends State<PostViewModal> {
                   onPressed: share
                 ),
                 TextIconButton(
-                  text: savedToGallery ? 'Downloaded' : 'Download',
-                  icon: savedToGallery ? Icons.download_done_outlined: Icons.download_outlined,
-                  onPressed: savedToGallery ? () { } : () async => await download()
+                  text: savedToGallery ? 'Saved' : 'Save to Gallery',
+                  icon: savedToGallery ? Icons.download_done : Icons.save_alt,
+                  onPressed: savedToGallery ? () { } : () async => await saveToGallery()
                 )
               ],
             ),
@@ -259,7 +260,7 @@ class _PostViewModalState extends State<PostViewModal> {
   }
 
   Future<void> share() async {
-    if (files == null) await download();
+    if (files == null) await saveToGallery();
     await Share.shareFiles(
       files!,
       text: project.title,
@@ -267,7 +268,7 @@ class _PostViewModalState extends State<PostViewModal> {
     );
   }
 
-  Future<void> download() async {
+  Future<void> saveToGallery() async {
     files = [];
     if (originalPost == null) {
       await createOriginalPost();
@@ -277,7 +278,7 @@ class _PostViewModalState extends State<PostViewModal> {
       context,
       task: () async {
         for (CreatorPage page in originalPost!.pages.pages.reversed) {
-          String? path = await page.save(context, download: true);
+          String? path = await page.save(context, saveToGallery: true);
           if (path != null) files!.add(path);
         }
       }
@@ -295,7 +296,233 @@ class _PostViewModalState extends State<PostViewModal> {
     await Spinner.fullscreen(
       context,
       task: () async {
-        originalPost = project.renderFullProject(context);
+        originalPost = await project.renderFullProject(context);
+      }
+    );
+    setState(() { });
+  }
+
+}
+
+class ProjectAtGlance extends StatefulWidget {
+
+  ProjectAtGlance({
+    Key? key,
+    required this.project,
+  }) : super(key: key);
+
+  final ProjectGlance project;
+
+  @override
+  State<ProjectAtGlance> createState() => _ProjectAtGlanceState();
+}
+
+class _ProjectAtGlanceState extends State<ProjectAtGlance> {
+
+  late ProjectGlance project;
+
+  Project? originalPost;
+
+  List<String>? files;
+
+  List<File> thumbnails = [];
+  late Future<bool> fileExists;
+
+  bool isLoading = true;
+
+  bool savedToGallery = false;
+
+  @override
+  void initState() {
+    super.initState();
+    project = widget.project;
+    getThumbnails();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: MediaQuery.of(context).size.width - 24,
+              height: MediaQuery.of(context).size.width - 24,
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    spreadRadius: 2,
+                    blurRadius: 10,
+                    // offset: const Offset(0, 0),
+                  ),
+                ],
+                borderRadius: Constants.borderRadius,
+              ),
+              child: ClipRRect(
+                borderRadius: Constants.borderRadius,
+                child: Builder(
+                  builder: (context) {
+                    if (isLoading) {
+                      return Container();
+                    } else if (thumbnails.isNotEmpty) {
+                      return OctoImage(
+                      image: FileImage(thumbnails.first),
+                      fit: BoxFit.cover,
+                    );
+                    } else {
+                      return const Center(
+                      child: Icon(
+                        Icons.warning,
+                        color: Colors.yellow,
+                        size: 50,
+                      )
+                    );
+                    }
+                  },
+                ),
+              ),
+            ),
+            Container(
+              width: double.maxFinite,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+                child: Wrap(
+                  runSpacing: 6,
+                  spacing: 24,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    TextIconButton(
+                      text: 'Open',
+                      icon: Icons.open_in_new,
+                      padding: EdgeInsets.zero,
+                      color: Colors.transparent,
+                      onPressed: () async {
+                        if (originalPost == null) await createOriginalPost();
+                        if (originalPost != null) AppRouter.replace(context, page: Create(project: originalPost!));
+                      }
+                    ),
+                    TextIconButton(
+                      text: 'Delete',
+                      icon: Icons.delete_outline,
+                      padding: EdgeInsets.zero,
+                      color: Colors.transparent,
+                      onPressed: () async {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Delete Project'),
+                            content: const Text('Are you sure you want to delete this project?'),
+                            actions: [
+                              TextButton(
+                                onPressed: Navigator.of(context).pop,
+                                child: const Text('Cancel')
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  if (originalPost == null) await createOriginalPost();
+                                  await handler.delete(context, project: originalPost, id: project.id);
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('Delete')
+                              )
+                            ],
+                          ),
+                        );
+                      }
+                    ),
+                    TextIconButton(
+                      text: 'Share',
+                      icon: Icons.share_outlined,
+                      padding: EdgeInsets.zero,
+                      color: Colors.transparent,
+                      onPressed: share
+                    ),
+                    TextIconButton(
+                      text: savedToGallery ? 'Saved' : 'Save to Gallery',
+                      icon: savedToGallery ? Icons.download_done : Icons.save_alt,
+                      onPressed: savedToGallery ? () { } : () async => await saveToGallery(),
+                      padding: EdgeInsets.zero,
+                      color: Colors.transparent,
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String get title {
+    if (project.title == null || project.title!.trim().isEmpty) {
+      return 'Untitled Project';
+    } else {
+      return project.title!;
+    }
+  }
+
+  String? get description {
+    if (project.description == null || project.description!.trim().isEmpty) {
+      return null;
+    } else {
+      return project.description!;
+    }
+  }
+
+  Future<void> getThumbnails() async {
+    for (String thumbnail in project.thumbnails) {
+      File file = File(thumbnail);
+      if (await file.exists()) thumbnails.add(file);
+    }
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  Future<void> share() async {
+    if (files == null) await saveToGallery();
+    await Share.shareFiles(
+      files!,
+      text: project.title,
+      subject: project.description,
+    );
+  }
+
+  Future<void> saveToGallery() async {
+    files = [];
+    if (originalPost == null) {
+      await createOriginalPost();
+      if (originalPost == null) return;
+    }
+    await Spinner.fullscreen(
+      context,
+      task: () async {
+        for (CreatorPage page in originalPost!.pages.pages.reversed) {
+          String? path = await page.save(context, saveToGallery: true);
+          if (path != null) files!.add(path);
+        }
+      }
+    );
+    savedToGallery = true;
+    if (files!.length < originalPost!.pages.length) {
+      Alerts.snackbar(context, text: 'Some of the pages could not be saved');
+    } else {
+      Alerts.snackbar(context, text: 'Saved to your gallery.');
+    }
+    setState(() { });
+  }
+
+  Future<void> createOriginalPost() async {
+    await Spinner.fullscreen(
+      context,
+      task: () async {
+        originalPost = await project.renderFullProject(context);
       }
     );
     setState(() { });

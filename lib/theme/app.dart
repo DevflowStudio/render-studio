@@ -1,205 +1,217 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:render_studio/theme/color_schemes.dart';
 
 import '../rehmat.dart';
 
 class AppTheme {
 
-  static TextStyle get flexibleSpaceBarStyle => TextStyle(
-    fontFamily: Fonts.feature,
-    fontWeight: FontWeight.w500
-  );
-
-  static ThemeData get light => buildTheme(
-    primary: AppColors.primaryLight,
-    accent: AppColors.accentLight,
-    splash: Palette.light.primaryContainer,
-    background: Palette.light.background,
-    appBarColor: Palette.light.background,
-    navigationBarColor: Palette.light.background,
-    brightness: Brightness.light,
-    textColor: Palette.light.onBackground,
-    iconColor: Palette.light.onBackground,
-    cardColor: Palette.light.surfaceVariant
-  );
-
-  static ThemeData get dark => buildTheme(
-    primary: AppColors.primaryDark,
-    accent: AppColors.accentDark,
-    splash: Palette.dark.primaryContainer,
-    background: Palette.dark.background,
-    appBarColor: Palette.dark.surface,
-    navigationBarColor: Palette.dark.background,
-    brightness: Brightness.dark,
-    textColor: Palette.dark.onBackground,
-    iconColor: Palette.dark.onBackground,
-    cardColor: Palette.dark.surfaceVariant
-  );
-
-  static ThemeData buildTheme({
-    required MaterialColor primary,
-    required MaterialColor accent,
-    required Color splash,
-    required Color background,
-    required Color appBarColor,
-    required Color navigationBarColor,
+  static ThemeData build({
     required Brightness brightness,
-    required Color textColor,
-    required Color iconColor,
-    required Color cardColor,
-  }) => ThemeData(
-    visualDensity: VisualDensity.adaptivePlatformDensity,
-    scaffoldBackgroundColor: background,
-    splashColor: splash,
-    fontFamily: Fonts.feature,
-    appBarTheme: AppBarTheme(
-      color: appBarColor,
-      elevation: 0.7,
-      actionsIconTheme: IconThemeData(color: iconColor),
-      iconTheme: IconThemeData(color: iconColor),
-      titleTextStyle: TextStyle(
-        color: textColor,
-        fontSize: 22,
-        fontFamily: Fonts.appBar,
-        fontWeight: FontWeight.w600
-      ),
-      systemOverlayStyle: brightness == Brightness.light ? SystemUiOverlayStyle.light.copyWith(
-        statusBarColor: background,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light
-      ) : SystemUiOverlayStyle.dark.copyWith(
-        statusBarColor: background,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark
-      ),
-    ),
-    canvasColor: background,
-    popupMenuTheme: const PopupMenuThemeData(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(10))
-      ),
-      elevation: 1
-    ),
-    dialogTheme: DialogTheme(
-      backgroundColor: brightness == Brightness.light ? Palette.light.surface : Palette.dark.surface,
-      titleTextStyle: TextStyle(
-        fontSize: 20,
-        fontFamily: Fonts.feature,
-        color: brightness == Brightness.light ? Palette.light.onSurface : Palette.dark.onSurface
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: Constants.borderRadius
-      ),
-      contentTextStyle: TextStyle(
-        color: textColor
-      ),
-    ),
-    tooltipTheme: const TooltipThemeData(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      preferBelow: true,
-    ),
-    textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 17,
-          vertical: 13
+    Color seed = Colors.brown
+  }) {
+    // seed = Color.fromARGB(255, 48, 20, 8);
+    Color contrastTextColor = brightness == Brightness.light ? Colors.black : Colors.white;
+    Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[200]!;
+    Color background = brightness == Brightness.light ? HexColor.fromHex('#f8faf9') : HexColor.fromHex('#14191f');
+    Color surfaceVariant = brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#202833');
+    ColorScheme colorScheme = (brightness == Brightness.light ? lightColorScheme : darkColorScheme).copyWith(
+      background: background,
+      surfaceVariant: surfaceVariant
+    );
+    return ThemeData(
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      fontFamily: 'Google Sans',
+      colorScheme: colorScheme,
+      useMaterial3: true,
+      backgroundColor: background,
+      scaffoldBackgroundColor: background,
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        backgroundColor: background,
+        titleTextStyle: TextStyle(
+          fontSize: 22,
+          fontFamily: 'SF Pro',
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onBackground
         ),
+        surfaceTintColor: colorScheme.surfaceVariant
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(15)),
+        ),
+        enableFeedback: true,
+        elevation: 1
+      ),
+      dialogTheme: DialogTheme(
         shape: RoundedRectangleBorder(
           borderRadius: Constants.borderRadius
         ),
-        primary: textColor
-      ),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 17,
-          vertical: 15
+        actionsPadding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
+        titleTextStyle: TextStyle(
+          fontFamily: 'SF Pro',
+          fontSize: 24,
+          color: contrastTextColor
         ),
-        textStyle: TextStyle(
-          fontSize: 15,
-          fontFamily: Fonts.feature,
-          fontWeight: FontWeight.w600
+        contentTextStyle: TextStyle(
+          fontFamily: 'Google Sans',
+          fontSize: 16,
+          color: contrastTextColorLight
+        )
+      ),
+      tooltipTheme: const TooltipThemeData(
+        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        preferBelow: true,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          enableFeedback: true,
+          padding: EdgeInsets.symmetric(
+            horizontal: 30,
+            vertical: 18
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30)
+          ),
+          textStyle: TextStyle(
+            fontSize: 17,
+            fontFamily: 'Google Sans',
+            fontWeight: FontWeight.w500
+          ),
         ),
-        onPrimary: splash
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          enableFeedback: true,
+          foregroundColor: colorScheme.onPrimary,
+          backgroundColor: colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30)
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: 30,
+            vertical: 18
+          ),
+          textStyle: TextStyle(
+            fontSize: 17,
+            fontFamily: 'Google Sans',
+            fontWeight: FontWeight.w500
+          ),
+        )
+      ),
+      buttonTheme: ButtonThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: Constants.borderRadius
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        tileColor: surfaceVariant,
+        minLeadingWidth: 12
+      ),
+      textTheme: TextTheme(
+        displayLarge: TextStyle(
+          fontFamily: 'SF Pro',
+          color: contrastTextColor
+        ),
+        displayMedium: TextStyle(
+          fontFamily: 'SF Pro',
+          color: contrastTextColor
+        ),
+        displaySmall: TextStyle(
+          fontFamily: 'SF Pro',
+          color: contrastTextColor
+        ),
+        titleLarge: TextStyle(
+          fontFamily: 'SF Pro',
+          color: contrastTextColor
+        ),
+        titleMedium: TextStyle(
+          fontFamily: 'SF Pro',
+          color: contrastTextColor
+        ),
+        titleSmall: TextStyle(
+          fontFamily: 'SF Pro',
+          color: contrastTextColor
+        ),
+        headlineLarge: TextStyle(
+          fontFamily: 'SF Pro',
+          color: contrastTextColor
+        ),
+        headlineMedium: TextStyle(
+          fontFamily: 'SF Pro',
+          color: contrastTextColor
+        ),
+        headlineSmall: TextStyle(
+          fontFamily: 'SF Pro',
+          color: contrastTextColorLight
+        ),
+        bodyLarge: TextStyle(
+          fontFamily: 'Google Sans',
+          color: contrastTextColor
+        ),
+        bodyMedium: TextStyle(
+          fontFamily: 'Google Sans',
+          color: contrastTextColor
+        ),
+        bodySmall: TextStyle(
+          fontFamily: 'Google Sans',
+          color: contrastTextColorLight
+        ),
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        linearMinHeight: 4,
+        color: contrastTextColorLight,
+        linearTrackColor: contrastTextColorLight.withOpacity(0.05)
+      ),
+      cardTheme: CardTheme(
+        // color: cardColor,
+        color: surfaceVariant,
+        elevation: 0.2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15)
+        )
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        elevation: 0.5,
+        enableFeedback: true,
+        showSelectedLabels: true,
+        showUnselectedLabels: false,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        elevation: 0,
+        backgroundColor: background
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        border: UnderlineInputBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(10),
+          )
+        ),
+        hintStyle: TextStyle(
+          fontFamily: 'Google Sans'
+        ),
+      ),
+      dividerTheme: DividerThemeData(
+        endIndent: 18,
+        indent: 18
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5)
+        )
+      ),
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeThroughPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder()
+        }
       )
-    ),
-    buttonTheme: ButtonThemeData(
-      shape: RoundedRectangleBorder(
-        borderRadius: Constants.borderRadius
-      ),
-    ),
-    textTheme: TextTheme(
-      headline1: TextStyle(
-        color: textColor,
-        fontFamily: Fonts.feature,
-        fontSize: 70
-      ),
-      headline2: TextStyle(
-        color: textColor,
-        fontFamily: Fonts.feature,
-      ),
-      headline3: TextStyle(
-        color: textColor,
-        fontFamily: Fonts.feature,
-      ),
-      headline4: TextStyle(
-        color: textColor,
-        fontFamily: Fonts.feature,
-      ),
-      headline5: TextStyle(
-        color: textColor,
-        fontFamily: Fonts.feature,
-      ),
-      headline6: TextStyle(
-        color: textColor,
-        fontFamily: Fonts.body,
-      ),
-      button: TextStyle(
-        color: textColor,
-      )
-    ),
-    floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: brightness == Brightness.light ? Palette.light.primaryContainer : Palette.dark.primaryContainer,
-      shape: RoundedRectangleBorder(
-        borderRadius: Constants.borderRadius,
-      ),
-      splashColor: brightness == Brightness.light ? Palette.light.primary : Palette.dark.primary,
-      enableFeedback: true,
-    ),
-    cardTheme: CardTheme(
-      color: cardColor,
-      elevation: 0,
-      shadowColor: HexColor.fromHex('#B5A9A1'),
-      shape: RoundedRectangleBorder(
-        borderRadius: Constants.borderRadius,
-      )
-    ),
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: navigationBarColor,
-      elevation: 0,
-      enableFeedback: true,
-      showSelectedLabels: true,
-      showUnselectedLabels: false,
-      selectedItemColor: textColor,
-      unselectedItemColor: textColor.withOpacity(0.7)
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      labelStyle: TextStyle(
-        color: textColor
-      )
-    ),
-    snackBarTheme: SnackBarThemeData(
-      actionTextColor: brightness == Brightness.light ? Colors.white : Colors.black,
-    ),
-    colorScheme: ColorScheme.fromSwatch(
-      primarySwatch: primary,
-      accentColor: accent,
-      brightness: brightness,
-      backgroundColor: background,
-    ),
-    textSelectionTheme: TextSelectionThemeData(cursorColor: textColor),
-  );
+    );
+  }
 
 }

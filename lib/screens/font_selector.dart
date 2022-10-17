@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../rehmat.dart';
+
 class FontSelector extends StatefulWidget {
   const FontSelector({Key? key}) : super(key: key);
 
@@ -29,6 +31,7 @@ class _FontSelectorState extends State<FontSelector> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: NewBackButton(),
         title: const Text('Select Font'),
       ),
       body: SingleChildScrollView(

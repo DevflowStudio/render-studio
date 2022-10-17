@@ -37,4 +37,50 @@ class Alerts {
     }
   }
 
+  static Future<bool> showConfirmationDialog(BuildContext context, {
+    required String title,
+    required String description,
+    String confirmButtonText = 'Confirm',
+    String cancelButtonText = 'Cancel',
+    bool isDestructive = false,
+  }) async {
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(description),
+        actions: [
+          TextButton(
+            child: Text(cancelButtonText),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          TextButton(
+            child: Text(confirmButtonText),
+            onPressed: () => Navigator.of(context).pop(true),
+          )
+        ],
+      )
+    );
+    return confirm ?? false;
+  }
+
+  static Future<dynamic> dialog(BuildContext context, {
+    required String title,
+    String? description,
+    required List<Widget> actions
+  }) async {
+    return await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: description != null ? Text(description) : null,
+        actions: actions,
+      )
+    );
+  }
+
+  static Future<void> toast({
+    BuildContext? context
+  }) async { }
+
 }
