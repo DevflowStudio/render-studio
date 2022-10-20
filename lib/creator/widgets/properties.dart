@@ -1,5 +1,8 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:render_studio/creator/widgets/qr.dart';
 
 import '../../rehmat.dart';
 
@@ -63,14 +66,80 @@ class CreatorPageProperties extends CreatorWidget {
                     'icon': FontAwesomeIcons.icons,
                     'onTap': () async { }
                   },
-                  'Shape': {
+                  'Box': {
                     'icon': FontAwesomeIcons.shapes,
-                    'onTap': () async {}
+                    'onTap': () async {
+                      Navigator.of(context).pop(CreatorBoxWidget(page: page, project: project));
+                    }
                   },
                   'Design Asset': {
                     'icon': FontAwesomeIcons.compassDrafting,
                     'onTap': () async {
-                      Navigator.of(context).pop(await CreatorDesignAsset.create(page: page, project: project));
+                      Navigator.of(context).pop(await CreatorDesignAsset.create(context, page: page, project: project));
+                    }
+                  },
+                  'QR Code': {
+                    'icon': FontAwesomeIcons.qrcode,
+                    'onTap': () async {
+                      String? _data = await showGeneralDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        transitionDuration: const Duration(
+                          milliseconds: 400,
+                        ), // how long it takes to popup dialog after button click
+                        pageBuilder: (_, __, ___) {
+                          TextEditingController textCtrl = TextEditingController();
+                          return StatefulBuilder(
+                            builder: (context, setState) {
+                              return Container(
+                                color: Palette.of(context).surface.withOpacity(0.5),
+                                child: BackdropFilter(
+                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                  child: Scaffold(
+                                    backgroundColor: Colors.transparent,
+                                    body: Column(
+                                      children: [
+                                        SafeArea(
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              IconButton(
+                                                onPressed: Navigator.of(context).pop,
+                                                icon: const Icon(Icons.cancel)
+                                              ),
+                                              IconButton(
+                                                onPressed: () => Navigator.of(context).pop(textCtrl.text),
+                                                icon: const Icon(Icons.check_circle)
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        TextFormField(
+                                          controller: textCtrl,
+                                          decoration: const InputDecoration(
+                                            filled: false,
+                                            hintText: 'Type something ...',
+                                            border: InputBorder.none,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 3,
+                                          style: const TextStyle(
+                                            fontSize: 30,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      );
+                      if (_data != null) Navigator.of(context).pop(await QRWidget.create(context, page: page, project: project, data: _data));
+                      else Navigator.of(context).pop();
                     }
                   }
                 };
@@ -165,7 +234,7 @@ class CreatorPageProperties extends CreatorWidget {
                     onTap: () async {
                       TapFeedback.light();
                       Navigator.of(context).pop();
-                      await editor.showTab(
+                      await EditorTab.modal(
                         context,
                         tab: EditorTab(
                           options: [

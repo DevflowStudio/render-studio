@@ -5,4 +5,5 @@ export 'screens/screens.dart';
 export 'widgets/widgets.dart';
 export 'creator/creator.dart';
 export 'state/app.dart';
+export 'palette/palette.dart';
 export 'app.dart';

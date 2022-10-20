@@ -6,6 +6,7 @@ import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
 import 'package:render_studio/creator/state.dart';
+import 'package:render_studio/creator/widgets/qr.dart';
 import 'package:screenshot/screenshot.dart';
 
 import '../rehmat.dart';
@@ -34,24 +35,11 @@ class CreatorPage extends PropertyChangeNotifier {
     
     updateListeners();
 
-    gridManager.grids.addAll([
-      Grid(
-        position: const Offset(0, 0),
-        color: Colors.red,
-        layout: GridLayout.vertical,
-        widget: page,
-        project: project,
-        gridWidgetPlacement: GridWidgetPlacement.centerVertical
-      ),
-      Grid(
-        position: const Offset(0, 0),
-        color: Colors.red,
-        layout: GridLayout.horizontal,
-        widget: page,
-        project: project,
-        gridWidgetPlacement: GridWidgetPlacement.centerHorizontal
-      )
-    ]);
+    gridState = GridState(
+      page: page,
+      project: project
+    );
+    
   }
 
   ScreenshotController screenshotController = ScreenshotController();
@@ -64,6 +52,8 @@ class CreatorPage extends PropertyChangeNotifier {
 
   /// List of all the widgets in the page
   late List<CreatorWidget> widgets;
+
+  late GridState gridState;
 
   late String _selected;
 
@@ -83,11 +73,11 @@ class CreatorPage extends PropertyChangeNotifier {
     // Update new selection
     _selected = widget.uid!;
     (widgets.where((element) => element.uid == _selected).firstOrNull)?.stateCtrl.update();
-    gridManager.grids.removeWhere((grid) => grid.widget is! CreatorPageProperties);
+    gridState.grids.removeWhere((grid) => grid.widget is! CreatorPageProperties);
     for (var widget in widgets) {
       widget.updateGrids();
     }
-    gridManager.visible.clear();
+    gridState.visible.clear();
     widget.stateCtrl.update();
     notifyListeners(PageChange.selection);
   }
@@ -98,7 +88,7 @@ class CreatorPage extends PropertyChangeNotifier {
     return SizedBox.fromSize(
       size: project.canvasSize(context),
       child: Stack(
-        clipBehavior: Clip.none,
+        clipBehavior: Clip.hardEdge,
         children: [
           ... List.generate(
             widgets.length,
@@ -109,22 +99,20 @@ class CreatorPage extends PropertyChangeNotifier {
               creator_widget: widgets[index]
             )
           ),
-          PageGridView(state: gridManager)
+          PageGridView(state: gridState)
         ],
       ),
     );
   }
 
-  GridState gridManager = GridState();
-
   /// Shows a grid and then hides it
   void showTemporaryGrid(Grid grid, {
     Duration? duration
   }) {
-    if (!gridManager.visible.contains(grid)) gridManager.visible.add(grid);
+    if (!gridState.visible.contains(grid)) gridState.visible.add(grid);
     notifyListeners(PageChange.update);
     Future.delayed(duration ?? Constants.animationDuration, () {
-      if (gridManager.visible.contains(grid)) gridManager.visible.remove(grid);
+      if (gridState.visible.contains(grid)) gridState.visible.remove(grid);
       notifyListeners(PageChange.update);
     });
   }
@@ -184,6 +172,7 @@ class CreatorPage extends PropertyChangeNotifier {
 
   /// Delete widget from page
   void delete(CreatorWidget widget) {
+    widget.onDelete();
     widgets.remove(widget);
     _writeHistory();
     changeSelection(page);
@@ -252,7 +241,7 @@ class CreatorPage extends PropertyChangeNotifier {
     }
     widgets = _widgets;
     page = _widgets.where((element) => element.id == 'page').first as CreatorPageProperties;
-    gridManager.grids.clear();
+    gridState.reset();
     widgets.forEach((widget) {
       widget.updateGrids();
       widget.updateListeners(WidgetChange.misc);
@@ -270,10 +259,14 @@ class CreatorPage extends PropertyChangeNotifier {
     switch (id) {
       case 'page':
         return CreatorPageProperties(page: page, project: project, uid: uid);
+      case 'box':
+        return CreatorBoxWidget(page: page, project: project, uid: uid);
       case 'text':
         return CreatorText(page: page, project: project);
       case 'design_asset':
         return CreatorDesignAsset(page: page, project: project);
+      case 'qr_code':
+        return QRWidget(page: page, project: project);
       default:
         return null;
     }
@@ -292,13 +285,15 @@ class CreatorPage extends PropertyChangeNotifier {
     }
     try {
       Uint8List data = await screenshotController.captureFromWidget(
-        build(context),
-        // delay: Duration(milliseconds: 50),
+        build(context)
       );
+      print('Project [${page.uid}] : $data');
+      // if (data == null) return null;
       File file = await File(_path).create(recursive: true);
       _path = (await file.writeAsBytes(data)).path;
       if (saveToGallery) await ImageGallerySaver.saveFile(_path);
     } catch (e) {
+      print(e);
       return null;
     }
     return _path;

@@ -84,16 +84,17 @@ class CreatorDesignAsset extends CreatorWidget {
   @override
   Map<String, dynamic> toJSON() => {
     ... super.toJSON(),
-    'color': (color ?? Colors.black).toHex(),
+    'color': color?.toHex(),
     'asset': asset.id,
   };
 
-  static Future<CreatorDesignAsset?> create({
+  static Future<CreatorDesignAsset?> create(BuildContext context, {
     required CreatorPage page,
-    required Project project
+    required Project project,
   }) async {
     CreatorDesignAsset designAsset = CreatorDesignAsset(page: page, project: project);
-    Asset? _asset = await Asset.create(project, type: FileType.svg);
+    Asset? _asset = await Asset.create(project, type: FileType.svg, context: context);
+    print(_asset);
     if (_asset == null) return null;
     designAsset.asset = _asset;
     return designAsset;
@@ -102,14 +103,22 @@ class CreatorDesignAsset extends CreatorWidget {
   @override
   bool buildFromJSON(Map<String, dynamic> json) {
     if (super.buildFromJSON(json)) {
-      if (json.containsKey('color') && json.containsKey('asset')) {
+      try {
         Asset? _asset = project.assetManager.get(json['asset']);
         if (_asset == null) return false;
         else asset = _asset;
-        color = HexColor.fromHex(json['color']);
+        if (json['color'] != null) color = HexColor.fromHex(json['color']);
         return true;
-      } else return false;
+      } catch (e) {
+        print('Error building Design Asset from JSON: $e');
+        return false;
+      }
     } else return false;
+  }
+
+  @override
+  void onDelete() {
+    project.assetManager.delete(asset);
   }
 
 }

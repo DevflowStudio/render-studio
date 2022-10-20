@@ -24,6 +24,11 @@ class AssetManager {
     assets[asset.id] = asset;
   }
 
+  Future<void> delete(Asset asset) async {
+    assets.remove(asset.id);
+    await asset.delete();
+  }
+
   Asset? get(String id) {
     return assets[id];
   }

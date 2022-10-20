@@ -100,8 +100,9 @@ class Project {
     if (updateThumbnails) {
       thumbnails.clear();
       for (CreatorPage page in pages.pages) {
-        if (!restoring) pages.controller.animateToPage(pages.pages.indexOf(page), duration: Constants.animationDuration, curve: Curves.easeInOut);
+        // if (!restoring) pages.controller.animateToPage(pages.pages.indexOf(page), duration: Constants.animationDuration, curve: Curves.easeInOut);
         String? thumbnail = await page.save(context);
+        print(thumbnail);
         if (thumbnail != null) thumbnails.add(thumbnail);
       }
     }
@@ -123,6 +124,8 @@ class Project {
       },
       'assets': assetManager.toJSON(),
     };
+
+    print(json);
 
     return json;
   }

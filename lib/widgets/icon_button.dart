@@ -197,13 +197,15 @@ class ColorSelector extends StatefulWidget {
     required this.color,
     required this.tooltip,
     this.size,
-    this.borderWidth = 5
+    this.borderWidth = 5,
+    this.reverseOrder = false
   }) : super(key: key);
 
   final String title;
   final Function(Color color) onColorSelect;
   final Color color;
   final String tooltip;
+  final bool reverseOrder;
 
   final Size? size;
   final double borderWidth;
@@ -281,11 +283,13 @@ class _ColorSelectorState extends State<ColorSelector> {
               flex: 1,
               child: Text(
                 widget.title,
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-          ],
+          ].maybeReverse(widget.reverseOrder),
         ),
       ),
     );
@@ -386,12 +390,14 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
             ),
             if (widget.title != null) ... [
               Container(height: 10,),
-              Flexible(
-                flex: 1,
-                child: Text(
-                  widget.title!,
-                  style: Theme.of(context).textTheme.subtitle1,
-                  overflow: TextOverflow.ellipsis,
+              SizedBox(
+                height: calculateHeight() - 60,
+                child: Center(
+                  child: AutoSizeText(
+                    widget.title!,
+                    style: Theme.of(context).textTheme.subtitle1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               )
             ]

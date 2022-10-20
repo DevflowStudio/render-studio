@@ -78,11 +78,16 @@ class FilePicker {
       allowedExtensions: allowedExtenstions
     );
     if (result != null && result.files.isNotEmpty && context != null) {
-      File uncropped = File(result.files.single.path!);
-      if (type == FileType.image && crop) {
-        File? cropped = await FilePicker.crop(context, file: uncropped, ratio: cropRatio);
-        return cropped;
-      } else return uncropped;
+      try {
+        File uncropped = File(result.files.single.path!);
+        if (type == FileType.image && crop) {
+          File? cropped = await FilePicker.crop(context, file: uncropped, ratio: cropRatio);
+          return cropped;
+        } else return uncropped;
+      } catch (e) {
+        print(e);
+        return null;
+      }
     } else {
       return null;
     }

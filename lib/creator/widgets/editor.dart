@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../rehmat.dart';
 
@@ -18,67 +19,6 @@ class Editor extends StatefulWidget {
   final CreatorWidget widget;
 
   Widget get build => this;
-
-  Future<void> showTab(BuildContext context, {
-    required EditorTab tab,
-    double? height
-  }) async {
-    await showModalBottomSheet(
-      context: context,
-      enableDrag: false,
-      isScrollControlled: true,
-      barrierColor: Colors.transparent,
-      builder: (context) => Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Palette.of(context).surfaceVariant,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 3,
-              spreadRadius: 0,
-            )
-          ]
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 45
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  child: Text(
-                    tab.tab,
-                    style: Theme.of(context).textTheme.subtitle2!.copyWith(),
-                  ),
-                ),
-                IconButton(
-                  onPressed: Navigator.of(context).pop,
-                  icon: const Icon(Icons.check_circle)
-                ),
-              ],
-            ),
-            const Divider(
-              indent: 0,
-              height: 0,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 5, right: 5, top: 20, bottom: 20),
-              child: SizedBox.fromSize(
-                size: Size.fromHeight(MediaQuery.of(context).size.height/9),
-                child: tab.build(context),
-              ),
-            ),
-          ],
-        )
-      ),
-    );
-  }
 
   static Size calculateSize(BuildContext context) {
     Size editorSize = Size(double.infinity, MediaQuery.of(context).size.height * 0.25); // The editor can only be allowed to cover 23% of the screen area.
@@ -190,14 +130,86 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
 class EditorTab {
 
   EditorTab({
-    required this.options,
     required this.tab,
+    required this.options,
     this.type = EditorTabType.row,
+    this.actions = const [],
   });
 
   final List<Option> options;
   final String tab;
   final EditorTabType type;
+  final List<IconButton> actions;
+
+  static Future<void> modal(BuildContext context, {
+    required EditorTab tab,
+    double? height,
+    Widget Function(BuildContext context, Widget child)? builder,
+  }) async {
+    await showModalBottomSheet(
+      context: context,
+      enableDrag: false,
+      isScrollControlled: true,
+      barrierColor: Colors.transparent,
+      builder: (context) => Container(
+        width: double.infinity,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        decoration: BoxDecoration(
+          color: Palette.of(context).surfaceVariant,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 3,
+              spreadRadius: 0,
+            )
+          ]
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 45
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  child: Text(
+                    tab.tab,
+                    style: Theme.of(context).textTheme.subtitle2!.copyWith(),
+                  ),
+                ),
+                IconButton(
+                  onPressed: Navigator.of(context).pop,
+                  icon: const Icon(Icons.check_circle)
+                ),
+              ],
+            ),
+            const Divider(
+              indent: 0,
+              height: 0,
+            ),
+            if (builder != null) builder(context, tab.build(context))
+            else Container(
+              // color: Colors.red,
+              constraints: BoxConstraints(
+                minHeight: Editor.calculateSize(context).height - 50,
+                maxHeight: MediaQuery.of(context).size.height/2.7,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 5, right: 5, top: 20, bottom: 20),
+                child: tab.build(context),
+              ),
+            ),
+          ],
+        )
+      ),
+    );
+  }
 
   Widget build(BuildContext context) {
     switch (type) {
@@ -222,14 +234,7 @@ class EditorTab {
           padding: EdgeInsets.zero,
         );
       case EditorTabType.single:
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            options[0].build(context)
-          ],
-        );
+        return options[0].build(context);
       case EditorTabType.grid:
         return SizedBox(
           height: 80,
@@ -291,6 +296,49 @@ class EditorTab {
     ],
     tab: 'Rotate'
   );
+
+  static EditorTab scale({
+    required Size size,
+    required Size minSize,
+    required Size maxSize,
+    required Function(Size value) onChange,
+    Function(Size value)? onChangeEnd,
+  }) {
+
+    double ratio = size.width / size.height;
+    
+    double min = (ratio < 1) ? minSize.height : minSize.width;
+    double max = (ratio < 1) ? maxSize.height : maxSize.width;
+
+    Size _calculateSize({required double value}) {
+      if (ratio < 1) {
+        return Size(value * ratio, value);
+      } else {
+        return Size(value, value / ratio);
+      }
+    }
+
+    return EditorTab(
+      type: EditorTabType.single,
+      tab: 'Scale',
+      options: [
+        Option.slider(
+          value: ratio < 1 ? size.height : size.width,
+          min: min,
+          max: max,
+          label: 'Scale',
+          onChange: (value) {
+            onChange(_calculateSize(value: value));
+          },
+          onChangeEnd: (value) {
+            if (onChangeEnd != null) onChangeEnd(_calculateSize(value: value));
+          },
+          divisions: 45
+        )
+      ],
+    );
+    
+  }
 
   static EditorTab size({
     required double current,
@@ -362,6 +410,9 @@ class EditorTab {
     options: [
       Option.custom(
         widget: (context) => Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             InkWell(
               borderRadius: BorderRadius.circular(5),
@@ -384,6 +435,7 @@ class EditorTab {
               ),
             ),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 InkWell(
                   borderRadius: BorderRadius.circular(5),
@@ -454,6 +506,43 @@ class EditorTab {
     tab: 'Nudge'
   );
 
+  static EditorTab paddingEditor({
+    required EdgeInsets padding,
+    required Function(EdgeInsets value) onChange,
+  }) => EditorTab(
+    type: EditorTabType.single,
+    options: [
+      Option.custom(
+        widget: (context) => _PaddingEditor(
+          padding: padding,
+          onChange: onChange,
+        ),
+      )
+    ],
+    tab: 'Padding'
+  );
+
+  static EditorTab shadow<T>({
+    required Shadow shadow,
+    required void Function(T value) onChange,
+    void Function(T value)? onChangeEnd,
+  }) {
+    print(onChange);
+    return EditorTab(
+      type: EditorTabType.single,
+      options: [
+        Option.custom(
+          widget: (context) => _ShadowEditor<T>(
+            shadow: shadow,
+            onChange: onChange,
+            onChangeEnd: onChangeEnd,
+          ),
+        )
+      ],
+      tab: 'Shadow Editor'
+    );
+  }
+
 }
 
 enum EditorTabType {
@@ -479,4 +568,335 @@ extension EditorTabTypeExtension on EditorTabType {
   //   }
   // }
 
+}
+
+class _PaddingEditor extends StatefulWidget {
+
+  _PaddingEditor({
+    Key? key,
+    required this.padding,
+    required this.onChange,
+  }) : super(key: key);
+
+  final EdgeInsets padding;
+  final Function(EdgeInsets value) onChange;
+
+  @override
+  State<_PaddingEditor> createState() => __PaddingEditorState();
+}
+
+class __PaddingEditorState extends State<_PaddingEditor> {
+
+  late EdgeInsets padding;
+
+  double horizontal = 0;
+  double vertical = 0;
+
+  bool locked = true;
+
+  @override
+  void initState() {
+    padding = widget.padding;
+    horizontal = padding.left;
+    vertical = padding.top;
+    if (horizontal == vertical) locked = true;
+    else locked = false;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Slider(
+              value: locked ? vertical : horizontal,
+              label: 'Horizontal',
+              min: 0,
+              max: 50,
+              onChanged: (value) {
+                if (locked) {
+                  horizontal = vertical = value;
+                  padding = EdgeInsets.symmetric(vertical: value, horizontal: value);
+                } else {
+                  horizontal = value;
+                  padding = EdgeInsets.symmetric(horizontal: value, vertical: vertical);
+                }
+                setState(() { });
+                widget.onChange(padding);
+              },
+            ),
+            Slider(
+              value: vertical,
+              label: 'Vertical',
+              min: 0,
+              max: 50,
+              onChanged: (value) {
+                if (locked) {
+                  horizontal = vertical = value;
+                  padding = EdgeInsets.symmetric(vertical: value, horizontal: value);
+                } else {
+                  vertical = value;
+                  padding = EdgeInsets.symmetric(horizontal: value, vertical: vertical);
+                }
+                setState(() { });
+                widget.onChange(padding);
+              },
+            ),
+          ],
+        ),
+        SizedBox(width: 24),
+        OutlinedIconButtons(
+          onPressed: () {
+            TapFeedback.light();
+            setState(() => locked = !locked);
+          },
+          icon: Icon(
+            locked ? Icons.lock : Icons.lock_open,
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget iconButton() {
+    if (locked) return FilledTonalIconButton(
+      onPressed: () => setState(() => locked = !locked),
+      icon: Icon(Icons.lock)
+    );
+    else return OutlinedIconButtons(
+      onPressed: () => setState(() => locked = !locked),
+      icon: Icon(Icons.lock_open)
+    );
+  }
+  
+}
+
+class _ShadowEditor<T> extends StatefulWidget {
+
+  _ShadowEditor({
+    Key? key,
+    required this.shadow,
+    required this.onChange,
+    this.onChangeEnd,
+  });
+
+  final Shadow shadow;
+  final void Function(T value) onChange;
+  final void Function(T value)? onChangeEnd;
+
+  @override
+  State<_ShadowEditor<T>> createState() => __ShadowEditorState<T>();
+}
+
+class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
+
+  late T shadow;
+
+  Shadow get _shadow => shadow as Shadow;
+
+  late final TextEditingController xController;
+  late final TextEditingController yController;
+  late final TextEditingController opactiyController;
+  late final TextEditingController blurController;
+  final TextEditingController spreadController = TextEditingController(text: '0');
+
+  Color color = Colors.black;
+  double opacity = 0.3;
+  double x = 0;
+  double y = 0;
+  double blur = 0;
+  double spread = 0;
+
+  @override
+  void initState() {
+    shadow = (widget.shadow as T);
+    color = _shadow.color;
+    x = _shadow.offset.dx;
+    y = _shadow.offset.dy;
+    blur = _shadow.blurRadius;
+    opacity = _shadow.color.opacity.trimToDecimal(1);
+    xController = TextEditingController.fromValue(TextEditingValue(text: x.toString()));
+    yController = TextEditingController.fromValue(TextEditingValue(text: y.toString()));
+    blurController = TextEditingController.fromValue(TextEditingValue(text: blur.toString()));
+    opactiyController = TextEditingController.fromValue(TextEditingValue(text: opacity.toString()));
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12,),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.start,
+        alignment: WrapAlignment.start,
+        children: [
+          _ShadowEditorGroupValueEditor(
+            label: 'X',
+            textEditingController: xController,
+            onChange: (value) {
+              x = value;
+              onChange();
+            },
+          ),
+          _ShadowEditorGroupValueEditor(
+            label: 'Blur',
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            textEditingController: blurController,
+            onChange: (value) {
+              blur = value;
+              onChange();
+            },
+          ),
+          _ShadowEditorGroupValueEditor(
+            label: 'Y',
+            textEditingController: yController,
+            onChange: (value) {
+              y = value;
+              onChange();
+            },
+          ),
+          if (shadow.runtimeType != BoxShadow) _ShadowEditorGroupValueEditor(
+            label: 'Spread',
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            textEditingController: spreadController,
+            onChange: (value) {
+              spread = value;
+              onChange();
+            },
+          ),
+          ... [
+            _ShadowEditorGroupValueEditor(
+              label: 'Opacity',
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              textEditingController: opactiyController,
+              onChange: (value) {
+                opacity = value;
+                onChange();
+              },
+            ),
+            _ShadowEditorGroupWidget(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: ColorSelector(
+                  title: 'Color',
+                  onColorSelect: (color) {
+                    this.color = color;
+                    onChange();
+                  },
+                  reverseOrder: true,
+                  size: const Size(40, 40),
+                  color: color,
+                  tooltip: 'Shadow Color',
+                ),
+              )
+            ),
+          ].maybeReverse(shadow.runtimeType != BoxShadow)
+        ],
+      ),
+    );
+  }
+
+  void onChange() {
+    if (shadow.runtimeType == BoxShadow) {
+      shadow = BoxShadow(
+        color: color.withOpacity(opacity),
+        offset: Offset(x, y),
+        blurRadius: blur,
+        spreadRadius: spread,
+      ) as T;
+    } else if (shadow.runtimeType == Shadow) {
+      shadow = Shadow(
+        color: color.withOpacity(opacity),
+        offset: Offset(x, y),
+        blurRadius: blur,
+      ) as T;
+    }
+    widget.onChange(shadow);
+  }
+
+}
+
+class _ShadowEditorGroupWidget extends StatelessWidget {
+
+  const _ShadowEditorGroupWidget({
+    Key? key,
+    required this.child
+  }) : super(key: key);
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width/2 - 24,
+      child: child,
+    );
+  }
+}
+
+class _ShadowEditorGroupValueEditor extends StatelessWidget {
+
+  const _ShadowEditorGroupValueEditor({
+    Key? key,
+    required this.label,
+    required this.onChange,
+    this.mainAxisAlignment,
+    this.textEditingController,
+  }) : super(key: key);
+
+  final TextEditingController? textEditingController;
+  final MainAxisAlignment? mainAxisAlignment;
+  final String label;
+  final Function(double value) onChange;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ShadowEditorGroupWidget(
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.subtitle1?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+            ),
+          ),
+          SizedBox(width: 12),
+          SizedBox.fromSize(
+            size: const Size(100, 50),
+            child: TextFormField(
+              controller: textEditingController,
+              decoration: InputDecoration(
+                filled: false,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d{0,2}\.?\d{0,1}'))
+              ],
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                if (value.isEmpty) return;
+                try {
+                  double _value = double.parse(value);
+                  print(onChange);
+                  onChange(_value);
+                } catch (e) {
+                  onChange(0);
+                }
+              },
+            )
+          )
+        ],
+      ),
+    );
+  }
 }

@@ -6,8 +6,42 @@ import '../rehmat.dart';
 
 class GridState extends ChangeNotifier {
 
+  final CreatorWidget page;
+  final Project project;
+
+  GridState({required this.project, required this.page}) {
+    _addBackgroundGrids();
+  }
+  
+
   List<Grid> grids = [];
   List<Grid> visible = [];
+
+  void reset() {
+    grids.clear();
+    _addBackgroundGrids();
+  }
+
+  void _addBackgroundGrids() {
+    grids.addAll([
+      Grid(
+        position: const Offset(0, 0),
+        color: Colors.red,
+        layout: GridLayout.vertical,
+        widget: page,
+        project: project,
+        gridWidgetPlacement: GridWidgetPlacement.centerVertical
+      ),
+      Grid(
+        position: const Offset(0, 0),
+        color: Colors.red,
+        layout: GridLayout.horizontal,
+        widget: page,
+        project: project,
+        gridWidgetPlacement: GridWidgetPlacement.centerHorizontal
+      )
+    ]);
+  }
 
 }
 

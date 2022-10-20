@@ -20,10 +20,10 @@ class CreatorText extends CreatorWidget {
           onTap: (context) async {
             await showEditTextModal(context);
           },
-          icon: Icons.edit
+          icon: Icons.keyboard_alt_outlined
         ),
         Option.button(
-          icon: Icons.delete,
+          icon: Icons.delete_rounded,
           title: 'Delete',
           tooltip: 'Delete Text Widget',
           onTap: (context) async {
@@ -35,6 +35,7 @@ class CreatorText extends CreatorWidget {
           tooltip: 'Auto size text when resizing the widget',
           onTap: (context) async {
             autoSize = !autoSize;
+            _removeExtraSpaceFromSize();
             updateListeners(WidgetChange.misc);
           },
           icon: Icons.auto_awesome_rounded
@@ -45,7 +46,7 @@ class CreatorText extends CreatorWidget {
           onTap: (context) async {
             autoSize = false;
             updateListeners(WidgetChange.misc);
-            await editor.showTab(
+            await EditorTab.modal(
               context,
               tab: EditorTab.size(
                 current: fontSize,
@@ -67,7 +68,7 @@ class CreatorText extends CreatorWidget {
           tooltip: 'Change line height of the text',
           onTap: (context) async {
             List<double> _options = [0.6, 0.77, 0.85, 0.9, 1, 1.5, 2];
-            await editor.showTab(
+            await EditorTab.modal(
               context,
               tab: EditorTab.pickerBuilder(
                 title: 'Line Height',
@@ -240,7 +241,7 @@ class CreatorText extends CreatorWidget {
         Option.button(
           title: 'Radius',
           onTap: (context) {
-            editor.showTab(
+            EditorTab.modal(
               context,
               tab: EditorTab(
                 type: EditorTabType.single,
@@ -264,6 +265,26 @@ class CreatorText extends CreatorWidget {
             );
           },
           icon: Icons.rounded_corner,
+          tooltip: 'Adjust Widget Border Radius'
+        ),
+        Option.button(
+          title: 'Padding',
+          onTap: (context) async {
+            await EditorTab.modal(
+              context,
+              height: 200,
+              tab: EditorTab.paddingEditor(
+                padding: padding,
+                onChange: (value) {
+                  padding = value;
+                  updateListeners(WidgetChange.misc);
+                },
+              )
+            );
+            print(padding);
+            updateListeners(WidgetChange.update);
+          },
+          icon: Icons.padding_outlined,
           tooltip: 'Adjust Widget Border Radius'
         ),
       ],
@@ -310,146 +331,38 @@ class CreatorText extends CreatorWidget {
       ],
     ),
     EditorTab(
+      tab: 'Effects',
       options: [
         Option.button(
           title: 'Shadow',
           onTap: (context) {
-            if (shadow == null) {
-              shadow = const BoxShadow(
-              blurRadius: 1,
-              spreadRadius: 2,
-              color: Colors.red,
-            );
-            }
-            updateListeners(WidgetChange.misc);
-            editor.showTab(
+            if (shadow == null) shadow = Shadow();
+            EditorTab.modal(
               context,
-              height: 150,
-              tab: EditorTab(
-                type: EditorTabType.column,
-                options: [
-                  Option.custom(
-                    widget: (context) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ColorSelector(
-                            title: 'Color',
-                            onColorSelect: (color) {
-                              shadow = BoxShadow(
-                                blurRadius: shadow!.blurRadius,
-                                color: color,
-                                offset: shadow!.offset,
-                                spreadRadius: shadow!.blurSigma
-                              );
-                              updateListeners(WidgetChange.update);
-                            },
-                            size: const Size(40, 40),
-                            color: shadow!.color,
-                            tooltip: 'Shadow Color'
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              shadow = null;
-                              updateListeners(WidgetChange.update);
-                              Navigator.of(context).pop();
-                            },
-                            icon: const Icon(Icons.delete)
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                  Option.custom(
-                    widget: (context) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Row(
-                        children: [
-                          const Text('DX'),
-                          Container(width: 10,),
-                          Expanded(
-                            child: CustomSlider(
-                              value: shadow!.offset.dx,
-                              min: -15,
-                              max: 15,
-                              onChangeEnd: (value) {
-                                shadow = BoxShadow(
-                                  blurRadius: shadow!.blurRadius,
-                                  color: shadow!.color,
-                                  offset: Offset(value, shadow!.offset.dy),
-                                  spreadRadius: shadow!.blurSigma
-                                );
-                                updateListeners(WidgetChange.update);
-                              },
-                              onChange: (value) {
-                                shadow = BoxShadow(
-                                  blurRadius: shadow!.blurRadius,
-                                  color: shadow!.color,
-                                  offset: Offset(value, shadow!.offset.dy),
-                                  spreadRadius: shadow!.blurSigma
-                                );
-                                updateListeners(WidgetChange.misc);
-                              }
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                  Option.custom(
-                    widget: (context) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Row(
-                        children: [
-                          const Text('DY'),
-                          Container(width: 10,),
-                          Expanded(
-                            child: CustomSlider(
-                              value: shadow!.offset.dy,
-                              min: -15,
-                              max: 15,
-                              onChangeEnd: (value) {
-                                shadow = BoxShadow(
-                                  blurRadius: shadow!.blurRadius,
-                                  color: shadow!.color,
-                                  offset: Offset(shadow!.offset.dx, value),
-                                  spreadRadius: shadow!.blurSigma
-                                );
-                                updateListeners(WidgetChange.update);
-                              },
-                              onChange: (value) {
-                                shadow = BoxShadow(
-                                  blurRadius: shadow!.blurRadius,
-                                  color: shadow!.color,
-                                  offset: Offset(shadow!.offset.dx, value),
-                                  spreadRadius: shadow!.blurSigma
-                                );
-                                updateListeners(WidgetChange.misc);
-                              }
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-                tab: 'Shadow'
+              tab: EditorTab.shadow<Shadow>(
+                shadow: shadow!,
+                onChange: (value) {
+                  shadow = value;
+                  updateListeners(WidgetChange.misc);
+                },
+                onChangeEnd: (value) {
+                  shadow = value;
+                  updateListeners(WidgetChange.update);
+                },
               )
             );
           },
-          icon: Icons.text_fields,
+          icon: Icons.blur_on,
           tooltip: 'Customize shadow of text'
         )
       ],
-      tab: 'Effects'
     ),
     EditorTab(
       options: [
         Option.button(
           title: 'Rotate',
           onTap: (context) {
-            editor.showTab(
+            EditorTab.modal(
               context,
               tab: EditorTab.rotate(
                 angle: angle,
@@ -468,9 +381,35 @@ class CreatorText extends CreatorWidget {
           tooltip: 'Tap to open angle adjuster'
         ),
         Option.button(
+          title: 'Scale',
+          onTap: (context) {
+            EditorTab.modal(
+              context,
+              tab: EditorTab.scale(
+                size: size,
+                minSize: minSize ?? Size(20, 20),
+                maxSize: project.contentSize(context),
+                onChange: (value) {
+                  // angle = value;
+                  size  = value;
+                  updateResizeHandlers();
+                  updateListeners(WidgetChange.misc);
+                },
+                onChangeEnd: (value) {
+                  // angle = value;
+                  size  = value;
+                  updateListeners(WidgetChange.update);
+                },
+              )
+            );
+          },
+          icon: Icons.open_in_full_rounded,
+          tooltip: 'Tap to scale the widget size'
+        ),
+        Option.button(
           title: 'Opacity',
           onTap: (context) {
-            editor.showTab(
+            EditorTab.modal(
               context,
               tab: EditorTab.opacity(
                 opacity: opacity,
@@ -491,7 +430,7 @@ class CreatorText extends CreatorWidget {
         Option.button(
           title: 'Nudge',
           onTap: (context) {
-            editor.showTab(
+            EditorTab.modal(
               context,
               tab: EditorTab.nudge(
                 onDXchange: (dx) {
@@ -512,134 +451,13 @@ class CreatorText extends CreatorWidget {
       tab: 'Adjust',
     ),
     EditorTab(
-      tab: 'Padding',
-      options: [
-        Option.button(
-          title: 'Left',
-          tooltip: 'Adjust Left Padding',
-          onTap: (context) async {
-            editor.showTab(
-              context,
-              tab: EditorTab(
-                type: EditorTabType.single,
-                options: [
-                  Option.slider(
-                    value: paddingLeft,
-                    min: 0,
-                    max: 30,
-                    onChange: (value) {
-                      paddingLeft = value;
-                      updateListeners(WidgetChange.misc);
-                    },
-                    onChangeEnd: (value) {
-                      paddingLeft = value;
-                      updateListeners(WidgetChange.update);
-                    },
-                  )
-                ],
-                tab: 'Left Padding'
-              )
-            );
-          },
-          icon: Icons.arrow_back
-        ),
-        Option.button(
-          title: 'Right',
-          tooltip: 'Adjust Right Padding',
-          onTap: (context) async {
-            editor.showTab(
-              context,
-              tab: EditorTab(
-                type: EditorTabType.single,
-                options: [
-                  Option.slider(
-                    value: paddingRight,
-                    min: 0,
-                    max: 30,
-                    onChange: (value) {
-                      paddingRight = value;
-                      updateListeners(WidgetChange.misc);
-                    },
-                    onChangeEnd: (value) {
-                      paddingRight = value;
-                      updateListeners(WidgetChange.update);
-                    },
-                  )
-                ],
-                tab: 'Right Padding'
-              )
-            );
-          },
-          icon: Icons.arrow_forward
-        ),
-        Option.button(
-          title: 'Top',
-          tooltip: 'Adjust Top Padding',
-          onTap: (context) async {
-            editor.showTab(
-              context,
-              tab: EditorTab(
-                type: EditorTabType.single,
-                options: [
-                  Option.slider(
-                    value: paddingTop,
-                    min: 0,
-                    max: 30,
-                    onChange: (value) {
-                      paddingTop = value;
-                      updateListeners(WidgetChange.misc);
-                    },
-                    onChangeEnd: (value) {
-                      paddingTop = value;
-                      updateListeners(WidgetChange.update);
-                    },
-                  )
-                ],
-                tab: 'Top Padding'
-              )
-            );
-          },
-          icon: Icons.arrow_upward
-        ),
-        Option.button(
-          title: 'Bottom',
-          tooltip: 'Adjust Bottom Padding',
-          onTap: (context) async {
-            editor.showTab(
-              context,
-              tab: EditorTab(
-                type: EditorTabType.single,
-                options: [
-                  Option.slider(
-                    value: paddingBottom,
-                    min: 0,
-                    max: 30,
-                    onChange: (value) {
-                      paddingBottom = value;
-                      updateListeners(WidgetChange.misc);
-                    },
-                    onChangeEnd: (value) {
-                      paddingBottom = value;
-                      updateListeners(WidgetChange.update);
-                    },
-                  )
-                ],
-                tab: 'Bottom Padding'
-              )
-            );
-          },
-          icon: Icons.arrow_downward
-        ),
-      ],
-    ),
-    EditorTab(
       tab: 'Spacing',
       type: EditorTabType.row,
       options: [
         Option.button(
           title: 'Letter',
           onTap: (context) {
-            editor.showTab(
+            EditorTab.modal(
               context,
               tab: EditorTab(
                 type: EditorTabType.single,
@@ -668,7 +486,7 @@ class CreatorText extends CreatorWidget {
         Option.button(
           title: 'Word',
           onTap: (context) {
-            editor.showTab(
+            EditorTab.modal(
               context,
               tab: EditorTab(
                 type: EditorTabType.single,
@@ -738,10 +556,7 @@ class CreatorText extends CreatorWidget {
 
   double lineHeight = 0.77;
 
-  double paddingLeft = 0;
-  double paddingRight = 0;
-  double paddingTop = 0;
-  double paddingBottom = 0;
+  EdgeInsets padding = EdgeInsets.zero;
 
   Shadow? shadow;
 
@@ -750,7 +565,7 @@ class CreatorText extends CreatorWidget {
   TextDecorationStyle decorationStyle = TextDecorationStyle.solid;
 
   Widget widget(BuildContext context) => Container(
-    padding: EdgeInsets.fromLTRB(paddingLeft, paddingTop, paddingRight, paddingBottom),
+    padding: padding,
     decoration: BoxDecoration(
       color: widgetColor,
       borderRadius: BorderRadius.circular(radius),
@@ -764,7 +579,7 @@ class CreatorText extends CreatorWidget {
     style: style,
     maxFontSize: 200,
     presetFontSizes: [
-      ... List.generate(200, (index) => index.toDouble()).reversed
+      ... List.generate(500, (index) => index.toDouble()).reversed
     ],
     onFontSizeChanged: (fontSize) {
       this.fontSize = fontSize;
@@ -784,12 +599,9 @@ class CreatorText extends CreatorWidget {
     fontSize: fontSize,
     letterSpacing: letterSpacing,
     wordSpacing: wordSpacing,
+    fontFeatures: [ ],
     shadows: [
-      shadow ?? const BoxShadow(
-        blurRadius: 0,
-        color: Colors.transparent,
-        spreadRadius: 0
-      )
+      if (shadow != null) shadow!
     ],
     foreground: stroke,
     decorationStyle: decorationStyle,
@@ -941,12 +753,7 @@ class CreatorText extends CreatorWidget {
       'dy': shadow!.offset.dy,
       'color': shadow!.color.toHex()
     } : null,
-    'padding': {
-      'left': paddingLeft,
-      'top': paddingTop,
-      'right': paddingRight,
-      'bottom': paddingBottom,
-    },
+    'padding': padding.toJSON(),
     'spacing': {
       'word': wordSpacing,
       'letter': letterSpacing,
@@ -981,17 +788,14 @@ class CreatorText extends CreatorWidget {
       align = TextAlign.values.where((element) => element.index == json['alignment']).first;
 
       if (json['shadow'] != null) {
-        shadow = BoxShadow(
+        shadow = Shadow(
           blurRadius: json['shadow']['blurRadius'],
           color: HexColor.fromHex(json['shadow']['color']),
           offset: Offset(json['shadow']['dx'], json['shadow']['dy'])
         );
       }
 
-      paddingLeft = json['padding']['left'];
-      paddingTop = json['padding']['top'];
-      paddingBottom = json['padding']['bottom'];
-      paddingRight = json['padding']['right'];
+      padding = PaddingExtension.fromJSON(json['padding']);
 
       letterSpacing = json['spacing']['letter'];
       wordSpacing = json['spacing']['word'];

@@ -20,9 +20,7 @@ class Asset {
 
   late FileType type;
 
-  Future<bool> exists() async {
-    return await file.exists();
-  }
+  Future<bool> exists() => file.exists();
 
   static Future<Asset?> create(Project project, {
     FileType type = FileType.image,
@@ -46,6 +44,8 @@ class Asset {
     project.assetManager.add(asset);
     return asset;
   }
+
+  Future<void> delete() async => await file.delete();
 
   // Future<String> _getSaveLocation() async {
   //   final Directory dir = await getApplicationDocumentsDirectory();

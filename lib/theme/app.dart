@@ -1,6 +1,5 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-import 'package:render_studio/theme/color_schemes.dart';
 
 import '../rehmat.dart';
 
@@ -8,14 +7,14 @@ class AppTheme {
 
   static ThemeData build({
     required Brightness brightness,
-    Color seed = Colors.brown
+    Color seed = Colors.indigo
   }) {
     // seed = Color.fromARGB(255, 48, 20, 8);
     Color contrastTextColor = brightness == Brightness.light ? Colors.black : Colors.white;
     Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[200]!;
-    Color background = brightness == Brightness.light ? HexColor.fromHex('#f8faf9') : HexColor.fromHex('#14191f');
+    Color background = brightness == Brightness.light ? HexColor.fromHex('#f8faf9') : HexColor.fromHex('#000000');
     Color surfaceVariant = brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#202833');
-    ColorScheme colorScheme = (brightness == Brightness.light ? lightColorScheme : darkColorScheme).copyWith(
+    ColorScheme colorScheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness).copyWith(
       background: background,
       surfaceVariant: surfaceVariant
     );
@@ -166,12 +165,11 @@ class AppTheme {
         linearTrackColor: contrastTextColorLight.withOpacity(0.05)
       ),
       cardTheme: CardTheme(
-        // color: cardColor,
         color: surfaceVariant,
-        elevation: 0.2,
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15)
-        )
+        ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         elevation: 0.5,
@@ -204,6 +202,9 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(5)
         )
+      ),
+      sliderTheme: SliderThemeData(
+        showValueIndicator: ShowValueIndicator.always
       ),
       pageTransitionsTheme: PageTransitionsTheme(
         builders: {

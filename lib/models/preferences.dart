@@ -14,7 +14,7 @@ class Preferences {
 
   bool allowAnalytics = true;
 
-  bool showDebugBorder = false;
+  bool enableDebug = false;
 
   static Preferences get instance {
     Preferences preferences = Preferences();

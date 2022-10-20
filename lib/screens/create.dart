@@ -173,40 +173,45 @@ class _CreateState extends State<Create> {
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              spacer(1),
-              Container(
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    // BoxShadow(
-                    //   color: Colors.black.withOpacity(0.1),
-                    //   blurRadius: 3,
-                    //   spreadRadius: 0,
-                    // )
-                  ]
-                ),
-                child: AnimatedContainer(
-                  duration: Constants.animationDuration,
-                  height: project.canvasSize(context).height,
-                  width: project.canvasSize(context).width,
-                  child: project.pages.pages.isEmpty
-                    ? const Center(
-                      child: Spinner(),
-                    )
-                    : PageView.builder(
-                      controller: project.pages.controller,
-                      physics: (project.pages.current.currentSelection is CreatorPageProperties) ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
-                      onPageChanged: (value) {
-                        project.pages.changePage(value);
-                      },
-                      itemBuilder: (context, index) => Center(
-                        child: project.pages.pages[index].build(context),
+              // spacer(1),
+              Expanded(
+                // duration: Constants.animationDuration,
+                // height: project.canvasSize(context).height,
+                // width: project.canvasSize(context).width,
+                child: project.pages.pages.isEmpty
+                  ? const Center(
+                    child: Spinner(),
+                  )
+                  : PageView.builder(
+                    controller: project.pages.controller,
+                    physics: (project.pages.current.currentSelection is CreatorPageProperties) ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
+                    onPageChanged: (value) {
+                      project.pages.changePage(value);
+                    },
+                    itemBuilder: (context, index) => Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              spreadRadius: 0,
+                              blurRadius: 3,
+                              offset: const Offset(0, 0), // changes position of shadow
+                            ),
+                          ]
+                        ),
+                        child: SizedBox.fromSize(
+                          size: project.canvasSize(context),
+                          child: project.pages.pages[index].build(context)
+                        ),
                       ),
-                      itemCount: project.pages.length,
-                    )
-                ),
+                    ),
+                    itemCount: project.pages.length,
+                  )
               ),
-              spacer(project.editorVisible ? 1 : 2),
+              // spacer(project.editorVisible ? 1 : 2),
             ],
           ),
         ),
@@ -243,6 +248,7 @@ class _CreateState extends State<Create> {
 
   void pasteWidget() {
     Map<String, dynamic> json = clipboard!.toJSON();
+    json['uid'] = Constants.generateID();
     CreatorWidget? widget = CreatorPage.createWidgetFromId(clipboard!.id, page: project.pages.current, project: project, uid: clipboard!.uid!);
     widget!.buildFromJSON(json);
     project.pages.current.addWidget(widget);

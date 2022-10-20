@@ -249,7 +249,8 @@ class ResizeHandlerBall extends StatefulWidget {
     required this.onSizeChange,
     this.onResizeStart,
     this.onResizeEnd,
-    this.isVisible = true
+    this.isVisible = true,
+    this.isResizing = false
   }) : super(key: key);
 
   final ResizeHandler type;
@@ -258,6 +259,8 @@ class ResizeHandlerBall extends StatefulWidget {
   final Function(DragStartDetails details)? onResizeStart;
   final Function(DragEndDetails details)? onResizeEnd;
   final bool isVisible;
+  /// Set to `true` if the widget is currently being resized
+  final bool isResizing;
 
   @override
   _ResizeHandlerBallState createState() => _ResizeHandlerBallState();
@@ -289,22 +292,21 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
               width: 40,
               height: 40,
               child: Center(
-                child: SizedBox.fromSize(
-                  size: isDragging ? widget.type.feedbackSize : widget.type.size,
-                  child: AnimatedContainer(
-                    duration: Constants.animationDuration,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 1,
-                          spreadRadius: 1.3,
-                          offset: const Offset(0, 0)
-                        )
-                      ]
-                    ),
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 100),
+                  width: _size.width,
+                  height: _size.height,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 1,
+                        spreadRadius: 1.3,
+                        offset: const Offset(0, 0)
+                      )
+                    ]
                   ),
                 ),
               ),
@@ -314,6 +316,8 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
       ),
     );
   }
+
+  Size get _size => isDragging ? widget.type.feedbackSize : (widget.isResizing ? widget.type.size/2 : widget.type.size);
 
   void _onDrag(DragUpdateDetails details) {
     Size? size = widget.type.calculateSize(details: details, widget: widget.widget);

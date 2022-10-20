@@ -160,6 +160,7 @@ class _CustomSliderState extends State<CustomSlider> {
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.label != null) Label(
           label: widget.label!,
@@ -169,7 +170,7 @@ class _CustomSliderState extends State<CustomSlider> {
           width: MediaQuery.of(context).size.width * 2/3,
           child: Slider(
             value: value,
-            label: '$value',
+            label: widget.label ?? value.trimToDecimal(1).toString(),
             onChangeStart: widget.onChangeStart,
             onChangeEnd: widget.onChangeEnd,
             onChanged: (value) {
