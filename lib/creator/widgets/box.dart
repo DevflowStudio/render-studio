@@ -230,7 +230,7 @@ class CreatorBoxWidget extends CreatorWidget {
                               updateListeners(WidgetChange.update);
                             },
                             size: const Size(40, 40),
-                            color: borderColor ?? Constants.textColorFromBackground(color),
+                            color: borderColor ?? color.computeTextColor(),
                             tooltip: 'Border Color'
                           ),
                           IconButton(
@@ -261,7 +261,7 @@ class CreatorBoxWidget extends CreatorWidget {
                                 updateListeners(WidgetChange.update);
                               },
                               onChange: (value) {
-                                if (borderColor == null) borderColor = Constants.textColorFromBackground(color);
+                                if (borderColor == null) borderColor = color.computeTextColor();
                                 borderWidth = value;
                                 updateListeners(WidgetChange.misc);
                               }

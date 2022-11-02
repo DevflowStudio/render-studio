@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../rehmat.dart';
 
@@ -15,7 +14,7 @@ class ProjectSaves {
     return ProjectSaves(box);
   }
   
-  List<ProjectGlance> get posts {
+  List<ProjectGlance> get projects {
     List<ProjectGlance> _projects = [];
     for (var id in box.keys) {
       ProjectGlance? project = ProjectGlance.build(id: id, data: Map.from(box.get(id)));
@@ -29,27 +28,6 @@ class ProjectSaves {
       }
     });
     return _projects;
-  }
-
-  Future<void> clear(BuildContext context) async {
-    bool delete = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Posts'),
-        content: const Text('Warning! This will delete all of your saved posts. This action cannot be reverted.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel')
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Delete')
-          ),
-        ],
-      ),
-    ) ?? false;
-    if (delete) box.clear();
   }
   
   ValueListenable<Box> get stream => box.listenable();

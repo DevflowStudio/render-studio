@@ -13,7 +13,7 @@ class AppTheme {
     Color contrastTextColor = brightness == Brightness.light ? Colors.black : Colors.white;
     Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[200]!;
     Color background = brightness == Brightness.light ? HexColor.fromHex('#f8faf9') : HexColor.fromHex('#000000');
-    Color surfaceVariant = brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#202833');
+    Color surfaceVariant = brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#111111');
     ColorScheme colorScheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness).copyWith(
       background: background,
       surfaceVariant: surfaceVariant
@@ -30,8 +30,8 @@ class AppTheme {
         backgroundColor: background,
         titleTextStyle: TextStyle(
           fontSize: 22,
-          fontFamily: 'SF Pro',
-          fontWeight: FontWeight.w600,
+          fontFamily: 'Inter',
+          fontWeight: FontWeight.w500,
           color: colorScheme.onBackground
         ),
         surfaceTintColor: colorScheme.surfaceVariant
@@ -49,7 +49,7 @@ class AppTheme {
         ),
         actionsPadding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
         titleTextStyle: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Inter',
           fontSize: 24,
           color: contrastTextColor
         ),
@@ -111,39 +111,39 @@ class AppTheme {
       ),
       textTheme: TextTheme(
         displayLarge: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Inter',
           color: contrastTextColor
         ),
         displayMedium: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Inter',
           color: contrastTextColor
         ),
         displaySmall: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Inter',
           color: contrastTextColor
         ),
         titleLarge: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Inter',
           color: contrastTextColor
         ),
         titleMedium: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Inter',
           color: contrastTextColor
         ),
         titleSmall: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Inter',
           color: contrastTextColor
         ),
         headlineLarge: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Inter',
           color: contrastTextColor
         ),
         headlineMedium: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Inter',
           color: contrastTextColor
         ),
         headlineSmall: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Inter',
           color: contrastTextColorLight
         ),
         bodyLarge: TextStyle(
@@ -195,7 +195,8 @@ class AppTheme {
       ),
       dividerTheme: DividerThemeData(
         endIndent: 18,
-        indent: 18
+        indent: 18,
+        color: brightness == Brightness.light ? Colors.grey[300] : Colors.grey[800]!.withOpacity(0.5)
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

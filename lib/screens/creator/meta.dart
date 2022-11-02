@@ -1,14 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
-import '../rehmat.dart';
+import '../../../rehmat.dart';
 
 class Information extends StatefulWidget {
 
   const Information({
     Key? key,
     required this.project,
-    this.isNewPost = false,
+    this.isNewPost = false
   }) : super(key: key);
 
   final Project project;

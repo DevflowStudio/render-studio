@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../rehmat.dart';
@@ -58,7 +59,7 @@ class QRWidget extends CreatorWidget {
           },
         ),
         Option.button(
-          icon: Icons.palette,
+          icon: Icons.color_lens_outlined,
           title: 'Data Color',
           tooltip: 'Tap to select the data color',
           onTap: (context) async {
@@ -71,6 +72,19 @@ class QRWidget extends CreatorWidget {
             updateListeners(WidgetChange.update);
           },
         ),
+        Option.button(
+          icon: Icons.delete,
+          title: 'Delete',
+          tooltip: 'Delete Widget',
+          onTap: (context) async {
+            page.delete(this);
+          },
+        ),
+      ],
+    ),
+    EditorTab(
+      tab: 'Customize',
+      options: [
         Option.button(
           title: 'Padding',
           tooltip: 'Customize the padding of QR Code',
@@ -89,31 +103,136 @@ class QRWidget extends CreatorWidget {
           },
           icon: Icons.padding_rounded
         ),
-        Option.button(
-          icon: Icons.space_bar,
+        Option.toggle(
           title: 'Gapless',
-          tooltip: 'Tap to toggle gapless property',
+          valueBuilder: () {
+            return (page.widgets.singleWhere((element) => element.uid == uid) as QRWidget).gapless;
+          },
+          onChange: (value) {
+            gapless = value;
+            updateListeners(WidgetChange.update);
+          },
+          enabledIcon: Icons.space_bar,
+          disabledIcon: Icons.space_bar,
+          enabledTooltip: 'Enable gapless rendering',
+          disabledTooltip: 'Disable gapless rendering',
+        ),
+        Option.button(
+          icon: Icons.photo_rounded,
+          title: 'Image',
+          tooltip: 'Tap to add embed an image',
           onTap: (context) async {
-            gapless = !gapless;
+            embeddedImage = await Asset.create(
+              project,
+              cropRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
+              context: context
+            );
             updateListeners(WidgetChange.update);
           },
         ),
+      ]
+    ),
+    EditorTab(
+      tab: 'Adjust',
+      options: [
         Option.button(
-          icon: Icons.delete,
-          title: 'Delete',
-          tooltip: 'Delete asset',
-          onTap: (context) async {
-            page.delete(this);
+          title: 'Rotate',
+          onTap: (context) {
+            EditorTab.modal(
+              context,
+              tab: EditorTab.rotate(
+                angle: angle,
+                onChange: (value) {
+                  angle = value;
+                  updateListeners(WidgetChange.misc);
+                },
+                onChangeEnd: (value) {
+                  angle = value;
+                  updateListeners(WidgetChange.update);
+                },
+              )
+            );
           },
+          icon: Icons.refresh,
+          tooltip: 'Tap to open angle adjuster'
+        ),
+        Option.button(
+          title: 'Scale',
+          onTap: (context) {
+            EditorTab.modal(
+              context,
+              tab: EditorTab.scale(
+                size: size,
+                minSize: minSize ?? Size(20, 20),
+                maxSize: project.contentSize(context),
+                onChange: (value) {
+                  // angle = value;
+                  size  = value;
+                  updateResizeHandlers();
+                  updateListeners(WidgetChange.misc);
+                },
+                onChangeEnd: (value) {
+                  // angle = value;
+                  size  = value;
+                  updateListeners(WidgetChange.update);
+                },
+              )
+            );
+          },
+          icon: Icons.open_in_full_rounded,
+          tooltip: 'Tap to scale the widget size'
+        ),
+        Option.button(
+          title: 'Opacity',
+          onTap: (context) {
+            EditorTab.modal(
+              context,
+              tab: EditorTab.opacity(
+                opacity: opacity,
+                onChange: (value) {
+                  opacity = value;
+                  updateListeners(WidgetChange.misc);
+                },
+                onChangeEnd: (value) {
+                  opacity = value;
+                  updateListeners(WidgetChange.update);
+                },
+              ),
+            );
+          },
+          icon: Icons.opacity,
+          tooltip: 'Opacity'
+        ),
+        Option.button(
+          title: 'Nudge',
+          onTap: (context) {
+            EditorTab.modal(
+              context,
+              tab: EditorTab.nudge(
+                onDXchange: (dx) {
+                  position = Offset(position.dx + dx, position.dy);
+                  updateListeners(WidgetChange.update);
+                },
+                onDYchange: (dy) {
+                  position = Offset(position.dx, position.dy + dy);
+                  updateListeners(WidgetChange.update);
+                },
+              )
+            );
+          },
+          icon: Icons.drag_indicator,
+          tooltip: 'Nudge'
         ),
       ],
-    )
+    ),
   ];
 
   Color backgroundColor = Colors.white;
   Color dataColor = Colors.black;
   bool gapless = true;
   EdgeInsets padding = EdgeInsets.zero;
+
+  Asset? embeddedImage;
 
   @override
   Widget widget(BuildContext context) => QrImage(
@@ -129,11 +248,10 @@ class QRWidget extends CreatorWidget {
     ),
     gapless: gapless,
     padding: padding,
-    // embeddedImage: AssetImage('assets/images/avatar.png'),
-    // embeddedImageStyle: QrEmbeddedImageStyle(
-    //   // color: Colors.red
-    //   // size: Size(40, 40)
-    // ),
+    embeddedImage: embeddedImage != null ? FileImage(embeddedImage!.file) : null,
+    embeddedImageStyle: QrEmbeddedImageStyle(
+      size: size/5
+    ),
   );
 
   @override
@@ -156,20 +274,22 @@ class QRWidget extends CreatorWidget {
   }
 
   @override
-  bool buildFromJSON(Map<String, dynamic> json) {
-    if (super.buildFromJSON(json)) {
-      try {
-        data = json['data'];
-        backgroundColor = HexColor.fromHex(json['backgroundColor']);
-        dataColor = HexColor.fromHex(json['dataColor']);
-        gapless = json['gapless'];
-        padding = PaddingExtension.fromJSON(json['padding']);
-        return true;
-      } catch (e) {
-        print(e);
-        return false;
-      }
-    } else return false;
+  void buildFromJSON(Map<String, dynamic> json) {
+    super.buildFromJSON(json);
+
+    try {
+      data = json['data'];
+      backgroundColor = HexColor.fromHex(json['backgroundColor']);
+      dataColor = HexColor.fromHex(json['dataColor']);
+      gapless = json['gapless'];
+      padding = PaddingExtension.fromJSON(json['padding']);
+    } catch (e) {
+      print("QR Build Failed: $e");
+      throw WidgetCreationException(
+        'Failed to render QR Code',
+        details: 'Failed to render QR Code: $e',
+      );
+    }
   }
 
 }

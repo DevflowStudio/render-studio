@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:file_picker/file_picker.dart' as filepicker;
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';

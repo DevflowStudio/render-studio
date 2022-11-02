@@ -8,3 +8,4 @@ export 'preferences.dart';
 export 'permission_manager.dart';
 export 'file_picker.dart';
 export 'assets/provider.dart';
+export 'size.dart';

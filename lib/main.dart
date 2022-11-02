@@ -21,6 +21,8 @@ Future<void> run(Flavor flavor) async {
 
     handler = await ProjectManager.instance;
 
+    paletteManager = await PaletteManager.instance;
+
     // app = await App.build(flavor);
 
     /// Adds a license for fonts used from fonts.google.com. This prevents copyright problems
@@ -41,6 +43,17 @@ Future<void> run(Flavor flavor) async {
     Widget child = Home();
     // Uncomment below line to add authentication
     // if (!Auth.isLoggedIn) child = Onboarding();
+
+    FlutterError.onError = (details) {
+      FlutterError.presentError(details);
+      // TODO: Handle Errors
+      // myErrorsHandler.onErrorDetails(details);
+    };
+    PlatformDispatcher.instance.onError = (error, stack) {
+      // TODO: Handle errors
+      // myErrorsHandler.onError(error, stack);
+      return true;
+    };
 
     runApp(
       MultiProvider(
@@ -75,6 +88,18 @@ class Render extends StatelessWidget {
       darkTheme: AppTheme.build(brightness: Brightness.dark),
       home: child,
       scrollBehavior: CupertinoScrollBehavior(),
+      builder: (context, widget) {
+        Widget error = Text(
+          'oops! something went wrong',
+          style: Theme.of(context).textTheme.headlineMedium,
+        );
+        if (widget is Scaffold || widget is Navigator) {
+          error = Scaffold(body: Center(child: error));
+        }
+        ErrorWidget.builder = (errorDetails) => error;
+        if (widget != null) return widget;
+        else return Container();
+      },
     );
   }
 }

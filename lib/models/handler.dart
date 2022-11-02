@@ -30,19 +30,6 @@ class ProjectManager {
   }) async {
     assert(project != null || id != null);
     await projects.delete(project?.id ?? id);
-    if (project != null) {
-      Alerts.snackbar(
-        context,
-        text: 'Deleted Project',
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () async {
-            Map<String, dynamic> json = await project.toJSON(context, restoring: true, updateThumbnails: false);
-            await projects.put(project.id, json);
-          },
-        )
-      );
-    }
   }
 
 }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import '../rehmat.dart';
 
-class Project {
+class Project extends ChangeNotifier {
 
   Project(BuildContext context, {
     this.id,
@@ -13,10 +14,13 @@ class Project {
     created ??= DateTime.now();
     edited ??= DateTime.now(); // if (edited == null) edited = DateTime.now();
     deviceSize = MediaQuery.of(context).size;
+    this.context = context;
   }
 
   late final PageManager pages;
   final bool fromSaves;
+
+  late final BuildContext context;
 
   String? id;
 
@@ -39,6 +43,8 @@ class Project {
   late AssetManager assetManager;
 
   bool editorVisible = true;
+
+  List<Exception> issues = [];
 
   /// Render Project: Canvas Size
   /// The interactive area as a whole is referred to as the canvas
@@ -86,25 +92,29 @@ class Project {
     return actualSize;
   }
 
-  Future<Map<String, dynamic>> toJSON(BuildContext context, {
-    bool restoring = false,
-    bool updateThumbnails = true
-  }) async {
+  Future<void> saveToGallery() async {
+    thumbnails.clear();
+    for (CreatorPage page in pages.pages) {
+      try {
+        thumbnails.add((await page.save(context, saveToGallery: true))!);
+      } catch (e) {
+        issues.add(Exception('Failed to render page ${pages.pages.indexOf(page) + 1}'));
+      }
+    }
+  }
+
+  Future<Map<String, dynamic>> toJSON(BuildContext context) async {
 
     List<Map<String, dynamic>> pageData = [];
     for (var page in pages.pages) {
       pageData.add(page.toJSON());
     }
 
-    // Before saving the project, create thumbnails for all the pages and save them
-    if (updateThumbnails) {
-      thumbnails.clear();
-      for (CreatorPage page in pages.pages) {
-        // if (!restoring) pages.controller.animateToPage(pages.pages.indexOf(page), duration: Constants.animationDuration, curve: Curves.easeInOut);
-        String? thumbnail = await page.save(context);
-        print(thumbnail);
-        if (thumbnail != null) thumbnails.add(thumbnail);
-      }
+    thumbnails.clear();
+    for (CreatorPage page in pages.pages) {
+      String? thumbnail = await page.save(context, saveToGallery: true);
+      if (thumbnail != null) thumbnails.add(thumbnail);
+      else issues.add(Exception('Failed to render page ${pages.pages.indexOf(page) + 1}'));
     }
 
     Map<String, dynamic> json = {
@@ -125,43 +135,65 @@ class Project {
       'assets': assetManager.toJSON(),
     };
 
-    print(json);
-
     return json;
   }
 
-  // static Project? build({
-  //   required String id,
-  //   required Map<String, dynamic> data
-  // }) {
-  //   try {
-  //     Project project = Project(id: id,fromSaves: true);
-  //     bool pageError = false;
-  //     project.data = data;
-  //     project.title = data['title'];
-  //     project.description = data['description'];
-  //     project.thumbnails = data['thumbnails'];
-  //     project.created = data['meta']['created'] != null ? DateTime.fromMillisecondsSinceEpoch(data['meta']['created']) : DateTime.now();
-  //     project.edited = data['meta']['edited'] != null ? DateTime.fromMillisecondsSinceEpoch(data['meta']['edited']) : DateTime.now();
-  //     project.size = PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
-  //     for (dynamic pageDate in data['pages']) {
-  //       CreatorPage? page = CreatorPage.buildFromJSON(Map.from(pageDate), project: project);
-  //       if (page != null) {
-  //         project.pages.pages.add(page);
-  //       } else {
-  //         if (!pageError) pageError = true; // Set page error to true if not already
-  //       }
-  //     }
-  //     project.pages.updateListeners();
-  //     // if (pageError) Alerts.snackbar(context, text: 'Some pages could not be built');
-  //     return project;
-  //   } catch (e) { }
-  // }
+  static Future<Project?> fromJSON(Map data, {
+    required BuildContext context
+  }) async {
 
+    Project project = Project(context, fromSaves: true);
+
+    project.id = data['id'];
+    project.title = data['title'];
+    project.description = data['description'];
+    project.thumbnails = List<String>.from(data['thumbnails']);
+    project.size = PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
+    project.created = DateTime.fromMillisecondsSinceEpoch(data['meta']['created']);
+    project.edited = DateTime.fromMillisecondsSinceEpoch(data['meta']['edited']);
+    project.assetManager = await AssetManager.initialize(project, data: data);
+
+    for (dynamic pageDate in data['pages']) {
+      CreatorPage? page = CreatorPage.buildFromJSON(Map.from(pageDate), project: project);
+      if (page != null) project.pages.pages.add(page);
+    }
+
+    project.pages.updateListeners();
+
+    return project;
+  }
+
+  static Future<Project?> get(String id, {
+    required BuildContext context,
+  }) async {
+    try {
+      Box box = Hive.box('projects');
+      Map json = Map.from(box.get(id));
+      Project? project = await Project.fromJSON(json, context: context);
+      return project;
+    } catch (e) {
+      print('Project render error: $e');
+      return null;
+    }
+  }
+
+  
+  /// Create a new empty Project
+  /// Requires a BuildContext to get the device size
   static void create(BuildContext context) async {
     Project project = Project(context);
     project.assetManager = await AssetManager.initialize(project, data: {});
     AppRouter.push(context, page: Information(project: project, isNewPost: true,));
   }
+
+}
+
+class ProjectCreationException implements Exception {
+
+  final String? code;
+  final String message;
+  final String? details;
+
+  ProjectCreationException(this.message, {this.details, this.code});
 
 }

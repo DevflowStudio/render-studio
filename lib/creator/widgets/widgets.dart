@@ -1,4 +1,4 @@
-export 'properties.dart';
+export 'background.dart';
 export 'widget.dart';
 export 'options.dart';
 export 'text.dart';
@@ -7,3 +7,5 @@ export 'editor.dart';
 export 'icon.dart';
 export 'design_asset.dart';
 export 'box.dart';
+export 'group.dart';
+export 'qr.dart';

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +6,6 @@ import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
 import 'package:render_studio/creator/state.dart';
-import 'package:render_studio/creator/widgets/qr.dart';
 import 'package:screenshot/screenshot.dart';
 
 import '../rehmat.dart';
@@ -18,25 +17,25 @@ class CreatorPage extends PropertyChangeNotifier {
   }) {
 
     if (!initialisedBackground) {
-      page = CreatorPageProperties(page: this, project: project);
+      backround = BackgroundWidget(page: this, project: project);
       initialisedBackground = true;
     }
 
     // Add the background to page
     widgets = [
-      page
+      backround
     ];
 
     // Create an initial history
     history = [_getJSON()];
 
     // Change the selection to page's background
-    _selected = page.uid!;
+    _selections = [backround.uid!];
     
     updateListeners();
 
     gridState = GridState(
-      page: page,
+      page: backround,
       project: project
     );
     
@@ -45,7 +44,7 @@ class CreatorPage extends PropertyChangeNotifier {
   ScreenshotController screenshotController = ScreenshotController();
 
   /// Background widget for the page
-  late CreatorPageProperties page;
+  late BackgroundWidget backround;
   bool initialisedBackground = false;
   
   final Project project;
@@ -55,25 +54,68 @@ class CreatorPage extends PropertyChangeNotifier {
 
   late GridState gridState;
 
-  late String _selected;
+  /// Display any important information as a chip
+  // String? info = 'Multiselect Enabled';
+
+  /// List of uid(s) of selected widgets
+  late List<String> _selections;
+
+  bool multiselect = false;
+
+  ColorPalette palette = ColorPalette.defaultSet;
+
+  void updatePalette(ColorPalette palette) {
+    this.palette = palette;
+    for (CreatorWidget widget in widgets) {
+      widget.onPaletteUpdate();
+    }
+    notifyListeners();
+  }
+
+  void toggleMultiselect() {
+    if (multiselect) {
+      // Disable
+      _selections = [backround.uid!];
+      multiselect = false;
+    } else {
+      // Enable
+      if (selections.firstWhereOrNull((element) => element is BackgroundWidget) != null) _selections.clear();
+      multiselect = true;
+    }
+    notifyListeners();
+  }
 
   /// Widget which is currently selected
   /// The currently selected widget has a border around it and some drag balls to resize
-  CreatorWidget get currentSelection {
-    List<CreatorWidget> _choices = widgets.where((widget) => widget.uid == _selected).toList();
-    if (_choices.isEmpty) {
-      return page;
+  List<CreatorWidget> get selections {
+    List<CreatorWidget> _results = widgets.where((widget) => _selections.contains(widget.uid)).toList();
+    if (_results.isEmpty) {
+      return [];
     } else {
-      return _choices.first;
+      return _results;
     }
   }
+
+  bool isSelected(CreatorWidget widget) {
+    return _selections.contains(widget.uid);
+  }
   
-  void changeSelection(CreatorWidget widget) {
-    (widgets.where((element) => element.uid == _selected).firstOrNull)?.stateCtrl.update();
-    // Update new selection
-    _selected = widget.uid!;
-    (widgets.where((element) => element.uid == _selected).firstOrNull)?.stateCtrl.update();
-    gridState.grids.removeWhere((grid) => grid.widget is! CreatorPageProperties);
+  void select(CreatorWidget widget) {
+    if (multiselect) {
+      if (widget is BackgroundWidget) {
+        _selections = [widget.uid!];
+        multiselect = false;
+      } else {
+        if (isSelected(widget)) {
+          _selections.remove(widget.uid);
+        } else {
+          _selections.add(widget.uid!);
+        }
+      }
+    } else {
+      _selections = [widget.uid!];
+    }
+    gridState.grids.removeWhere((grid) => grid.widget is! BackgroundWidget);
     for (var widget in widgets) {
       widget.updateGrids();
     }
@@ -82,25 +124,27 @@ class CreatorPage extends PropertyChangeNotifier {
     notifyListeners(PageChange.selection);
   }
 
-  // CreatorPageProperties get properties => CreatorPageProperties(project: project, page: this);
+  // BackgroundWidget get properties => BackgroundWidget(project: project, page: this);
 
   Widget build(BuildContext context) {
-    return SizedBox.fromSize(
-      size: project.canvasSize(context),
-      child: Stack(
-        clipBehavior: Clip.hardEdge,
-        children: [
-          ... List.generate(
-            widgets.length,
-            (index) => WidgetState(
-              key: UniqueKey(),
-              context: context,
-              controller: widgets[index].stateCtrl,
-              creator_widget: widgets[index]
-            )
-          ),
-          PageGridView(state: gridState)
-        ],
+    return Container(
+      child: SizedBox.fromSize(
+        size: project.canvasSize(context),
+        child: Stack(
+          clipBehavior: Clip.antiAlias,
+          children: [
+            ... List.generate(
+              widgets.length,
+              (index) => WidgetState(
+                key: UniqueKey(),
+                context: context,
+                controller: widgets[index].stateCtrl,
+                creator_widget: widgets[index]
+              )
+            ),
+            PageGridView(state: gridState)
+          ],
+        ),
       ),
     );
   }
@@ -120,8 +164,9 @@ class CreatorPage extends PropertyChangeNotifier {
   /// Adds the given widget to the page
   void addWidget(CreatorWidget widget) {
     // Add a listener for that widget here
+    multiselect = false;
     widgets.add(widget);
-    changeSelection(widget);
+    select(widget);
     updateListeners();
     _writeHistory();
     notifyListeners(PageChange.update);
@@ -172,10 +217,11 @@ class CreatorPage extends PropertyChangeNotifier {
 
   /// Delete widget from page
   void delete(CreatorWidget widget) {
+    multiselect = false;
     widget.onDelete();
     widgets.remove(widget);
     _writeHistory();
-    changeSelection(page);
+    select(backround);
     updateListeners();
     notifyListeners(PageChange.update);
   }
@@ -195,7 +241,8 @@ class CreatorPage extends PropertyChangeNotifier {
   Function()? get redoFuntion => redoEnabled ? _redo : null;
 
   void _undo() {
-    changeSelection(page);
+    multiselect = false;
+    select(backround);
     historyDate -= 1;
     _doFromHistory(history[historyDate]);
     updateListeners();
@@ -203,7 +250,8 @@ class CreatorPage extends PropertyChangeNotifier {
   }
 
   void _redo() {
-    changeSelection(page);
+    multiselect = false;
+    select(backround);
     historyDate += 1;
     _doFromHistory(history[historyDate]);
     updateListeners();
@@ -240,14 +288,15 @@ class CreatorPage extends PropertyChangeNotifier {
       }
     }
     widgets = _widgets;
-    page = _widgets.where((element) => element.id == 'page').first as CreatorPageProperties;
+    backround = _widgets.where((element) => element.id == 'background').first as BackgroundWidget;
     gridState.reset();
     widgets.forEach((widget) {
       widget.updateGrids();
       widget.updateListeners(WidgetChange.misc);
       // widget.stateCtrl.renewKey();
     });
-    changeSelection(page);
+    multiselect = false;
+    select(backround);
     notifyListeners(PageChange.update);
   }
 
@@ -257,8 +306,8 @@ class CreatorPage extends PropertyChangeNotifier {
     required Project project
   }) {
     switch (id) {
-      case 'page':
-        return CreatorPageProperties(page: page, project: project, uid: uid);
+      case 'background':
+        return BackgroundWidget(page: page, project: project, uid: uid);
       case 'box':
         return CreatorBoxWidget(page: page, project: project, uid: uid);
       case 'text':
@@ -272,11 +321,15 @@ class CreatorPage extends PropertyChangeNotifier {
     }
   }
 
+  /// Saves the page to a file and returns the file path
+  /// 
+  /// Enable [saveToGallery] to also save the exported image to the gallery
   Future<String?> save(BuildContext context, {
     String? path,
     bool saveToGallery = false
   }) async {
-    changeSelection(page);
+    multiselect = false;
+    select(backround);
     String? _path;
     if (path != null) {
       _path = path;
@@ -287,13 +340,12 @@ class CreatorPage extends PropertyChangeNotifier {
       Uint8List data = await screenshotController.captureFromWidget(
         build(context)
       );
-      print('Project [${page.uid}] : $data');
       // if (data == null) return null;
       File file = await File(_path).create(recursive: true);
       _path = (await file.writeAsBytes(data)).path;
       if (saveToGallery) await ImageGallerySaver.saveFile(_path);
     } catch (e) {
-      print(e);
+      print("Save Failed: $e");
       return null;
     }
     return _path;
@@ -325,6 +377,7 @@ class CreatorPage extends PropertyChangeNotifier {
     }
     Map<String, dynamic> data = {
       'widgets': _widgets,
+      'palette': palette.toJSON(),
     };
     return data;
   }
@@ -336,30 +389,32 @@ class CreatorPage extends PropertyChangeNotifier {
     Map<String, dynamic> json, {
     required Project project,
   }) {
-    CreatorPage page = CreatorPage(project: project);
-    List<CreatorWidget> widgets = [];
-    bool success = true;
-    json['widgets'].forEach((widget) {
-      if (!success) return; // Don't continue if the build fails
-      CreatorWidget? _widget = CreatorPage.createWidgetFromId(widget['id'], page: page, project: project, uid: widget['uid']);
-      if (_widget == null) return;
-      if (!_widget.buildFromJSON(Map.from(widget))) {
-        // If the widget cannot be built, mark it as unsuccessful
-        success = false;
-      } else {
-        widgets.add(_widget);
-        // Updates the resize handlers and sorts them by size
-        // All the unneccessary handlers will be removed if the widget is small in size
-        _widget.updateResizeHandlers();
-      }
-    });
-    if (!success) return null; // Return null because the build has failed
-    page.widgets = widgets;
-    page.page = widgets.where((element) => element.id == 'page').first as CreatorPageProperties;
-    page.history = [page._getJSON()];
-    page.addListeners();
-    page.changeSelection(page.page);
-    return page;
+    try {
+      CreatorPage page = CreatorPage(project: project);
+      List<CreatorWidget> widgets = [];
+      json['widgets'].forEach((widget) {
+        CreatorWidget? _widget = CreatorPage.createWidgetFromId(widget['id'], page: page, project: project, uid: widget['uid']);
+        if (_widget == null) return;
+        try {
+          _widget.buildFromJSON(Map.from(widget));
+          widgets.add(_widget);
+          _widget.updateResizeHandlers();
+        } on WidgetCreationException catch (e) {
+          project.issues.add(e);
+        }
+      });
+      page.widgets = widgets;
+      page.backround = widgets.where((element) => element.id == 'background').first as BackgroundWidget;
+      page.palette = ColorPalette.fromJSON(json['palette']);
+      page.history = [page._getJSON()];
+      page.addListeners();
+      page.select(page.backround);
+      return page;
+    } catch (e) {
+      print('Error building page: $e');
+      project.issues.add(Exception('Failed to build page.'));
+      return null;
+    }
   }
 
 }
@@ -367,4 +422,14 @@ class CreatorPage extends PropertyChangeNotifier {
 enum PageChange {
   selection,
   update
+}
+
+class PageCreationException implements Exception {
+
+  final String? code;
+  final String message;
+  final String? details;
+
+  PageCreationException(this.message, {this.details, this.code});
+
 }

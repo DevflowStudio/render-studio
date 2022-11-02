@@ -1,7 +1,8 @@
-import 'dart:io';
-
+import 'package:universal_io/io.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:animations/animations.dart';
+// ignore: unused_import
+import '../screens/web/screens.dart' as web;
 
 class AppRouter<T> extends PageRouteBuilder<T> {
 

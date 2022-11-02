@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter/rendering.dart';
 
 import '../../rehmat.dart';
 
@@ -69,6 +68,27 @@ class CreatorDesignAsset extends CreatorWidget {
         ),
       ],
       tab: 'Design Asset',
+    ),
+    EditorTab(
+      tab: 'Adjust',
+      options: [
+        Option.rotate(
+          widget: this,
+          project: project
+        ),
+        Option.scale(
+          widget: this,
+          project: project
+        ),
+        Option.opacity(
+          widget: this,
+          project: project
+        ),
+        Option.nudge(
+          widget: this,
+          project: project
+        ),
+      ]
     )
   ];
 
@@ -101,19 +121,20 @@ class CreatorDesignAsset extends CreatorWidget {
   }
 
   @override
-  bool buildFromJSON(Map<String, dynamic> json) {
-    if (super.buildFromJSON(json)) {
-      try {
-        Asset? _asset = project.assetManager.get(json['asset']);
-        if (_asset == null) return false;
-        else asset = _asset;
-        if (json['color'] != null) color = HexColor.fromHex(json['color']);
-        return true;
-      } catch (e) {
-        print('Error building Design Asset from JSON: $e');
-        return false;
-      }
-    } else return false;
+  void buildFromJSON(Map<String, dynamic> json) {
+    super.buildFromJSON(json);
+    try {
+      Asset? _asset = project.assetManager.get(json['asset']);
+      if (_asset == null) throw WidgetCreationException('Could not build Design Asset. File may have been deleted.');
+      else asset = _asset;
+      if (json['color'] != null) color = HexColor.fromHex(json['color']);
+    } catch (e) {
+      print('Error building Design Asset from JSON: $e');
+      throw WidgetCreationException(
+        'Error building Design Asset.',
+        details: 'Error building Design Asset from JSON: $e'
+      );
+    }
   }
 
   @override
@@ -121,46 +142,4 @@ class CreatorDesignAsset extends CreatorWidget {
     project.assetManager.delete(asset);
   }
 
-}
-
-
-
-/// 
-
-
-typedef void OnWidgetSizeChange(Size size);
-
-class MeasureSizeRenderObject extends RenderProxyBox {
-  Size? oldSize;
-  final OnWidgetSizeChange onChange;
-
-  MeasureSizeRenderObject(this.onChange);
-
-  @override
-  void performLayout() {
-    super.performLayout();
-
-    Size newSize = child!.size;
-    if (oldSize == newSize) return;
-
-    oldSize = newSize;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      onChange(newSize);
-    });
-  }
-}
-
-class MeasureSize extends SingleChildRenderObjectWidget {
-  final OnWidgetSizeChange onChange;
-
-  const MeasureSize({
-    Key? key,
-    required this.onChange,
-    required Widget child,
-  }) : super(key: key, child: child);
-
-  @override
-  RenderObject createRenderObject(BuildContext context) {
-    return MeasureSizeRenderObject(onChange);
-  }
 }

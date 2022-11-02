@@ -1,19 +1,19 @@
 import 'dart:ui';
 
+import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:render_studio/creator/widgets/qr.dart';
 
 import '../../rehmat.dart';
 
-class CreatorPageProperties extends CreatorWidget {
+class BackgroundWidget extends CreatorWidget {
 
-  CreatorPageProperties({required CreatorPage page, required Project project, uid}) : super(page: page, project: project, uid: uid);
+  BackgroundWidget({required CreatorPage page, required Project project, uid}) : super(page: page, project: project, uid: uid);
 
   // Inherited
-  final String name = 'Page';
+  final String name = 'Background';
   @override
-  final String id = 'page';
+  final String id = 'background';
 
   bool isResizable = false;
   bool isBackgroundWidget = true;
@@ -22,7 +22,7 @@ class CreatorPageProperties extends CreatorWidget {
   @override
   bool allowClipboard = false;
 
-  // New to CreatorPageProperties
+  // New to BackgroundWidget
 
   /// Color of the page background
   Color color = Colors.white;
@@ -44,7 +44,7 @@ class CreatorPageProperties extends CreatorWidget {
       options: [
         Option.button(
           icon: Icons.add,
-          title: 'Add',
+          title: 'Widget',
           tooltip: 'Add a new widget',
           onTap: (context) async {
             CreatorWidget? widget = await showModalBottomSheet<CreatorWidget>(
@@ -192,6 +192,86 @@ class CreatorPageProperties extends CreatorWidget {
           },
         ),
         Option.button(
+          icon: Icons.photo_size_select_small,
+          title: 'Resize',
+          tooltip: 'Tap to resize the project',
+          onTap: (context) async {
+            EditorTab.modal(
+              context,
+              tab: EditorTab.pickerBuilder(
+                title: 'Resize Project',
+                itemBuilder: (context, index) => Text('${PostSizePresets.values[index].title}'),
+                childCount: PostSizePresets.values.length,
+                onSelectedItemChanged: (index) {
+                  project.size = PostSizePresets.values[index].toSize();
+                  page.notifyListeners(PageChange.update);
+                },
+              )
+            );
+          },
+        ),
+        Option.button(
+          icon: Icons.palette,
+          title: 'Palette',
+          tooltip: 'Tap to shuffle palette',
+          onTap: (context) async {
+            await EditorTab.modal(
+              context,
+              tab: EditorTab.palette(
+                page: page,
+                onSelected: (palette) {
+                  page.updatePalette(palette);
+                  updateListeners(WidgetChange.misc);
+                },
+              ),
+              padding: EdgeInsets.only(
+                left: 6,
+                right: 6,
+                top: 6,
+                bottom: MediaQuery.of(context).padding.bottom
+              )
+            );
+            updateListeners(WidgetChange.update);
+          },
+        ),
+        Option.button(
+          icon: Icons.delete,
+          title: 'Delete Page',
+          tooltip: 'Tap to delete this page',
+          onTap: (context) async {
+            if (project.pages.length == 1) {
+              Alerts.snackbar(context, text: 'Cannot delete a single page');
+              return;
+            }
+            bool delete = await showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text('Delete Page?'),
+                content: const Text('Are you sure you want to delete this page and all of it\'s content? This cannot be reverted.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel')
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Delete')
+                  ),
+                ],
+              ),
+            );
+            if (delete) {
+              project.pages.delete();
+              Alerts.snackbar(context, text: 'Deleted page');
+            }
+          },
+        ),
+      ],
+    ),
+    EditorTab(
+      tab: 'Background',
+      options: [
+        Option.button(
           title: 'Color',
           tooltip: 'Background Color',
           onTap: (context) async {
@@ -295,48 +375,24 @@ class CreatorPageProperties extends CreatorWidget {
             }
           },
         ),
-        Option.button(
-          icon: Icons.delete,
-          title: 'Delete Page',
-          tooltip: 'Tap to delete this page',
-          onTap: (context) async {
-            if (project.pages.length == 1) {
-              Alerts.snackbar(context, text: 'Cannot delete a single page');
-              return;
-            }
-            bool delete = await showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Delete Page?'),
-                content: const Text('Are you sure you want to delete this page and all of it\'s content? This cannot be reverted.'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel')
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Delete')
-                  ),
-                ],
-              ),
-            );
-            if (delete) {
-              project.pages.delete();
-              Alerts.snackbar(context, text: 'Deleted page');
-            }
-          },
-        ),
-      ],
+      ]
     )
   ];
+
+  @override
+  Widget build(BuildContext context) => AlignPositioned(
+    dx: position.dx,
+    dy: position.dy,
+    touch: Touch.inside,
+    child: widget(context),
+  );
 
   @override
   Widget widget(BuildContext context) {
     if (image == null) type = BackgroundType.color;
     return Center(
       child: SizedBox.fromSize(
-        size: project.contentSize(context),
+        size: project.canvasSize(context),
         child: Container(
           decoration: BoxDecoration(
             color: type == BackgroundType.color ? color : Colors.white,
@@ -399,6 +455,11 @@ class CreatorPageProperties extends CreatorWidget {
     return _generated;
   }
 
+  void onPaletteUpdate() {
+    color = page.palette.background;
+    updateListeners(WidgetChange.misc);
+  }
+
   @override
   Map<String, dynamic> toJSON() => {
     ... super.toJSON(),
@@ -408,7 +469,7 @@ class CreatorPageProperties extends CreatorWidget {
   };
 
   @override
-  bool buildFromJSON(Map<String, dynamic> json) {
+  void buildFromJSON(Map<String, dynamic> json) {
     super.buildFromJSON(json);
     try {
       color = HexColor.fromHex(json['color']);
@@ -420,9 +481,11 @@ class CreatorPageProperties extends CreatorWidget {
         gradient = _generateGradientsColor(json['gradient']);
         type = BackgroundType.gradient;
       }
-      return true;
     } catch (e) {
-      return false;
+      throw WidgetCreationException(
+        'Failed to create background widget',
+        details: 'Error: $e'
+      );
     }
   }
 

@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:octo_image/octo_image.dart';
 // import 'package:octo_image/octo_image.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../rehmat.dart';
+import '../../../rehmat.dart';
 
 class Settings extends StatefulWidget {
 

@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -7,7 +5,9 @@ import '../../rehmat.dart';
 
 class CreatorText extends CreatorWidget {
 
-  CreatorText({required CreatorPage page, required Project project}) : super(page: page, project: project);
+  CreatorText({required CreatorPage page, required Project project, String? uid}) : super(page: page, project: project, uid: uid) {
+    color = page.palette.background.computeTextColor();
+  }
 
   @override
   List<EditorTab> get tabs => [
@@ -30,15 +30,31 @@ class CreatorText extends CreatorWidget {
             page.delete(this);
           },
         ),
-        Option.button(
-          title: 'Auto Size',
-          tooltip: 'Auto size text when resizing the widget',
-          onTap: (context) async {
-            autoSize = !autoSize;
-            _removeExtraSpaceFromSize();
-            updateListeners(WidgetChange.misc);
+        Option.color(
+          title: 'Color',
+          icon: Icons.format_color_text,
+          tooltip: 'Tap to select text color',
+          palette: () => page.palette,
+          selected: () => color,
+          onChange: (_color) {
+            this.color = _color;
+            if (stroke != null) _updateStroke();
+            updateListeners(WidgetChange.update);
           },
-          icon: Icons.auto_awesome_rounded
+        ),
+        Option.toggle(
+          title: 'Auto Size',
+          valueBuilder: () {
+            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).autoSize;
+          },
+          onChange: (value) {
+            autoSize = value;
+            updateListeners(WidgetChange.update);
+          },
+          enabledIcon: Icons.auto_fix_normal,
+          disabledIcon: Icons.auto_fix_off_rounded,
+          enabledTooltip: 'Disabled auto-size text',
+          disabledTooltip: 'Enable auto-size text',
         ),
         Option.button(
           title: 'Size',
@@ -61,28 +77,6 @@ class CreatorText extends CreatorWidget {
             updateListeners(WidgetChange.resize);
           },
           icon: Icons.format_size
-        ),
-        Option.button(
-          icon: Icons.height_rounded,
-          title: 'Height',
-          tooltip: 'Change line height of the text',
-          onTap: (context) async {
-            List<double> _options = [0.6, 0.77, 0.85, 0.9, 1, 1.5, 2];
-            await EditorTab.modal(
-              context,
-              tab: EditorTab.pickerBuilder(
-                title: 'Line Height',
-                itemBuilder: (context, index) => Text(_options[index].toString()),
-                childCount: _options.length,
-                initialIndex: _options.indexOf(lineHeight),
-                onSelectedItemChanged: (index) {
-                  lineHeight = _options[index];
-                  updateListeners(WidgetChange.misc);
-                },
-              )
-            );
-            updateListeners(WidgetChange.update);
-          },
         ),
       ],
     ),
@@ -120,123 +114,141 @@ class CreatorText extends CreatorWidget {
       ],
     ),
     EditorTab(
-      tab: 'Colors',
-      options: [
-        Option.button(
-          title: 'Color',
-          icon: Icons.format_color_text,
-          tooltip: 'Tap to select text color',
-          onTap: (_) async {
-            Color? _color = await Palette.showColorPicker(context: _, defaultColor: color);
-            if (_color != null) {
-              this.color = _color;
-              if (stroke != null) _updateStroke();
-              updateListeners(WidgetChange.update);
-            }
-          },
-        ),
-        Option.button(
-          icon: Icons.format_color_fill,
-          title: 'Background',
-          tooltip: 'Tap to select text background color',
-          onTap: (context) async {
-            Color _color = await Palette.showColorPicker(
-              context: context,
-              defaultColor: color,
-              title: 'Select Background Color'
-            ) ?? Colors.transparent;
-            textBackground = _color;
-            updateListeners(WidgetChange.update);
-          },
-        ),
-      ],
-    ),
-    EditorTab(
       tab: 'Formatting',
       options: [
-        Option.button(
+        Option.toggle(
           title: 'Bold',
-          tooltip: 'Add Bold Formatting',
-          greyOut: !bold,
-          onTap: (context) async {
-            bold = !bold;
-            if (stroke != null) _updateStroke();
+          valueBuilder: () {
+            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).bold;
+          },
+          onChange: (value) {
+            bold = value;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.format_bold
+          enabledIcon: Icons.format_bold,
+          disabledIcon: Icons.format_bold,
+          disabledTooltip: 'Add bold formatting',
+          enabledTooltip: 'Remove bold formatting',
         ),
-        Option.button(
+        Option.toggle(
           title: 'Italics',
-          tooltip: 'Add Italics Formatting',
-          greyOut: !italics,
-          onTap: (context) async {
-            italics = !italics;
+          valueBuilder: () {
+            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).italics;
+          },
+          onChange: (value) {
+            italics = value;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.format_italic
+          disabledIcon: Icons.format_italic,
+          enabledIcon: Icons.format_italic,
+          disabledTooltip: 'Add italics formatting',
+          enabledTooltip: 'Remove italics formatting',
         ),
-        Option.button(
+        Option.toggle(
           title: 'Underline',
-          tooltip: 'Add Underline Formatting',
-          greyOut: !underline,
-          onTap: (context) async {
-            underline = !underline;
+          valueBuilder: () {
+            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).underline;
+          },
+          onChange: (value) {
+            underline = value;
             overline = false;
             strikethrough = false;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.format_underline
+          disabledIcon: Icons.format_underlined_rounded,
+          enabledIcon: Icons.format_underline_rounded,
+          disabledTooltip: 'Add underline formatting',
+          enabledTooltip: 'Remove underline formatting',
         ),
-        Option.button(
-          title: 'Strikethrough',
-          tooltip: 'Add Strikethrough Formatting',
-          greyOut: !strikethrough,
-          onTap: (context) async {
-            underline = false;
-            overline = false;
-            strikethrough = !strikethrough;
+        Option.toggle(
+          title: 'Strikethough',
+          valueBuilder: () {
+            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).strikethrough;
+          },
+          onChange: (value) {
+            strikethrough = value;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.strikethrough_s
+          disabledIcon: Icons.strikethrough_s,
+          enabledIcon: Icons.strikethrough_s,
+          disabledTooltip: 'Add strikethrough formatting',
+          enabledTooltip: 'Remove strikethrough formatting',
         ),
-        Option.button(
+        Option.toggle(
           title: 'Overline',
-          tooltip: 'Add Overline Formatting',
-          greyOut: !overline,
-          onTap: (context) async {
+          valueBuilder: () {
+            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).overline;
+          },
+          onChange: (value) {
+            overline = value;
             underline = false;
-            overline = !overline;
             strikethrough = false;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.maximize
-        ),
-        Option.button(
-          title: 'Stroke',
-          tooltip: 'Add a stroke to text',
-          onTap: (context) async {
-            _toggleStroke();
-          },
-          icon: Icons.maximize
+          disabledIcon: Icons.format_overline,
+          enabledIcon: Icons.format_overline,
+          disabledTooltip: 'Add overline formatting',
+          enabledTooltip: 'Remove overline formatting',
         ),
       ],
     ),
     EditorTab(
-      tab: 'Widget',
+      tab: 'Background',
       options: [
         Option.button(
+          icon: Icons.remove_circle,
+          title: 'Remove Text Background',
+          tooltip: '',
+          onTap: (context) async {
+            // page.delete(this);
+          },
+        ),
+        Option.button(
+          icon: Icons.palette,
           title: 'Color',
-          tooltip: 'Tap to select widget background color',
+          tooltip: 'Tap to select background color',
           onTap: (context) async {
             Color? _color = await Palette.showColorPicker(
               context: context,
-              defaultColor: color,
-              title: 'Select Background Color'
+              defaultColor: Colors.white,
+              title: 'Select Color'
             );
             if (_color != null) widgetColor = _color;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.format_color_fill
+        ),
+        Option.button(
+          title: 'Shadow',
+          onTap: (context) {
+            if (boxShadow == null) boxShadow = BoxShadow();
+            EditorTab.modal(
+              context,
+              tab: EditorTab.shadow<BoxShadow>(
+                shadow: shadow!,
+                onChange: (value) {
+                  boxShadow = value;
+                  updateListeners(WidgetChange.misc);
+                },
+                onChangeEnd: (value) {
+                  boxShadow = value;
+                  updateListeners(WidgetChange.update);
+                },
+              ),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    boxShadow = null;
+                    updateListeners(WidgetChange.update);
+                  },
+                  icon: Icon(Icons.delete_outline_rounded),
+                  iconSize: 20,
+                )
+              ]
+            );
+          },
+          icon: Icons.blur_on,
+          tooltip: 'Customize shadow of background'
         ),
         Option.button(
           title: 'Radius',
@@ -248,8 +260,8 @@ class CreatorText extends CreatorWidget {
                 options: [
                   Option.slider(
                     value: radius,
-                    min: -10,
-                    max: 20,
+                    min: 0,
+                    max: 100,
                     onChange: (value) {
                       radius = value;
                       updateListeners(WidgetChange.misc);
@@ -349,107 +361,55 @@ class CreatorText extends CreatorWidget {
                   shadow = value;
                   updateListeners(WidgetChange.update);
                 },
-              )
+              ),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    shadow = null;
+                    updateListeners(WidgetChange.update);
+                  },
+                  icon: Icon(Icons.delete_outline_rounded),
+                  iconSize: 20,
+                )
+              ]
             );
           },
           icon: Icons.blur_on,
           tooltip: 'Customize shadow of text'
-        )
+        ),
+        Option.button(
+          title: 'Outline',
+          tooltip: 'Add an outline to text',
+          onTap: (context) async {
+            _toggleStroke();
+          },
+          icon: Icons.border_outer
+        ),
       ],
     ),
     EditorTab(
       options: [
-        Option.button(
-          title: 'Rotate',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: EditorTab.rotate(
-                angle: angle,
-                onChange: (value) {
-                  angle = value;
-                  updateListeners(WidgetChange.misc);
-                },
-                onChangeEnd: (value) {
-                  angle = value;
-                  updateListeners(WidgetChange.update);
-                },
-              )
-            );
-          },
-          icon: Icons.refresh,
-          tooltip: 'Tap to open angle adjuster'
+        Option.rotate(
+          widget: this,
+          project: project
         ),
-        Option.button(
-          title: 'Scale',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: EditorTab.scale(
-                size: size,
-                minSize: minSize ?? Size(20, 20),
-                maxSize: project.contentSize(context),
-                onChange: (value) {
-                  // angle = value;
-                  size  = value;
-                  updateResizeHandlers();
-                  updateListeners(WidgetChange.misc);
-                },
-                onChangeEnd: (value) {
-                  // angle = value;
-                  size  = value;
-                  updateListeners(WidgetChange.update);
-                },
-              )
-            );
-          },
-          icon: Icons.open_in_full_rounded,
-          tooltip: 'Tap to scale the widget size'
+        Option.scale(
+          widget: this,
+          project: project
         ),
-        Option.button(
-          title: 'Opacity',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: EditorTab.opacity(
-                opacity: opacity,
-                onChange: (value) {
-                  opacity = value;
-                  updateListeners(WidgetChange.misc);
-                },
-                onChangeEnd: (value) {
-                  opacity = value;
-                  updateListeners(WidgetChange.update);
-                },
-              ),
-            );
-          },
-          icon: Icons.opacity,
-          tooltip: 'Opacity'
+        Option.opacity(
+          widget: this,
+          project: project,
         ),
-        Option.button(
-          title: 'Nudge',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: EditorTab.nudge(
-                onDXchange: (dx) {
-                  position = Offset(position.dx + dx, position.dy);
-                  updateListeners(WidgetChange.update);
-                },
-                onDYchange: (dy) {
-                  position = Offset(position.dx, position.dy + dy);
-                  updateListeners(WidgetChange.update);
-                },
-              )
-            );
-          },
-          icon: Icons.drag_indicator,
-          tooltip: 'Nudge'
+        Option.nudge(
+          widget: this,
+          project: project
         ),
       ],
       tab: 'Adjust',
     ),
+    // TODO: Update Icons for Spacing
     EditorTab(
       tab: 'Spacing',
       type: EditorTabType.row,
@@ -512,6 +472,28 @@ class CreatorText extends CreatorWidget {
           icon: Icons.space_bar,
           tooltip: 'Adjust Word Spacing'
         ),
+        Option.button(
+          icon: Icons.height_rounded,
+          title: 'Height',
+          tooltip: 'Change line height of the text',
+          onTap: (context) async {
+            List<double> _options = [0.6, 0.77, 0.85, 0.9, 1, 1.5, 2];
+            await EditorTab.modal(
+              context,
+              tab: EditorTab.pickerBuilder(
+                title: 'Line Height',
+                itemBuilder: (context, index) => Text(_options[index].toString()),
+                childCount: _options.length,
+                initialIndex: _options.indexOf(lineHeight),
+                onSelectedItemChanged: (index) {
+                  lineHeight = _options[index];
+                  updateListeners(WidgetChange.misc);
+                },
+              )
+            );
+            updateListeners(WidgetChange.update);
+          },
+        ),
       ],
     )
   ];
@@ -524,9 +506,9 @@ class CreatorText extends CreatorWidget {
   bool isDraggable = true;
 
   /// Text Color
-  Color color = Colors.black;
-  /// CreatorPageProperties Color
-  Color widgetColor = Colors.transparent;
+  late Color color;
+  
+  /// BackgroundWidget Color
   Color textBackground = Colors.transparent;
   Color? decorationColor = Colors.black;
 
@@ -554,7 +536,7 @@ class CreatorText extends CreatorWidget {
 
   double radius = 10;
 
-  double lineHeight = 0.77;
+  double lineHeight = 0.77; // 0.77 alternative
 
   EdgeInsets padding = EdgeInsets.zero;
 
@@ -564,13 +546,22 @@ class CreatorText extends CreatorWidget {
 
   TextDecorationStyle decorationStyle = TextDecorationStyle.solid;
 
+  Color? widgetColor;
+
+  Color? borderColor;
+  double? borderWidth;
+
+  double borderRadius = 0;
+
+  BoxShadow? boxShadow;
+
   Widget widget(BuildContext context) => Container(
     padding: padding,
     decoration: BoxDecoration(
       color: widgetColor,
       borderRadius: BorderRadius.circular(radius),
     ),
-    child: textWidget,
+    child: Center(child: textWidget),
   );
 
   Widget get textWidget => autoSize ? AutoSizeText(
@@ -615,62 +606,81 @@ class CreatorText extends CreatorWidget {
   }
 
   Future<void> showEditTextModal(BuildContext context) async {
-    String? text = await showGeneralDialog(
+    String? text = await showModalBottomSheet(
       context: context,
-      barrierDismissible: false,
-      transitionDuration: const Duration(
-        milliseconds: 400,
-      ), // how long it takes to popup dialog after button click
-      pageBuilder: (_, __, ___) {
-        TextEditingController textCtrl = TextEditingController.fromValue(TextEditingValue(text: this.text));
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Container(
-              color: Palette.of(context).surface.withOpacity(0.5),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Scaffold(
-                  backgroundColor: Colors.transparent,
-                  body: Column(
-                    children: [
-                      SafeArea(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              onPressed: Navigator.of(context).pop,
-                              icon: const Icon(Icons.cancel)
-                            ),
-                            IconButton(
-                              onPressed: () => Navigator.of(context).pop(textCtrl.text),
-                              icon: const Icon(Icons.check_circle)
-                            )
-                          ],
+      enableDrag: false,
+      isScrollControlled: true,
+      barrierColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          TextEditingController textCtrl = TextEditingController(text: this.text);
+          textCtrl.selection = TextSelection.collapsed(offset: textCtrl.text.length);
+          return Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            decoration: BoxDecoration(
+              color: Palette.of(context).surfaceVariant,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 3,
+                  spreadRadius: 0,
+                )
+              ]
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        NewBackButton(
+                          size: 20,
                         ),
-                      ),
-                      const Spacer(),
-                      TextFormField(
-                        controller: textCtrl,
-                        decoration: const InputDecoration(
-                          filled: false,
-                          hintText: 'Type something ...',
-                          border: InputBorder.none,
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Text(
+                            'Edit Text',
+                            style: Theme.of(context).textTheme.subtitle1!.copyWith(),
+                          ),
                         ),
-                        textAlign: TextAlign.center,
-                        maxLines: 3,
-                        style: const TextStyle(
-                          fontSize: 30,
-                        ),
-                      ),
-                      const Spacer(),
-                    ],
-                  ),
+                      ],
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(textCtrl.text);
+                      },
+                      icon: Icon(Icons.check_circle)
+                    )
+                  ],
                 ),
-              ),
-            );
-          },
-        );
-      },
+                Padding(
+                  padding: EdgeInsets.only(left: 12, right: 12, bottom: 24),
+                  child: TextFormField(
+                    autofocus: true,
+                    controller: textCtrl,
+                    decoration: InputDecoration(
+                      hintText: 'Type something ...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none
+                      )
+                    ),
+                    minLines: 6,
+                    maxLines: 7,
+                  ),
+                )
+              ],
+            )
+          );
+        },
+      ),
     );
     if (text != null && text.trim() != '') this.text = text;
     _removeExtraSpaceFromSize();
@@ -700,8 +710,12 @@ class CreatorText extends CreatorWidget {
       textAlign: align,
       maxLines: words.length,
       textDirection: TextDirection.ltr
-    ) ..layout(minWidth: 0, maxWidth: size.width);
-    size = textPainter.size;
+    ) ..layout(minWidth: 0, maxWidth: size.width - (padding.left * 2));
+    Size _newSize = textPainter.size;
+    Size __size = size;
+    if (((_newSize.width - size.width)).abs() > 5) __size = Size(_newSize.width, __size.height);
+    if (((_newSize.height - size.height)).abs() > 5) __size = Size(__size.width, _newSize.height);
+    size = __size;
   }
 
   void _toggleStroke() {
@@ -718,6 +732,16 @@ class CreatorText extends CreatorWidget {
       ..style = PaintingStyle.stroke
       ..strokeWidth = bold ? 2 : 1
       ..color = color;
+  }
+
+  void onPaletteUpdate() {
+    if (widgetColor != null) {
+      widgetColor = page.palette.primary;
+      color = widgetColor!.computeTextColor();
+    } else {
+      color = page.palette.background.computeTextColor();
+    }
+    updateListeners(WidgetChange.misc);
   }
 
   @override
@@ -743,7 +767,7 @@ class CreatorText extends CreatorWidget {
       'stroke': stroke != null
     },
     'widget': {
-      'color': widgetColor.toHex(),
+      'color': widgetColor?.toHex(),
       'radius': radius,
     },
     'alignment': align.index,
@@ -761,8 +785,8 @@ class CreatorText extends CreatorWidget {
   };
 
   @override
-  bool buildFromJSON(Map<String, dynamic> json) {
-    if(!super.buildFromJSON(json)) return false;
+  void buildFromJSON(Map<String, dynamic> json) {
+    super.buildFromJSON(json);
     try {
       text = json['text']['text'];
       fontFamily = json['text']['font'];
@@ -782,7 +806,7 @@ class CreatorText extends CreatorWidget {
         _updateStroke();
       }
 
-      widgetColor = HexColor.fromHex(json['widget']['color']);
+      if (json['widget']['color'] != null) widgetColor = HexColor.fromHex(json['widget']['color']);
       radius = json['widget']['radius'];
 
       align = TextAlign.values.where((element) => element.index == json['alignment']).first;
@@ -795,15 +819,17 @@ class CreatorText extends CreatorWidget {
         );
       }
 
-      padding = PaddingExtension.fromJSON(json['padding']);
+      padding = PaddingExtension.fromJSON(Map.from(json['padding']));
 
       letterSpacing = json['spacing']['letter'];
       wordSpacing = json['spacing']['word'];
 
-      return true;
     } catch (e) {
-      print(e);
-      return false;
+      print("Text Render Enging Failed: $e");
+      throw WidgetCreationException(
+        'Failed to build text widget',
+        details: 'Failed to build text widget from JSON: $e',
+      );
     }
   }
 

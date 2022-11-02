@@ -7,6 +7,8 @@ class Palette {
 
   static ColorScheme of(BuildContext context) => Theme.of(context).colorScheme;
 
+  static bool isDark(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
+
   static Future<Color?> showColorPicker({
     required BuildContext context,
     String title = 'Choose Color',

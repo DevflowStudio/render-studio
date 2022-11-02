@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../rehmat.dart';
+import '../../../rehmat.dart';
 
 class GradientPicker extends StatefulWidget {
   

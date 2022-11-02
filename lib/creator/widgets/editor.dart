@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -141,75 +144,73 @@ class EditorTab {
   final EditorTabType type;
   final List<IconButton> actions;
 
-  static Future<void> modal(BuildContext context, {
+  static Future<T?> modal<T>(BuildContext context, {
     required EditorTab tab,
     double? height,
     Widget Function(BuildContext context, Widget child)? builder,
-  }) async {
-    await showModalBottomSheet(
-      context: context,
-      enableDrag: false,
-      isScrollControlled: true,
-      barrierColor: Colors.transparent,
-      builder: (context) => Container(
-        width: double.infinity,
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        decoration: BoxDecoration(
-          color: Palette.of(context).surfaceVariant,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 3,
-              spreadRadius: 0,
-            )
-          ]
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 45
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  child: Text(
-                    tab.tab,
-                    style: Theme.of(context).textTheme.subtitle2!.copyWith(),
-                  ),
-                ),
-                IconButton(
-                  onPressed: Navigator.of(context).pop,
-                  icon: const Icon(Icons.check_circle)
-                ),
-              ],
-            ),
-            const Divider(
-              indent: 0,
-              height: 0,
-            ),
-            if (builder != null) builder(context, tab.build(context))
-            else Container(
-              // color: Colors.red,
-              constraints: BoxConstraints(
-                minHeight: Editor.calculateSize(context).height - 50,
-                maxHeight: MediaQuery.of(context).size.height/2.7,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(left: 5, right: 5, top: 20, bottom: 20),
-                child: tab.build(context),
-              ),
-            ),
-          ],
-        )
+    List<Widget> actions = const [],
+    EdgeInsets? padding
+  }) => showModalBottomSheet<T>(
+    context: context,
+    enableDrag: false,
+    isScrollControlled: true,
+    barrierColor: Colors.transparent,
+    builder: (context) => Container(
+      width: double.infinity,
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-    );
-  }
+      decoration: BoxDecoration(
+        color: Palette.of(context).surfaceVariant,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 3,
+            spreadRadius: 0,
+          )
+        ]
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  NewBackButton(
+                    size: 20,
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Text(
+                      tab.tab,
+                      style: Theme.of(context).textTheme.subtitle1!.copyWith(),
+                    ),
+                  ),
+                ],
+              ),
+              ... actions,
+            ],
+          ),
+          if (builder != null) builder(context, tab.build(context))
+          else Container(
+            // color: Colors.red,
+            constraints: BoxConstraints(
+              minHeight: Editor.calculateSize(context).height - 50,
+              maxHeight: MediaQuery.of(context).size.height/2.7,
+            ),
+            child: Padding(
+              padding: padding ?? EdgeInsets.only(left: 5, right: 5, top: 20, bottom: 20),
+              child: tab.build(context),
+            ),
+          ),
+        ],
+      )
+    ),
+  );
 
   Widget build(BuildContext context) {
     switch (type) {
@@ -365,7 +366,7 @@ class EditorTab {
   static EditorTab picker({
     required String title,
     required List<Widget> children,
-    required void Function(int)? onSelectedItemChanged,
+    required void Function(int index)? onSelectedItemChanged,
     double itemExtent = 30,
     int initialIndex = 0
   }) => EditorTab(
@@ -414,88 +415,40 @@ class EditorTab {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            InkWell(
-              borderRadius: BorderRadius.circular(5),
-              onTap: () {
+            ButtonWithIcon(
+              onTap: (context) {
                 onDYchange(-Constants.nudgeSenstivity);
                 TapFeedback.light();
               },
-              child: Container(
-                width: 60,
-                height: 35,
-                margin: const EdgeInsets.only(bottom: 5),
-                decoration: BoxDecoration(
-                  color: Palette.of(context).secondaryContainer,
-                  borderRadius: BorderRadius.circular(5)
-                ),
-                child: Icon(
-                  Icons.arrow_upward,
-                  color: Palette.of(context).onSecondaryContainer,
-                )
-              ),
+              tooltip: 'Move Up',
+              icon: Icons.expand_less,
             ),
+            SizedBox(height: 6),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                InkWell(
-                  borderRadius: BorderRadius.circular(5),
-                  onTap: () {
+                ButtonWithIcon(
+                  onTap: (context) {
                     onDXchange(-Constants.nudgeSenstivity);
-                    TapFeedback.light();
                   },
-                  child: Container(
-                    width: 60,
-                    height: 35,
-                    margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 3),
-                    decoration: BoxDecoration(
-                      color: Palette.of(context).secondaryContainer,
-                      borderRadius: BorderRadius.circular(5)
-                    ),
-                    child: Icon(
-                      Icons.arrow_back,
-                      color: Palette.of(context).onSecondaryContainer,
-                    )
-                  ),
+                  tooltip: 'Move Left',
+                  icon: Icons.chevron_left,
                 ),
-                InkWell(
-                  borderRadius: BorderRadius.circular(5),
-                  onTap: () {
+                SizedBox(width: 6),
+                ButtonWithIcon(
+                  onTap: (context) {
                     onDYchange(Constants.nudgeSenstivity);
-                    TapFeedback.light();
                   },
-                  child: Container(
-                    width: 60,
-                    height: 35,
-                    margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 3),
-                    decoration: BoxDecoration(
-                      color: Palette.of(context).secondaryContainer,
-                      borderRadius: BorderRadius.circular(5)
-                    ),
-                    child: Icon(
-                      Icons.arrow_downward,
-                      color: Palette.of(context).onSecondaryContainer,
-                    )
-                  ),
+                  tooltip: 'Move Down',
+                  icon: Icons.expand_more,
                 ),
-                InkWell(
-                  borderRadius: BorderRadius.circular(5),
-                  onTap: () {
+                SizedBox(width: 6),
+                ButtonWithIcon(
+                  onTap: (context) {
                     onDXchange(Constants.nudgeSenstivity);
-                    TapFeedback.light();
                   },
-                  child: Container(
-                    width: 60,
-                    height: 35,
-                    margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 3),
-                    decoration: BoxDecoration(
-                      color: Palette.of(context).secondaryContainer,
-                      borderRadius: BorderRadius.circular(5)
-                    ),
-                    child: Icon(
-                      Icons.arrow_forward,
-                      color: Palette.of(context).onSecondaryContainer
-                    )
-                  ),
+                  tooltip: 'Move Right',
+                  icon: Icons.chevron_right,
                 ),
               ]
             )
@@ -509,6 +462,8 @@ class EditorTab {
   static EditorTab paddingEditor({
     required EdgeInsets padding,
     required Function(EdgeInsets value) onChange,
+    double? min,
+    double? max,
   }) => EditorTab(
     type: EditorTabType.single,
     options: [
@@ -516,6 +471,8 @@ class EditorTab {
         widget: (context) => _PaddingEditor(
           padding: padding,
           onChange: onChange,
+          min: min,
+          max: max
         ),
       )
     ],
@@ -524,10 +481,9 @@ class EditorTab {
 
   static EditorTab shadow<T>({
     required Shadow shadow,
-    required void Function(T value) onChange,
-    void Function(T value)? onChangeEnd,
+    required void Function(T? value) onChange,
+    void Function(T? value)? onChangeEnd,
   }) {
-    print(onChange);
     return EditorTab(
       type: EditorTabType.single,
       options: [
@@ -542,6 +498,81 @@ class EditorTab {
       tab: 'Shadow Editor'
     );
   }
+
+  static EditorTab palette({
+    required CreatorPage page,
+    required void Function(ColorPalette palette) onSelected
+  }) => EditorTab(
+    tab: 'Palette',
+    type: EditorTabType.single,
+    options: [
+      Option.custom(
+        widget: (context) => SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              _PaletteListView(
+                title: 'Current',
+                palettes: [
+                  page.palette
+                ],
+                onSelected: onSelected,
+                page: page,
+              ),
+              SizedBox(
+                height: 150,
+                child: VerticalDivider(),
+              ),
+              _PaletteListView(
+                title: 'Saved',
+                palettes: [
+                  ... paletteManager.palettes
+                ],
+                onSelected: onSelected,
+                page: page,
+              ),
+              SizedBox(
+                height: 150,
+                child: Center(child: VerticalDivider()),
+              ),
+              FutureBuilder(
+                future: paletteManager.suggestions,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return _PaletteListView(
+                      title: 'Suggestion',
+                      palettes: snapshot.data as List<ColorPalette>,
+                      onSelected: onSelected,
+                      page: page,
+                    );
+                  } else {
+                    return SizedBox(
+                      height: 150,
+                      width: 100,
+                      child: Center(
+                        child: Spinner(
+                          adaptive: true,
+                        ),
+                      ),
+                    );
+                  }
+                  // return _PaletteListView(
+                  //   title: 'Suggestions',
+                  //   palettes: [
+                  //     ... List.generate(paletteManager.palettes.length < 5 ? 5 : 3, (index) => ColorPalette.offlineGenerator())
+                  //   ],
+                  // );
+                },
+              )
+            ],
+          ),
+        ),
+      )
+    ]
+  );
 
 }
 
@@ -576,10 +607,14 @@ class _PaddingEditor extends StatefulWidget {
     Key? key,
     required this.padding,
     required this.onChange,
+    this.max,
+    this.min
   }) : super(key: key);
 
   final EdgeInsets padding;
   final Function(EdgeInsets value) onChange;
+  final double? max;
+  final double? min;
 
   @override
   State<_PaddingEditor> createState() => __PaddingEditorState();
@@ -616,8 +651,8 @@ class __PaddingEditorState extends State<_PaddingEditor> {
             Slider(
               value: locked ? vertical : horizontal,
               label: 'Horizontal',
-              min: 0,
-              max: 50,
+              min: widget.min ?? 0,
+              max: widget.max ?? 24,
               onChanged: (value) {
                 if (locked) {
                   horizontal = vertical = value;
@@ -633,9 +668,10 @@ class __PaddingEditorState extends State<_PaddingEditor> {
             Slider(
               value: vertical,
               label: 'Vertical',
-              min: 0,
-              max: 50,
+              min: widget.min ?? 0,
+              max: widget.max ?? 24,
               onChanged: (value) {
+                print('Vertical: $value');
                 if (locked) {
                   horizontal = vertical = value;
                   padding = EdgeInsets.symmetric(vertical: value, horizontal: value);
@@ -738,6 +774,7 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
           _ShadowEditorGroupValueEditor(
             label: 'X',
             textEditingController: xController,
+            signed: true,
             onChange: (value) {
               x = value;
               onChange();
@@ -754,6 +791,7 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
           ),
           _ShadowEditorGroupValueEditor(
             label: 'Y',
+            signed: true,
             textEditingController: yController,
             onChange: (value) {
               y = value;
@@ -847,12 +885,14 @@ class _ShadowEditorGroupValueEditor extends StatelessWidget {
     required this.onChange,
     this.mainAxisAlignment,
     this.textEditingController,
+    this.signed = false
   }) : super(key: key);
 
   final TextEditingController? textEditingController;
   final MainAxisAlignment? mainAxisAlignment;
   final String label;
   final Function(double value) onChange;
+  final bool signed;
 
   @override
   Widget build(BuildContext context) {
@@ -867,7 +907,7 @@ class _ShadowEditorGroupValueEditor extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
             ),
           ),
-          SizedBox(width: 12),
+          Spacer(),
           SizedBox.fromSize(
             size: const Size(100, 50),
             child: TextFormField(
@@ -882,7 +922,10 @@ class _ShadowEditorGroupValueEditor extends StatelessWidget {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d{0,2}\.?\d{0,1}'))
               ],
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(
+                decimal: true,
+                signed: signed
+              ),
               onChanged: (value) {
                 if (value.isEmpty) return;
                 try {
@@ -899,4 +942,167 @@ class _ShadowEditorGroupValueEditor extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PaletteViewModal extends StatefulWidget {
+
+  _PaletteViewModal({
+    Key? key,
+    required this.palette,
+    required this.onSelected,
+    required this.page
+  }) : super(key: key);
+
+  final ColorPalette palette;
+  final void Function(ColorPalette) onSelected;
+  final CreatorPage page;
+
+  @override
+  State<_PaletteViewModal> createState() => __PaletteViewModalState();
+}
+
+class __PaletteViewModalState extends State<_PaletteViewModal> {
+
+  @override
+  void initState() {
+    super.initState();
+    widget.page.addListener(_onPageChange);
+  }
+
+  @override
+  void dispose() {
+    widget.page.removeListener(_onPageChange);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        widget.palette.refresh();
+        widget.onSelected(widget.palette);
+        setState(() { });
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: SizedBox(
+          width: 70,
+          child: Stack(
+            children: [
+              Align(
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (Color color in widget.palette.colors) Flexible(
+                      child: AnimatedContainer(
+                        duration: Constants.animationDuration,
+                        width: 70,
+                        decoration: BoxDecoration(
+                          color: color,
+                          border: Border.all(
+                            color: color,
+                            width: 0
+                          )
+                        ),
+                      ),
+                    ),
+                  ]
+                ),
+              ),
+              AnimatedSwitcher(
+                duration: Constants.animationDuration,
+                child: widget.page.palette == widget.palette ? Align(
+                  alignment: Alignment.center,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: widget.page.palette.colors.middle.computeTextColor().withOpacity(0.25)
+                        ),
+                        child: Icon(
+                          CupertinoIcons.shuffle,
+                          size: 18,
+                          color: widget.page.palette.colors.middle.computeTextColor(),
+                        )
+                      ),
+                    ),
+                  )
+                ) : Container(),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onPageChange() {
+    setState(() { });
+  }
+
+}
+
+class _PaletteListView extends StatefulWidget {
+
+  _PaletteListView({
+    Key? key,
+    required this.title,
+    required this.palettes,
+    required this.onSelected,
+    required this.page
+  }) : super(key: key);
+
+  final String title;
+  final List<ColorPalette> palettes;
+  final void Function(ColorPalette) onSelected;
+  final CreatorPage page;
+
+  @override
+  State<_PaletteListView> createState() => __PaletteListViewState();
+}
+
+class __PaletteListViewState extends State<_PaletteListView> {
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
+            child: Text(
+              widget.title,
+              style: Theme.of(context).textTheme.subtitle1
+            ),
+          ),
+          SizedBox(
+            height: 140,
+            child: ListView.separated(
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) => SizedBox(
+                height: 140,
+                child: _PaletteViewModal(
+                  palette: widget.palettes[index],
+                  onSelected: widget.onSelected,
+                  page: widget.page,
+                ),
+              ),
+              itemCount: widget.palettes.length,
+              separatorBuilder: (context, index) => SizedBox(width: 9),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
 }

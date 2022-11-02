@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -85,8 +85,6 @@ class Constants {
   static Color getThemedBlackAndWhite(BuildContext context) {
     return getThemedObject<Color>(context, light: Colors.black, dark: Colors.white);
   }
-
-  static Color textColorFromBackground(Color background) => background.computeLuminance() > 0.5 ? Colors.black : Colors.white;
   
   static String convertNumberToFormat(int number) {
     if (number > 999 && number < 99999) {

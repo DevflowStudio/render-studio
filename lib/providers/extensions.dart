@@ -13,6 +13,23 @@ extension ListsEntenstion<T> on List<T> {
     return reverese ? this.reversed.toList() : this;
   }
 
+  T? indexOrNull(int index) =>  index + 1 <= this.length ? this[index] : null;
+
+  T? get firstOrNull => this.isEmpty ? null : this.first;
+
+  T? get lastOrNull => this.isEmpty ? null : this.last;
+
+  T get middle {
+    int lth = this.length;
+    if (lth == 0) throw Exception('List is empty');
+    if (lth == 1) return this.first;
+    if (lth % 2 == 0) {
+      return this[lth ~/ 2];
+    } else {
+      return this[(lth - 1) ~/ 2];
+    }
+  }
+
 }
 
 extension MapExtension<T, V> on Map<T, V> {
@@ -57,8 +74,8 @@ extension PaddingExtension on EdgeInsets {
 
   Map<String, double> toJSON({bool symmetric = true}) {
     if (symmetric) return {
-      'vertical': vertical,
-      'horizontal': horizontal
+      'vertical': vertical/2,
+      'horizontal': horizontal/2
     }; else return {
       'top': top,
       'bottom': bottom,
@@ -78,5 +95,13 @@ extension PaddingExtension on EdgeInsets {
       json['bottom']
     ); else return EdgeInsets.zero;
   }
+
+}
+
+extension ColorExtension on Color {
+
+  Color computeTextColor() => computeLuminance() > 0.5 ? Colors.black : Colors.white;
+
+  Color computeThemedTextColor(int alpha) => computeTextColor().withAlpha(alpha);
 
 }

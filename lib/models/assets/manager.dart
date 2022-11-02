@@ -14,7 +14,12 @@ class AssetManager {
     AssetManager _manager = AssetManager(project: project);
     for (Map _assetData in (data['assets'] ?? {}).values) {
       Asset? asset = Asset.fromJSON(_assetData);
-      if (asset != null && await asset.exists()) _manager.assets[asset.id] = asset;
+      try {
+        await asset.ensureExists();
+        _manager.assets[asset.id] = asset;
+      } catch (e) {
+        print("Asset error: $e");
+      }
     }
     return _manager;
   }

@@ -331,7 +331,7 @@ class _AutoSizeTextState extends State<AutoSizeText> {
       } else {
         return AnimatedDefaultTextStyle(
           style: style.copyWith(fontSize: __fontSize),
-          duration: const Duration(milliseconds: 100),
+          duration: const Duration(milliseconds: 0),
           child: Text(
             widget.data!,
             key: widget.textKey,

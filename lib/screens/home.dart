@@ -1,8 +1,8 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:octo_image/octo_image.dart';
-import '../rehmat.dart';
+import '../../../rehmat.dart';
 
 class Home extends StatefulWidget {
 
@@ -20,7 +20,7 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    projects = projectSaves.posts;
+    projects = projectSaves.projects;
     projectSaves.stream.addListener(onProjectsUpdate);
     super.initState();
   }
@@ -91,13 +91,20 @@ class _HomeState extends State<Home> {
                 (context, index) => SizedBox(
                   child: InteractiveCard(
                     onTap: () {
-                      ProjectGlance project = projects[index];
-                      showModalBottomSheet(
-                        context: context,
-                        // backgroundColor: Colors.transparent,
-                        // barrierColor: Palette.of(context).background.withOpacity(0.6),
-                        builder: (context) => PostViewModal(project: project),
-                      );
+                      ProjectGlance glance = projects[index];
+                      // showModalBottomSheet(
+                      //   context: context,
+                      //   backgroundColor: Colors.transparent,
+                      //   barrierColor: Palette.of(context).background.withOpacity(0.25),
+                      //   isScrollControlled: true,
+                      //   // builder: (context) => PostViewModal(glance: glance),
+                      //   builder: (context) => SafeArea(
+                      //     child: ProjectAtGlance(glance: glance),
+                      //     bottom: false,
+                      //     top: false,
+                      //   ),
+                      // );
+                      AppRouter.push(context, page: ProjectAtGlance(glance: glance));
                     },
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -166,7 +173,7 @@ class _HomeState extends State<Home> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                projects[index].title!,
+                                projects[index].title,
                                 style: Theme.of(context).textTheme.subtitle1,
                               ),
                               Text(
@@ -250,7 +257,7 @@ class _HomeState extends State<Home> {
   }
 
   void onProjectsUpdate() {
-    List<ProjectGlance> newProjects = projectSaves.posts;
+    List<ProjectGlance> newProjects = projectSaves.projects;
 
     List<String> added = [];
     List<ProjectGlance> _added = [];

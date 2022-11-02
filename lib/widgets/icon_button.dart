@@ -157,12 +157,16 @@ class NewBackButton extends StatefulWidget {
     Key? key,
     this.confirm = false,
     this.confirmMessage,
-    this.confirmTitle
+    this.confirmTitle,
+    this.size,
+    this.data
   }) : super(key: key);
 
   final bool confirm;
   final String? confirmTitle;
   final String? confirmMessage;
+  final double? size;
+  final dynamic data;
 
   @override
   State<NewBackButton> createState() => _NewBackButtonState();
@@ -175,15 +179,16 @@ class _NewBackButtonState extends State<NewBackButton> {
     return IconButton(
       icon: Icon(CupertinoIcons.arrow_turn_up_left),
       color: Palette.of(context).onBackground,
+      iconSize: widget.size,
       onPressed: onBack,
     );
   }
 
   Future<void> onBack() async {
     if (widget.confirm) {
-      if (await Alerts.showConfirmationDialog(context, title: widget.confirmTitle ?? 'Do you want to go back?', description: widget.confirmMessage ?? 'Any unsaved changes will be discarded. This cannot be undone.', cancelButtonText: 'Cancel', confirmButtonText: 'Discard')) Navigator.of(context).pop();
+      if (await Alerts.showConfirmationDialog(context, title: widget.confirmTitle ?? 'Do you want to go back?', description: widget.confirmMessage ?? 'Any unsaved changes will be discarded. This cannot be undone.', cancelButtonText: 'Cancel', confirmButtonText: 'Discard')) Navigator.of(context).pop(widget.data);
     }
-    else Navigator.of(context).pop();
+    else Navigator.of(context).pop(widget.data);
   }
 
 }
@@ -356,6 +361,7 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
         height: calculateHeight(),
         width: 60,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             GestureDetector(
               onPanDown: (details) => reduceRadius(),
@@ -370,20 +376,25 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                 reduceRadius();
                 TapFeedback.tap();
                 widget.onTap(context);
-                Future.delayed(const Duration(milliseconds: 350), () => resetRadius());
+                Future.delayed(const Duration(milliseconds: 160), () => resetRadius());
               },
               child: AnimatedContainer(
-                duration: Duration(milliseconds: 300),
+                duration: Duration(milliseconds: 150),
                 height: widget.size?.height ?? 60,
                 width: widget.size?.width ?? 60,
                 decoration: BoxDecoration(
-                  color: Palette.of(context).secondaryContainer,
+                  // color: Palette.of(context).surface,
+                  color: Constants.getThemedObject(context, light: Colors.grey[100]!.withOpacity(0.5), dark: Colors.grey[900]),
+                  border: Border.all(
+                    color: Constants.getThemedObject(context, light: Colors.grey[200]!, dark: Colors.grey[800]!),
+                    width: 1,
+                  ),
                   borderRadius: BorderRadius.circular(radius)
                 ),
                 child: Center(
                   child: widget.child ?? Icon(
                     widget.icon,
-                    color: widget.greyOut ? Colors.grey[700] : Palette.of(context).onSecondaryContainer
+                    color: widget.greyOut ? Colors.grey[700] : Palette.of(context).onSurface
                   ),
                 ),
               ),
@@ -393,9 +404,11 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
               SizedBox(
                 height: calculateHeight() - 60,
                 child: Center(
-                  child: AutoSizeText(
+                  child: Text(
                     widget.title!,
-                    style: Theme.of(context).textTheme.subtitle1,
+                    style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                      fontFamily: 'Google Sans'
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -415,8 +428,128 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
     if (widget.title != null) {
       return Theme.of(context).textTheme.subtitle1!.fontSize! + 10 + 60;
     } else {
-      return Theme.of(context).textTheme.subtitle1!.fontSize!;
+      return 60;
     }
+  }
+
+}
+
+class ToggleIconButton extends StatefulWidget {
+
+  ToggleIconButton({
+    Key? key,
+    required this.title,
+    required this.valueBuilder,
+    required this.enabledIcon,
+    required this.disabledIcon,
+    required this.onChange,
+    this.enabledTooltip,
+    this.disabledTooltip,
+  }) : super(key: key);
+
+  final bool Function() valueBuilder;
+  final String title;
+  final IconData enabledIcon;
+  final IconData disabledIcon;
+  final void Function(bool value) onChange;
+  final String? enabledTooltip;
+  final String? disabledTooltip;
+
+  @override
+  State<ToggleIconButton> createState() => _ToggleIconButton();
+}
+
+class _ToggleIconButton extends State<ToggleIconButton> {
+
+  late bool value;
+  late IconData enabledIcon;
+  late IconData disabledIcon;
+  late void Function(bool value) onChange;
+
+  @override
+  void initState() {
+    value = widget.valueBuilder();
+    enabledIcon = widget.enabledIcon;
+    disabledIcon = widget.disabledIcon;
+    onChange = widget.onChange;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ButtonWithIcon(
+      icon: value ? enabledIcon : disabledIcon,
+      onTap: (context) {
+        value = !value;
+        onChange(value);
+        setState(() { });
+      },
+      tooltip: (value ? widget.enabledTooltip : widget.disabledTooltip) ?? 'Toggle',
+      title: widget.title,
+    );
+  }
+
+}
+
+class DragHandler extends StatefulWidget {
+
+  DragHandler({
+    Key? key,
+    this.onPositionUpdate,
+    this.onPositionUpdateEnd,
+    this.backgroundColor,
+    this.iconColor,
+  }) : super(key: key);
+
+  final void Function(DragUpdateDetails)? onPositionUpdate;
+  final void Function(DragEndDetails)? onPositionUpdateEnd;
+  final Color? backgroundColor;
+  final Color? iconColor;
+
+  @override
+  State<DragHandler> createState() => _DragHandlerState();
+}
+
+class _DragHandlerState extends State<DragHandler> {
+
+  bool isHovering = false;
+
+  @override
+  void initState() {
+    print(widget.backgroundColor?.toHex());
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      // onPanDown: (details) => setState(() => isHovering = true),
+      // onPanCancel: () => setState(() => isHovering = false),
+      onPanStart: (details) => setState(() => isHovering = true),
+      onPanUpdate: (details) {
+        if (widget.onPositionUpdate != null) widget.onPositionUpdate!(details);
+      },
+      onPanEnd: (details) {
+        if (isHovering) setState(() => isHovering = false);
+        if (widget.onPositionUpdateEnd != null) widget.onPositionUpdateEnd!(details);
+      },
+      child: AnimatedContainer(
+        duration: Constants.animationDuration,
+        height: isHovering ? 40 : 30,
+        width: isHovering ? 40 : 30,
+        decoration: BoxDecoration(
+          color: widget.backgroundColor ?? Palette.of(context).secondaryContainer,
+          borderRadius: BorderRadius.circular(40)
+        ),
+        child: Center(
+          child: Icon(
+            Icons.drag_indicator,
+            size: isHovering ? 30 : 20,
+            color: widget.iconColor ?? Palette.of(context).onSecondaryContainer,
+          ),
+        ),
+      ),
+    );
   }
 
 }

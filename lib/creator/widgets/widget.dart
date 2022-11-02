@@ -1,4 +1,5 @@
 import 'package:dotted_border/dotted_border.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:align_positioned/align_positioned.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
@@ -7,7 +8,7 @@ import 'package:supercharged/supercharged.dart';
 import '../../rehmat.dart';
 
 
-class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
+abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   CreatorWidget({required this.page, required this.project, this.uid}) {
     uid ??= Constants.generateID(6);
@@ -19,20 +20,23 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       widget: this
     );
     _defaultResizeHandlerSet = _resizeHandlers = resizeHandlers;
+    onPaletteUpdate();
   }
 
   late WidgetStateController stateCtrl;
 
-  bool firstBuildDone = false;
+  bool _firstBuildDont = false;
 
   void doFirstBuild() {
     // First build function is run once the rendering is over
     // Only once for the widget lifecycle
-    firstBuildDone = true;
+    _firstBuildDont = true;
     onFirstBuild();
   }
 
   void onFirstBuild() {}
+
+  void onInitialize() {}
 
   String? uid;
 
@@ -88,6 +92,8 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// to not be resizeable.
   /// Defaults to `true`
   final bool isResizable = true;
+  
+  bool locked = false;
 
   /// Set to `true` for widgets like background
   /// to make sure that effects like border are not applied
@@ -110,6 +116,12 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     notifyListeners(WidgetChange.update);
   }
 
+  void resizeByScale(double scale) {
+    Size _size = Size(size.width * scale, size.height * scale);
+    if (allowResize(_size)) size = _size;
+    updateListeners(WidgetChange.misc);
+  }
+
   void updateResizeHandlers() {
     _resizeHandlers = resizeHandlers = _getResizeHandlersWRTSize();
     updateListeners(WidgetChange.misc);
@@ -130,13 +142,11 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }
 
   bool allowResize(Size _size) {
-    return (
-      _size.width > ((minSize?.width) ?? 30) &&
-      _size.height > (minSize?.height ?? 30) &&
-      _size.width < (project.deviceSize.width - 40) &&
-      _size.height < (project.deviceSize.width - 40)
-    // );
-    ) || (_size.width < size.width && _size.height < size.height);
+    if (_size.width < (minSize?.width ?? 10)) return false;
+    if (_size.height < (minSize?.height ?? 10)) return false;
+    if (_size.width > (project.deviceSize.width - 40)) return false;
+    if (_size.height > (project.deviceSize.height - 40)) return false;
+    return true;
   }
 
 
@@ -151,14 +161,31 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   void updatePosition(Offset _position) {
     position = _position;
-    updateGrids(showGridLines: true);
+    if (angle == 0) updateGrids(showGridLines: true);
     updateListeners(WidgetChange.drag);
   }
+
+  void _onGestureUpdate(DragUpdateDetails details) {
+    if (isDraggable && !page.multiselect) updatePosition(position + details.delta);
+    updateListeners(WidgetChange.misc);
+  }
+
+  void _onGestureEnd(DragEndDetails details) {
+    page.select(this);
+    updatePosition(Offset(position.dx, position.dy));
+    onDragFinish();
+  }
+
+  void onGestureStart() { }
 
   void onDragFinish() {
     // Update the listener to `update` changes. This will tell the parent to reload state and save the change in history
     updateListeners(WidgetChange.update, removeGrids: true);
   }
+
+  bool isSelected() => page.isSelected(this);
+
+  bool isOnlySelected() => page.isSelected(this) && page.selections.length == 1;
 
   /// ###
 
@@ -171,114 +198,130 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// @override this method to disable drag, resizing, tapping and others
   Widget build(BuildContext context) {
     // updateResizeHandlers();
-    if (!firstBuildDone) doFirstBuild();
-    return AlignPositioned(
-      dy: position.dy,
-      dx: position.dx,
-      rotateDegrees: angle,
-      touch: Touch.inside,
-      child: Container(
-        decoration: BoxDecoration(
-          border: preferences.enableDebug ? Border.all(
-            color: <Color>[
-              // list of 10 random colors
-              Colors.red,
-              Colors.green,
-              Colors.blue,
-              Colors.yellow,
-              Colors.purple,
-              Colors.orange,
-              Colors.pink,
-              Colors.teal,
-              Colors.cyan,
-            ].getRandom(),
-            width: 4
-          ) : null
-        ),
+    if (!_firstBuildDont) doFirstBuild();
+    bool _isSelected = isSelected();
+    bool _isOnlySelected = isOnlySelected();
+    return SizedBox.fromSize(
+      size: project.contentSize(context),
+      child: Transform.rotate(
+        angle: angle,
         child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onDoubleTap: () => onDoubleTap(context),
-          onTap: () {
-            if (page.currentSelection.uid != uid) page.changeSelection(this);
-          },
-          onPanUpdate: isDraggable ? (details) {
-            // if (page.currentSelection != this) page.changeSelection(this);
-            updatePosition(Offset(position.dx + details.delta.dx, position.dy + details.delta.dy));
-          } : null,
-          onPanEnd: isDraggable ? (details) {
-            if (page.currentSelection != this) page.changeSelection(this);
-            updatePosition(Offset(position.dx, position.dy));
-            onDragFinish();
-          } : null,
-          child: AnimatedContainer(
-            duration: isResizing ? Duration(seconds: 0) : Duration(milliseconds: 50),
-            // size: Size(size.width + 40, size.height + 40),
-            width: size.width + 40,
-            height: size.height + 40,
-            child: (page.currentSelection == this && !isBackgroundWidget) ? Stack(
-              clipBehavior: Clip.none,
-              children: [
-                
-                Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Center(
-                    child: SizedBox.fromSize(
-                      size: Size(size.width + 4, size.height + 4), // 4 for the border
-                      child: Container(
-                        color: preferences.enableDebug ? Colors.red.withOpacity(0.1) : null,
-                        child: DottedBorder(
-                          borderType: BorderType.RRect,
-                          color: Colors.grey[400]!,
-                          strokeWidth: 2,
-                          dashPattern: [3, 0, 3],
-                          radius: Radius.circular(10),
-                          // padding: EdgeInsets.zero,
-                          // decoration: BoxDecoration(
-                          //   // color: Colors.red.withOpacity(0.3),
-                          //   border: Border.all(
-                          //     color: Colors.grey[400]!,
-                          //     width: 1
-                          //   ),
-                          //   boxShadow: const [ ]
-                          // ),
-                          child: SizedBox.fromSize(
-                            size: size,
-                            child: Opacity(
-                              opacity: opacity,
-                              child: widget(context)
+          behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
+          onPanStart: (details) => onGestureStart(),
+          onPanUpdate: _onGestureUpdate,
+          onPanEnd: _onGestureEnd,
+          dragStartBehavior: DragStartBehavior.down,
+          child: Stack(
+            clipBehavior: Clip.antiAlias,
+            children: [
+              AlignPositioned(
+                dx: position.dx,
+                dy: position.dy,
+                // rotateDegrees: angle,
+                child: _isSelected ? GestureDetector(
+                  onDoubleTap: () => onDoubleTap(context),
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                      child: SizedBox.fromSize(
+                        // size: Size(size.width + 4, size.height + 4), // 4 for the border
+                        child: Container(
+                          child: DottedBorder(
+                            borderType: BorderType.RRect,
+                            color: Colors.grey[400]!,
+                            strokeWidth: 2,
+                            dashPattern: [3, 0, 3],
+                            radius: Radius.circular(5),
+                            // padding: EdgeInsets.zero,
+                            // decoration: BoxDecoration(
+                            //   // color: Colors.red.withOpacity(0.3),
+                            //   border: Border.all(
+                            //     color: Colors.grey[400]!,
+                            //     width: 1
+                            //   ),
+                            //   boxShadow: const [ ]
+                            // ),
+                            child: SizedBox.fromSize(
+                              size: size,
+                              child: Opacity(
+                                opacity: opacity,
+                                child: widget(context)
+                              )
                             )
-                          )
+                          ),
                         ),
                       ),
                     ),
                   ),
+                ) : GestureDetector(
+                  onTap: () => page.select(this),
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(isBackgroundWidget ? 0 : 22),
+                      child: SizedBox.fromSize(
+                        size: size,
+                        child: Opacity(
+                          opacity: opacity,
+                          child: widget(context)
+                        )
+                      ),
+                    )
+                  ),
                 ),
-        
-                if (isResizable) for (ResizeHandler handler in resizeHandlers) ResizeHandlerBall(
-                  type: handler,
-                  widget: this,
-                  onSizeChange: (Size size) {
-                    this.size = size;
-                    updateListeners(WidgetChange.resize);
-                  },
-                  onResizeEnd: onResizeFinished,
-                  isResizing: isResizing,
-                  onResizeStart: (details) => onResizeStart(details: details, handler: handler),
-                  isVisible: _resizeHandlers.contains(handler),
-                ),
-              ],
-            ) : Center(
-              child: Padding(
-                padding: EdgeInsets.all(isBackgroundWidget ? 0 : 22),
-                child: SizedBox.fromSize(
-                  size: size,
-                  child: Opacity(
-                    opacity: opacity,
-                    child: widget(context)
-                  )
+              ),
+          
+              if (resizeHandlers.length == 1 && isDraggable && _isOnlySelected) Builder(
+                builder: (_) {
+                  double dy = position.dy;
+                  double dx = position.dx;
+                  double positionY = dy + size.height + 15;
+                  double positionX = dx;
+          
+                  if ((positionY + 15) > project.contentSize(context).height/2) {
+                    positionY = dy - size.height - 15;
+                  }
+          
+                  return AlignPositioned(
+                    dy: positionY,
+                    dx: positionX,
+                    // rotateDegrees: angle,
+                    child: DragHandler(
+                      onPositionUpdate: _onGestureUpdate,
+                      onPositionUpdateEnd: _onGestureEnd,
+                      backgroundColor: page.palette.background.computeThemedTextColor(180),
+                      iconColor: page.palette.background,
+                    ),
+                  );
+                }
+              ),
+            
+              if (isResizable && !locked && _isOnlySelected) AlignPositioned(
+                dx: position.dx,
+                dy: position.dy,
+                // rotateDegrees: angle,
+                child: SizedBox(
+                  width: size.width + 40,
+                  height: size.height + 40,
+                  child: Stack(
+                    children: [
+                      for (ResizeHandler handler in resizeHandlers) ResizeHandlerBall(
+                        type: handler,
+                        widget: this,
+                        onSizeChange: (Size size) {
+                          this.size = size;
+                          updateListeners(WidgetChange.resize);
+                        },
+                        onResizeEnd: onResizeFinished,
+                        isResizing: isResizing,
+                        onResizeStart: (details) => onResizeStart(details: details, handler: handler),
+                        isVisible: _resizeHandlers.contains(handler),
+                      ),
+                    ],
+                  ),
                 ),
               )
-            ),
+          
+            ],
           ),
         ),
       ),
@@ -442,6 +485,10 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   }
 
+  /// Call this method when updating the palette of the project to change color of the widget
+  /// Not required for widgets like image or design asset which do not require a color
+  void onPaletteUpdate() { }
+
   /// Save the state of the widget in a json format
   Map<String, dynamic> toJSON() => {
     'id': id,
@@ -461,29 +508,65 @@ class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     }
   };
 
-  bool buildFromJSON(Map<String, dynamic> json) {
+  // static CreatorWidget? fromJSON(dynamic data, {
+  //   required CreatorPage page
+  // }) {
+  //   try {
+  //     data = Map.from(data);
+  //     CreatorWidget? widget;
+  //     Project project = page.project;
+  //     switch (data['uid']) {
+  //       case 'background':
+  //         widget = BackgroundWidget(page: page, project: project, uid: data['uid']);
+  //         break;
+  //       case 'box':
+  //         widget = CreatorBoxWidget(page: page, project: project, uid: data['uid']);
+  //         break;
+  //       case 'text':
+  //         widget = CreatorText(page: page, project: project);
+  //         break;
+  //       case 'design_asset':
+  //         widget = CreatorDesignAsset(page: page, project: project);
+  //         break;
+  //       case 'qr_code':
+  //         widget = QRWidget(page: page, project: project);
+  //         break;
+  //       default:
+  //         return null;
+  //     }
+  //     return widget;
+  //   } catch (e) {
+  //     return null;
+  //   }
+  // }
+
+  void buildFromJSON(Map<String, dynamic> json) {
     try {
       uid = json['uid'];
-      bool built = buildPropertiesFromJSON(Map.from(json['properties']));
+      buildPropertiesFromJSON(Map.from(json['properties']));
       updateResizeHandlers();
       updateGrids();
       stateCtrl.update();
-      return built;
     } catch (e) {
-      return false;
+      throw WidgetCreationException(
+        'The widget could not be rebuilt due to some issues',
+        details: 'Failed to build widget from JSON: $e',
+      );
     }
   }
 
-  bool buildPropertiesFromJSON(Map<String, dynamic> properties) {
+  void buildPropertiesFromJSON(Map<String, dynamic> properties) {
     try {
       position = Offset(properties['position']['dx'], properties['position']['dy']);
       angle = properties['angle'];
       opacity = properties['opacity'];
       size = Size(properties['size']['width'], properties['size']['height']);
       updateListeners(WidgetChange.misc);
-      return true;
     } catch (e) {
-      return false;
+      throw WidgetCreationException(
+        'The widget could not be built due to some issues',
+        details: 'Failed to build widget properties from JSON: $e',
+      );
     }
   }
 
@@ -520,4 +603,14 @@ enum ScaleType {
   dy,
   /// Adding this option to scale types will enable a shared button to increase width and height
   dxy
+}
+
+class WidgetCreationException implements Exception {
+
+  final String? code;
+  final String message;
+  final String? details;
+
+  WidgetCreationException(this.message, {this.details, this.code});
+
 }

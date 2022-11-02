@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../rehmat.dart';
+import '../../../rehmat.dart';
 
 class Lab extends StatefulWidget {
 
@@ -11,6 +10,11 @@ class Lab extends StatefulWidget {
 }
 
 class _LabState extends State<Lab> {
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +32,7 @@ class _LabState extends State<Lab> {
               collapseMode: CollapseMode.pin,
               centerTitle: false,
               title: Text(
-                'Lab',
+                'Studio Lab',
                 // style: AppTheme.flexibleSpaceBarStyle
               ),
               titlePaddingTween: EdgeInsetsTween(
@@ -48,12 +52,34 @@ class _LabState extends State<Lab> {
           ),
           SliverList(
             delegate: SliverChildListDelegate([
-              
+              divider,
+              ListTile(
+                leading: Icon(Icons.design_services),
+                title: Text(
+                  'Design System',
+                ),
+                subtitle: Text('Create and edit design systems for your projects'),
+              ),
+              divider,
+              ListTile(
+                leading: Icon(Icons.palette),
+                title: Text(
+                  'Color Palettes',
+                ),
+                subtitle: Text('View and Create Color Palettes'),
+                onTap: () => AppRouter.push(context, page: MyPalettes()),
+              ),
             ])
           )
         ],
       ),
     );
   }
+
+  Widget get divider => Divider(
+    height: 0,
+    endIndent: 0,
+    indent: 0,
+  );
 
 }

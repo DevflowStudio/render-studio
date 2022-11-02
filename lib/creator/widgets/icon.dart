@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../rehmat.dart';
 
+// TODO: Create Icon Widget
+
 class CreatorIcon extends CreatorWidget {
 
   CreatorIcon({required CreatorPage page, required Project project}) : super(page: page, project: project);
@@ -16,7 +18,7 @@ class CreatorIcon extends CreatorWidget {
   /// Icon Color
   Color color = Colors.black;
 
-  /// CreatorPageProperties Color
+  /// BackgroundWidget Color
   Color background = Colors.transparent;
 
   IconData icon = Icons.add;
@@ -95,8 +97,8 @@ class CreatorIcon extends CreatorWidget {
   };
 
   @override
-  bool buildFromJSON(Map<String, dynamic> json) {
-    return super.buildFromJSON(json);
+  void buildFromJSON(Map<String, dynamic> json) {
+    super.buildFromJSON(json);
   }
 
 }
