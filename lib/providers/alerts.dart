@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../rehmat.dart';
+
 class Alerts {
 
   static void snackbar(BuildContext context, {
@@ -82,5 +84,96 @@ class Alerts {
   static Future<void> toast({
     BuildContext? context
   }) async { }
+
+  static Future<String?> optionsBuilder(BuildContext context, {
+    String? title,
+    required List<AlertOption> options
+  }) async {
+    return await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      // barrierColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => ClipRRect(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Palette.of(context).surfaceVariant,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height * 0.2,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Palette.isDark(context) ? Colors.grey[800] : Colors.grey.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              SizedBox(height: 12),
+              if (title != null) ... [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Label(
+                    label: title
+                  ),
+                ),
+                SizedBox(height: 12,),
+              ],
+              ListView.separated(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: options.length,
+                itemBuilder: (context, index) => ListTile(
+                  leading: options[index].icon != null ? Icon(options[index].icon) : null,
+                  title: Text(options[index].title),
+                  onTap: () {
+                    Navigator.of(context).pop(options[index].id);
+                  },
+                ),
+                separatorBuilder: (context, index) => Divider(
+                  height: 0,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+}
+
+class AlertOption {
+
+  final String title;
+  final IconData? icon;
+  final String id;
+
+  AlertOption({
+    required this.title,
+    this.icon,
+    required this.id,
+  });
 
 }

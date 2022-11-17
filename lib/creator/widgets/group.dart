@@ -5,7 +5,7 @@ import '../state.dart';
 
 class WidgetGroup extends CreatorWidget {
 
-  WidgetGroup({required CreatorPage page, required Project project}) : super(page: page, project: project);
+  WidgetGroup({required CreatorPage page, Map? data}) : super(page, data: data);
 
   // Inherited
   final String name = 'Group Widget';
@@ -85,7 +85,7 @@ class WidgetGroup extends CreatorWidget {
       return null;
     }
     try {
-      WidgetGroup group = WidgetGroup(page: page, project: project);
+      WidgetGroup group = WidgetGroup(page: page);
       List<CreatorWidget> _widgets = page.selections;
       List<Offset> _offsets = [];
       List<double> dy = [];
@@ -140,12 +140,6 @@ class WidgetGroup extends CreatorWidget {
       print(e);
       return null;
     }
-  }
-
-  @override
-  void buildFromJSON(Map<String, dynamic> json) {
-    super.buildFromJSON(json);
-    // TODO: Implement buildFromJSON
   }
 
   @override

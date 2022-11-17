@@ -1,14 +1,11 @@
-import 'dart:ui';
-
 import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../rehmat.dart';
 
 class BackgroundWidget extends CreatorWidget {
 
-  BackgroundWidget({required CreatorPage page, required Project project, uid}) : super(page: page, project: project, uid: uid);
+  BackgroundWidget({required CreatorPage page, Map? data}) : super(page, data: data);
 
   // Inherited
   final String name = 'Background';
@@ -46,150 +43,7 @@ class BackgroundWidget extends CreatorWidget {
           icon: Icons.add,
           title: 'Widget',
           tooltip: 'Add a new widget',
-          onTap: (context) async {
-            CreatorWidget? widget = await showModalBottomSheet<CreatorWidget>(
-              context: context,
-              backgroundColor: Palette.of(context).surface,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Constants.borderRadius.bottomLeft)
-              ),
-              isScrollControlled: true,
-              builder: (context) {
-                Map<String, Map<String, dynamic>> _options = {
-                  'Text': {
-                    'icon': FontAwesomeIcons.font,
-                    'onTap': () async {
-                      Navigator.of(context).pop(CreatorText(page: page, project: project));
-                    }
-                  },
-                  'Icon': {
-                    'icon': FontAwesomeIcons.icons,
-                    'onTap': () async { }
-                  },
-                  'Box': {
-                    'icon': FontAwesomeIcons.shapes,
-                    'onTap': () async {
-                      Navigator.of(context).pop(CreatorBoxWidget(page: page, project: project));
-                    }
-                  },
-                  'Design Asset': {
-                    'icon': FontAwesomeIcons.compassDrafting,
-                    'onTap': () async {
-                      Navigator.of(context).pop(await CreatorDesignAsset.create(context, page: page, project: project));
-                    }
-                  },
-                  'QR Code': {
-                    'icon': FontAwesomeIcons.qrcode,
-                    'onTap': () async {
-                      String? _data = await showGeneralDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        transitionDuration: const Duration(
-                          milliseconds: 400,
-                        ), // how long it takes to popup dialog after button click
-                        pageBuilder: (_, __, ___) {
-                          TextEditingController textCtrl = TextEditingController();
-                          return StatefulBuilder(
-                            builder: (context, setState) {
-                              return Container(
-                                color: Palette.of(context).surface.withOpacity(0.5),
-                                child: BackdropFilter(
-                                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                                  child: Scaffold(
-                                    backgroundColor: Colors.transparent,
-                                    body: Column(
-                                      children: [
-                                        SafeArea(
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              IconButton(
-                                                onPressed: Navigator.of(context).pop,
-                                                icon: const Icon(Icons.cancel)
-                                              ),
-                                              IconButton(
-                                                onPressed: () => Navigator.of(context).pop(textCtrl.text),
-                                                icon: const Icon(Icons.check_circle)
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        TextFormField(
-                                          controller: textCtrl,
-                                          decoration: const InputDecoration(
-                                            filled: false,
-                                            hintText: 'Type something ...',
-                                            border: InputBorder.none,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                          maxLines: 3,
-                                          style: const TextStyle(
-                                            fontSize: 30,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      );
-                      if (_data != null) Navigator.of(context).pop(await QRWidget.create(context, page: page, project: project, data: _data));
-                      else Navigator.of(context).pop();
-                    }
-                  }
-                };
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-                      child: Label(label: 'Add Widget'),
-                    ),
-                    GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 5,
-                        crossAxisSpacing: 5
-                      ),
-                      itemCount: _options.length,
-                      itemBuilder: (context, index) => SizedBox(
-                        width: MediaQuery.of(context).size.width/2,
-                        height: MediaQuery.of(context).size.width/2,
-                        child: InteractiveCard(
-                          onTap: _options.values.toList()[index]['onTap'],
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  _options.values.toList()[index]['icon'],
-                                  size: 50,
-                                ),
-                                // Text(
-                                //   _options.keys.toList()[index],
-                                //   style: Theme.of(context).textTheme.subtitle1,
-                                // )
-                              ],
-                            ),
-                          )
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            );
-            if (widget != null) page.addWidget(widget);
-          },
+          onTap: (context) => page.showAddWidgetModal(context),
         ),
         Option.button(
           icon: Icons.photo_size_select_small,
@@ -367,7 +221,7 @@ class BackgroundWidget extends CreatorWidget {
           title: 'Image',
           tooltip: 'Tap to select an image as background',
           onTap: (context) async {
-            Asset? _asset = await Asset.create(project, context: context, type: FileType.image, crop: true, cropRatio: project.size!.cropRatio);
+            Asset? _asset = await Asset.pick(project, context: context, type: FileType.image, crop: true, cropRatio: project.size!.cropRatio);
             if (_asset != null) {
               image = _asset;
               changeBackgroundType(BackgroundType.image);
@@ -417,7 +271,8 @@ class BackgroundWidget extends CreatorWidget {
 
   @override
   void updateGrids({
-    bool showGridLines = false
+    bool showGridLines = false,
+    bool snap = true
   }) { }
 
   void changeBackgroundType(BackgroundType _type) {
@@ -473,6 +328,7 @@ class BackgroundWidget extends CreatorWidget {
     super.buildFromJSON(json);
     try {
       color = HexColor.fromHex(json['color']);
+      print(color);
       if (json['image'] != null) {
         image = project.assetManager.get(json['image']);
         type = BackgroundType.image;
@@ -482,6 +338,7 @@ class BackgroundWidget extends CreatorWidget {
         type = BackgroundType.gradient;
       }
     } catch (e) {
+      print(e);
       throw WidgetCreationException(
         'Failed to create background widget',
         details: 'Error: $e'

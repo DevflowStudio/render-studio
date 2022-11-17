@@ -4,24 +4,35 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../rehmat.dart';
 
-late ProjectManager handler;
+late ProjectManager manager;
 
-class ProjectManager {
+class ProjectManager extends ChangeNotifier {
   
-  ProjectManager(this.projects);
-  final Box projects;
+  ProjectManager(this.box);
+  final Box box;
+
+  late List<ProjectGlance> projects;
 
   static Future<ProjectManager> get instance async {
     Box box = await Hive.openBox('projects');
-    return ProjectManager(box);
+    final manager = ProjectManager(box);
+    manager.projects = manager._getProjects();
+    return manager;
   }
 
   Future<void> save(BuildContext context, {
     required Project project
   }) async {
     Map<String, dynamic> json = await project.toJSON(context);
-    await projects.delete(project.id);
-    await projects.put(project.id, json);
+    await box.delete(project.id);
+    await box.put(project.id, json);
+    if (projects.indexWhere((element) => element.id == project.id) == -1) {
+      projects.add(ProjectGlance.build(id: project.id!, data: json)!);
+    } else {
+      projects[projects.indexWhere((element) => element.id == project.id)] = ProjectGlance.build(id: project.id!, data: json)!;
+    }
+    _sortProjects();
+    notifyListeners();
   }
 
   Future<void> delete(BuildContext context, {
@@ -29,7 +40,36 @@ class ProjectManager {
     String? id
   }) async {
     assert(project != null || id != null);
-    await projects.delete(project?.id ?? id);
+    await box.delete(project?.id ?? id);
+    projects.removeWhere((element) => element.id == (project?.id ?? id));
+    _sortProjects();
+    notifyListeners();
+  }
+
+  List<ProjectGlance> _getProjects() {
+    List<ProjectGlance> _projects = [];
+    for (var id in box.keys) {
+      ProjectGlance? project = ProjectGlance.build(id: id, data: Map.from(box.get(id)));
+      if (project != null) _projects.add(project);
+    }
+    _projects.sort((project, _project) {
+      if (project.edited!.isBefore(_project.edited!)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+    return _projects;
+  }
+  
+  void _sortProjects() {
+    projects.sort((project, _project) {
+      if (project.edited!.isBefore(_project.edited!)) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
   }
 
 }

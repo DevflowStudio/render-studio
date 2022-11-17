@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:universal_io/io.dart';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
@@ -17,7 +20,7 @@ class CreatorPage extends PropertyChangeNotifier {
   }) {
 
     if (!initialisedBackground) {
-      backround = BackgroundWidget(page: this, project: project);
+      backround = BackgroundWidget(page: this);
       initialisedBackground = true;
     }
 
@@ -61,6 +64,8 @@ class CreatorPage extends PropertyChangeNotifier {
   late List<String> _selections;
 
   bool multiselect = false;
+
+  bool locked = false;
 
   ColorPalette palette = ColorPalette.defaultSet;
 
@@ -127,23 +132,27 @@ class CreatorPage extends PropertyChangeNotifier {
   // BackgroundWidget get properties => BackgroundWidget(project: project, page: this);
 
   Widget build(BuildContext context) {
-    return Container(
-      child: SizedBox.fromSize(
-        size: project.canvasSize(context),
-        child: Stack(
-          clipBehavior: Clip.antiAlias,
-          children: [
-            ... List.generate(
-              widgets.length,
-              (index) => WidgetState(
-                key: UniqueKey(),
-                context: context,
-                controller: widgets[index].stateCtrl,
-                creator_widget: widgets[index]
-              )
-            ),
-            PageGridView(state: gridState)
-          ],
+    return AbsorbPointer(
+      absorbing: locked,
+      child: Screenshot(
+        controller: screenshotController,
+        child: SizedBox.fromSize(
+          size: project.canvasSize(context),
+          child: Stack(
+            clipBehavior: Clip.antiAlias,
+            children: [
+              ... List.generate(
+                widgets.length,
+                (index) => WidgetState(
+                  key: UniqueKey(),
+                  context: context,
+                  controller: widgets[index].stateCtrl,
+                  creator_widget: widgets[index]
+                )
+              ),
+              PageGridView(state: gridState)
+            ],
+          ),
         ),
       ),
     );
@@ -159,6 +168,18 @@ class CreatorPage extends PropertyChangeNotifier {
       if (gridState.visible.contains(grid)) gridState.visible.remove(grid);
       notifyListeners(PageChange.update);
     });
+  }
+
+  Future<void> showAddWidgetModal(BuildContext context) async {
+    String? id = await showModalBottomSheet(
+      context: context,
+      backgroundColor: Palette.of(context).background.withOpacity(0.5),
+      barrierColor: Colors.transparent,
+      // isScrollControlled: true,
+      builder: (context) => _AddWidgetModal(),
+    );
+    if (id == null) return;
+    await CreatorWidget.create(context, id: id, page: this);
   }
 
   /// Adds the given widget to the page
@@ -280,12 +301,13 @@ class CreatorPage extends PropertyChangeNotifier {
   
   void _doFromHistory(List<Map<String, dynamic>> jsons) {
     List<CreatorWidget> _widgets = [];
-    for (Map<String, dynamic> json in jsons) {
-      CreatorWidget? widget = CreatorPage.createWidgetFromId(json['id'], page: this, project: project, uid: json['uid']);
-      if (widget != null) {
-        widget.buildFromJSON(json);
-        _widgets.add(widget);
-      }
+    for (Map<String, dynamic> json in jsons) try {
+      CreatorWidget widget = CreatorWidget.fromJSON(json, page: this);
+      _widgets.add(widget);
+      print('added widget ${widget.id} #${widget.uid}');
+    } on WidgetCreationException catch (e) {
+      print(e.message);
+      project.issues.add(Exception('${json['name']} failed to rebuild'));
     }
     widgets = _widgets;
     backround = _widgets.where((element) => element.id == 'background').first as BackgroundWidget;
@@ -300,35 +322,16 @@ class CreatorPage extends PropertyChangeNotifier {
     notifyListeners(PageChange.update);
   }
 
-  static CreatorWidget? createWidgetFromId(String id, {
-    required String uid,
-    required CreatorPage page,
-    required Project project
-  }) {
-    switch (id) {
-      case 'background':
-        return BackgroundWidget(page: page, project: project, uid: uid);
-      case 'box':
-        return CreatorBoxWidget(page: page, project: project, uid: uid);
-      case 'text':
-        return CreatorText(page: page, project: project);
-      case 'design_asset':
-        return CreatorDesignAsset(page: page, project: project);
-      case 'qr_code':
-        return QRWidget(page: page, project: project);
-      default:
-        return null;
-    }
-  }
-
   /// Saves the page to a file and returns the file path
   /// 
   /// Enable [saveToGallery] to also save the exported image to the gallery
   Future<String?> save(BuildContext context, {
     String? path,
-    bool saveToGallery = false
+    bool saveToGallery = false,
+    bool autoExportQualtiy = true,
   }) async {
     multiselect = false;
+    locked = true;
     select(backround);
     String? _path;
     if (path != null) {
@@ -337,10 +340,10 @@ class CreatorPage extends PropertyChangeNotifier {
       _path = '${(await getApplicationDocumentsDirectory()).path}/Render Project ${project.id}/Thumbnail-${Constants.generateID(4)}.png';
     }
     try {
-      Uint8List data = await screenshotController.captureFromWidget(
-        build(context)
+      Uint8List? data = await screenshotController.capture(
+        pixelRatio: autoExportQualtiy ? preferences.exportQuality.pixelRatio(context) : MediaQuery.of(context).devicePixelRatio
       );
-      // if (data == null) return null;
+      if (data == null) return null;
       File file = await File(_path).create(recursive: true);
       _path = (await file.writeAsBytes(data)).path;
       if (saveToGallery) await ImageGallerySaver.saveFile(_path);
@@ -348,6 +351,8 @@ class CreatorPage extends PropertyChangeNotifier {
       print("Save Failed: $e");
       return null;
     }
+    locked = false;
+    notifyListeners(PageChange.selection);
     return _path;
   }
 
@@ -385,20 +390,17 @@ class CreatorPage extends PropertyChangeNotifier {
   /// Builds a page from scratch using the JSON data provided
   /// Returns a new `CreatorPage`
   /// Return `null` if the build fails. In this case, warn the user that this project has been corrupted
-  static CreatorPage? buildFromJSON(
+  static CreatorPage? fromJSON(
     Map<String, dynamic> json, {
     required Project project,
   }) {
     try {
       CreatorPage page = CreatorPage(project: project);
       List<CreatorWidget> widgets = [];
-      json['widgets'].forEach((widget) {
-        CreatorWidget? _widget = CreatorPage.createWidgetFromId(widget['id'], page: page, project: project, uid: widget['uid']);
-        if (_widget == null) return;
+      json['widgets'].forEach((json) {
         try {
-          _widget.buildFromJSON(Map.from(widget));
+          CreatorWidget _widget = CreatorWidget.fromJSON(json, page: page);
           widgets.add(_widget);
-          _widget.updateResizeHandlers();
         } on WidgetCreationException catch (e) {
           project.issues.add(e);
         }
@@ -410,8 +412,8 @@ class CreatorPage extends PropertyChangeNotifier {
       page.addListeners();
       page.select(page.backround);
       return page;
-    } catch (e) {
-      print('Error building page: $e');
+    } on WidgetCreationException catch (e) {
+      print('Error building page: ${e.message}');
       project.issues.add(Exception('Failed to build page.'));
       return null;
     }
@@ -432,4 +434,85 @@ class PageCreationException implements Exception {
 
   PageCreationException(this.message, {this.details, this.code});
 
+}
+
+class _AddWidgetModal extends StatelessWidget {
+
+  _AddWidgetModal({Key? key}) : super(key: key);
+
+  final Map<String, dynamic> widgets = {
+    'text': {
+      'title': 'Text',
+      'icon': Icons.text_fields,
+    },
+    'qr_code': {
+      'title': 'QR Code',
+      'icon': Icons.qr_code,
+    },
+    'design_asset': {
+      'title': 'Design Asset',
+      'icon': Icons.design_services,
+    },
+    'image': {
+      'title': 'Image',
+      'icon': FontAwesomeIcons.image,
+    },
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      child: SizedBox(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+            child: GridView.builder(
+              shrinkWrap: false,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+              itemBuilder: (context, index) => GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pop(widgets.keys.toList()[index]);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Palette.of(context).surfaceVariant,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Palette.of(context).shadow.withOpacity(0.25),
+                        blurRadius: 10,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  margin: EdgeInsets.all(6),
+                  child: Column(
+                    children: [
+                      Spacer(flex: 3,),
+                      Center(
+                        child: Icon(
+                          widgets.values.elementAt(index)['icon'],
+                          size: 50,
+                        ),
+                      ),
+                      Spacer(flex: 1,),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                          widgets.values.elementAt(index)['title'],
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              itemCount: widgets.length,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

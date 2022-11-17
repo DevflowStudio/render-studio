@@ -38,7 +38,8 @@ class Project extends ChangeNotifier {
 
   late Size deviceSize;
   
-  List<String> thumbnails = [];
+  List<String> images = [];
+  String? thumbnail;
 
   late AssetManager assetManager;
 
@@ -93,10 +94,10 @@ class Project extends ChangeNotifier {
   }
 
   Future<void> saveToGallery() async {
-    thumbnails.clear();
+    images.clear();
     for (CreatorPage page in pages.pages) {
       try {
-        thumbnails.add((await page.save(context, saveToGallery: true))!);
+        images.add((await page.save(context, saveToGallery: true))!);
       } catch (e) {
         issues.add(Exception('Failed to render page ${pages.pages.indexOf(page) + 1}'));
       }
@@ -110,10 +111,12 @@ class Project extends ChangeNotifier {
       pageData.add(page.toJSON());
     }
 
-    thumbnails.clear();
+    thumbnail = await pages.pages.first.save(context, saveToGallery: true, autoExportQualtiy: false);
+
+    images.clear();
     for (CreatorPage page in pages.pages) {
       String? thumbnail = await page.save(context, saveToGallery: true);
-      if (thumbnail != null) thumbnails.add(thumbnail);
+      if (thumbnail != null) images.add(thumbnail);
       else issues.add(Exception('Failed to render page ${pages.pages.indexOf(page) + 1}'));
     }
 
@@ -121,7 +124,8 @@ class Project extends ChangeNotifier {
       'id': id,
       'title': title,
       'description': description,
-      'thumbnails': thumbnails,
+      'images': images,
+      'thumbnail': thumbnail,
       'size': {
         'type': size!.title,
         'height': size!.size.height,
@@ -147,14 +151,14 @@ class Project extends ChangeNotifier {
     project.id = data['id'];
     project.title = data['title'];
     project.description = data['description'];
-    project.thumbnails = List<String>.from(data['thumbnails']);
+    project.images = List<String>.from(data['images']);
     project.size = PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
     project.created = DateTime.fromMillisecondsSinceEpoch(data['meta']['created']);
     project.edited = DateTime.fromMillisecondsSinceEpoch(data['meta']['edited']);
     project.assetManager = await AssetManager.initialize(project, data: data);
 
     for (dynamic pageDate in data['pages']) {
-      CreatorPage? page = CreatorPage.buildFromJSON(Map.from(pageDate), project: project);
+      CreatorPage? page = CreatorPage.fromJSON(Map.from(pageDate), project: project);
       if (page != null) project.pages.pages.add(page);
     }
 

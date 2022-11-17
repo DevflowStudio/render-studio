@@ -5,8 +5,18 @@ import '../../rehmat.dart';
 
 class CreatorText extends CreatorWidget {
 
-  CreatorText({required CreatorPage page, required Project project, String? uid}) : super(page: page, project: project, uid: uid) {
+  CreatorText({required CreatorPage page, Map? data}) : super(page, data: data);
+
+  static Future<void> create(BuildContext context, {
+    required CreatorPage page
+  }) async {
+    page.addWidget(CreatorText(page: page));
+  }
+  
+  @override
+  void onInitialize() {
     color = page.palette.background.computeTextColor();
+    super.onInitialize();
   }
 
   @override

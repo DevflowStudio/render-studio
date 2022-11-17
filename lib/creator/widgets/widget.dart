@@ -1,48 +1,59 @@
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:align_positioned/align_positioned.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
 import 'package:render_studio/creator/state.dart';
+import 'package:render_studio/creator/widgets/image.dart';
 import 'package:supercharged/supercharged.dart';
 import '../../rehmat.dart';
 
 
 abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
-  CreatorWidget({required this.page, required this.project, this.uid}) {
+  @override
+  bool operator == (Object other) {
+    if (other is CreatorWidget && other.uid == uid) return true;
+    return false;
+  }
+
+  @override
+  int get hashCode => super.hashCode;
+
+  CreatorWidget(this.page, {Map? data}) {
     uid ??= Constants.generateID(6);
+    project = page.project;
+    _defaultResizeHandlerSet = _resizeHandlers = resizeHandlers;
     stateCtrl = WidgetStateController(this);
+    onInitialize();
+    onPaletteUpdate();
     editor = Editor(
       tabs: tabs,
-      project: project,
       page: page,
       widget: this
     );
-    _defaultResizeHandlerSet = _resizeHandlers = resizeHandlers;
-    onPaletteUpdate();
+    if (data != null) try {
+      uid = data['uid'];
+      buildFromJSON(Map.from(data));
+      updateResizeHandlers();
+      updateGrids();
+      stateCtrl.update();
+    } on WidgetCreationException catch (e) {
+      print(e.message);
+      throw WidgetCreationException(
+        'The widget could not be rebuilt due to some issues',
+        details: 'Failed to build widget from JSON: $e',
+      );
+    }
+    updateResizeHandlers();
   }
 
   late WidgetStateController stateCtrl;
-
-  bool _firstBuildDont = false;
-
-  void doFirstBuild() {
-    // First build function is run once the rendering is over
-    // Only once for the widget lifecycle
-    _firstBuildDont = true;
-    onFirstBuild();
-  }
-
-  void onFirstBuild() {}
-
-  void onInitialize() {}
 
   String? uid;
 
   final CreatorPage page;
 
-  final Project project;
+  late final Project project;
 
   /// Bottom Navigation Bar with editing options
   late Editor editor;
@@ -59,8 +70,18 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   final bool allowClipboard = true;
 
-  void onDoubleTap(BuildContext context) {}
+  bool _firstBuildDont = false;
 
+  void doFirstBuild() {
+    // First build function is run once the rendering is over
+    // Only once for the widget lifecycle
+    _firstBuildDont = true;
+    onFirstBuild();
+  }
+
+  void onFirstBuild() {}
+
+  void onInitialize() {}
 
   /// ### Rotate
 
@@ -159,29 +180,45 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Defaults to `true`
   final bool isDraggable = true;
 
-  void updatePosition(Offset _position) {
-    position = _position;
-    if (angle == 0) updateGrids(showGridLines: true);
+  void updatePosition(DragUpdateDetails details) {
+    if (!isDraggable || page.multiselect) return;
+    position = position + details.delta;
+    bool snap = details.delta.dx.isBetween(-preferences.snapSensitivity, preferences.snapSensitivity);
+    if (angle == 0) updateGrids(showGridLines: true, snap: snap);
     updateListeners(WidgetChange.drag);
   }
 
-  void _onGestureUpdate(DragUpdateDetails details) {
-    if (isDraggable && !page.multiselect) updatePosition(position + details.delta);
+  void _onGestureUpdate(DragUpdateDetails details, BuildContext context) {
+    if (isDraggable && !page.multiselect) updatePosition(details);
     updateListeners(WidgetChange.misc);
   }
 
-  void _onGestureEnd(DragEndDetails details) {
+  void _onGestureEnd(DragEndDetails details, BuildContext context) {
     page.select(this);
-    updatePosition(Offset(position.dx, position.dy));
-    onDragFinish();
+    // updatePosition(Offset(position.dx, position.dy));
+    onDragFinish(context);
   }
 
   void onGestureStart() { }
 
-  void onDragFinish() {
+  void onDragFinish(BuildContext context) {
     // Update the listener to `update` changes. This will tell the parent to reload state and save the change in history
+    double dx = position.dx;
+    double dy = position.dy;
+    double mindx = -(project.contentSize(context).width/2) - size.width/4;
+    double mindy = -(project.contentSize(context).height/2) - size.height/4;
+    double maxdx = project.contentSize(context).width/2 + size.width/4;
+    double maxdy = project.contentSize(context).height/2 + size.height/4;
+    if (dx < mindx) dx = mindx;
+    if (dy < mindy) dy = mindy;
+    if (dx > maxdx) dx = maxdx;
+    if (dy > maxdy) dy = maxdy;
+    // Prevent the widget from going out of the safe area
+    position = Offset(dx, dy);
     updateListeners(WidgetChange.update, removeGrids: true);
   }
+
+  void onDoubleTap(BuildContext context) {}
 
   bool isSelected() => page.isSelected(this);
 
@@ -208,8 +245,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         child: GestureDetector(
           behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
           onPanStart: (details) => onGestureStart(),
-          onPanUpdate: _onGestureUpdate,
-          onPanEnd: _onGestureEnd,
+          onPanUpdate: (details) => _onGestureUpdate(details, context),
+          onPanEnd: (details) => _onGestureEnd(details, context),
           dragStartBehavior: DragStartBehavior.down,
           child: Stack(
             clipBehavior: Clip.antiAlias,
@@ -223,33 +260,35 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
                   child: Padding(
                     padding: EdgeInsets.all(20),
                     child: Center(
-                      child: SizedBox.fromSize(
-                        // size: Size(size.width + 4, size.height + 4), // 4 for the border
-                        child: Container(
-                          child: DottedBorder(
-                            borderType: BorderType.RRect,
-                            color: Colors.grey[400]!,
-                            strokeWidth: 2,
-                            dashPattern: [3, 0, 3],
-                            radius: Radius.circular(5),
-                            // padding: EdgeInsets.zero,
-                            // decoration: BoxDecoration(
-                            //   // color: Colors.red.withOpacity(0.3),
-                            //   border: Border.all(
-                            //     color: Colors.grey[400]!,
-                            //     width: 1
-                            //   ),
-                            //   boxShadow: const [ ]
-                            // ),
-                            child: SizedBox.fromSize(
-                              size: size,
-                              child: Opacity(
-                                opacity: opacity,
-                                child: widget(context)
-                              )
-                            )
+                      child: Container(
+                        // borderType: BorderType.RRect,
+                        // color: Colors.grey[400]!,
+                        // strokeWidth: 2,
+                        // dashPattern: [3, 0, 3],
+                        // radius: Radius.circular(5),
+                        // padding: EdgeInsets.zero,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: page.palette.background.computeThemedTextColor(180),
+                            width: 0
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              blurStyle: BlurStyle.outer,
+                              color: Colors.black.withOpacity(0.25),
+                              blurRadius: 10,
+                              spreadRadius: 0,
+                              offset: Offset(0, 0),
+                            ),
+                          ],
                         ),
+                        child: SizedBox.fromSize(
+                          size: size,
+                          child: Opacity(
+                            opacity: opacity,
+                            child: widget(context)
+                          )
+                        )
                       ),
                     ),
                   ),
@@ -286,8 +325,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
                     dx: positionX,
                     // rotateDegrees: angle,
                     child: DragHandler(
-                      onPositionUpdate: _onGestureUpdate,
-                      onPositionUpdateEnd: _onGestureEnd,
+                      onPositionUpdate: (details) => _onGestureUpdate(details, context),
+                      onPositionUpdateEnd: (details) => _onGestureEnd(details, context),
                       backgroundColor: page.palette.background.computeThemedTextColor(180),
                       iconColor: page.palette.background,
                     ),
@@ -349,7 +388,11 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   /// Update all the grids present in the page for the current widget
   void updateGrids({
-    bool showGridLines = false
+    bool showGridLines = false,
+    /// Snap the widget to the grid
+    /// 
+    /// Both `this.snap` and `preferences.snap` are required to be true for the widget to snap
+    bool snap = true
   }) {
     double dx = position.dx;
     double dy = position.dy;
@@ -476,7 +519,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (showGridLines) {
       page.gridState.notifyListeners();
       // Only snap if the user has enabled it in settings
-      if (preferences.snap) position = Offset(dx, dy);
+      if (preferences.snap && snap) position = Offset(dx, dy);
       page.gridState.visible.addAll(_grids);
       if (preferences.snap && preferences.vibrateOnSnap && _grids.isNotEmpty) {
         TapFeedback.normal();
@@ -485,11 +528,27 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   }
 
-  /// Call this method when updating the palette of the project to change color of the widget
-  /// Not required for widgets like image or design asset which do not require a color
+  /// This method is called when the palette is updated for the parent page
+  /// 
+  /// Here, write the code to update colors used within the widget
   void onPaletteUpdate() { }
 
-  /// Save the state of the widget in a json format
+  /// This method is called when the widget is deleted
+  /// 
+  /// It should be used to clean up any resources that the widget is using
+  void onDelete() {}
+
+  /// Duplicate Widget
+  /// 
+  /// Returns the widget with same properties but new uid and altered position
+  CreatorWidget duplicate() {
+    CreatorWidget widget = CreatorWidget.fromJSON(toJSON(), page: page);
+    widget.uid = Constants.generateID();
+    widget.position = Offset(position.dx + 10, position.dy + 10);
+    return widget;
+  }
+
+  /// Convert the state and properties of the widget to JSON
   Map<String, dynamic> toJSON() => {
     'id': id,
     'uid': uid,
@@ -508,80 +567,79 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     }
   };
 
-  // static CreatorWidget? fromJSON(dynamic data, {
-  //   required CreatorPage page
-  // }) {
-  //   try {
-  //     data = Map.from(data);
-  //     CreatorWidget? widget;
-  //     Project project = page.project;
-  //     switch (data['uid']) {
-  //       case 'background':
-  //         widget = BackgroundWidget(page: page, project: project, uid: data['uid']);
-  //         break;
-  //       case 'box':
-  //         widget = CreatorBoxWidget(page: page, project: project, uid: data['uid']);
-  //         break;
-  //       case 'text':
-  //         widget = CreatorText(page: page, project: project);
-  //         break;
-  //       case 'design_asset':
-  //         widget = CreatorDesignAsset(page: page, project: project);
-  //         break;
-  //       case 'qr_code':
-  //         widget = QRWidget(page: page, project: project);
-  //         break;
-  //       default:
-  //         return null;
-  //     }
-  //     return widget;
-  //   } catch (e) {
-  //     return null;
-  //   }
-  // }
+  /// Create the widget from JSON
+  /// 
+  /// This method automatically detects the type of widget and returns the appropriate widget
+  static CreatorWidget fromJSON(dynamic data, {
+    required CreatorPage page
+  }) {
+    data = Map.from(data);
+    CreatorWidget? widget;
+    switch (data['id']) {
+      case 'background':
+        widget = BackgroundWidget(page: page, data: data);
+        break;
+      // case 'box':
+      //   widget = CreatorBoxWidget(page: page, project: project, uid: data['uid']);
+      //   break;
+      case 'text':
+        widget = CreatorText(page: page, data: data);
+        break;
+      case 'design_asset':
+        widget = CreatorDesignAsset(page: page, data: data);
+        break;
+      case 'qr_code':
+        widget = QRWidget(page: page, data: data);
+        break;
+      case 'image':
+        widget = ImageWidget(page: page, data: data);
+        break;
+      default:
+        throw WidgetCreationException('Failed to build widget ${data['name']}');
+    }
+    return widget;
+  }
 
-  void buildFromJSON(Map<String, dynamic> json) {
-    try {
-      uid = json['uid'];
-      buildPropertiesFromJSON(Map.from(json['properties']));
-      updateResizeHandlers();
-      updateGrids();
-      stateCtrl.update();
-    } catch (e) {
-      throw WidgetCreationException(
-        'The widget could not be rebuilt due to some issues',
-        details: 'Failed to build widget from JSON: $e',
-      );
+  /// Create new widget by ID
+  static Future<void> create(BuildContext context, {
+    required CreatorPage page,
+    /// ID of the widget to create
+    required String id
+  }) async {
+    switch (id) {
+      case 'text':
+        CreatorText.create(context, page: page);
+        break;
+      case 'design_asset':
+        CreatorDesignAsset.create(context, page: page);
+        break;
+      case 'qr_code':
+        QRWidget.create(context, page: page);
+        break;
+      case 'image':
+        ImageWidget.create(context, page: page);
+        break;
+      default:
+        break;
     }
   }
 
-  void buildPropertiesFromJSON(Map<String, dynamic> properties) {
+  void buildFromJSON(Map<String, dynamic> data) {
+    print(data);
     try {
-      position = Offset(properties['position']['dx'], properties['position']['dy']);
-      angle = properties['angle'];
-      opacity = properties['opacity'];
-      size = Size(properties['size']['width'], properties['size']['height']);
+      position = Offset(data['properties']['position']['dx'], data['properties']['position']['dy']);
+      angle = data['properties']['angle'];
+      opacity = data['properties']['opacity'];
+      size = Size(data['properties']['size']['width'], data['properties']['size']['height']);
       updateListeners(WidgetChange.misc);
     } catch (e) {
+      print(e);
       throw WidgetCreationException(
         'The widget could not be built due to some issues',
         details: 'Failed to build widget properties from JSON: $e',
       );
     }
   }
-
-  @override
-  bool operator == (Object other) {
-    if (other is CreatorWidget && other.uid == uid) return true;
-    return false;
-  }
-
-  @override
-  int get hashCode => super.hashCode;
-
-  /// This method is called when the widget is deleted
-  /// It should be used to clean up any resources that the widget is using
-  void onDelete() {}
 
 }
 

@@ -29,32 +29,8 @@ class _ProjectIssuesState extends State<ProjectIssues> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            leading: NewBackButton(),
-            pinned: true,
-            centerTitle: false,
-            expandedHeight: Constants.appBarExpandedHeight,
-            flexibleSpace: RenderFlexibleSpaceBar(
-              collapseMode: CollapseMode.pin,
-              centerTitle: false,
-              title: Text(
-                'Issues',
-                // style: AppTheme.flexibleSpaceBarStyle
-              ),
-              titlePaddingTween: EdgeInsetsTween(
-                begin: const EdgeInsets.only(
-                  left: 12.0,
-                  bottom: 16
-                ),
-                end: const EdgeInsets.symmetric(
-                  horizontal: 55,
-                  vertical: 15
-                )
-              ),
-              stretchModes: const [
-                StretchMode.fadeTitle,
-              ],
-            ),
+          RenderAppBar(
+            title: Text('Issues'),
             actions: [
               TextButton(
                 onPressed: () => setState(() {

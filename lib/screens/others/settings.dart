@@ -19,35 +19,8 @@ class _SettingsState extends State<Settings> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            leading: NewBackButton(),
-            pinned: true,
-            centerTitle: false,
-            expandedHeight: Constants.appBarExpandedHeight,
-            titleTextStyle: const TextStyle(
-              fontSize: 14
-            ),
-            flexibleSpace: RenderFlexibleSpaceBar(
-              collapseMode: CollapseMode.pin,
-              centerTitle: false,
-              title: Text(
-                'Settings',
-                // style: AppTheme.flexibleSpaceBarStyle
-              ),
-              titlePaddingTween: EdgeInsetsTween(
-                begin: const EdgeInsets.only(
-                  left: 16.0,
-                  bottom: 16
-                ),
-                end: const EdgeInsets.symmetric(
-                  horizontal: 55,
-                  vertical: 15
-                )
-              ),
-              stretchModes: const [
-                StretchMode.fadeTitle,
-              ],
-            ),
+          RenderAppBar(
+            title: Text('Settings')
           ),
           SliverList(
             delegate: SliverChildListDelegate([
@@ -79,13 +52,23 @@ class _SettingsState extends State<Settings> {
               label('Preferences'),
               divider,
               ListTile(
-                title: const Text('Send Usage Data'),
-                trailing: Switch.adaptive(
-                  value: preferences.allowAnalytics,
-                  onChanged: (value) async {
-                    await preferences.update(allowAnalytics: value);
+                title: const Text('Export Quality'),
+                subtitle: const Text('Choose the quality of image rendering for images'),
+                trailing: PopupMenuButton<ExportQuality>(
+                  itemBuilder: (context) => List.generate(
+                    ExportQuality.values.length,
+                    (index) => PopupMenuItem(
+                      value: ExportQuality.values[index],
+                      child: Text(ExportQuality.values[index].name.toTitleCase()),
+                    ),
+                  ),
+                  onSelected: (value) async {
+                    preferences.exportQuality = value;
                     setState(() { });
                   },
+                  child: Chip(
+                    label: Text(preferences.exportQuality.name.toTitleCase()),
+                  ),
                 ),
               ),
               divider,
@@ -95,7 +78,7 @@ class _SettingsState extends State<Settings> {
                 trailing: Switch.adaptive(
                   value: preferences.snap,
                   onChanged: (value) async {
-                    await preferences.update(snap: value);
+                    preferences.snap = value;
                     setState(() { });
                   },
                 ),
@@ -107,7 +90,18 @@ class _SettingsState extends State<Settings> {
                 trailing: Switch.adaptive(
                   value: preferences.vibrateOnSnap,
                   onChanged: (value) async {
-                    await preferences.update(vibrateOnSnap: value);
+                    preferences.vibrateOnSnap = value;
+                    setState(() { });
+                  },
+                ),
+              ),
+              divider,
+              ListTile(
+                title: const Text('Collect Usage Data'),
+                trailing: Switch.adaptive(
+                  value: preferences.allowAnalytics,
+                  onChanged: (value) async {
+                    preferences.allowAnalytics = value;
                     setState(() { });
                   },
                 ),

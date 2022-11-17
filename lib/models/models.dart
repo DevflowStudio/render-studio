@@ -9,3 +9,5 @@ export 'permission_manager.dart';
 export 'file_picker.dart';
 export 'assets/provider.dart';
 export 'size.dart';
+export 'icon_finder.dart';
+export 'export_quality.dart';

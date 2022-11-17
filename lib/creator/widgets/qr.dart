@@ -6,14 +6,29 @@ import '../../rehmat.dart';
 
 class QRWidget extends CreatorWidget {
 
-  QRWidget({required CreatorPage page, required Project project, this.data = ''}) : super(page: page, project: project);
+  QRWidget({required CreatorPage page, Map? data}) : super(page, data: data);
+
+  static Future<void> create(BuildContext context, {
+    required CreatorPage page
+  }) async {
+    QRWidget qr = QRWidget(page: page);
+    String? _data = await showModalBottomSheet(
+      context: context,
+      backgroundColor: Palette.of(context).background.withOpacity(0.6),
+      barrierColor: Colors.transparent,
+      builder: (context) => QRCodeDataEditor(),
+    );
+    if (_data == null) return;
+    qr.data = _data;
+    page.addWidget(qr);
+  }
 
   // Inherited
   final String name = 'QR Code';
   @override
   final String id = 'qr_code';
 
-  String data;
+  late String data;
 
   bool keepAspectRatio = true;
   bool isResizable = true;
@@ -122,7 +137,7 @@ class QRWidget extends CreatorWidget {
           title: 'Image',
           tooltip: 'Tap to add embed an image',
           onTap: (context) async {
-            embeddedImage = await Asset.create(
+            embeddedImage = await Asset.pick(
               project,
               cropRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
               context: context
@@ -263,15 +278,6 @@ class QRWidget extends CreatorWidget {
     'gapless': gapless,
     'padding': padding.toJSON(),
   };
-
-  static Future<QRWidget?> create(BuildContext context, {
-    required CreatorPage page,
-    required Project project,
-    required String data,
-  }) async {
-    QRWidget designAsset = QRWidget(page: page, project: project, data: data);
-    return designAsset;
-  }
 
   @override
   void buildFromJSON(Map<String, dynamic> json) {

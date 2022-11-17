@@ -4,7 +4,6 @@ export 'options.dart';
 export 'text.dart';
 export 'resize_handlers.dart';
 export 'editor.dart';
-export 'icon.dart';
 export 'design_asset.dart';
 export 'box.dart';
 export 'group.dart';

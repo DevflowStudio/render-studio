@@ -37,7 +37,10 @@ class _ColorToolState extends State<ColorTool> {
   @override
   void initState() {
     super.initState();
-    _color = widget.selection ?? Colors.blue;
+    _color = Colors.blue;
+    if (widget.selection != null) {
+      if (widget.selection!.computeLuminance() > 3) _color = widget.selection!;
+    }
   }
 
   @override
@@ -220,5 +223,3 @@ class _ColorToolState extends State<ColorTool> {
   }
 
 }
-
-

@@ -6,10 +6,20 @@ import '../../rehmat.dart';
 
 class CreatorDesignAsset extends CreatorWidget {
 
-  CreatorDesignAsset({required CreatorPage page, required Project project}) : super(page: page, project: project);
+  CreatorDesignAsset({required CreatorPage page, Map? data}) : super(page, data: data);
+
+  static Future<void> create(BuildContext context, {
+    required CreatorPage page
+  }) async {
+    CreatorDesignAsset designAsset = CreatorDesignAsset(page: page);
+    Asset? _asset = await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
+    if (_asset == null) return null;
+    designAsset.asset = _asset;
+    page.addWidget(designAsset);
+  }
 
   // Inherited
-  final String name = 'Design Asset';
+  String name = 'Design Asset';
   @override
   final String id = 'design_asset';
 
@@ -41,7 +51,13 @@ class CreatorDesignAsset extends CreatorWidget {
         Option.button(
           title: 'Replace',
           tooltip: 'Replace the asset file',
-          onTap: (context) async { },
+          onTap: (context) async {
+            Asset? _asset = await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
+            if (_asset == null) return null;
+            await asset.delete();
+            asset = _asset;
+            updateListeners(WidgetChange.update);
+          },
           icon: Icons.change_circle
         ),
         Option.button(
@@ -108,18 +124,6 @@ class CreatorDesignAsset extends CreatorWidget {
     'asset': asset.id,
   };
 
-  static Future<CreatorDesignAsset?> create(BuildContext context, {
-    required CreatorPage page,
-    required Project project,
-  }) async {
-    CreatorDesignAsset designAsset = CreatorDesignAsset(page: page, project: project);
-    Asset? _asset = await Asset.create(project, type: FileType.svg, context: context);
-    print(_asset);
-    if (_asset == null) return null;
-    designAsset.asset = _asset;
-    return designAsset;
-  }
-
   @override
   void buildFromJSON(Map<String, dynamic> json) {
     super.buildFromJSON(json);
@@ -140,6 +144,30 @@ class CreatorDesignAsset extends CreatorWidget {
   @override
   void onDelete() {
     project.assetManager.delete(asset);
+  }
+
+  static Future<Asset?> buildOptionsForAsset(BuildContext context, {
+    required CreatorPage page
+  }) async {
+    String? option = await Alerts.optionsBuilder(
+      context,
+      title: 'Design Asset',
+      options: [
+        AlertOption(title: 'Choose SVG', id: 'svg'),
+        AlertOption(title: 'IconFinder', id: 'iconfinder'),
+      ]
+    );
+    Asset? asset;
+    switch (option) {
+      case 'svg':
+        asset = await Asset.pick(page.project, type: FileType.svg, context: context);
+        break;
+      case 'iconfinder':
+        asset = await AppRouter.push(context, page: IconFinderScreen(project: page.project,));
+        break;
+      default:
+    }
+    return asset;
   }
 
 }

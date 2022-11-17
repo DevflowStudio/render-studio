@@ -51,7 +51,11 @@ class Spinner extends StatefulWidget {
         ),
       ),
     );
-    await task();
+    try {
+      await task();
+    } catch (e) {
+      print(e);
+    }
     Navigator.of(context).pop();
     if (onComplete != null) onComplete();
   }
@@ -110,7 +114,7 @@ class TitleSpinner extends StatelessWidget {
 
 class TitleSpinnerWidget extends StatefulWidget {
 
-  TitleSpinnerWidget({Key? key}) : super(key: key);
+  const TitleSpinnerWidget({Key? key}) : super(key: key);
 
   @override
   State<TitleSpinnerWidget> createState() => _TitleSpinnerWidgetState();

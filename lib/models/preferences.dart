@@ -1,46 +1,67 @@
+import 'package:flutter/material.dart';
+import '../rehmat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-late SharedPreferences sharedPreferences;
+late Preferences preferences;
 
-Preferences preferences = Preferences.instance;
+class Preferences extends ChangeNotifier {
 
-class Preferences {
-  
-  bool snap = true;
+  final SharedPreferences prefs;
+  Preferences(this.prefs);
 
-  bool vibrateOnSnap = true;
-
-  double snapSensitivity = 2;
-
-  bool allowAnalytics = true;
-
-  bool enableDebug = false;
-
-  static Preferences get instance {
-    Preferences preferences = Preferences();
-    preferences.allowAnalytics = sharedPreferences.getBool('allow-analytics') ?? true;
-    preferences.snap = sharedPreferences.getBool('snap') ?? true;
-    preferences.vibrateOnSnap = sharedPreferences.getBool('vibrate-on-snap') ?? true;
-    return preferences;
+  static Future<Preferences> get instance async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return Preferences(prefs);
   }
-  
-  Future<void> update({
-    bool? snap,
-    bool? vibrateOnSnap,
-    bool? allowAnalytics
-  }) async {
-    if (allowAnalytics != null) {
-      await sharedPreferences.setBool('allow-analytics', allowAnalytics);
-      this.allowAnalytics = allowAnalytics;
+
+  ThemeMode get themeMode {
+    String? themeModeString = prefs.getString('themeMode');
+    if (themeModeString == null) {
+      return ThemeMode.system;
     }
-    if (vibrateOnSnap != null) {
-      await sharedPreferences.setBool('vibrate-on-snap', vibrateOnSnap);
-      this.vibrateOnSnap = vibrateOnSnap;
-    }
-    if (snap != null) {
-      await sharedPreferences.setBool('snap', snap);
-      this.snap = snap;
+    switch (themeModeString) {
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
     }
   }
+  set themeMode(ThemeMode mode) {
+    String themeModeString;
+    switch (mode) {
+      case ThemeMode.light:
+        themeModeString = 'light';
+        break;
+      case ThemeMode.dark:
+        themeModeString = 'dark';
+        break;
+      default:
+        themeModeString = 'system';
+    }
+    prefs.setString('theme-mode', themeModeString).then((value) => notifyListeners());
+  }
+
+  ExportQuality get exportQuality => ExportQualityExtension.fromString(prefs.getString('export-quality'));
+  set exportQuality(ExportQuality quality) => prefs.setString('export-quality', quality.name).then((value) => notifyListeners());
+
+  bool get snap => prefs.getBool('snap') ?? true;
+  set snap(bool snap) => prefs.setBool('snap', snap).then((value) => notifyListeners());
+
+  bool get vibrateOnSnap => prefs.getBool('vibrate-on-snap') ?? true;
+  set vibrateOnSnap(bool vibrate) => prefs.setBool('vibrate-on-snap', vibrate).then((value) => notifyListeners());
+
+  bool get debugMode => prefs.getBool('debug-mode') ?? false;
+  set debugMode(bool debug) => prefs.setBool('debug-mode', debug).then((value) => notifyListeners());
+
+  bool get allowAnalytics => prefs.getBool('allow-analytics') ?? true;
+  set allowAnalytics(bool allow) => prefs.setBool('allow-analytics', allow).then((value) => notifyListeners());
+
+  double get snapSensitivity => prefs.getDouble('snap-sensitivity') ?? 2;
+  set snapSensitivity(double sensitivity) => prefs.setDouble('snap-sensitivity', sensitivity).then((value) => notifyListeners());
+
+  double get nudgeSensitivity => prefs.getDouble('nudge-sensitivity') ?? 2;
+  set nudgeSensitivity(double sensitivity) => prefs.setDouble('nudge-sensitivity', sensitivity).then((value) => notifyListeners());
 
 }

@@ -34,29 +34,8 @@ class _FontSelectorState extends State<FontSelector> {
       body: CustomScrollView(
         slivers: [
 
-          SliverAppBar(
-            leading: NewBackButton(),
-            pinned: true,
-            centerTitle: false,
-            expandedHeight: Constants.appBarExpandedHeight,
-            flexibleSpace: RenderFlexibleSpaceBar(
-              collapseMode: CollapseMode.pin,
-              centerTitle: false,
-              title: Text('Fonts'),
-              titlePaddingTween: EdgeInsetsTween(
-                begin: const EdgeInsets.only(
-                  left: 16.0,
-                  bottom: 16
-                ),
-                end: const EdgeInsets.symmetric(
-                  horizontal: 55,
-                  vertical: 15
-                )
-              ),
-              stretchModes: const [
-                StretchMode.fadeTitle,
-              ],
-            ),
+          RenderAppBar(
+            title: Text('Fonts'),
             actions: [
               IconButton(
                 onPressed: () => showSearch(

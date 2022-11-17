@@ -11,30 +11,26 @@ class ProjectGlance {
 
   final Map data;
 
-  late final String title;
+  String get title => data['title'];
 
-  late final String? description;
+  String? get description => data['description'];
 
-  late final List<String> thumbnails;
+  String? get thumbnail => data['thumbnail'];
+  
+  List<String> get images => List.from(data['images']);
 
-  late final DateTime? created;
+  DateTime? get created => data['meta']['created'] != null ? DateTime.fromMillisecondsSinceEpoch(data['meta']['created']) : DateTime.now();
 
-  late final DateTime? edited;
+  DateTime? get edited => data['meta']['edited'] != null ? DateTime.fromMillisecondsSinceEpoch(data['meta']['edited']) : DateTime.now();
 
-  late PostSize size;
+  PostSize get size => PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
 
   static ProjectGlance? build({
     required String id,
     required Map<String, dynamic> data
   }) {
     try {
-      ProjectGlance glance = ProjectGlance(id, Map.from(data));
-      glance.title = data['title'];
-      glance.description = data['description'];
-      glance.thumbnails = data['thumbnails'];
-      glance.created = data['meta']['created'] != null ? DateTime.fromMillisecondsSinceEpoch(data['meta']['created']) : DateTime.now();
-      glance.edited = data['meta']['edited'] != null ? DateTime.fromMillisecondsSinceEpoch(data['meta']['edited']) : DateTime.now();
-      glance.size = PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
+      ProjectGlance glance = ProjectGlance(id, Map.from(data));;
       return glance;
     } catch (e) {
       return null;

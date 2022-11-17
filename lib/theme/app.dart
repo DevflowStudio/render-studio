@@ -7,9 +7,9 @@ class AppTheme {
 
   static ThemeData build({
     required Brightness brightness,
-    Color seed = Colors.indigo
+    Color? seed
   }) {
-    // seed = Color.fromARGB(255, 48, 20, 8);
+    seed ??= Colors.indigo;
     Color contrastTextColor = brightness == Brightness.light ? Colors.black : Colors.white;
     Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[200]!;
     Color background = brightness == Brightness.light ? HexColor.fromHex('#f8faf9') : HexColor.fromHex('#000000');
@@ -165,10 +165,10 @@ class AppTheme {
         linearTrackColor: contrastTextColorLight.withOpacity(0.05)
       ),
       cardTheme: CardTheme(
-        color: surfaceVariant,
+        color: brightness == Brightness.light ? HexColor.fromHex('#e9edf2') : surfaceVariant,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15)
+          borderRadius: BorderRadius.circular(20)
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(

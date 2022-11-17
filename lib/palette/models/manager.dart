@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../rehmat.dart';
@@ -37,6 +38,7 @@ class PaletteManager {
   }
 
   Future<void> add(ColorPalette palette) async {
+    if (palettes.contains(palette)) return;
     await box.put(palette.id, palette.toJSON());
     palettes.add(palette);
   }
@@ -44,6 +46,12 @@ class PaletteManager {
   Future<void> delete(ColorPalette palette) async {
     await box.delete(palette.id);
     palettes.remove(palette);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is PaletteManager && listEquals(other.palettes, palettes);
   }
 
 }

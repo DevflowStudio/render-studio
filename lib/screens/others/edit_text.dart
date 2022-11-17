@@ -33,28 +33,8 @@ class _EditTTextEditorScreen extends State<TextEditorScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            leading: NewBackButton(
-              data: text,
-            ),
-            pinned: true,
-            centerTitle: false,
-            expandedHeight: Constants.appBarExpandedHeight,
-            flexibleSpace: RenderFlexibleSpaceBar(
-              collapseMode: CollapseMode.pin,
-              centerTitle: false,
-              title: Text('Text'),
-              titlePaddingTween: EdgeInsetsTween(
-                begin: const EdgeInsets.only(
-                  left: 12.0,
-                  bottom: 16
-                ),
-                end: const EdgeInsets.only(
-                  left: 72.0,
-                  bottom: 16
-                ),
-              ),
-            ),
+          RenderAppBar(
+            title: Text('Text'),
           ),
           SliverPadding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),

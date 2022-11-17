@@ -7,3 +7,4 @@ export 'state/app.dart';
 export 'palette/palette.dart';
 export 'app.dart';
 export 'screens/screens.dart';
+export 'utils/utlis.dart';

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:universal_io/io.dart';
 
 import 'package:flutter/material.dart';
@@ -49,7 +50,10 @@ class _CreatePaletteState extends State<CreatePalette> {
                     await Spinner.fullscreen(
                       context,
                       task: () async {
-                        paletteGenerator = await PaletteGenerator.fromImageProvider(FileImage(file));
+                        print(await file.exists());
+                        Uint8List bytes = await file.readAsBytes();
+                        Image image = Image.memory(bytes);
+                        paletteGenerator = await PaletteGenerator.fromImageProvider(image.image);
                       },
                     );
                     if (paletteGenerator == null) return;
@@ -116,7 +120,6 @@ class _CreatePaletteState extends State<CreatePalette> {
                       child: Text('Save'),
                       onPressed: () async {
                         await paletteManager.add(palette);
-                        Alerts.snackbar(context, text: 'Saved palette');
                       },
                     ),
                   ),
@@ -150,7 +153,13 @@ class _PaletteViewModal extends StatelessWidget {
             palette.colors.length,
             (index) => Flexible(
               child: Container(
-                color: palette.colors[index],
+                decoration: BoxDecoration(
+                  color: palette.colors[index],
+                  border: Border.all(
+                    color: palette.colors[index],
+                    width: 0
+                  ),
+                ),
               )
             )
           ),

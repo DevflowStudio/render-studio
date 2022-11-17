@@ -2,7 +2,7 @@ import 'package:universal_io/io.dart';
 import 'package:file_picker/file_picker.dart' as filepicker;
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
-
+import 'package:image_picker/image_picker.dart';
 import '../rehmat.dart';
 
 /// Remove the FilePicker class and migrate to AssetManager
@@ -56,56 +56,67 @@ class FilePicker {
     CropAspectRatio? cropRatio,
     BuildContext? context,
   }) async {
-    filepicker.FileType fileType;
-    List<String>? allowedExtenstions;
+    final ImagePicker _picker = ImagePicker();
+    XFile? xFile;
+    File file;
     switch (type) {
       case FileType.image:
-        fileType = filepicker.FileType.image;
+        xFile = await _picker.pickImage(
+          source: ImageSource.gallery,
+        );
         break;
       case FileType.video:
-        fileType = filepicker.FileType.video;
+        xFile = await _picker.pickVideo(
+          source: ImageSource.gallery,
+        );
         break;
       case FileType.svg:
-        fileType = filepicker.FileType.custom;
-        allowedExtenstions = ['svg'];
-        break;
+        filepicker.FilePickerResult? result = await filepicker.FilePicker.platform.pickFiles(
+          type: filepicker.FileType.custom,
+          allowedExtensions: ['svg'],
+        );
+        if (result != null && result.files.isNotEmpty) {
+          file = File(result.files.single.path!);
+          return file;
+        } else {
+          return null;
+        }
       default:
-        fileType = filepicker.FileType.custom;
+        return null;
     }
-    filepicker.FilePickerResult? result = await filepicker.FilePicker.platform.pickFiles(
-      allowCompression: false,
-      type: fileType,
-      allowedExtensions: allowedExtenstions
-    );
-    if (result != null && result.files.isNotEmpty && context != null) {
+    if (xFile == null) return null;
+    file = File(xFile.path);
+    if (context != null && crop && type == FileType.image) {
       try {
-        File uncropped = File(result.files.single.path!);
-        if (type == FileType.image && crop) {
-          File? cropped = await FilePicker.crop(context, file: uncropped, ratio: cropRatio);
-          return cropped;
-        } else return uncropped;
+        return await FilePicker.crop(context, file: file, ratio: cropRatio);
       } catch (e) {
         print(e);
         return null;
       }
     } else {
-      return null;
+      return file;
     }
-  }
-
-  static Future<List<File>> pickMultiple() async {
-    filepicker.FilePickerResult? result = await filepicker.FilePicker.platform.pickFiles(
-      allowMultiple: true,
-      allowCompression: false,
-      type: filepicker.FileType.image,
-    );
-    List<File> files = [];
-    if (result != null) {
-      for (filepicker.PlatformFile file in result.files) {
-        files.add(File(file.path!));
-      }
-    }
-    return files;
+    // filepicker.FileType fileType;
+    // List<String>? allowedExtenstions;
+    // switch (type) {
+    //   case FileType.image:
+    //     fileType = filepicker.FileType.image;
+    //     break;
+    //   case FileType.video:
+    //     fileType = filepicker.FileType.video;
+    //     break;
+    //   case FileType.svg:
+    //     fileType = filepicker.FileType.custom;
+    //     allowedExtenstions = ['svg'];
+    //     break;
+    //   default:
+    //     fileType = filepicker.FileType.custom;
+    // }
+    // filepicker.FilePickerResult? result = await filepicker.FilePicker.platform.pickFiles(
+    //   allowCompression: false,
+    //   type: fileType,
+    //   allowedExtensions: allowedExtenstions
+    // );
   }
 
   static Future<File?> picker(

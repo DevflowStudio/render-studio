@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:universal_io/io.dart';
-
+import 'package:skeletons/skeletons.dart';
 import '../../../rehmat.dart';
 
 class ProjectAtGlance extends StatefulWidget {
@@ -26,7 +26,6 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
 
   List<String>? files;
 
-  List<File> thumbnails = [];
   late Future<bool> fileExists;
 
   bool isLoading = true;
@@ -37,7 +36,6 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
   void initState() {
     super.initState();
     glance = widget.glance;
-    getThumbnails();
   }
 
   @override
@@ -66,26 +64,18 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(30),
-                child: Builder(
-                  builder: (context) {
-                    if (isLoading) {
-                      return Container();
-                    } else if (thumbnails.isNotEmpty) {
-                      return OctoImage(
-                        image: FileImage(thumbnails.first),
-                        fit: BoxFit.cover,
-                      );
-                    } else {
-                      return Container(
-                        color: Palette.of(context).surfaceVariant,
-                        child: Icon(
-                          Icons.warning,
-                          color: Colors.yellow,
-                          size: 50,
-                        )
-                      );
-                    }
-                  },
+                child: OctoImage(
+                  image: FileImage(File(glance.thumbnail ?? '')),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: Palette.of(context).surfaceVariant,
+                    child: Icon(
+                      Icons.warning,
+                      color: Colors.yellow,
+                      size: 50,
+                    )
+                  ),
+                  placeholderBuilder: (context) => SkeletonAvatar(),
                 ),
               ),
             ),
@@ -145,7 +135,7 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
                             TextButton(
                               onPressed: () async {
                                 if (originalPost == null) await createOriginalPost();
-                                await handler.delete(context, project: originalPost, id: glance.id);
+                                await manager.delete(context, project: originalPost, id: glance.id);
                                 Navigator.of(context).pop();
                                 Navigator.of(context).pop();
                               },
@@ -183,16 +173,6 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
     } else {
       return glance.description!;
     }
-  }
-
-  Future<void> getThumbnails() async {
-    for (String thumbnail in glance.thumbnails) {
-      File file = File(thumbnail);
-      if (await file.exists()) thumbnails.add(file);
-    }
-    setState(() {
-      isLoading = false;
-    });
   }
 
   Future<void> share() async {

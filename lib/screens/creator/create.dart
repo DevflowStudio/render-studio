@@ -79,18 +79,14 @@ class _CreateState extends State<Create> {
             IconButton(
               onPressed: project.pages.current.undoFuntion,
               icon: Icon(
-                project.pages.current.undoEnabled
-                  ? (Platform.isIOS ? CupertinoIcons.arrow_uturn_left_circle_fill : Icons.undo)
-                  : (Platform.isIOS ? CupertinoIcons.arrow_uturn_left_circle : Icons.undo)
+                Platform.isIOS ? CupertinoIcons.arrow_uturn_left : Icons.redo
               ),
               tooltip: 'Undo',
             ),
             IconButton(
               onPressed: project.pages.current.redoFuntion,
               icon: Icon(
-                project.pages.current.redoEnabled
-                ? (Platform.isIOS ? CupertinoIcons.arrow_uturn_right_circle_fill : Icons.redo)
-                : (Platform.isIOS ? CupertinoIcons.arrow_uturn_right_circle : Icons.redo)
+                Platform.isIOS ? CupertinoIcons.arrow_uturn_right : Icons.redo
               ),
               tooltip: 'Redo',
             ),
@@ -109,7 +105,7 @@ class _CreateState extends State<Create> {
                   value: 'page-add',
                 ),
                 PopupMenuItem(
-                  child: Text('${preferences.enableDebug ? 'Disable' : 'Enable'} Debug Mode'),
+                  child: Text('${preferences.debugMode ? 'Disable' : 'Enable'} Debug Mode'),
                   value: 'toggle-debug',
                 ),
                 PopupMenuItem(
@@ -155,7 +151,7 @@ class _CreateState extends State<Create> {
                     setState(() { });
                     break;
                   case 'toggle-debug':
-                    preferences.enableDebug = !preferences.enableDebug;
+                    preferences.debugMode = !preferences.debugMode;
                     setState(() { });
                     break;
                   case 'create-group':
@@ -191,7 +187,7 @@ class _CreateState extends State<Create> {
                     setState(() {
                       isLoading = true;
                     });
-                    await handler.save(context, project: project);
+                    await manager.save(context, project: project);
                     _lastSaved = DateTime.now();
                     if (mounted) setState(() {
                       isLoading = false;
@@ -242,7 +238,7 @@ class _CreateState extends State<Create> {
                 tileColor: Palette.of(context).errorContainer,
                 contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 0),
               ),
-              if (preferences.enableDebug) Align(
+              if (preferences.debugMode) Align(
                 alignment: Alignment.topLeft,
                 child: _DebugModeWidget(project: project),
               ),
@@ -283,10 +279,8 @@ class _CreateState extends State<Create> {
                                     ),
                                   ]
                                 ),
-                                child: SizedBox.fromSize(
-                                  size: project.canvasSize(context),
-                                  child: project.pages.pages[index].build(context)
-                                ),
+                                clipBehavior: Clip.antiAliasWithSaveLayer,
+                                child: project.pages.pages[index].build(context),
                               ),
                             ),
                           ],
@@ -330,29 +324,18 @@ class _CreateState extends State<Create> {
   );
 
   void copyToClipboard() {
-    CreatorWidget? widget = CreatorPage.createWidgetFromId(project.pages.current.selections.single.id, page: project.pages.current, project: project, uid: project.pages.current.selections.single.uid!);
-    if (widget == null) {
-      Alerts.snackbar(context, text: 'Failed to build widget');
-      return;
-    }
     try {
-      widget.buildFromJSON(project.pages.current.selections.single.toJSON());
+      clipboard = project.pages.current.selections.single.duplicate();
+      setState(() { });
     } on WidgetCreationException catch (e) {
       print(e);
       Alerts.snackbar(context, text: 'Failed to build widget');
     }
-    widget.position = Offset(widget.position.dx + 10, widget.position.dy + 10);
-    clipboard = widget;
-    setState(() { });
-    Alerts.snackbar(context, text: 'Copied Widget to Clipboard');
   }
 
   void pasteWidget() {
-    Map<String, dynamic> json = clipboard!.toJSON();
-    json['uid'] = Constants.generateID();
-    CreatorWidget? widget = CreatorPage.createWidgetFromId(clipboard!.id, page: project.pages.current, project: project, uid: clipboard!.uid!);
-    widget!.buildFromJSON(json);
-    project.pages.current.addWidget(widget);
+    if (clipboard == null) return;
+    project.pages.current.addWidget(clipboard!);
     clipboard = null;
     setState(() { });
     Alerts.snackbar(context, text: 'Added Widget From Clipboard');

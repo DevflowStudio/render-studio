@@ -11,13 +11,11 @@ class Editor extends StatefulWidget {
   const Editor({
     Key? key,
     required this.tabs,
-    required this.project,
     required this.page,
     required this.widget,
   }) : super(key: key);
 
   final List<EditorTab> tabs;
-  final Project project;
   final CreatorPage page;
   final CreatorWidget widget;
 
@@ -526,18 +524,20 @@ class EditorTab {
                 height: 150,
                 child: VerticalDivider(),
               ),
-              _PaletteListView(
-                title: 'Saved',
-                palettes: [
-                  ... paletteManager.palettes
-                ],
-                onSelected: onSelected,
-                page: page,
-              ),
-              SizedBox(
-                height: 150,
-                child: Center(child: VerticalDivider()),
-              ),
+              if (paletteManager.palettes.isNotEmpty) ... [
+                _PaletteListView(
+                  title: 'Saved',
+                  palettes: [
+                    ... paletteManager.palettes
+                  ],
+                  onSelected: onSelected,
+                  page: page,
+                ),
+                SizedBox(
+                  height: 150,
+                  child: Center(child: VerticalDivider()),
+                )
+              ],
               FutureBuilder(
                 future: paletteManager.suggestions,
                 builder: (context, snapshot) {
