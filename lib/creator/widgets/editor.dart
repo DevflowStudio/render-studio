@@ -419,7 +419,7 @@ class EditorTab {
                 TapFeedback.light();
               },
               tooltip: 'Move Up',
-              icon: Icons.expand_less,
+              icon: RenderIcons.arrow_up,
             ),
             SizedBox(height: 6),
             Row(
@@ -430,7 +430,7 @@ class EditorTab {
                     onDXchange(-Constants.nudgeSenstivity);
                   },
                   tooltip: 'Move Left',
-                  icon: Icons.chevron_left,
+                  icon: RenderIcons.arrow_left,
                 ),
                 SizedBox(width: 6),
                 ButtonWithIcon(
@@ -438,7 +438,7 @@ class EditorTab {
                     onDYchange(Constants.nudgeSenstivity);
                   },
                   tooltip: 'Move Down',
-                  icon: Icons.expand_more,
+                  icon: RenderIcons.arrow_down,
                 ),
                 SizedBox(width: 6),
                 ButtonWithIcon(
@@ -446,7 +446,7 @@ class EditorTab {
                     onDXchange(Constants.nudgeSenstivity);
                   },
                   tooltip: 'Move Right',
-                  icon: Icons.chevron_right,
+                  icon: RenderIcons.arrow_right,
                 ),
               ]
             )
@@ -671,7 +671,6 @@ class __PaddingEditorState extends State<_PaddingEditor> {
               min: widget.min ?? 0,
               max: widget.max ?? 24,
               onChanged: (value) {
-                print('Vertical: $value');
                 if (locked) {
                   horizontal = vertical = value;
                   padding = EdgeInsets.symmetric(vertical: value, horizontal: value);
@@ -692,7 +691,7 @@ class __PaddingEditorState extends State<_PaddingEditor> {
             setState(() => locked = !locked);
           },
           icon: Icon(
-            locked ? Icons.lock : Icons.lock_open,
+            locked ? RenderIcons.lock : RenderIcons.unlock,
           ),
         )
       ],
@@ -702,11 +701,11 @@ class __PaddingEditorState extends State<_PaddingEditor> {
   Widget iconButton() {
     if (locked) return FilledTonalIconButton(
       onPressed: () => setState(() => locked = !locked),
-      icon: Icon(Icons.lock)
+      icon: Icon(RenderIcons.lock)
     );
     else return OutlinedIconButtons(
       onPressed: () => setState(() => locked = !locked),
-      icon: Icon(Icons.lock_open)
+      icon: Icon(RenderIcons.unlock)
     );
   }
   
@@ -930,7 +929,6 @@ class _ShadowEditorGroupValueEditor extends StatelessWidget {
                 if (value.isEmpty) return;
                 try {
                   double _value = double.parse(value);
-                  print(onChange);
                   onChange(_value);
                 } catch (e) {
                   onChange(0);

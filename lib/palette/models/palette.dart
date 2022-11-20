@@ -93,7 +93,7 @@ class ColorPalette {
       unique: false,
       clockwise: true
     );
-    _colors = colorPalette.colors;
+    _colors = colorPalette.colors.map((e) => e.toColor()).toList();
 
     return ColorPalette(
       id: 'color-palette-${Constants.generateID()}',

@@ -90,7 +90,7 @@ class FilePicker {
       try {
         return await FilePicker.crop(context, file: file, ratio: cropRatio);
       } catch (e) {
-        print(e);
+        analytics.logError(e);
         return null;
       }
     } else {

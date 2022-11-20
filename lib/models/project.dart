@@ -93,7 +93,10 @@ class Project extends ChangeNotifier {
     return actualSize;
   }
 
-  Future<void> saveToGallery() async {
+  /// Renders and saves each of the page as a png file to the device gallery
+  ///
+  /// Returns false if an issue is encountered in any of the pages
+  Future<bool> saveToGallery() async {
     images.clear();
     for (CreatorPage page in pages.pages) {
       try {
@@ -102,6 +105,7 @@ class Project extends ChangeNotifier {
         issues.add(Exception('Failed to render page ${pages.pages.indexOf(page) + 1}'));
       }
     }
+    return issues.isEmpty;
   }
 
   Future<Map<String, dynamic>> toJSON(BuildContext context) async {
@@ -115,7 +119,7 @@ class Project extends ChangeNotifier {
 
     images.clear();
     for (CreatorPage page in pages.pages) {
-      String? thumbnail = await page.save(context, saveToGallery: true);
+      String? thumbnail = await page.save(context, saveToGallery: false);
       if (thumbnail != null) images.add(thumbnail);
       else issues.add(Exception('Failed to render page ${pages.pages.indexOf(page) + 1}'));
     }
@@ -176,7 +180,7 @@ class Project extends ChangeNotifier {
       Project? project = await Project.fromJSON(json, context: context);
       return project;
     } catch (e) {
-      print('Project render error: $e');
+      analytics.logError(e, cause: 'project rendering error');
       return null;
     }
   }

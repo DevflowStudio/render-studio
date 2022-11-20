@@ -38,9 +38,6 @@ class Asset {
     _file = file;
   }
 
-  // TODO: Download from cloud
-  Future<void> download() async {}
-
   static Future<Asset?> create(BuildContext context, {
     required Project project,
     required File file,
@@ -85,7 +82,7 @@ class Asset {
       var decodedImage = await decodeImageFromList(file.readAsBytesSync());
       return Size(decodedImage.width.toDouble(), decodedImage.height.toDouble());
     } catch (e) {
-      print(e);
+      analytics.logError(e);
       return null;
     }
   }
@@ -126,13 +123,11 @@ class Asset {
           headers: headers,
         ),
         onReceiveProgress: (int received, int total) async* {
-          print((received / total * 100).toStringAsFixed(0) + "%");
           yield received / total;
         }
       );
       if (response.statusCode == 200) {
         yield 1.0;
-        print('download complete');
         var tempFilePath = await getTemporaryDirectory();
         String savePath = '${tempFilePath.path}/${Constants.generateID()}.$extension';
         File file = await new File(savePath).create(recursive: true);
@@ -143,7 +138,7 @@ class Asset {
         yield 0.0;
       }
     } catch (e) {
-      print(e);
+      analytics.logError(e);
       yield 0.0;
     }
   }

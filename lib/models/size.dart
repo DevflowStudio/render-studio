@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_cropper/image_cropper.dart';
 
+import '../rehmat.dart';
+
 class PostSize {
 
   PostSize(this.size, this.title, this.icon);
@@ -129,7 +131,7 @@ extension PostSizePresetsExtension on PostSizePresets {
       case PostSizePresets.snapchatStory:
         return FontAwesomeIcons.snapchat;
       default:
-        return Icons.error;
+        return RenderIcons.error;
     }
   }
 

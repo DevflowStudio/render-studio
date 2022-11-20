@@ -8,3 +8,4 @@ export 'icon_button.dart';
 export 'navigation_bar.dart';
 export 'no_space_widget.dart';
 export 'app_bar.dart';
+export 'icons.dart';

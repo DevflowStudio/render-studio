@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:universal_io/io.dart';
 
 import '../../rehmat.dart';
 
@@ -10,12 +11,16 @@ class ColorTool extends StatefulWidget {
     Key? key,
     this.palette,
     this.selection,
+    this.allowClear = false,
   }) : super(key: key);
 
   /// Provide a palette to allow few pre-defined colors to be selected.
   final ColorPalette? palette;
   /// If there is an already selected color, provide it here.
   final Color? selection;
+
+  /// Set this to true to allow the user to remove selection.
+  final bool allowClear;
 
   static Future<Color?> openTool(BuildContext context, {
     ColorPalette? palette,
@@ -37,7 +42,7 @@ class _ColorToolState extends State<ColorTool> {
   @override
   void initState() {
     super.initState();
-    _color = Colors.blue;
+    _color = Colors.white;
     if (widget.selection != null) {
       if (widget.selection!.computeLuminance() > 3) _color = widget.selection!;
     }
@@ -78,9 +83,21 @@ class _ColorToolState extends State<ColorTool> {
               paletteType = value;
             }),
           ),
+          // IconButton(
+          //   onPressed: () async {
+          //     File? image = await FilePicker.pick(
+          //       context: context,
+          //       type: FileType.image,
+          //       crop: false
+          //     );
+          //     print(image);
+          //     if (image != null) AppRouter.replace(context, page: ImageColorPicker(image: image));
+          //   },
+          //   icon: Icon(RenderIcons.color_picker)
+          // ),
           IconButton(
             onPressed: () => Navigator.of(context).pop(_color),
-            icon: Icon(Icons.check_circle)
+            icon: Icon(RenderIcons.done)
           )
         ],
       ),

@@ -189,7 +189,7 @@ extension ResizeHandlerProperties on ResizeHandler {
         return widget.size;
       case ResizeHandler.bottomRight:
         Size _size = _calculateNewSize(widget, changeInX, changeInY);
-        if ((changeInX > 0 && changeInY > 0) || widget.allowResize(_size)) {
+        if (widget.allowResize(_size)) {
           if (widget.keepAspectRatio) changeInY = _size.height - widget.size.height;
           widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;

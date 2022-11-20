@@ -109,13 +109,11 @@ class IconFinderIcon extends ChangeNotifier {
       },
       extension: 'svg',
       onDownloadComplete: (asset) {
-        print('Got asset: $asset');
         isLoading = false;
         notifyListeners();
         onDownloadComplete(asset);
       }
     ).listen((event) {
-      print(event);
       progress = event;
       notifyListeners();
     });

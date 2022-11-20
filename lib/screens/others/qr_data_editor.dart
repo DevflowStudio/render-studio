@@ -40,7 +40,7 @@ class _QRCodeDataEditorState extends State<QRCodeDataEditor> {
                   PopupMenuButton<_QRCodeType>(
                     child: Chip(
                       label: Text(type.name),
-                      deleteIcon: Icon(Icons.arrow_drop_down),
+                      deleteIcon: Icon(RenderIcons.arrow_down),
                     ),
                     itemBuilder: (context) => List<PopupMenuEntry<_QRCodeType>>.generate(
                       _QRCodeType.values.length,

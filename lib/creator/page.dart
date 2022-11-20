@@ -1,6 +1,4 @@
 import 'dart:ui';
-
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:universal_io/io.dart';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
@@ -304,9 +302,8 @@ class CreatorPage extends PropertyChangeNotifier {
     for (Map<String, dynamic> json in jsons) try {
       CreatorWidget widget = CreatorWidget.fromJSON(json, page: this);
       _widgets.add(widget);
-      print('added widget ${widget.id} #${widget.uid}');
     } on WidgetCreationException catch (e) {
-      print(e.message);
+      analytics.logError(e);
       project.issues.add(Exception('${json['name']} failed to rebuild'));
     }
     widgets = _widgets;
@@ -340,15 +337,18 @@ class CreatorPage extends PropertyChangeNotifier {
       _path = '${(await getApplicationDocumentsDirectory()).path}/Render Project ${project.id}/Thumbnail-${Constants.generateID(4)}.png';
     }
     try {
-      Uint8List? data = await screenshotController.capture(
+      Uint8List? data = await screenshotController.captureFromWidget(
+        Material(
+          child: build(context),
+        ),
+        context: context,
         pixelRatio: autoExportQualtiy ? preferences.exportQuality.pixelRatio(context) : MediaQuery.of(context).devicePixelRatio
       );
-      if (data == null) return null;
       File file = await File(_path).create(recursive: true);
       _path = (await file.writeAsBytes(data)).path;
       if (saveToGallery) await ImageGallerySaver.saveFile(_path);
     } catch (e) {
-      print("Save Failed: $e");
+      analytics.logError(e, cause: 'failed to save page');
       return null;
     }
     locked = false;
@@ -413,7 +413,7 @@ class CreatorPage extends PropertyChangeNotifier {
       page.select(page.backround);
       return page;
     } on WidgetCreationException catch (e) {
-      print('Error building page: ${e.message}');
+      analytics.logError(e, cause: 'error building page');
       project.issues.add(Exception('Failed to build page.'));
       return null;
     }
@@ -443,19 +443,19 @@ class _AddWidgetModal extends StatelessWidget {
   final Map<String, dynamic> widgets = {
     'text': {
       'title': 'Text',
-      'icon': Icons.text_fields,
+      'icon': RenderIcons.text,
     },
     'qr_code': {
       'title': 'QR Code',
-      'icon': Icons.qr_code,
+      'icon': RenderIcons.qr,
     },
     'design_asset': {
       'title': 'Design Asset',
-      'icon': Icons.design_services,
+      'icon': RenderIcons.design_asset,
     },
     'image': {
       'title': 'Image',
-      'icon': FontAwesomeIcons.image,
+      'icon': RenderIcons.image,
     },
   };
 
@@ -469,6 +469,7 @@ class _AddWidgetModal extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
             child: GridView.builder(
               shrinkWrap: false,
+              physics: NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
               itemBuilder: (context, index) => GestureDetector(
                 onTap: () {

@@ -27,6 +27,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     onInitialize();
     onPaletteUpdate();
     editor = Editor(
+      key: ValueKey(uid),
       tabs: tabs,
       page: page,
       widget: this
@@ -38,7 +39,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       updateGrids();
       stateCtrl.update();
     } on WidgetCreationException catch (e) {
-      print(e.message);
+      analytics.logError(e);
       throw WidgetCreationException(
         'The widget could not be rebuilt due to some issues',
         details: 'Failed to build widget from JSON: $e',
@@ -625,7 +626,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }
 
   void buildFromJSON(Map<String, dynamic> data) {
-    print(data);
     try {
       position = Offset(data['properties']['position']['dx'], data['properties']['position']['dy']);
       angle = data['properties']['angle'];
@@ -633,7 +633,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       size = Size(data['properties']['size']['width'], data['properties']['size']['height']);
       updateListeners(WidgetChange.misc);
     } catch (e) {
-      print(e);
+      analytics.logError(e);
       throw WidgetCreationException(
         'The widget could not be built due to some issues',
         details: 'Failed to build widget properties from JSON: $e',

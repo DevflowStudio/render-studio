@@ -19,15 +19,6 @@ class _MyPalettesState extends State<MyPalettes> {
         slivers: [
           RenderAppBar(
             title: Text('Palettes'),
-            actions: [
-              TextButton(
-                child: Text('Create Palette'),
-                onPressed: () async {
-                  await AppRouter.push(context, page: CreatePalette());
-                  setState(() { });
-                },
-              )
-            ],
           ),
           SliverPadding(
             padding: const EdgeInsets.only(
@@ -76,7 +67,7 @@ class _MyPalettesState extends State<MyPalettes> {
                         ),
                         backgroundColor: palette.primary,
                         foregroundColor: palette.primary.computeThemedTextColor(180),
-                        icon: Icons.add_circle,
+                        icon: RenderIcons.save,
                         label: 'Save',
                       ),
                     ],
@@ -128,7 +119,7 @@ class _MyPalettesState extends State<MyPalettes> {
                         ),
                         backgroundColor: Palette.of(context).errorContainer,
                         foregroundColor: Palette.of(context).onErrorContainer,
-                        icon: Icons.delete,
+                        icon: RenderIcons.delete,
                         label: 'Delete',
                       ),
                     ],
@@ -149,6 +140,14 @@ class _MyPalettesState extends State<MyPalettes> {
             ),
           )
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await AppRouter.push(context, page: CreatePalette());
+          setState(() { });
+        },
+        child: Icon(RenderIcons.create),
+        tooltip: 'Create Palette',
       ),
     );
   }

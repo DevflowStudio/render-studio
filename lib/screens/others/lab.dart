@@ -28,7 +28,7 @@ class _LabState extends State<Lab> {
             delegate: SliverChildListDelegate([
               divider,
               ListTile(
-                leading: Icon(Icons.design_services),
+                leading: Icon(RenderIcons.design_system),
                 title: Text(
                   'Design System',
                 ),
@@ -36,7 +36,7 @@ class _LabState extends State<Lab> {
               ),
               divider,
               ListTile(
-                leading: Icon(Icons.palette),
+                leading: Icon(RenderIcons.palette),
                 title: Text(
                   'Color Palettes',
                 ),

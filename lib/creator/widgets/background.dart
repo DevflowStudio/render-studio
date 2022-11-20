@@ -40,13 +40,13 @@ class BackgroundWidget extends CreatorWidget {
       tab: 'Page',
       options: [
         Option.button(
-          icon: Icons.add,
+          icon: RenderIcons.add,
           title: 'Widget',
           tooltip: 'Add a new widget',
           onTap: (context) => page.showAddWidgetModal(context),
         ),
         Option.button(
-          icon: Icons.photo_size_select_small,
+          icon: RenderIcons.resize,
           title: 'Resize',
           tooltip: 'Tap to resize the project',
           onTap: (context) async {
@@ -65,7 +65,7 @@ class BackgroundWidget extends CreatorWidget {
           },
         ),
         Option.button(
-          icon: Icons.palette,
+          icon: RenderIcons.palette,
           title: 'Palette',
           tooltip: 'Tap to shuffle palette',
           onTap: (context) async {
@@ -89,7 +89,7 @@ class BackgroundWidget extends CreatorWidget {
           },
         ),
         Option.button(
-          icon: Icons.delete,
+          icon: RenderIcons.delete,
           title: 'Delete Page',
           tooltip: 'Tap to delete this page',
           onTap: (context) async {
@@ -144,15 +144,16 @@ class BackgroundWidget extends CreatorWidget {
                     child: Label(label: 'Background Color'),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.color_lens),
+                    leading: const Icon(RenderIcons.color),
                     title: const Text('Color'),
                     tileColor: Palette.of(context).surface,
                     onTap: () async {
                       TapFeedback.light();
                       Navigator.of(context).pop();
                       Color? _color = await Palette.showColorPicker(
-                        context: context,
-                        defaultColor: color
+                        context,
+                        selected: color,
+                        palette: page.palette,
                       );
                       if (_color != null) {
                         changeBackgroundType(BackgroundType.color);
@@ -162,7 +163,7 @@ class BackgroundWidget extends CreatorWidget {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.gradient),
+                    leading: const Icon(RenderIcons.gradient),
                     title: const Text('Gradient'),
                     tileColor: Palette.of(context).surface,
                     onTap: () async {
@@ -183,7 +184,7 @@ class BackgroundWidget extends CreatorWidget {
                                 updateListeners(WidgetChange.misc);
                               },
                               tooltip: 'Select Gradient Color',
-                              icon: Icons.gradient,
+                              icon: RenderIcons.gradient,
                             ),
                             Option.button(
                               title: 'Rotate',
@@ -195,7 +196,7 @@ class BackgroundWidget extends CreatorWidget {
                                 updateListeners(WidgetChange.misc);
                               },
                               tooltip: 'Select Gradient Color',
-                              icon: Icons.rotate_left,
+                              icon: RenderIcons.rotate,
                             ),
                           ],
                           tab: 'Background Gradient'
@@ -214,10 +215,10 @@ class BackgroundWidget extends CreatorWidget {
               ),
             );
           },
-          icon: Icons.palette
+          icon: RenderIcons.color
         ),
         Option.button(
-          icon: Icons.image,
+          icon: RenderIcons.image,
           title: 'Image',
           tooltip: 'Tap to select an image as background',
           onTap: (context) async {
@@ -328,7 +329,6 @@ class BackgroundWidget extends CreatorWidget {
     super.buildFromJSON(json);
     try {
       color = HexColor.fromHex(json['color']);
-      print(color);
       if (json['image'] != null) {
         image = project.assetManager.get(json['image']);
         type = BackgroundType.image;
@@ -338,7 +338,7 @@ class BackgroundWidget extends CreatorWidget {
         type = BackgroundType.gradient;
       }
     } catch (e) {
-      print(e);
+      analytics.logError(e);
       throw WidgetCreationException(
         'Failed to create background widget',
         details: 'Error: $e'

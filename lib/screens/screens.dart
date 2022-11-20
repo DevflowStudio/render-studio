@@ -18,3 +18,4 @@ export 'palette/create.dart';
 export 'palette/palettes.dart';
 export 'palette/edit.dart';
 export 'palette/color_tool.dart';
+export 'palette/image_color_picker.dart';

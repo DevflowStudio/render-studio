@@ -39,7 +39,7 @@ class CreatorWidgetSyntax extends CreatorWidget {
     EditorTab(
       options: [
         Option.button(
-          icon: Icons.delete,
+          icon: RenderIcons.delete,
           title: 'Delete',
           tooltip: 'Delete asset',
           onTap: (context) async {
@@ -86,7 +86,7 @@ class CreatorWidgetSyntax extends CreatorWidget {
     try {
       // Build properties from JSON here ...
     } catch (e) {
-      print('Error building widget from JSON: $e');
+      analytics.logError(e, cause: 'Failed to build widget from JSON');
       throw WidgetCreationException(
         'Error building widget',
         details: 'Error building widget: $e'

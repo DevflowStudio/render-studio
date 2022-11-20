@@ -58,24 +58,19 @@ class CreatorDesignAsset extends CreatorWidget {
             asset = _asset;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.change_circle
+          icon: RenderIcons.replace
         ),
-        Option.button(
-          icon: Icons.palette,
+        Option.color(
           title: 'Color',
           tooltip: 'Tap to select asset color',
-          onTap: (context) async {
-            Color? _color = await Palette.showColorPicker(
-              context: context,
-              defaultColor: Colors.white,
-              title: 'Select Color'
-            );
+          onChange: (_color) async {
+            if (_color == null) return;
             color = _color;
             updateListeners(WidgetChange.update);
           },
         ),
         Option.button(
-          icon: Icons.delete,
+          icon: RenderIcons.delete,
           title: 'Delete',
           tooltip: 'Delete asset',
           onTap: (context) async {
@@ -133,7 +128,7 @@ class CreatorDesignAsset extends CreatorWidget {
       else asset = _asset;
       if (json['color'] != null) color = HexColor.fromHex(json['color']);
     } catch (e) {
-      print('Error building Design Asset from JSON: $e');
+      analytics.logError(e, cause: 'error building design asset from json');
       throw WidgetCreationException(
         'Error building Design Asset.',
         details: 'Error building Design Asset from JSON: $e'

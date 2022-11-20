@@ -59,7 +59,8 @@ class FilledTonalIconButton extends StatefulWidget {
     required this.onPressed,
     required this.icon,
     this.selectedIcon,
-    this.tooltip
+    this.tooltip,
+    this.padding = const EdgeInsets.all(8.0)
   });
 
   final bool selected;
@@ -67,6 +68,7 @@ class FilledTonalIconButton extends StatefulWidget {
   final Icon icon;
   final Icon? selectedIcon;
   final String? tooltip;
+  final EdgeInsetsGeometry padding;
 
   @override
   State<FilledTonalIconButton> createState() => _FilledTonalIconButtonState();
@@ -84,6 +86,7 @@ class _FilledTonalIconButtonState extends State<FilledTonalIconButton> {
       selectedIcon: widget.selectedIcon,
       onPressed: widget.onPressed,
       tooltip: widget.tooltip,
+      padding: widget.padding,
       style: IconButton.styleFrom(
         foregroundColor: widget.selected ? colors.onSecondaryContainer : colors.onSurfaceVariant,
         backgroundColor: widget.selected ?  colors.secondaryContainer : colors.surfaceVariant,
@@ -159,7 +162,8 @@ class NewBackButton extends StatefulWidget {
     this.confirmMessage,
     this.confirmTitle,
     this.size,
-    this.data
+    this.data,
+    this.icon
   }) : super(key: key);
 
   final bool confirm;
@@ -167,6 +171,7 @@ class NewBackButton extends StatefulWidget {
   final String? confirmMessage;
   final double? size;
   final dynamic data;
+  final IconData? icon;
 
   @override
   State<NewBackButton> createState() => _NewBackButtonState();
@@ -177,7 +182,7 @@ class _NewBackButtonState extends State<NewBackButton> {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(CupertinoIcons.arrow_turn_up_left),
+      icon: Icon(widget.icon ?? CupertinoIcons.arrow_turn_up_left),
       color: Palette.of(context).onBackground,
       iconSize: widget.size,
       onPressed: onBack,
@@ -259,8 +264,8 @@ class _ColorSelectorState extends State<ColorSelector> {
                 reduceRadius();
                 TapFeedback.light();
                 Color? _color = await Palette.showColorPicker(
-                  context: context,
-                  defaultColor: color
+                  context,
+                  selected: color
                 );
                 if (_color != null) {
                   color = _color;
@@ -400,16 +405,20 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
               ),
             ),
             if (widget.title != null) ... [
-              Container(height: 10,),
-              SizedBox(
-                height: calculateHeight() - 60,
-                child: Center(
-                  child: Text(
-                    widget.title!,
-                    style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                      fontFamily: 'Google Sans'
+              Container(height: 6,),
+              Container(
+                // color: Colors.red,
+                child: SizedBox(
+                  height: calculateHeight() - 70,
+                  child: Center(
+                    child: Text(
+                      widget.title!,
+                      style: Theme.of(context).textTheme.caption!.copyWith(
+                        fontFamily: 'Google Sans'
+                      ),
+                      overflow: TextOverflow.visible,
+                      textAlign: TextAlign.center,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               )
@@ -516,7 +525,6 @@ class _DragHandlerState extends State<DragHandler> {
 
   @override
   void initState() {
-    print(widget.backgroundColor?.toHex());
     super.initState();
   }
 
@@ -543,7 +551,7 @@ class _DragHandlerState extends State<DragHandler> {
         ),
         child: Center(
           child: Icon(
-            Icons.drag_indicator,
+            RenderIcons.drag,
             size: isHovering ? 30 : 20,
             color: widget.iconColor ?? Palette.of(context).onSecondaryContainer,
           ),

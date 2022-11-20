@@ -30,10 +30,10 @@ class CreatorText extends CreatorWidget {
           onTap: (context) async {
             await showEditTextModal(context);
           },
-          icon: Icons.keyboard_alt_outlined
+          icon: RenderIcons.keyboard
         ),
         Option.button(
-          icon: Icons.delete_rounded,
+          icon: RenderIcons.delete,
           title: 'Delete',
           tooltip: 'Delete Text Widget',
           onTap: (context) async {
@@ -41,12 +41,11 @@ class CreatorText extends CreatorWidget {
           },
         ),
         Option.color(
-          title: 'Color',
-          icon: Icons.format_color_text,
           tooltip: 'Tap to select text color',
           palette: () => page.palette,
           selected: () => color,
           onChange: (_color) {
+            if (_color == null) return;
             this.color = _color;
             if (stroke != null) _updateStroke();
             updateListeners(WidgetChange.update);
@@ -61,8 +60,8 @@ class CreatorText extends CreatorWidget {
             autoSize = value;
             updateListeners(WidgetChange.update);
           },
-          enabledIcon: Icons.auto_fix_normal,
-          disabledIcon: Icons.auto_fix_off_rounded,
+          enabledIcon: RenderIcons.auto_size,
+          disabledIcon: RenderIcons.auto_size_off,
           enabledTooltip: 'Disabled auto-size text',
           disabledTooltip: 'Enable auto-size text',
         ),
@@ -86,7 +85,7 @@ class CreatorText extends CreatorWidget {
             );
             updateListeners(WidgetChange.resize);
           },
-          icon: Icons.format_size
+          icon: RenderIcons.text_size
         ),
       ],
     ),
@@ -118,7 +117,7 @@ class CreatorText extends CreatorWidget {
             if (_font != null) fontFamily = _font;
             notifyListeners(WidgetChange.update);
           },
-          icon: Icons.search,
+          icon: RenderIcons.search,
           tooltip: 'Search Fonts'
         )
       ],
@@ -135,8 +134,8 @@ class CreatorText extends CreatorWidget {
             bold = value;
             updateListeners(WidgetChange.update);
           },
-          enabledIcon: Icons.format_bold,
-          disabledIcon: Icons.format_bold,
+          enabledIcon: RenderIcons.bold,
+          disabledIcon: RenderIcons.bold,
           disabledTooltip: 'Add bold formatting',
           enabledTooltip: 'Remove bold formatting',
         ),
@@ -149,8 +148,8 @@ class CreatorText extends CreatorWidget {
             italics = value;
             updateListeners(WidgetChange.update);
           },
-          disabledIcon: Icons.format_italic,
-          enabledIcon: Icons.format_italic,
+          disabledIcon: RenderIcons.italic,
+          enabledIcon: RenderIcons.italic,
           disabledTooltip: 'Add italics formatting',
           enabledTooltip: 'Remove italics formatting',
         ),
@@ -165,8 +164,8 @@ class CreatorText extends CreatorWidget {
             strikethrough = false;
             updateListeners(WidgetChange.update);
           },
-          disabledIcon: Icons.format_underlined_rounded,
-          enabledIcon: Icons.format_underline_rounded,
+          disabledIcon: RenderIcons.underline,
+          enabledIcon: RenderIcons.underline,
           disabledTooltip: 'Add underline formatting',
           enabledTooltip: 'Remove underline formatting',
         ),
@@ -179,8 +178,8 @@ class CreatorText extends CreatorWidget {
             strikethrough = value;
             updateListeners(WidgetChange.update);
           },
-          disabledIcon: Icons.strikethrough_s,
-          enabledIcon: Icons.strikethrough_s,
+          disabledIcon: RenderIcons.strike,
+          enabledIcon: RenderIcons.strike,
           disabledTooltip: 'Add strikethrough formatting',
           enabledTooltip: 'Remove strikethrough formatting',
         ),
@@ -195,8 +194,8 @@ class CreatorText extends CreatorWidget {
             strikethrough = false;
             updateListeners(WidgetChange.update);
           },
-          disabledIcon: Icons.format_overline,
-          enabledIcon: Icons.format_overline,
+          disabledIcon: RenderIcons.overline,
+          enabledIcon: RenderIcons.overline,
           disabledTooltip: 'Add overline formatting',
           enabledTooltip: 'Remove overline formatting',
         ),
@@ -206,24 +205,19 @@ class CreatorText extends CreatorWidget {
       tab: 'Background',
       options: [
         Option.button(
-          icon: Icons.remove_circle,
+          icon: RenderIcons.remove,
           title: 'Remove Text Background',
           tooltip: '',
           onTap: (context) async {
             // page.delete(this);
           },
         ),
-        Option.button(
-          icon: Icons.palette,
+        Option.color(
+          icon: RenderIcons.color,
           title: 'Color',
           tooltip: 'Tap to select background color',
-          onTap: (context) async {
-            Color? _color = await Palette.showColorPicker(
-              context: context,
-              defaultColor: Colors.white,
-              title: 'Select Color'
-            );
-            if (_color != null) widgetColor = _color;
+          onChange: (color) async {
+            if (color != null) widgetColor = color;
             updateListeners(WidgetChange.update);
           },
         ),
@@ -251,13 +245,13 @@ class CreatorText extends CreatorWidget {
                     boxShadow = null;
                     updateListeners(WidgetChange.update);
                   },
-                  icon: Icon(Icons.delete_outline_rounded),
+                  icon: Icon(RenderIcons.delete),
                   iconSize: 20,
                 )
               ]
             );
           },
-          icon: Icons.blur_on,
+          icon: RenderIcons.shadow,
           tooltip: 'Customize shadow of background'
         ),
         Option.button(
@@ -286,7 +280,7 @@ class CreatorText extends CreatorWidget {
               )
             );
           },
-          icon: Icons.rounded_corner,
+          icon: RenderIcons.border_radius,
           tooltip: 'Adjust Widget Border Radius'
         ),
         Option.button(
@@ -303,11 +297,10 @@ class CreatorText extends CreatorWidget {
                 },
               )
             );
-            print(padding);
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.padding_outlined,
-          tooltip: 'Adjust Widget Border Radius'
+          icon: RenderIcons.padding,
+          tooltip: 'Adjust Padding'
         ),
       ],
     ),
@@ -321,7 +314,7 @@ class CreatorText extends CreatorWidget {
             align = TextAlign.left;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.align_horizontal_left
+          icon: RenderIcons.align_left
         ),
         Option.button(
           title: 'Center',
@@ -330,7 +323,7 @@ class CreatorText extends CreatorWidget {
             align = TextAlign.center;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.align_horizontal_center
+          icon: RenderIcons.align_center
         ),
         Option.button(
           title: 'Right',
@@ -339,7 +332,7 @@ class CreatorText extends CreatorWidget {
             align = TextAlign.right;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.align_horizontal_right
+          icon: RenderIcons.align_right
         ),
         Option.button(
           title: 'Justify',
@@ -348,7 +341,7 @@ class CreatorText extends CreatorWidget {
             align = TextAlign.justify;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.format_align_justify
+          icon: RenderIcons.align_justify
         ),
       ],
     ),
@@ -379,13 +372,13 @@ class CreatorText extends CreatorWidget {
                     shadow = null;
                     updateListeners(WidgetChange.update);
                   },
-                  icon: Icon(Icons.delete_outline_rounded),
+                  icon: Icon(RenderIcons.delete),
                   iconSize: 20,
                 )
               ]
             );
           },
-          icon: Icons.blur_on,
+          icon: RenderIcons.shadow,
           tooltip: 'Customize shadow of text'
         ),
         Option.button(
@@ -394,7 +387,7 @@ class CreatorText extends CreatorWidget {
           onTap: (context) async {
             _toggleStroke();
           },
-          icon: Icons.border_outer
+          icon: RenderIcons.outline
         ),
       ],
     ),
@@ -419,7 +412,6 @@ class CreatorText extends CreatorWidget {
       ],
       tab: 'Adjust',
     ),
-    // TODO: Update Icons for Spacing
     EditorTab(
       tab: 'Spacing',
       type: EditorTabType.row,
@@ -450,7 +442,7 @@ class CreatorText extends CreatorWidget {
               )
             );
           },
-          icon: Icons.space_bar,
+          icon: RenderIcons.spacing,
           tooltip: 'Adjust Letter Spacing'
         ),
         Option.button(
@@ -479,11 +471,11 @@ class CreatorText extends CreatorWidget {
               )
             );
           },
-          icon: Icons.space_bar,
+          icon: RenderIcons.word_spacing,
           tooltip: 'Adjust Word Spacing'
         ),
         Option.button(
-          icon: Icons.height_rounded,
+          icon: RenderIcons.height,
           title: 'Height',
           tooltip: 'Change line height of the text',
           onTap: (context) async {
@@ -666,7 +658,7 @@ class CreatorText extends CreatorWidget {
                       onPressed: () {
                         Navigator.of(context).pop(textCtrl.text);
                       },
-                      icon: Icon(Icons.check_circle)
+                      icon: Icon(RenderIcons.done)
                     )
                   ],
                 ),
@@ -835,7 +827,7 @@ class CreatorText extends CreatorWidget {
       wordSpacing = json['spacing']['word'];
 
     } catch (e) {
-      print("Text Render Enging Failed: $e");
+      analytics.logError(e, cause: 'failed to render text');
       throw WidgetCreationException(
         'Failed to build text widget',
         details: 'Failed to build text widget from JSON: $e',

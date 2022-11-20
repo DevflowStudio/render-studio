@@ -119,7 +119,7 @@ class _SettingsState extends State<Settings> {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
                   },
-                  icon: const Icon(Icons.open_in_new)
+                  icon: const Icon(RenderIcons.open)
                 ),
               ),
               divider,
@@ -133,7 +133,7 @@ class _SettingsState extends State<Settings> {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
                   },
-                  icon: const Icon(Icons.open_in_new)
+                  icon: const Icon(RenderIcons.open)
                 ),
               ),
               divider,
@@ -147,7 +147,7 @@ class _SettingsState extends State<Settings> {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
                   },
-                  icon: const Icon(Icons.open_in_new)
+                  icon: const Icon(RenderIcons.open)
                 ),
               ),
               divider,

@@ -61,17 +61,18 @@ class Option {
   static Option color({
     Color Function()? selected,
     ColorPalette Function()? palette,
-    required Function(Color color) onChange,
+    required Function(Color? color) onChange,
     String? title,
     IconData? icon,
     String? tooltip,
+    bool allowClear = false,
   }) => Option.button(
     title: title ?? 'Color',
     onTap: (context) async {
-      Color? color = await AppRouter.push(context, page: ColorTool(palette: palette?.call(), selection: selected?.call(),));
+      Color? color = await AppRouter.push(context, page: ColorTool(palette: palette?.call(), selection: selected?.call(), allowClear: allowClear,));
       if (color != null) onChange(color);
     },
-    icon: icon ?? Icons.color_lens,
+    icon: icon ?? RenderIcons.color,
     tooltip: tooltip ?? 'Tap to select a color',
   );
 
@@ -158,7 +159,7 @@ class Option {
 
   static Option rotate({
     String title = 'Rotate',
-    IconData icon = Icons.refresh,
+    IconData icon = RenderIcons.refresh,
     String tooltip = 'Tap to open angle adjuster',
     required CreatorWidget widget,
     required Project project
@@ -186,7 +187,7 @@ class Option {
 
   static Option scale({
     String title = 'Scale',
-    IconData icon = Icons.format_shapes_rounded,
+    IconData icon = RenderIcons.scale,
     String tooltip = 'Tap to scale the widget size',
     required CreatorWidget widget,
     required Project project
@@ -217,7 +218,7 @@ class Option {
 
   static Option opacity({
     String title = 'Opacity',
-    IconData icon = Icons.opacity,
+    IconData icon = RenderIcons.opacity,
     String tooltip = 'Opacity',
     required CreatorWidget widget,
     required Project project
@@ -245,7 +246,7 @@ class Option {
 
   static Option nudge({
     String title = 'Nudge',
-    IconData icon = Icons.drag_indicator,
+    IconData icon = RenderIcons.nudge,
     String tooltip = 'Nudge',
     required CreatorWidget widget,
     required Project project

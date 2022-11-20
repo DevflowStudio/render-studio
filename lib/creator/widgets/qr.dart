@@ -57,38 +57,29 @@ class QRWidget extends CreatorWidget {
           title: 'Data',
           tooltip: 'Edit the data of QR Code',
           onTap: (context) async { },
-          icon: Icons.edit
+          icon: RenderIcons.edit
         ),
-        Option.button(
-          icon: Icons.palette,
+        Option.color(
           title: 'Color',
-          tooltip: 'Tap to select the background color',
-          onTap: (context) async {
-            Color? _color = await Palette.showColorPicker(
-              context: context,
-              defaultColor: Colors.white,
-              title: 'Background Color'
-            );
-            if (_color != null) backgroundColor = _color;
+          tooltip: 'Change the color of QR Code',
+          onChange: (_color) {
+            if (_color == null) return;
+            backgroundColor = _color;
             updateListeners(WidgetChange.update);
           },
         ),
-        Option.button(
-          icon: Icons.color_lens_outlined,
+        Option.color(
+          icon: RenderIcons.color2,
           title: 'Data Color',
-          tooltip: 'Tap to select the data color',
-          onTap: (context) async {
-            Color? _color = await Palette.showColorPicker(
-              context: context,
-              defaultColor: Colors.white,
-              title: 'Background Color'
-            );
-            if (_color != null) dataColor = _color;
+          tooltip: 'Change the color of QR Data',
+          onChange: (_color) {
+            if (_color == null) return;
+            dataColor = _color;
             updateListeners(WidgetChange.update);
           },
         ),
         Option.button(
-          icon: Icons.delete,
+          icon: RenderIcons.delete,
           title: 'Delete',
           tooltip: 'Delete Widget',
           onTap: (context) async {
@@ -116,7 +107,7 @@ class QRWidget extends CreatorWidget {
             );
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.padding_rounded
+          icon: RenderIcons.padding
         ),
         Option.toggle(
           title: 'Gapless',
@@ -127,13 +118,13 @@ class QRWidget extends CreatorWidget {
             gapless = value;
             updateListeners(WidgetChange.update);
           },
-          enabledIcon: Icons.space_bar,
-          disabledIcon: Icons.space_bar,
+          enabledIcon: RenderIcons.gap,
+          disabledIcon: RenderIcons.gap,
           enabledTooltip: 'Enable gapless rendering',
           disabledTooltip: 'Disable gapless rendering',
         ),
         Option.button(
-          icon: Icons.photo_rounded,
+          icon: RenderIcons.image,
           title: 'Image',
           tooltip: 'Tap to add embed an image',
           onTap: (context) async {
@@ -168,7 +159,7 @@ class QRWidget extends CreatorWidget {
               )
             );
           },
-          icon: Icons.refresh,
+          icon: RenderIcons.refresh,
           tooltip: 'Tap to open angle adjuster'
         ),
         Option.button(
@@ -194,7 +185,7 @@ class QRWidget extends CreatorWidget {
               )
             );
           },
-          icon: Icons.open_in_full_rounded,
+          icon: RenderIcons.scale,
           tooltip: 'Tap to scale the widget size'
         ),
         Option.button(
@@ -215,7 +206,7 @@ class QRWidget extends CreatorWidget {
               ),
             );
           },
-          icon: Icons.opacity,
+          icon: RenderIcons.opacity,
           tooltip: 'Opacity'
         ),
         Option.button(
@@ -235,7 +226,7 @@ class QRWidget extends CreatorWidget {
               )
             );
           },
-          icon: Icons.drag_indicator,
+          icon: RenderIcons.nudge,
           tooltip: 'Nudge'
         ),
       ],
@@ -290,7 +281,7 @@ class QRWidget extends CreatorWidget {
       gapless = json['gapless'];
       padding = PaddingExtension.fromJSON(json['padding']);
     } catch (e) {
-      print("QR Build Failed: $e");
+      analytics.logError(e, cause: 'failed to build QR code');
       throw WidgetCreationException(
         'Failed to render QR Code',
         details: 'Failed to render QR Code: $e',

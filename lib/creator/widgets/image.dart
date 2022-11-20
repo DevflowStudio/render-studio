@@ -59,11 +59,11 @@ class ImageWidget extends CreatorWidget {
             asset = _asset;
             updateListeners(WidgetChange.update);
           },
-          icon: Icons.brush,
+          icon: RenderIcons.edit_image,
           tooltip: 'Edit Image'
         ),
         Option.button(
-          icon: Icons.crop,
+          icon: RenderIcons.crop,
           title: 'Crop',
           tooltip: 'Tap to crop image',
           onTap: (context) async {
@@ -100,11 +100,11 @@ class ImageWidget extends CreatorWidget {
               )
             );
           },
-          icon: Icons.rounded_corner,
+          icon: RenderIcons.border_radius,
           tooltip: 'Adjust Widget Border Radius'
         ),
         Option.button(
-          icon: Icons.delete,
+          icon: RenderIcons.delete,
           title: 'Delete',
           tooltip: 'Delete asset',
           onTap: (context) async {
@@ -173,7 +173,7 @@ class ImageWidget extends CreatorWidget {
       else asset = _asset;
       borderRadius = json['radius'] ?? 0;
     } catch (e) {
-      print('Error building widget from JSON: $e');
+      analytics.logError(e, cause: 'error building widget from json');
       throw WidgetCreationException(
         'Error building widget',
         details: 'Error building widget: $e'

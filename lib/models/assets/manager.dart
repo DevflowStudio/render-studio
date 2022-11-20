@@ -18,7 +18,7 @@ class AssetManager {
         await asset.ensureExists();
         _manager.assets[asset.id] = asset;
       } catch (e) {
-        print("Asset error: $e");
+        analytics.logError(e, cause: 'asset initialization error');
       }
     }
     return _manager;

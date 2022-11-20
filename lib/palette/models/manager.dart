@@ -16,7 +16,6 @@ class PaletteManager {
     List<ColorPalette> palettes = [];
     for (int i = 0; i < 10; i++) {
       ColorPalette palette = await ColorPalette.generate();
-      // print(palette.background);
       palettes.add(palette);
     }
     return palettes;

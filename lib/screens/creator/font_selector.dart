@@ -99,7 +99,7 @@ class CustomSearchDelegate extends SearchDelegate {
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.clear),
+        icon: Icon(RenderIcons.clear),
         onPressed: () {
           query = '';
         },
@@ -203,7 +203,7 @@ class CustomSearchDelegate extends SearchDelegate {
           query = results[index];
           showResults(context);
         },
-        trailing: Icon(Icons.chevron_right),
+        trailing: Icon(RenderIcons.arrow_right),
       ),
       separatorBuilder: (context, index) => Divider(
         height: 0,

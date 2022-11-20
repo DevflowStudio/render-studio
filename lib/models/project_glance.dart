@@ -43,7 +43,7 @@ class ProjectGlance {
       Project? project = await Project.fromJSON(data, context: context);
       return project;
     } catch (e) {
-      print(e);
+      analytics.logError(e);
       return null;
     }
   }

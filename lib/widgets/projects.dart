@@ -125,34 +125,43 @@ class _ProjectGlanceCardState extends State<ProjectGlanceCard> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.vertical(top: Constants.borderRadius.topLeft),
-              child: ConstrainedBox(
+              child: Container(
                 constraints: BoxConstraints(
                   maxHeight: MediaQuery.of(context).size.width,
                   maxWidth: MediaQuery.of(context).size.width/2
                 ),
-                child: OctoImage(
-                  image: FileImage(File(widget.glance.thumbnail ?? '')),
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.warning),
-                        SizedBox(height: 3),
-                        const Text('404 - Not Found'),
-                      ],
-                    ),
-                  ),
-                  placeholderBuilder: (context) => Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: Spinner(
-                        strokeWidth: 2,
-                        adaptive: true,
-                      )
-                    ),
-                  ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    Size parentSize = constraints.biggest;
+                    return SizedBox(
+                      width: parentSize.width,
+                      height: parentSize.width / widget.glance.size.size.aspectRatio,
+                      child: OctoImage(
+                        image: FileImage(File(widget.glance.thumbnail ?? '')),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(RenderIcons.warning),
+                              SizedBox(height: 3),
+                              const Text('404 - Not Found'),
+                            ],
+                          ),
+                        ),
+                        placeholderBuilder: (context) => Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: Spinner(
+                              strokeWidth: 2,
+                              adaptive: true,
+                            )
+                          ),
+                        ),
+                      ),
+                    );
+                  }
                 ),
               ),
             ),

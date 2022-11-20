@@ -34,7 +34,7 @@ class WidgetGroup extends CreatorWidget {
     EditorTab(
       options: [
         Option.button(
-          icon: Icons.delete,
+          icon: RenderIcons.delete,
           title: 'Delete',
           tooltip: 'Delete asset',
           onTap: (context) async {
@@ -137,7 +137,7 @@ class WidgetGroup extends CreatorWidget {
       return group;
     } catch (e) {
       Alerts.snackbar(context, text: 'Failed to group widgets');
-      print(e);
+      analytics.logError(e);
       return null;
     }
   }

@@ -50,10 +50,10 @@ class _IconFinderScreenState extends State<IconFinderScreen> {
                 controller: searchCtrl,
                 decoration: InputDecoration(
                   hintText: 'Search',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: Icon(RenderIcons.search),
                   suffixIcon: IconButton(
                     onPressed: () => searchCtrl.clear(),
-                    icon: Icon(Icons.clear)
+                    icon: Icon(RenderIcons.clear)
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -150,7 +150,6 @@ class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () => icon.toAsset(context, project: project, onDownloadComplete: (asset) {
-        print(asset);
         if (mounted) Navigator.of(context).pop(asset);
       }),
       child: Container(
@@ -174,7 +173,7 @@ class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
               ),
             ),
             errorBuilder: (context, error, stackTrace) => Icon(
-              Icons.error
+              RenderIcons.error
             ),
           ),
         ),

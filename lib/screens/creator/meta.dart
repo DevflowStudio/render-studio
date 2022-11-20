@@ -108,7 +108,7 @@ class _InformationState extends State<Information> {
                                     children: [
                                       IconButton(
                                         onPressed: Navigator.of(context).pop,
-                                        icon: Icon(Icons.check_circle)
+                                        icon: Icon(RenderIcons.done)
                                       )
                                     ],
                                   ),
@@ -166,7 +166,7 @@ class _InformationState extends State<Information> {
                                 ),
                               ),
                               Icon(
-                                Icons.arrow_drop_down_rounded,
+                                RenderIcons.arrow_down,
                                 color: Palette.of(context).onSurfaceVariant
                               )
                             ],
@@ -181,7 +181,7 @@ class _InformationState extends State<Information> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: PrimaryButton(
-                  child: widget.isNewPost ? Text('Create') : Text('Save'),
+                  child: widget.isNewPost ? Text('Create') : Text('Done'),
                   onPressed: next,
                 ),
               )

@@ -1,5 +1,3 @@
-import 'package:universal_io/io.dart';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -69,36 +67,29 @@ class _CreateState extends State<Create> {
           toolbarHeight: MediaQuery.of(context).size.height * 0.07, // Toolbar can cover a maximum of 5% of the screen area
           title: isLoading ? TitleSpinnerWidget() : null,
           actions: [
-            // IconButton(
-            //   onPressed: () {
-            //     // print(project.pages.current.widgets.last.uid);
-            //   },
-            //   icon: Icon(Icons.science_rounded),
-            //   tooltip: 'Experiment',
-            // ),
             IconButton(
               onPressed: project.pages.current.undoFuntion,
               icon: Icon(
-                Platform.isIOS ? CupertinoIcons.arrow_uturn_left : Icons.redo
+                RenderIcons.undo,
               ),
               tooltip: 'Undo',
             ),
             IconButton(
               onPressed: project.pages.current.redoFuntion,
               icon: Icon(
-                Platform.isIOS ? CupertinoIcons.arrow_uturn_right : Icons.redo
+                RenderIcons.redo,
               ),
               tooltip: 'Redo',
             ),
             IconButton(
               onPressed: () => AppRouter.push(context, page: Information(project: project,)),
               // onPressed: () {},
-              icon: Icon((Platform.isIOS ? CupertinoIcons.info_circle_fill : Icons.info_rounded)),
+              icon: Icon(RenderIcons.info),
               tooltip: 'Info',
             ),
             PopupMenuButton(
               tooltip: 'More',
-              icon: Icon(CupertinoIcons.ellipsis),
+              icon: Icon(RenderIcons.more),
               itemBuilder: (context) => <PopupMenuEntry>[
                 const PopupMenuItem(
                   child: Text('Add Page'),
@@ -227,7 +218,7 @@ class _CreateState extends State<Create> {
                     project.issues.clear();
                     setState(() { });
                   },
-                  icon: Icon(Icons.clear_all),
+                  icon: Icon(RenderIcons.clear),
                   color: Palette.of(context).onErrorContainer,
                   tooltip: 'Clear error',
                 ),
@@ -328,7 +319,7 @@ class _CreateState extends State<Create> {
       clipboard = project.pages.current.selections.single.duplicate();
       setState(() { });
     } on WidgetCreationException catch (e) {
-      print(e);
+      analytics.logError(e);
       Alerts.snackbar(context, text: 'Failed to build widget');
     }
   }

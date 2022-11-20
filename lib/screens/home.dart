@@ -1,10 +1,6 @@
 import 'package:google_fonts/google_fonts.dart';
-import 'package:iconsax/iconsax.dart';
 import 'package:render_studio/widgets/projects.dart';
-import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:octo_image/octo_image.dart';
 import '../../../rehmat.dart';
 
 class Home extends StatefulWidget {
@@ -47,6 +43,12 @@ class _HomeState extends State<Home> {
               'Render',
               style: GoogleFonts.dmSerifDisplay()
             ),
+            actions: [
+              IconButton(
+                onPressed: () => AppRouter.push(context, page: Settings()),
+                icon: Icon(RenderIcons.settings)
+              )
+            ],
           ),
           SliverPadding(
             padding: EdgeInsets.symmetric(horizontal: 6),
@@ -58,7 +60,7 @@ class _HomeState extends State<Home> {
         onPressed: () => Project.create(context),
         tooltip: 'Create Project',
         child: Icon(
-          Iconsax.add_circle5,
+          RenderIcons.add,
           color: Palette.of(context).onPrimaryContainer,
         ),
       ),
@@ -75,19 +77,19 @@ class _HomeState extends State<Home> {
         child: NavigationBar(
           destinations: [
             NavigationDestination(
-              icon: Icon(Iconsax.grid_2),
+              icon: Icon(RenderIcons.projects),
               label: 'Projects'
             ),
             NavigationDestination(
-              icon: Icon(Iconsax.discover),
+              icon: Icon(RenderIcons.templates),
               label: 'Templates'
             ),
             NavigationDestination(
-              icon: Icon(Iconsax.shapes),
+              icon: Icon(RenderIcons.lab),
               label: 'Studio Lab'
             ),
             NavigationDestination(
-              icon: Icon(Iconsax.share),
+              icon: Icon(RenderIcons.sharing),
               label: 'Sharing'
             ),
           ],

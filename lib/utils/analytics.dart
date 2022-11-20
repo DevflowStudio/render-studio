@@ -48,7 +48,7 @@ class Analytics {
     await firebase.logAppOpen();
   }
 
-  Future<void> logError({
+  Future<void> logCheckoutBegin({
     double? value,
     String? coupon,
     AnalyticsCallOptions? options,
@@ -172,6 +172,13 @@ class Analytics {
       name: name,
       value: value
     );
+  }
+
+  Future<void> logError(dynamic e, {
+    String? cause
+  }) async {
+    print(cause);
+    print(e);
   }
 
 }

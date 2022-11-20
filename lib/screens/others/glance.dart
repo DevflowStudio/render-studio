@@ -70,7 +70,7 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
                   errorBuilder: (context, error, stackTrace) => Container(
                     color: Palette.of(context).surfaceVariant,
                     child: Icon(
-                      Icons.warning,
+                      RenderIcons.warning,
                       color: Colors.yellow,
                       size: 50,
                     )
@@ -112,7 +112,7 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
                 children: [
                   TextIconButton(
                     text: 'Open',
-                    icon: Icons.open_in_new,
+                    icon: RenderIcons.open,
                     onPressed: () async {
                       if (originalPost == null) await createOriginalPost();
                       if (originalPost != null) AppRouter.replace(context, page: Create(project: originalPost!));
@@ -120,7 +120,7 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
                   ),
                   TextIconButton(
                     text: 'Delete',
-                    icon: Icons.delete_outline,
+                    icon: RenderIcons.delete,
                     onPressed: () async {
                       showDialog(
                         context: context,
@@ -148,12 +148,12 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
                   ),
                   TextIconButton(
                     text: 'Share',
-                    icon: Icons.share_outlined,
+                    icon: RenderIcons.share,
                     onPressed: share
                   ),
                   TextIconButton(
                     text: savedToGallery ? 'Saved' : 'Save to Gallery',
-                    icon: savedToGallery ? Icons.download_done : Icons.save_alt,
+                    icon: savedToGallery ? RenderIcons.done : RenderIcons.download,
                     onPressed: savedToGallery ? () { } : () async => await saveToGallery()
                   )
                 ],
@@ -193,15 +193,9 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
     await Spinner.fullscreen(
       context,
       task: () async {
-        
+        savedToGallery = await originalPost!.saveToGallery();
       }
     );
-    savedToGallery = true;
-    if (files!.length < originalPost!.pages.length) {
-      Alerts.snackbar(context, text: 'Some of the pages could not be saved');
-    } else {
-      Alerts.snackbar(context, text: 'Saved to your gallery.');
-    }
     setState(() { });
   }
 

@@ -54,7 +54,7 @@ class Spinner extends StatefulWidget {
     try {
       await task();
     } catch (e) {
-      print(e);
+      analytics.logError(e);
     }
     Navigator.of(context).pop();
     if (onComplete != null) onComplete();
