@@ -6,7 +6,7 @@ import '../../rehmat.dart';
 
 class CreatorDesignAsset extends CreatorWidget {
 
-  CreatorDesignAsset({required CreatorPage page, Map? data}) : super(page, data: data);
+  CreatorDesignAsset({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
 
   static Future<void> create(BuildContext context, {
     required CreatorPage page
@@ -113,22 +113,26 @@ class CreatorDesignAsset extends CreatorWidget {
   );
 
   @override
-  Map<String, dynamic> toJSON() => {
-    ... super.toJSON(),
+  Map<String, dynamic> toJSON({
+    BuildInfo buildInfo = BuildInfo.unknown
+  }) => {
+    ... super.toJSON(buildInfo: buildInfo),
     'color': color?.toHex(),
     'asset': asset.id,
   };
 
   @override
-  void buildFromJSON(Map<String, dynamic> json) {
-    super.buildFromJSON(json);
+  void buildFromJSON(Map<String, dynamic> json, {
+    required BuildInfo buildInfo
+  }) {
+    super.buildFromJSON(json, buildInfo: buildInfo);
     try {
       Asset? _asset = project.assetManager.get(json['asset']);
       if (_asset == null) throw WidgetCreationException('Could not build Design Asset. File may have been deleted.');
       else asset = _asset;
       if (json['color'] != null) color = HexColor.fromHex(json['color']);
-    } catch (e) {
-      analytics.logError(e, cause: 'error building design asset from json');
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'error building design asset from json', stacktrace: stacktrace);
       throw WidgetCreationException(
         'Error building Design Asset.',
         details: 'Error building Design Asset from JSON: $e'

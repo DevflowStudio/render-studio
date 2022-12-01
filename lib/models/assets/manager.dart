@@ -13,12 +13,13 @@ class AssetManager {
   }) async {
     AssetManager _manager = AssetManager(project: project);
     for (Map _assetData in (data['assets'] ?? {}).values) {
-      Asset? asset = Asset.fromJSON(_assetData);
+      Asset asset = Asset.fromJSON(_assetData, project: project);
       try {
         await asset.ensureExists();
         _manager.assets[asset.id] = asset;
-      } catch (e) {
-        analytics.logError(e, cause: 'asset initialization error');
+      } catch (e, stacktrace) {
+        analytics.logError(e, cause: 'asset initialization error', stacktrace: stacktrace);
+        project.issues.add(AssetException('An asset file was missing or corrupted. Please re-add the asset.'));
       }
     }
     return _manager;
@@ -38,10 +39,10 @@ class AssetManager {
     return assets[id];
   }
 
-  Map<String, dynamic> toJSON() {
+  Future<Map<String, dynamic>> toJSON() async {
     Map<String, dynamic> _assets = {};
     for (Asset asset in assets.values) {
-      _assets[asset.id] = asset.toJSON();
+      _assets[asset.id] = await asset.toJSON();
     }
     return _assets;
   }

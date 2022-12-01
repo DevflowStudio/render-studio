@@ -5,7 +5,7 @@ import '../../rehmat.dart';
 
 class CreatorText extends CreatorWidget {
 
-  CreatorText({required CreatorPage page, Map? data}) : super(page, data: data);
+  CreatorText({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
 
   static Future<void> create(BuildContext context, {
     required CreatorPage page
@@ -132,6 +132,7 @@ class CreatorText extends CreatorWidget {
           },
           onChange: (value) {
             bold = value;
+            _updateStroke();
             updateListeners(WidgetChange.update);
           },
           enabledIcon: RenderIcons.bold,
@@ -385,7 +386,7 @@ class CreatorText extends CreatorWidget {
           title: 'Outline',
           tooltip: 'Add an outline to text',
           onTap: (context) async {
-            _toggleStroke();
+            _updateStroke(true);
           },
           icon: RenderIcons.outline
         ),
@@ -598,7 +599,8 @@ class CreatorText extends CreatorWidget {
     ],
     foreground: stroke,
     decorationStyle: decorationStyle,
-    decorationColor: stroke == null ? decorationColor : null,
+    // decorationColor: stroke == null ? decorationColor : null,
+    decorationColor: stroke == null ? color : null,
     height: lineHeight,
   );
 
@@ -685,7 +687,8 @@ class CreatorText extends CreatorWidget {
       ),
     );
     if (text != null && text.trim() != '') this.text = text;
-    _removeExtraSpaceFromSize();
+    if (autoSize) _removeExtraSpaceFromSize();
+    lineHeight = 1.0;
     updateListeners(WidgetChange.update);
   }
 
@@ -717,23 +720,27 @@ class CreatorText extends CreatorWidget {
     Size __size = size;
     if (((_newSize.width - size.width)).abs() > 5) __size = Size(_newSize.width, __size.height);
     if (((_newSize.height - size.height)).abs() > 5) __size = Size(__size.width, _newSize.height);
+    // if (__size < size) size = __size;
     size = __size;
   }
 
-  void _toggleStroke() {
-    if (stroke == null) {
-      _updateStroke();
-    } else {
+  void _updateStroke([bool isToggling = false]) {
+    if ((isToggling && stroke == null) || (!isToggling && stroke != null)) {
+      stroke = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = bold ? 2 : 1
+        ..color = color;
+      if (isToggling) updateListeners(WidgetChange.update);
+    } else if (isToggling && stroke != null) {
       stroke = null;
+      updateListeners(WidgetChange.update);
     }
-    updateListeners(WidgetChange.update);
   }
 
-  void _updateStroke() {
-    stroke = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = bold ? 2 : 1
-      ..color = color;
+  @override
+  void updateListeners(WidgetChange change, {bool removeGrids = false}) {
+    _updateStroke();
+    super.updateListeners(change, removeGrids: removeGrids);
   }
 
   void onPaletteUpdate() {
@@ -743,12 +750,15 @@ class CreatorText extends CreatorWidget {
     } else {
       color = page.palette.background.computeTextColor();
     }
+    _updateStroke();
     updateListeners(WidgetChange.misc);
   }
 
   @override
-  Map<String, dynamic> toJSON() => {
-    ... super.toJSON(),
+  Map<String, dynamic> toJSON({
+    BuildInfo buildInfo = BuildInfo.unknown
+  }) => {
+    ... super.toJSON(buildInfo: buildInfo),
     'text': {
       'text': text,
       'font': fontFamily,
@@ -787,8 +797,10 @@ class CreatorText extends CreatorWidget {
   };
 
   @override
-  void buildFromJSON(Map<String, dynamic> json) {
-    super.buildFromJSON(json);
+  void buildFromJSON(Map<String, dynamic> json, {
+    required BuildInfo buildInfo
+  }) {
+    super.buildFromJSON(json, buildInfo: buildInfo);
     try {
       text = json['text']['text'];
       fontFamily = json['text']['font'];
@@ -826,8 +838,8 @@ class CreatorText extends CreatorWidget {
       letterSpacing = json['spacing']['letter'];
       wordSpacing = json['spacing']['word'];
 
-    } catch (e) {
-      analytics.logError(e, cause: 'failed to render text');
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'failed to render text', stacktrace: stacktrace);
       throw WidgetCreationException(
         'Failed to build text widget',
         details: 'Failed to build text widget from JSON: $e',

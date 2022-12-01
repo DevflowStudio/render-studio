@@ -11,13 +11,11 @@ class Editor extends StatefulWidget {
   const Editor({
     Key? key,
     required this.tabs,
-    required this.page,
-    required this.widget,
+    this.widget,
   }) : super(key: key);
 
   final List<EditorTab> tabs;
-  final CreatorPage page;
-  final CreatorWidget widget;
+  final CreatorWidget? widget;
 
   Widget get build => this;
 
@@ -35,13 +33,13 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    widget.widget.addListener(onPropertyChange);
+    widget.widget?.addListener(onPropertyChange);
     super.initState();
   }
 
   @override
   void dispose() {
-    widget.widget.removeListener(onPropertyChange);
+    widget.widget?.removeListener(onPropertyChange);
     super.dispose();
   }
 
@@ -331,8 +329,7 @@ class EditorTab {
           },
           onChangeEnd: (value) {
             if (onChangeEnd != null) onChangeEnd(_calculateSize(value: value));
-          },
-          divisions: 45
+          }
         )
       ],
     );
@@ -930,8 +927,9 @@ class _ShadowEditorGroupValueEditor extends StatelessWidget {
                 try {
                   double _value = double.parse(value);
                   onChange(_value);
-                } catch (e) {
+                } catch (e, stacktrace) {
                   onChange(0);
+                  analytics.logError(e, cause: 'ShadowEditorGroup', stacktrace: stacktrace);
                 }
               },
             )

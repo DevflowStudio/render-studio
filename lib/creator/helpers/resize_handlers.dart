@@ -81,21 +81,21 @@ extension ResizeHandlerProperties on ResizeHandler {
   Size get size {
     switch (this) {
       case ResizeHandler.topLeft:
-        return const Size(20, 20);
+        return const Size(10, 10);
       case ResizeHandler.topCenter:
-        return const Size(30, 7);
+        return const Size(30, 3);
       case ResizeHandler.topRight:
-        return const Size(20, 20);
+        return const Size(10, 10);
       case ResizeHandler.centerLeft:
-        return const Size(7, 30);
+        return const Size(3, 30);
       case ResizeHandler.centerRight:
-        return const Size(7, 30);
+        return const Size(3, 30);
       case ResizeHandler.bottomLeft:
-        return const Size(20, 20);
+        return const Size(10, 10);
       case ResizeHandler.bottomCenter:
-        return const Size(30, 7);
+        return const Size(30, 3);
       case ResizeHandler.bottomRight:
-        return const Size(20, 20);
+        return const Size(10, 10);
       default:
         return const Size(0, 0);
     }
@@ -104,21 +104,21 @@ extension ResizeHandlerProperties on ResizeHandler {
   Size get feedbackSize {
     switch (this) {
       case ResizeHandler.topLeft:
-        return const Size(40, 40);
+        return const Size(15, 15);
       case ResizeHandler.topCenter:
-        return const Size(40, 20);
+        return const Size(40, 6);
       case ResizeHandler.topRight:
-        return const Size(40, 40);
+        return const Size(15, 15);
       case ResizeHandler.centerLeft:
-        return const Size(10, 40);
+        return const Size(6, 40);
       case ResizeHandler.centerRight:
-        return const Size(10, 40);
+        return const Size(6, 40);
       case ResizeHandler.bottomLeft:
-        return const Size(40, 40);
+        return const Size(15, 15);
       case ResizeHandler.bottomCenter:
-        return const Size(40, 10);
+        return const Size(40, 6);
       case ResizeHandler.bottomRight:
-        return const Size(40, 40);
+        return const Size(15, 15);
       default:
         return const Size(0, 0);
     }

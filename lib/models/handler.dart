@@ -21,9 +21,10 @@ class ProjectManager extends ChangeNotifier {
   }
 
   Future<void> save(BuildContext context, {
-    required Project project
+    required Project project,
+    bool saveToGallery = false
   }) async {
-    Map<String, dynamic> json = await project.toJSON(context);
+    Map<String, dynamic> json = await project.toJSON(context, saveToGallery: saveToGallery);
     await box.delete(project.id);
     await box.put(project.id, json);
     if (projects.indexWhere((element) => element.id == project.id) == -1) {

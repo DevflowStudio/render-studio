@@ -8,7 +8,7 @@ class Alerts {
     required String text,
     Animation<double>? animation,
     SnackBarAction? action,
-    bool floating = true,
+    bool floating = false,
     Color? backgroundColor,
     EdgeInsets? margin,
     EdgeInsets? padding,
@@ -26,15 +26,21 @@ class Alerts {
           backgroundColor: backgroundColor,
           shape: floating ? RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(7)
-          ) : null,
-          margin: margin ?? const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
-          padding: padding,
+          ) : RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(0)
+          ),
+          margin: floating ? (margin ?? const EdgeInsets.symmetric(horizontal: 5, vertical: 8)) : null,
+          padding: padding ?? EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
           duration: duration ?? const Duration(seconds: 4),
           elevation: 1,
           onVisible: onVisible,
         )
       );
-    } catch (e) {
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'snackbar failed', stacktrace: stacktrace);
       return;
     }
   }

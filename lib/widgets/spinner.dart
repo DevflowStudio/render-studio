@@ -53,8 +53,62 @@ class Spinner extends StatefulWidget {
     );
     try {
       await task();
-    } catch (e) {
-      analytics.logError(e);
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'task failed', stacktrace: stacktrace);
+    }
+    Navigator.of(context).pop();
+    if (onComplete != null) onComplete();
+  }
+
+  static Future<void> linearFullscreen(BuildContext context, {
+    /// Provide a function that will be executed
+    required Future<void> Function() task,
+    Function? onComplete,
+    required String message
+  }) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Palette.of(context).background.withOpacity(0.2),
+      barrierColor: Palette.of(context).background.withOpacity(0.2),
+      isDismissible: false,
+      builder: (context) => WillPopScope(
+        onWillPop: () async {
+          return true;
+        },
+        child: Container(
+          height: double.infinity,
+          width: double.infinity,
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Center(
+              child: SizedBox(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      message,
+                      style: Theme.of(context).textTheme.caption,
+                    ),
+                    SizedBox(height: 6,),
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width/3,
+                      child: LinearProgressIndicator(
+                        minHeight: 3,
+                      )
+                    ),
+                  ],
+                ),
+              )
+            ),
+          ),
+        ),
+      ),
+    );
+    try {
+      await task();
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'task failed', stacktrace: stacktrace);
     }
     Navigator.of(context).pop();
     if (onComplete != null) onComplete();

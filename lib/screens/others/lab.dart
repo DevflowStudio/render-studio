@@ -40,7 +40,7 @@ class _LabState extends State<Lab> {
                 title: Text(
                   'Color Palettes',
                 ),
-                subtitle: Text('View and Create Color Palettes'),
+                subtitle: Text('View and create color palettes'),
                 onTap: () => AppRouter.push(context, page: MyPalettes()),
               ),
             ])

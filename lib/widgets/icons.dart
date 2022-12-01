@@ -39,7 +39,7 @@ abstract class RenderIcons {
 
   static const IconData import = Iconsax.import;
 
-  static const IconData save = Iconsax.save_add;
+  static const IconData save = CupertinoIcons.square_arrow_down;
 
   static const IconData color = Iconsax.colors_square;
 
@@ -49,7 +49,7 @@ abstract class RenderIcons {
 
   static const IconData rotate = Iconsax.d_rotate;
 
-  static const IconData replace = Icons.change_circle;
+  static const IconData replace = Icons.change_circle_outlined;
 
   static const IconData arrow_up = Icons.expand_less;
 
@@ -73,7 +73,7 @@ abstract class RenderIcons {
 
   static const IconData refresh = Iconsax.refresh;
 
-  static const IconData scale = CupertinoIcons.resize;
+  static const IconData scale = CupertinoIcons.arrow_up_left_arrow_down_right;
 
   static const IconData opacity = Icons.opacity;
 
@@ -123,13 +123,13 @@ abstract class RenderIcons {
 
   static const IconData done = CupertinoIcons.checkmark_alt_circle;
 
-  static const IconData warning = Icons.warning_amber_rounded;
+  static const IconData warning = CupertinoIcons.exclamationmark_triangle;
 
   static const IconData error = Icons.error;
 
-  static const IconData undo = CupertinoIcons.arrow_uturn_left_circle;
+  static const IconData undo = CupertinoIcons.arrow_uturn_left;
 
-  static const IconData redo = CupertinoIcons.arrow_uturn_right_circle;
+  static const IconData redo = CupertinoIcons.arrow_uturn_right;
 
   static const IconData info = CupertinoIcons.info_circle;
 
@@ -148,5 +148,27 @@ abstract class RenderIcons {
   static const IconData keyboard = CupertinoIcons.keyboard;
 
   static const IconData color_picker = Icons.colorize;
+
+  static const IconData filter = CupertinoIcons.color_filter;
+
+  static const IconData brightness = CupertinoIcons.brightness;
+
+  static const IconData contrast = Icons.contrast_outlined;
+
+  static const IconData exposure = Icons.exposure_outlined;
+
+  static const IconData saturation = Icons.palette_outlined;
+
+  static const IconData visibility = Icons.opacity_outlined;
+
+  static const IconData hue = Icons.invert_colors;
+
+  static const IconData flip_horizontal = CupertinoIcons.arrow_left_right_circle;
+
+  static const IconData flip_vertical = CupertinoIcons.arrow_up_down_circle;
+
+  static const IconData duplicate = Iconsax.copy;
+
+  static const IconData expand = Iconsax.arrow_down_1;
 
 }

@@ -27,6 +27,7 @@ Future<void> run(Flavor flavor) async {
   manager = await ProjectManager.instance;
   paletteManager = await PaletteManager.instance;
   projectSaves = await ProjectSaves.instance;
+  pathProvider = await PathProvider.instance;
 
   await Crashlytics.init();
 

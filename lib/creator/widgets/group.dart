@@ -5,7 +5,7 @@ import '../state.dart';
 
 class WidgetGroup extends CreatorWidget {
 
-  WidgetGroup({required CreatorPage page, Map? data}) : super(page, data: data);
+  WidgetGroup({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
 
   // Inherited
   final String name = 'Group Widget';
@@ -60,7 +60,8 @@ class WidgetGroup extends CreatorWidget {
               key: UniqueKey(),
               context: context,
               controller: widgets[index].stateCtrl,
-              creator_widget: widgets[index]
+              creator_widget: widgets[index],
+              page: page,
             ),
           )
         ),
@@ -69,8 +70,10 @@ class WidgetGroup extends CreatorWidget {
   );
 
   @override
-  Map<String, dynamic> toJSON() => {
-    ... super.toJSON(),
+  Map<String, dynamic> toJSON({
+    BuildInfo buildInfo = BuildInfo.unknown
+  }) => {
+    ... super.toJSON(buildInfo: buildInfo),
   };
 
   static Future<WidgetGroup?> create(BuildContext context, {
@@ -135,9 +138,9 @@ class WidgetGroup extends CreatorWidget {
       }
 
       return group;
-    } catch (e) {
+    } catch (e, stacktrace) {
       Alerts.snackbar(context, text: 'Failed to group widgets');
-      analytics.logError(e);
+      analytics.logError(e, cause: 'Failed to group widgets', stacktrace: stacktrace);
       return null;
     }
   }

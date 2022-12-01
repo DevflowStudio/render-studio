@@ -16,7 +16,7 @@ class Option {
     required String title,
     required Function(BuildContext context) onTap,
     required IconData icon,
-    required String tooltip,
+    String? tooltip,
     Function(BuildContext context)? onLongPress,
     bool greyOut = false
   }) => Option(
@@ -92,8 +92,45 @@ class Option {
       divisions: divisions,
       min: min,
       max: max,
-      onChange: onChange
+      onChange: onChange,
+      onChangeEnd: onChangeEnd,
+      onChangeStart: onChangeStart,
     ),
+  );
+
+  static Option showSlider({
+    String? label,
+    required String title,
+    required IconData icon,
+    required double value,
+    int? divisions,
+    required double min,
+    required double max,
+    required Function(double value) onChange,
+    Function(double value)? onChangeStart,
+    Function(double value)? onChangeEnd,
+  }) => Option.button(
+    title: title,
+    onTap: (context) => {
+      EditorTab.modal(
+        context,
+        tab: EditorTab(
+          tab: title,
+          type: EditorTabType.single,
+          options: [
+            Option.slider(
+              value: value,
+              min: min,
+              max: max,
+              onChange: onChange,
+              onChangeEnd: onChangeEnd,
+              onChangeStart: onChangeStart
+            )
+          ]
+        )
+      )
+    },
+    icon: icon
   );
 
   static Option picker({
@@ -316,18 +353,15 @@ class _CustomSliderState extends State<CustomSlider> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (widget.label != null) Label(
-          label: widget.label!,
-          subtitle: true,
-        ),
-        SizedBox(
-          width: MediaQuery.of(context).size.width * 2/3,
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom
+          ),
           child: Slider(
             value: value,
-            label: widget.label ?? value.trimToDecimal(1).toString(),
             onChangeStart: widget.onChangeStart,
             onChangeEnd: widget.onChangeEnd,
             onChanged: (value) {

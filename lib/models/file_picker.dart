@@ -89,8 +89,8 @@ class FilePicker {
     if (context != null && crop && type == FileType.image) {
       try {
         return await FilePicker.crop(context, file: file, ratio: cropRatio);
-      } catch (e) {
-        analytics.logError(e);
+      } catch (e, stacktrace) {
+        analytics.logError(e, cause: 'FilePicker.crop failed', stacktrace: stacktrace);
         return null;
       }
     } else {
@@ -119,45 +119,40 @@ class FilePicker {
     // );
   }
 
-  static Future<File?> picker(
-    BuildContext context, {
+  /// Shows a bottom sheet for options to select image from unsplash or pick from gallery
+  static Future<File?> imagePicker(BuildContext context, {
     bool crop = false,
-    CropAspectRatio? cropRatio
-  }) async => await showModalBottomSheet<File>(
-    context: context,
-    backgroundColor: Palette.of(context).surface,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Constants.borderRadius.bottomLeft)
-    ),
-    builder: (context) => Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-          child: Label(label: 'Select Image'),
+    CropAspectRatio? cropRatio,
+  }) async {
+    String? option = await Alerts.optionsBuilder(
+      context,
+      title: 'Image',
+      options: [
+        AlertOption(
+          title: 'Unsplash',
+          id: 'unsplash'
         ),
-        ListTile(
-          title: const Text('Unsplash'),
-          onTap: () async {
-            TapFeedback.light();
-          },
+        AlertOption(
+          title: 'Gallery',
+          id: 'gallery'
         ),
-        ListTile(
-          title: const Text('Gallery'),
-          onTap: () async {
-            TapFeedback.light();
-            File? file = await FilePicker.pick();
-            File? croppedFile;
-            if (file == null) Navigator.of(context).pop();
-            if (crop) croppedFile = await FilePicker.crop(context, ratio: cropRatio, file: file!);
-            Navigator.of(context).pop(croppedFile);
-          },
-        ),
-        Container(height: 20,)
-      ],
-    ),
-  );
+      ]
+    );
+    if (option == null) return null;
+    switch (option) {
+      case 'unsplash':
+        return await UnsplashImagePicker.getImage(context, crop: crop, cropRatio: cropRatio);
+      case 'gallery':
+        return await FilePicker.pick(
+          context: context,
+          crop: crop,
+          cropRatio: cropRatio,
+          type: FileType.image
+        );
+      default:
+        return null;
+    }
+  }
 
   static Future<File?> crop(BuildContext context, {
     required File file,

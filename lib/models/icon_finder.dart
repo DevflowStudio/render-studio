@@ -26,6 +26,7 @@ class IconFinder extends ChangeNotifier {
   Future<void> search(String query) async {
     isLoading = true;
     notifyListeners();
+    analytics.logSearch(query: query, origin: 'icon_finder_api');
     Response response = await Dio().get(
       'https://api.iconfinder.com/v4/icons/search',
       options: Options(

@@ -24,6 +24,22 @@ class Analytics {
     await firebase.logEvent(name: name, parameters: parameters, callOptions: callOptions);
   }
 
+  Future<void> logProcessingTime(String name, {
+    required Duration duration,
+    Map<String, Object?>? parameters,
+    AnalyticsCallOptions? callOptions
+  }) async {
+    if (!preferences.allowAnalytics) return;
+    await firebase.logEvent(
+      name: name,
+      parameters: {
+        ...? parameters,
+        'duration': duration.inMilliseconds
+      },
+      callOptions: callOptions
+    );
+  }
+
   Future<void> logAdvertisement({
     String? adFormat,
     String? source,
@@ -66,11 +82,13 @@ class Analytics {
   }
 
   Future<void> logSearch({
-    required String query
+    required String query,
+    String? origin,
   }) async {
     if (!preferences.allowAnalytics) return;
     await firebase.logSearch(
       searchTerm: query,
+      origin: origin
     );
   }
 
@@ -175,9 +193,11 @@ class Analytics {
   }
 
   Future<void> logError(dynamic e, {
-    String? cause
+    String? cause,
+    StackTrace? stacktrace
   }) async {
     print(cause);
+    print(stacktrace);
     print(e);
   }
 

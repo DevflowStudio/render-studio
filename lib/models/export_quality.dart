@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 enum ExportQuality {
   extreme,
   high,
-  medium,
-  low,
+  auto,
 }
 
 extension ExportQualityExtension on ExportQuality {
@@ -12,13 +11,11 @@ extension ExportQualityExtension on ExportQuality {
   double pixelRatio(BuildContext context) {
     switch (this) {
       case ExportQuality.extreme:
-        return MediaQuery.of(context).devicePixelRatio * 10;
-      case ExportQuality.high:
         return MediaQuery.of(context).devicePixelRatio * 3;
-      case ExportQuality.medium:
+      case ExportQuality.high:
+        return MediaQuery.of(context).devicePixelRatio * 2;
+      case ExportQuality.auto:
         return MediaQuery.of(context).devicePixelRatio;
-      case ExportQuality.low:
-        return MediaQuery.of(context).devicePixelRatio / 2;
       default:
         return MediaQuery.of(context).devicePixelRatio;
     }
@@ -30,12 +27,10 @@ extension ExportQualityExtension on ExportQuality {
         return ExportQuality.extreme;
       case 'high':
         return ExportQuality.high;
-      case 'medium':
-        return ExportQuality.medium;
-      case 'low':
-        return ExportQuality.low;
+      case 'dedium':
+        return ExportQuality.auto;
       default:
-        return ExportQuality.medium;
+        return ExportQuality.auto;
     }
   }
 
@@ -45,12 +40,10 @@ extension ExportQualityExtension on ExportQuality {
         return 'extreme';
       case ExportQuality.high:
         return 'high';
-      case ExportQuality.medium:
-        return 'medium';
-      case ExportQuality.low:
-        return 'low';
+      case ExportQuality.auto:
+        return 'default';
       default:
-        return 'medium';
+        return 'default';
     }
   }
 

@@ -15,7 +15,7 @@ class ProjectGlance {
 
   String? get description => data['description'];
 
-  String? get thumbnail => data['thumbnail'];
+  String? get thumbnail => pathProvider.generateRelativePath(data['thumbnail'] ?? '');
   
   List<String> get images => List.from(data['images']);
 
@@ -32,7 +32,8 @@ class ProjectGlance {
     try {
       ProjectGlance glance = ProjectGlance(id, Map.from(data));;
       return glance;
-    } catch (e) {
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'project glance rendering error', stacktrace: stacktrace);
       return null;
     }
   }
@@ -42,8 +43,8 @@ class ProjectGlance {
     try {
       Project? project = await Project.fromJSON(data, context: context);
       return project;
-    } catch (e) {
-      analytics.logError(e);
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'project rendering error', stacktrace: stacktrace);
       return null;
     }
   }

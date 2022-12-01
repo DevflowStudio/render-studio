@@ -40,6 +40,11 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(15)),
         ),
+        textStyle: TextStyle(
+          fontFamily: 'Google Sans',
+          letterSpacing: 1
+        ),
+        color: colorScheme.surfaceVariant,
         enableFeedback: true,
         elevation: 1
       ),
@@ -202,10 +207,15 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(5)
-        )
+        ),
       ),
       sliderTheme: SliderThemeData(
-        showValueIndicator: ShowValueIndicator.always
+        showValueIndicator: ShowValueIndicator.always,
+        trackHeight: 1,
+        activeTrackColor: colorScheme.onBackground,
+        thumbColor: colorScheme.onSurfaceVariant,
+        trackShape: RoundedRectSliderTrackShape(),
+        overlayShape: RoundSliderOverlayShape(overlayRadius: 0),
       ),
       pageTransitionsTheme: PageTransitionsTheme(
         builders: {

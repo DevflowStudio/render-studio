@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:badges/badges.dart';
 import '../../../rehmat.dart';
 
 class Create extends StatefulWidget {
@@ -17,26 +17,25 @@ class _CreateState extends State<Create> {
 
   late Project project;
 
-  CreatorWidget? clipboard;
+  DateTime? _lastSaved;
 
   bool isLoading = false;
-  DateTime? _lastSaved;
+
+  void onProjectUpdate() {
+    setState(() {});
+  }
 
   @override
   void initState() {
     project = widget.project;
-    project.pages.addListener(onPageUpdate);
-    if (project.pages.pages.isEmpty) project.pages.add();
-    project.pages.pages.forEach((page) {
-      page.updateListeners();
-    });
+    project.pages.addListener(onProjectUpdate);
     WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
     super.initState();
   }
 
   @override
   void dispose() {
-    project.pages.removeListener(onPageUpdate);
+    project.pages.removeListener(onProjectUpdate);
     super.dispose();
   }
 
@@ -54,181 +53,20 @@ class _CreateState extends State<Create> {
     return WillPopScope(
       onWillPop: canPagePop,
       child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            onPressed: () async {
-              if (await canPagePop()) Navigator.of(context).pop();
-            },
-            icon: Icon(CupertinoIcons.arrow_turn_up_left),
-            iconSize: 20,
-          ),
-          centerTitle: true,
-          elevation: 0,
-          toolbarHeight: MediaQuery.of(context).size.height * 0.07, // Toolbar can cover a maximum of 5% of the screen area
-          title: isLoading ? TitleSpinnerWidget() : null,
-          actions: [
-            IconButton(
-              onPressed: project.pages.current.undoFuntion,
-              icon: Icon(
-                RenderIcons.undo,
-              ),
-              tooltip: 'Undo',
-            ),
-            IconButton(
-              onPressed: project.pages.current.redoFuntion,
-              icon: Icon(
-                RenderIcons.redo,
-              ),
-              tooltip: 'Redo',
-            ),
-            IconButton(
-              onPressed: () => AppRouter.push(context, page: Information(project: project,)),
-              // onPressed: () {},
-              icon: Icon(RenderIcons.info),
-              tooltip: 'Info',
-            ),
-            PopupMenuButton(
-              tooltip: 'More',
-              icon: Icon(RenderIcons.more),
-              itemBuilder: (context) => <PopupMenuEntry>[
-                const PopupMenuItem(
-                  child: Text('Add Page'),
-                  value: 'page-add',
-                ),
-                PopupMenuItem(
-                  child: Text('${preferences.debugMode ? 'Disable' : 'Enable'} Debug Mode'),
-                  value: 'toggle-debug',
-                ),
-                PopupMenuItem(
-                  child: Text('${project.pages.current.multiselect ? 'Disable ' : ''}Multiselect'),
-                  value: 'toggle-multiselect',
-                ),
-                if (project.pages.current.selections.length > 1) PopupMenuItem(
-                  child: Text('Create Group'),
-                  value: 'create-group',
-                ),
-                if (project.pages.current.selections.length == 1 && project.pages.current.selections.single.allowClipboard) ... [
-                  const PopupMenuItem(
-                    child: Text('Duplicate'),
-                    value: 'duplicate-widget',
-                  ),
-                  const PopupMenuItem(
-                    child: Text('Copy'),
-                    value: 'copy-widget',
-                  ),
-                  const PopupMenuItem(
-                    child: Text('Cut'),
-                    value: 'cut-widget',
-                  ),
-                ],
-                PopupMenuItem(
-                  child: const Text('Paste'),
-                  enabled: clipboard != null,
-                  value: 'paste-widget',
-                ),
-                PopupMenuItem(
-                  child: Text('${project.editorVisible ? 'Hide' : 'Show'} Editor'),
-                  value: 'toggle-editor',
-                ),
-                const PopupMenuItem(
-                  child: Text('Save'),
-                  value: 'project-save',
-                ),
-              ],
-              onSelected: (value) async {
-                switch (value) {
-                  case 'page-add':
-                    project.pages.add();
-                    setState(() { });
-                    break;
-                  case 'toggle-debug':
-                    preferences.debugMode = !preferences.debugMode;
-                    setState(() { });
-                    break;
-                  case 'create-group':
-                    CreatorWidget? _group = await WidgetGroup.create(context, page: project.pages.current, project: project);
-                    if (_group != null) project.pages.current.addWidget(_group);
-                    setState(() { });
-                    break;
-                  case 'toggle-multiselect':
-                    project.pages.current.toggleMultiselect();
-                    setState(() { });
-                    break;
-                  case 'duplicate-widget':
-                    copyToClipboard();
-                    pasteWidget();
-                    break;
-                  case 'copy-widget':
-                    copyToClipboard();
-                    break;
-                  case 'cut-widget':
-                    copyToClipboard();
-                    project.pages.current.delete(project.pages.current.selections.single);
-                    project.pages.current.select(project.pages.current.backround);
-                    setState(() { });
-                    break;
-                  case 'paste-widget':
-                    pasteWidget();
-                    break;
-                  case 'toggle-editor':
-                    project.editorVisible = !project.editorVisible;
-                    setState(() { });
-                    break;
-                  case 'project-save':
-                    setState(() {
-                      isLoading = true;
-                    });
-                    await manager.save(context, project: project);
-                    _lastSaved = DateTime.now();
-                    if (mounted) setState(() {
-                      isLoading = false;
-                    });
-                    Alerts.snackbar(context, text: 'Project saved');
-                    break;
-                  case 'project-info':
-                    AppRouter.push(context, page: Information(project: project));
-                    break;
-                  default:
-                }
-              },
-            )
-          ],
+        appBar: _AppBar(
+          project: project,
+          onBackPressed: () async {
+            if (await canPagePop()) Navigator.of(context).pop();
+          },
+          onSave: () async {
+            await save();
+          },
         ),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // spacer(1),
-              if (project.issues.isNotEmpty) ListTile(
-                title: Text(
-                  'Project encountered (1) issue${project.issues.length > 1 ? 's' : ''}',
-                  style: TextStyle(
-                    color: Palette.of(context).onErrorContainer
-                  ),
-                ),
-                subtitle: Text(
-                  'Click to review and fix',
-                  style: TextStyle(
-                    color: Palette.of(context).onErrorContainer.withOpacity(0.8)
-                  ),
-                ),
-                trailing: IconButton(
-                  onPressed: () {
-                    project.issues.clear();
-                    setState(() { });
-                  },
-                  icon: Icon(RenderIcons.clear),
-                  color: Palette.of(context).onErrorContainer,
-                  tooltip: 'Clear error',
-                ),
-                onTap: () async {
-                  await AppRouter.push(context, page: ProjectIssues(project: project));
-                  setState(() { });
-                },
-                tileColor: Palette.of(context).errorContainer,
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-              ),
               if (preferences.debugMode) Align(
                 alignment: Alignment.topLeft,
                 child: _DebugModeWidget(project: project),
@@ -285,13 +123,10 @@ class _CreateState extends State<Create> {
             ],
           ),
         ),
-        bottomNavigationBar: project.editorVisible
-          ? (
-              project.pages.current.selections.length > 1
-                ? project.pages.current.backround.editor.build
-                : (project.pages.current.selections.firstOrNull ?? project.pages.current.backround).editor.build
-            )
-          : null,
+        bottomNavigationBar: AnimatedSize(
+          duration: const Duration(milliseconds: 200),
+          child: _BottomNavBuilder(project: project)
+        ),
       ),
     );
   }
@@ -301,41 +136,21 @@ class _CreateState extends State<Create> {
     else return null;
   }
 
-  Widget spacer([int? flex]) => Expanded(
-    flex: flex ?? 1,
-    child: GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () {
-        project.pages.current.select(project.pages.current.backround);
-      },
-      child: Container(
-        color: Colors.transparent
-      )
-    ),
-  );
-
-  void copyToClipboard() {
-    try {
-      clipboard = project.pages.current.selections.single.duplicate();
-      setState(() { });
-    } on WidgetCreationException catch (e) {
-      analytics.logError(e);
-      Alerts.snackbar(context, text: 'Failed to build widget');
-    }
-  }
-
-  void pasteWidget() {
-    if (clipboard == null) return;
-    project.pages.current.addWidget(clipboard!);
-    clipboard = null;
-    setState(() { });
-    Alerts.snackbar(context, text: 'Added Widget From Clipboard');
-  }
-
-  void onPageUpdate() => setState(() { });
+  // Widget spacer([int? flex]) => Expanded(
+  //   flex: flex ?? 1,
+  //   child: GestureDetector(
+  //     behavior: HitTestBehavior.translucent,
+  //     onTap: () {
+  //       project.pages.current.select(project.pages.current.backround);
+  //     },
+  //     child: Container(
+  //       color: Colors.transparent
+  //     )
+  //   ),
+  // );
 
   Future<bool> canPagePop() async {
-    bool _hasHistory = project.pages.pages.where((page) => page.history.length > 1).isNotEmpty;
+    bool _hasHistory = project.pages.pages.where((page) => page.history.hasHistory).isNotEmpty;
     bool recentlySaved = _lastSaved != null && DateTime.now().difference(_lastSaved!).inMinutes < 1;
   
     if (!_hasHistory) return true;
@@ -359,6 +174,72 @@ class _CreateState extends State<Create> {
       ),
     );
     return discard ?? false;
+  }
+
+  Future<void> save({
+    bool export = false
+  }) async {
+    await Spinner.linearFullscreen(
+      context,
+      message: 'Exporting...',
+      task: () async {
+        await manager.save(context, project: project, saveToGallery: true);
+        // await Future.delayed(const Duration(seconds: 3));
+      }
+    );
+    Alerts.snackbar(
+      context,
+      text: 'Saved to Gallery',
+    );
+  }
+
+}
+
+class _BottomNavBuilder extends StatefulWidget {
+
+  _BottomNavBuilder({
+    Key? key,
+    required this.project,
+  }) : super(key: key);
+
+  final Project project;
+
+  @override
+  State<_BottomNavBuilder> createState() => __BottomNavBuilderState();
+}
+
+class __BottomNavBuilderState extends State<_BottomNavBuilder> {
+
+  late Project project;
+
+  void onUpdate() => setState(() { });
+
+  @override
+  void initState() {
+    project = widget.project;
+    project.pages.addListener(onUpdate);
+    if (project.pages.pages.isEmpty) project.pages.add();
+    project.pages.pages.forEach((page) {
+      page.rebuildListeners();
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    project.pages.removeListener(onUpdate);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return project.editorVisible
+      ? (
+          project.pages.current.selections.length > 1
+            ? project.pages.current.backround.editor.build
+            : (project.pages.current.selections.firstOrNull ?? project.pages.current.backround).editor.build
+        )
+      : Container();
   }
 
 }
@@ -472,5 +353,294 @@ class __DebugModeWidgetState extends State<_DebugModeWidget> {
   void onProjectPageChange() => setState(() { });
 
   void onWidgetChange() => setState(() { });
+
+}
+
+class _PreferredAppBarSize extends Size {
+  _PreferredAppBarSize()
+    : super.fromHeight((kToolbarHeight));
+}
+
+class _AppBar extends StatefulWidget implements PreferredSizeWidget {
+  
+  _AppBar({
+    Key? key,
+    required this.project,
+    required this.onBackPressed,
+    required this.onSave,
+  }) : super(key: key);
+
+  final Project project;
+
+  final void Function() onBackPressed;
+
+  final void Function() onSave;
+
+  @override
+  State<_AppBar> createState() => _AppBarState();
+  
+  @override
+  Size get preferredSize => _PreferredAppBarSize();
+
+}
+
+class _AppBarState extends State<_AppBar> {
+
+  late Project project;
+
+  void onProjectUpdate() => setState(() { });
+
+  CreatorWidget? clipboard;
+
+  @override
+  void initState() {
+    project = widget.project;
+    project.addListener(onProjectUpdate);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    project.removeListener(onProjectUpdate);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      leading: IconButton(
+        onPressed: widget.onBackPressed,
+        icon: Icon(CupertinoIcons.arrow_turn_up_left),
+        iconSize: 20,
+      ),
+      centerTitle: true,
+      elevation: 0,
+      toolbarHeight: MediaQuery.of(context).size.height * 0.07, // Toolbar can cover a maximum of 5% of the screen area
+      actions: [
+        IconButton(
+          onPressed: project.pages.current.history.undo,
+          icon: Icon(
+            RenderIcons.undo,
+          ),
+          tooltip: 'Undo',
+        ),
+        IconButton(
+          onPressed: project.pages.current.history.redo,
+          icon: Icon(
+            RenderIcons.redo,
+          ),
+          tooltip: 'Redo',
+        ),
+        IconButton(
+          onPressed: () => AppRouter.push(context, page: Information(project: project)),
+          icon: Icon(RenderIcons.info),
+          tooltip: 'Meta',
+        ),
+        PopupMenuButton(
+          tooltip: 'More',
+          icon: Badge(
+            badgeContent: Text(
+              project.issues.length.toString(),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+              ),
+            ),
+            showBadge: project.issues.isNotEmpty,
+            animationType: BadgeAnimationType.fade,
+            position: BadgePosition.topEnd(top: -6, end: -9),
+            child: Icon(RenderIcons.more)
+          ),
+          itemBuilder: (context) => <PopupMenuEntry>[
+            if (project.issues.isNotEmpty) PopupMenuItem(
+              value: 'issues',
+              child: Badge(
+                badgeContent: Text(
+                  project.issues.length.toString(),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                  ),
+                ),
+                animationType: BadgeAnimationType.fade,
+                child: Text('Issues')
+              ),
+            ),
+            const PopupMenuItem(
+              child: Text('Add Page'),
+              value: 'page-add',
+            ),
+            PopupMenuItem(
+              child: Text('${preferences.debugMode ? 'Disable' : 'Enable'} Debug Mode'),
+              value: 'toggle-debug',
+            ),
+            PopupMenuItem(
+              child: Text('${project.pages.current.multiselect ? 'Disable ' : ''}Multiselect'),
+              value: 'toggle-multiselect',
+            ),
+            if (project.pages.current.selections.length > 1) PopupMenuItem(
+              child: Text('Create Group'),
+              value: 'create-group',
+            ),
+            if (project.pages.current.selections.length == 1 && project.pages.current.selections.single.allowClipboard) ... [
+              const PopupMenuItem(
+                child: Text('Duplicate'),
+                value: 'duplicate-widget',
+              ),
+              const PopupMenuItem(
+                child: Text('Copy'),
+                value: 'copy-widget',
+              ),
+              const PopupMenuItem(
+                child: Text('Cut'),
+                value: 'cut-widget',
+              ),
+            ],
+            PopupMenuItem(
+              child: const Text('Paste'),
+              enabled: clipboard != null,
+              value: 'paste-widget',
+            ),
+            PopupMenuItem(
+              child: Text('${project.editorVisible ? 'Hide' : 'Show'} Editor'),
+              value: 'toggle-editor',
+            ),
+            const PopupMenuItem(
+              child: Text('Save'),
+              value: 'project-save',
+            ),
+          ],
+          onSelected: (value) async {
+            switch (value) {
+              case 'issues':
+                await AppRouter.push(context, page: ProjectIssues(project: project));
+                setState(() { });
+                break;
+              case 'page-add':
+                project.pages.add();
+                setState(() { });
+                break;
+              case 'toggle-debug':
+                preferences.debugMode = !preferences.debugMode;
+                setState(() { });
+                break;
+              case 'create-group':
+                CreatorWidget? _group = await WidgetGroup.create(context, page: project.pages.current, project: project);
+                if (_group != null) project.pages.current.addWidget(_group);
+                setState(() { });
+                break;
+              case 'toggle-multiselect':
+                project.pages.current.toggleMultiselect();
+                setState(() { });
+                break;
+              case 'duplicate-widget':
+                copyToClipboard();
+                pasteWidget();
+                break;
+              case 'copy-widget':
+                copyToClipboard();
+                break;
+              case 'cut-widget':
+                copyToClipboard();
+                project.pages.current.delete(project.pages.current.selections.single);
+                project.pages.current.select(project.pages.current.backround);
+                setState(() { });
+                break;
+              case 'paste-widget':
+                pasteWidget();
+                break;
+              case 'toggle-editor':
+                project.editorVisible = !project.editorVisible;
+                setState(() { });
+                break;
+              case 'project-save':
+                widget.onSave();
+                break;
+              case 'project-info':
+                AppRouter.push(context, page: Information(project: project));
+                break;
+              default:
+            }
+          },
+        )
+      ],
+    );
+  }
+
+  void copyToClipboard() {
+    try {
+      clipboard = project.pages.current.selections.single.duplicate();
+      setState(() { });
+    } on WidgetCreationException catch (e, stacktrace) {
+      analytics.logError(e, cause: 'copyToClipboard failed', stacktrace: stacktrace);
+      Alerts.snackbar(context, text: 'Failed to build widget');
+    }
+  }
+
+  void pasteWidget() {
+    if (clipboard == null) return;
+    project.pages.current.addWidget(clipboard!);
+    clipboard = null;
+    setState(() { });
+    Alerts.snackbar(context, text: 'Added Widget From Clipboard');
+  }
+
+}
+
+class _ProjectIssuesButton extends StatefulWidget {
+
+  _ProjectIssuesButton({
+    Key? key,
+    required this.project
+  }) : super(key: key);
+
+  final Project project;
+
+  @override
+  State<_ProjectIssuesButton> createState() => __ProjectIssuesButtonState();
+}
+
+class __ProjectIssuesButtonState extends State<_ProjectIssuesButton> {
+
+  late Project project;
+
+  void onProjectUpdate() => setState(() { });
+
+  @override
+  void initState() {
+    project = widget.project;
+    project.addListener(onProjectUpdate);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    project.removeListener(onProjectUpdate);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: () async {
+        await AppRouter.push(context, page: ProjectIssues(project: project,));
+        setState(() { });
+      },
+      icon: Badge(
+        badgeContent: Text(
+          project.issues.length.toString(),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+          ),
+        ),
+        animationType: BadgeAnimationType.slide,
+        position: BadgePosition.topEnd(top: -12, end: -9),
+        child: Icon(
+          RenderIcons.warning,
+        ),
+      )
+    );
+  }
 
 }

@@ -331,7 +331,7 @@ class _AutoSizeTextState extends State<AutoSizeText> {
       } else {
         return AnimatedDefaultTextStyle(
           style: style.copyWith(fontSize: __fontSize),
-          duration: const Duration(milliseconds: 0),
+          duration: const Duration(milliseconds: 50),
           child: Text(
             widget.data!,
             key: widget.textKey,
@@ -340,7 +340,7 @@ class _AutoSizeTextState extends State<AutoSizeText> {
             textDirection: widget.textDirection,
             locale: widget.locale,
             softWrap: widget.softWrap,
-            overflow: widget.overflow,
+            overflow: TextOverflow.visible,
             maxLines: maxLines,
             semanticsLabel: widget.semanticsLabel,
             textHeightBehavior: const TextHeightBehavior(applyHeightToFirstAscent: true, leadingDistribution: TextLeadingDistribution.even),

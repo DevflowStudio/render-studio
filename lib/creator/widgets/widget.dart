@@ -19,7 +19,10 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   @override
   int get hashCode => super.hashCode;
 
-  CreatorWidget(this.page, {Map? data}) {
+  CreatorWidget(this.page, {
+    Map? data,
+    BuildInfo buildInfo = BuildInfo.unknown,
+  }) {
     uid ??= Constants.generateID(6);
     project = page.project;
     _defaultResizeHandlerSet = _resizeHandlers = resizeHandlers;
@@ -29,17 +32,16 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     editor = Editor(
       key: ValueKey(uid),
       tabs: tabs,
-      page: page,
       widget: this
     );
     if (data != null) try {
       uid = data['uid'];
-      buildFromJSON(Map.from(data));
+      buildFromJSON(Map.from(data), buildInfo: buildInfo);
       updateResizeHandlers();
       updateGrids();
       stateCtrl.update();
     } on WidgetCreationException catch (e) {
-      analytics.logError(e);
+      analytics.logError(e, cause: 'could not build widget from JSON');
       throw WidgetCreationException(
         'The widget could not be rebuilt due to some issues',
         details: 'Failed to build widget from JSON: $e',
@@ -135,7 +137,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }) {
     isResizing = false;
     updateResizeHandlers();
-    notifyListeners(WidgetChange.update);
+    updateListeners(WidgetChange.update);
   }
 
   void resizeByScale(double scale) {
@@ -204,6 +206,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   void onDragFinish(BuildContext context) {
     // Update the listener to `update` changes. This will tell the parent to reload state and save the change in history
+    updateGrids(showGridLines: true, snap: true, snapSensitivity: 2);
     double dx = position.dx;
     double dy = position.dy;
     double mindx = -(project.contentSize(context).width/2) - size.width/4;
@@ -393,7 +396,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     /// Snap the widget to the grid
     /// 
     /// Both `this.snap` and `preferences.snap` are required to be true for the widget to snap
-    bool snap = true
+    bool snap = true,
+    double? snapSensitivity,
   }) {
     double dx = position.dx;
     double dy = position.dy;
@@ -402,12 +406,14 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
     page.gridState.grids.removeWhere((grid) => grid.widget == this);
 
-    List<Grid> centerHorizontalGrids = page.gridState.grids.where((grid) => ((grid.position.dy - position.dy).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal)).toList();
-    List<Grid> centerVerticalGrids = page.gridState.grids.where((grid) => ((grid.position.dx - position.dx).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical)).toList();
-    List<Grid> topGrids = page.gridState.grids.where((grid) => ((grid.position.dy - (position.dy - size.height / 2)).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.top)).toList();
-    List<Grid> leftGrids = page.gridState.grids.where((grid) => ((grid.position.dx - (position.dx - size.width / 2)).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.left)).toList();
-    List<Grid> rightGrids = page.gridState.grids.where((grid) => ((grid.position.dx - (position.dx + size.width / 2)).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.right)).toList();
-    List<Grid> bottomGrids = page.gridState.grids.where((grid) => ((grid.position.dy - (position.dy + size.height / 2)).isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.bottom)).toList();
+    double _snapSensitivity = snapSensitivity ?? preferences.snapSensitivity;
+
+    List<Grid> centerHorizontalGrids = page.gridState.grids.where((grid) => ((grid.position.dy - position.dy).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal)).toList();
+    List<Grid> centerVerticalGrids = page.gridState.grids.where((grid) => ((grid.position.dx - position.dx).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical)).toList();
+    List<Grid> topGrids = page.gridState.grids.where((grid) => ((grid.position.dy - (position.dy - size.height / 2)).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.top)).toList();
+    List<Grid> leftGrids = page.gridState.grids.where((grid) => ((grid.position.dx - (position.dx - size.width / 2)).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.left)).toList();
+    List<Grid> rightGrids = page.gridState.grids.where((grid) => ((grid.position.dx - (position.dx + size.width / 2)).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.right)).toList();
+    List<Grid> bottomGrids = page.gridState.grids.where((grid) => ((grid.position.dy - (position.dy + size.height / 2)).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.bottom)).toList();
 
     if (centerHorizontalGrids.isEmpty) {
       page.gridState.grids.add(
@@ -521,10 +527,10 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       page.gridState.notifyListeners();
       // Only snap if the user has enabled it in settings
       if (preferences.snap && snap) position = Offset(dx, dy);
-      page.gridState.visible.addAll(_grids);
-      if (preferences.snap && preferences.vibrateOnSnap && _grids.isNotEmpty) {
-        TapFeedback.normal();
+      if (preferences.snap && snap && preferences.vibrateOnSnap && _grids.isNotEmpty) {
+        TapFeedback.light();
       }
+      page.gridState.visible.addAll(_grids);
     }
 
   }
@@ -539,61 +545,83 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// It should be used to clean up any resources that the widget is using
   void onDelete() {}
 
+  /// Called when the widget is disposed from the tree
+  /// Use this function to dispose of any resources that the widget is using
+  /// 
+  /// Usage:
+  /// 
+  /// ```dart
+  /// @override
+  /// void dispose() {
+  ///  super.dispose();
+  ///   // Dispose of any resources here
+  ///   controller.dispose();
+  /// }
+  /// ```
+  void dispose() {
+    super.dispose();
+  }
+
   /// Duplicate Widget
   /// 
   /// Returns the widget with same properties but new uid and altered position
   CreatorWidget duplicate() {
-    CreatorWidget widget = CreatorWidget.fromJSON(toJSON(), page: page);
+    CreatorWidget widget = CreatorWidget.fromJSON(toJSON(), page: page, buildInfo: BuildInfo(buildType: BuildType.unknown));
     widget.uid = Constants.generateID();
     widget.position = Offset(position.dx + 10, position.dy + 10);
     return widget;
   }
 
   /// Convert the state and properties of the widget to JSON
-  Map<String, dynamic> toJSON() => {
-    'id': id,
-    'uid': uid,
-    'name': name,
-    'properties': {
-      'position': {
-        'dx': position.dx,
-        'dy': position.dy
-      },
-      'angle': angle,
-      'opacity': opacity,
-      'size': {
-        'width': size.width,
-        'height': size.height
+  Map<String, dynamic> toJSON({
+    BuildInfo buildInfo = BuildInfo.unknown
+  }) {
+    return {
+      'id': id,
+      'uid': uid,
+      'name': name,
+      'properties': {
+        'position': {
+          'dx': position.dx,
+          'dy': position.dy
+        },
+        'angle': angle,
+        'opacity': opacity,
+        'size': {
+          'width': size.width,
+          'height': size.height
+        }
       }
-    }
-  };
+    };
+  }
 
   /// Create the widget from JSON
   /// 
   /// This method automatically detects the type of widget and returns the appropriate widget
   static CreatorWidget fromJSON(dynamic data, {
-    required CreatorPage page
+    required CreatorPage page,
+    BuildInfo buildInfo = BuildInfo.unknown
   }) {
     data = Map.from(data);
     CreatorWidget? widget;
     switch (data['id']) {
       case 'background':
-        widget = BackgroundWidget(page: page, data: data);
+        widget = BackgroundWidget(page: page, data: data, buildInfo: buildInfo);
         break;
       // case 'box':
       //   widget = CreatorBoxWidget(page: page, project: project, uid: data['uid']);
       //   break;
       case 'text':
-        widget = CreatorText(page: page, data: data);
+        widget = CreatorText(page: page, data: data, buildInfo: buildInfo);
         break;
       case 'design_asset':
-        widget = CreatorDesignAsset(page: page, data: data);
+        widget = CreatorDesignAsset(page: page, data: data, buildInfo: buildInfo);
         break;
       case 'qr_code':
-        widget = QRWidget(page: page, data: data);
+        widget = QRWidget(page: page, data: data, buildInfo: buildInfo);
         break;
       case 'image':
-        widget = ImageWidget(page: page, data: data);
+        widget = ImageWidget(page: page, data: data, buildInfo: buildInfo);
         break;
       default:
         throw WidgetCreationException('Failed to build widget ${data['name']}');
@@ -625,20 +653,14 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     }
   }
 
-  void buildFromJSON(Map<String, dynamic> data) {
-    try {
-      position = Offset(data['properties']['position']['dx'], data['properties']['position']['dy']);
-      angle = data['properties']['angle'];
-      opacity = data['properties']['opacity'];
-      size = Size(data['properties']['size']['width'], data['properties']['size']['height']);
-      updateListeners(WidgetChange.misc);
-    } catch (e) {
-      analytics.logError(e);
-      throw WidgetCreationException(
-        'The widget could not be built due to some issues',
-        details: 'Failed to build widget properties from JSON: $e',
-      );
-    }
+  void buildFromJSON(Map<String, dynamic> data, {
+    required BuildInfo buildInfo
+  }) {
+    position = Offset(data['properties']['position']['dx'], data['properties']['position']['dy']);
+    angle = data['properties']['angle'];
+    opacity = data['properties']['opacity'];
+    size = Size(data['properties']['size']['width'], data['properties']['size']['height']);
+    updateListeners(WidgetChange.misc);
   }
 
 }

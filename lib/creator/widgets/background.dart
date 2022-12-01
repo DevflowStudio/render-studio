@@ -1,11 +1,12 @@
 import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/material.dart';
+import 'package:universal_io/io.dart';
 
 import '../../rehmat.dart';
 
 class BackgroundWidget extends CreatorWidget {
 
-  BackgroundWidget({required CreatorPage page, Map? data}) : super(page, data: data);
+  BackgroundWidget({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
 
   // Inherited
   final String name = 'Background';
@@ -222,12 +223,12 @@ class BackgroundWidget extends CreatorWidget {
           title: 'Image',
           tooltip: 'Tap to select an image as background',
           onTap: (context) async {
-            Asset? _asset = await Asset.pick(project, context: context, type: FileType.image, crop: true, cropRatio: project.size!.cropRatio);
-            if (_asset != null) {
-              image = _asset;
-              changeBackgroundType(BackgroundType.image);
-              updateListeners(WidgetChange.update);
-            }
+            File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: project.size!.cropRatio);
+            if (file == null) return;
+            Asset _asset = Asset.create(context, project: project, file: file, type: FileType.image);
+            image = _asset;
+            changeBackgroundType(BackgroundType.image);
+            updateListeners(WidgetChange.update);
           },
         ),
       ]
@@ -273,7 +274,8 @@ class BackgroundWidget extends CreatorWidget {
   @override
   void updateGrids({
     bool showGridLines = false,
-    bool snap = true
+    bool snap = true,
+    double? snapSensitivity,
   }) { }
 
   void changeBackgroundType(BackgroundType _type) {
@@ -317,16 +319,20 @@ class BackgroundWidget extends CreatorWidget {
   }
 
   @override
-  Map<String, dynamic> toJSON() => {
-    ... super.toJSON(),
+  Map<String, dynamic> toJSON({
+    BuildInfo buildInfo = BuildInfo.unknown
+  }) => {
+    ... super.toJSON(buildInfo: buildInfo),
     'color': color.toHex(),
     'image': image?.id,
     'gradient': _generateGradientsHex()
   };
 
   @override
-  void buildFromJSON(Map<String, dynamic> json) {
-    super.buildFromJSON(json);
+  void buildFromJSON(Map<String, dynamic> json, {
+    required BuildInfo buildInfo
+  }) {
+    super.buildFromJSON(json, buildInfo: buildInfo);
     try {
       color = HexColor.fromHex(json['color']);
       if (json['image'] != null) {
@@ -337,8 +343,8 @@ class BackgroundWidget extends CreatorWidget {
         gradient = _generateGradientsColor(json['gradient']);
         type = BackgroundType.gradient;
       }
-    } catch (e) {
-      analytics.logError(e);
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'Error building background', stacktrace: stacktrace);
       throw WidgetCreationException(
         'Failed to create background widget',
         details: 'Error: $e'

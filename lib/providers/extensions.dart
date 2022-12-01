@@ -150,3 +150,27 @@ extension StringExtension on String {
   }
 
 }
+
+extension SizeExtension on Size {
+
+  Size get half => Size(width/2, height/2);
+
+  Size get double => Size(width*2, height*2);
+
+  bool operator >(Object other) {
+    if (other is Size) {
+      return this.width > other.width && this.height > other.height;
+    } else {
+      return false;
+    }
+  }
+
+  bool operator <(Object other) {
+    if (other is Size) {
+      return this.width < other.width && this.height < other.height;
+    } else {
+      return false;
+    }
+  }
+
+}

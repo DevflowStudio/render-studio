@@ -320,7 +320,7 @@ class ButtonWithIcon extends StatefulWidget {
     this.onLongPress,
     this.child,
     this.icon,
-    required this.tooltip,
+    this.tooltip,
     this.borderRadius = 60,
     this.feedbackBorderRadius = 15,
     this.size,
@@ -332,7 +332,7 @@ class ButtonWithIcon extends StatefulWidget {
   final Function(BuildContext context)? onLongPress;
   final IconData? icon;
   final Widget? child;
-  final String tooltip;
+  final String? tooltip;
 
   final Size? size;
   final double borderRadius;
@@ -360,8 +360,7 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: widget.tooltip,
+    return tooltip(
       child: SizedBox(
         height: calculateHeight(),
         width: 60,
@@ -427,6 +426,17 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
         ),
       ),
     );
+  }
+
+  Widget tooltip({required Widget child}) {
+    if (widget.tooltip != null) {
+      return Tooltip(
+        message: widget.tooltip!,
+        child: child,
+      );
+    } else {
+      return child;
+    }
   }
 
   void reduceRadius() => setState(() => radius = widget.feedbackBorderRadius);

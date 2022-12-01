@@ -21,12 +21,14 @@ class WidgetState extends StatefulWidget {
     Key? key,
     required this.controller,
     required this.creator_widget,
-    required this.context
+    required this.context,
+    required this.page
   }) : super(key: key);
 
   final WidgetStateController controller;
   final CreatorWidget creator_widget;
   final BuildContext context;
+  final CreatorPage page;
 
   @override
   State<WidgetState> createState() => _WidgetStateState();
@@ -37,12 +39,14 @@ class _WidgetStateState extends State<WidgetState> {
   @override
   void initState() {
     widget.controller.addListener(onUpdate);
+    widget.page.addListener(onUpdate);
     super.initState();
   }
 
   @override
   void dispose() {
     widget.controller.removeListener(onUpdate);
+    widget.page.removeListener(onUpdate);
     super.dispose();
   }
 

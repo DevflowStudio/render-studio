@@ -9,6 +9,10 @@ class Environment {
     return Environment();
   }
 
-  String get iconFinderToken => dotenv.env['ICON_FINDER_AUTH_BEARER']!;
+  String get iconFinderToken => dotenv.env['ICON_FINDER_AUTH_TOKEN']!;
+
+  String get unsplashAccessKey => dotenv.env['UNSPLASH_ACCESS_KEY']!;
+
+  String get unsplashSecretKey => dotenv.env['UNSPLASH_SECRET_KEY']!;
 
 }

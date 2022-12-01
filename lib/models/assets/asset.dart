@@ -12,9 +12,7 @@ class Asset {
 
   late Project project;
 
-  late File? _file;
-
-  File get file => _file!;
+  late File file;
 
   late DateTime createdAt;
 
@@ -22,38 +20,50 @@ class Asset {
 
   late FileType type;
 
-  AssetLocation location = AssetLocation.local;
+  Future<void> Function(File file)? onCompile;
+
+  Map<String, File> history = {};
+
+  void logVersion({
+    required String version,
+    required File file
+  }) {
+    history[version] = file;
+    this.file = file;
+  }
+
+  void restoreVersion({
+    required String version
+  }) {
+    if (history.containsKey(version)) {
+      file = history[version]!;
+    } else {
+      file = history.values.last;
+    }
+  }
 
   Future<void> ensureExists() async {
-    await file.exists();
     if (!(await file.exists())) {
       throw Exception("The supporting file for this asset does not exist");
     }
-    if (location != AssetLocation.local) {
-      throw Exception("This asset has not been downloaded from the cloud. Please re-sync the project.");
-    }
   }
 
-  void updateFile(File file) {
-    _file = file;
-  }
-
-  static Future<Asset?> create(BuildContext context, {
+  static Asset create(BuildContext context, {
     required Project project,
     required File file,
     FileType type = FileType.image,
-  }) async {
-    final Directory dir = (await getApplicationDocumentsDirectory());
+    BuildInfo buildInfo = BuildInfo.unknown
+  }) {
     Asset asset = Asset();
     asset.id = Constants.generateID(4);
-    File _tempFile = await new File('${dir.path}/${project.id}/${asset.id}.${file.path.split('/').last.split('.').last}').create(recursive: true);
-    _tempFile.writeAsBytesSync(file.readAsBytesSync());
-    asset._file = await _tempFile;
+    asset.file = file;
     asset.project = project;
     asset.createdAt = DateTime.now();
     asset.extension = file.path.split('/').last.split('.').last;
     asset.type = type;
-    asset.location = AssetLocation.local;
+    if (buildInfo.version != null) asset.history = {
+      buildInfo.version!: file
+    };
     project.assetManager.add(asset);
     return asset;
   }
@@ -63,50 +73,61 @@ class Asset {
     FileType type = FileType.image,
     bool crop = false,
     CropAspectRatio? cropRatio,
+    BuildInfo buildInfo = BuildInfo.unknown
   }) async {
     File? _file = await FilePicker.pick(type: type, crop: crop, cropRatio: cropRatio, context: context);
     if (_file == null) return null;
-    Asset? asset = await Asset.create(context, project: project, file: _file);
+    Asset? asset = Asset.create(context, project: project, file: _file, buildInfo: buildInfo);
     return asset;
   }
 
   Future<void> delete() async => await file.delete();
 
-  // Future<String> _getSaveLocation() async {
-  //   final Directory dir = await getApplicationDocumentsDirectory();
-  //   return '${dir.path}/$id.json';
-  // }
+  Future<Size?> get dimensions => getDimensions(file);
 
-  Future<Size?> get dimensions async {
+  static Future<Size?> getDimensions(File file) async {
     try {
       var decodedImage = await decodeImageFromList(file.readAsBytesSync());
       return Size(decodedImage.width.toDouble(), decodedImage.height.toDouble());
-    } catch (e) {
-      analytics.logError(e);
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'Failed to get dimensions of image', stacktrace: stacktrace);
       return null;
     }
   }
 
-  Map<String, dynamic> toJSON() {
+  Future<String> compile() async {
+    await onCompile?.call(file);
+    String _path = '/Render Projects/${project.id}/Assets/${id}.${file.path.split('/').last.split('.').last}';
+    file = await pathProvider.saveToDocumentsDirectory(_path, bytes: file.readAsBytesSync());
+    return _path;
+  }
+
+  Future<Map<String, dynamic>> toJSON() async {
     return {
       'id': id,
-      'path': file.path,
+      'path': await compile(),
       'created-at': createdAt.millisecondsSinceEpoch,
       'extension': extension,
       'type': type.type,
-      'location': location.type,
     };
   }
 
-  static Asset fromJSON(Map data) {
-    Asset asset = Asset();
-    asset.id = data['id'];
-    asset.location = AssetLocationExtension.fromString(data['location']);
-    asset._file = File(data['path']);
-    asset.createdAt = DateTime.fromMillisecondsSinceEpoch(data['created-at']);
-    asset.extension = data['extension'];
-    asset.type = FileType.dynamic.fromString(data['type']);
-    return asset;
+  static Asset fromJSON(Map data, {
+    required Project project
+  }) {
+    try {
+      Asset asset = Asset();
+      asset.id = data['id'];
+      asset.file = File(pathProvider.generateRelativePath(data['path']));
+      asset.createdAt = DateTime.fromMillisecondsSinceEpoch(data['created-at']);
+      asset.extension = data['extension'];
+      asset.type = FileType.dynamic.fromString(data['type']);
+      asset.project = project;
+      return asset;
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'Failed to parse asset from JSON', stacktrace: stacktrace);
+      throw WidgetCreationException('The linked asset file could not be found.');
+    }
   }
 
   static Stream<double> downloadAndCreateAsset(BuildContext context, {
@@ -137,41 +158,60 @@ class Asset {
       } else {
         yield 0.0;
       }
-    } catch (e) {
-      analytics.logError(e);
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'Failed to download asset', stacktrace: stacktrace);
+      yield 0.0;
+    }
+  }
+
+  static Stream<double> downloadFile(BuildContext context, {
+    required String url,
+    Map<String, dynamic>? headers,
+    required Function(File? file) onDownloadComplete,
+    String? extension,
+  }) async* {
+    try {
+      Response response = await Dio().get(
+        url,
+        options: Options(
+          headers: headers,
+          responseType: ResponseType.bytes,
+          followRedirects: false,
+          validateStatus: (status) {
+            return (status ?? 200) < 500;
+          }
+        ),
+        onReceiveProgress: (int received, int total) async* {
+          yield received / total;
+        }
+      );
+      if (response.statusCode == 200) {
+        yield 1.0;
+        var tempFilePath = await getTemporaryDirectory();
+        String savePath = '${tempFilePath.path}/${Constants.generateID()}.$extension';
+        File file = await new File(savePath).create(recursive: true);
+        var raf = file.openSync(mode: FileMode.write);
+        raf.writeFromSync(response.data);
+        await raf.close();
+        onDownloadComplete(file);
+      } else {
+        yield 0.0;
+      }
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'Failed to download asset', stacktrace: stacktrace);
       yield 0.0;
     }
   }
 
 }
 
-enum AssetLocation {
-  local,
-  remote,
-}
 
-extension AssetLocationExtension on AssetLocation {
+class AssetException implements Exception {
 
-  String get type {
-    switch (this) {
-      case AssetLocation.local:
-        return 'local';
-      case AssetLocation.remote:
-        return 'remote';
-      default:
-        return 'local';
-    }
-  }
+  final String? code;
+  final String message;
+  final String? details;
 
-  static AssetLocation fromString(String type) {
-    switch (type) {
-      case 'local':
-        return AssetLocation.local;
-      case 'remote':
-        return AssetLocation.remote;
-      default:
-        return AssetLocation.local;
-    }
-  }
+  AssetException(this.message, {this.details, this.code});
 
 }

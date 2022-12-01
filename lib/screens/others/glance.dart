@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:octo_image/octo_image.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:universal_io/io.dart';
 import 'package:skeletons/skeletons.dart';
 import '../../../rehmat.dart';
@@ -46,11 +45,13 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
       ),
       body: ListView(
         children: [
-          SizedBox(height: 12,),
           Center(
             child: Container(
-              width: MediaQuery.of(context).size.width - 24,
-              height: MediaQuery.of(context).size.width - 24,
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width - 24,
+                maxHeight: MediaQuery.of(context).size.height * 0.6,
+                minWidth: MediaQuery.of(context).size.width - 24,
+              ),
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
@@ -66,14 +67,16 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
                 borderRadius: BorderRadius.circular(30),
                 child: OctoImage(
                   image: FileImage(File(glance.thumbnail ?? '')),
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: Palette.of(context).surfaceVariant,
-                    child: Icon(
-                      RenderIcons.warning,
-                      color: Colors.yellow,
-                      size: 50,
-                    )
+                  errorBuilder: (context, error, stackTrace) => SizedBox(
+                    height: MediaQuery.of(context).size.width - 24,
+                    child: Container(
+                      color: Palette.of(context).surfaceVariant,
+                      child: Icon(
+                        RenderIcons.warning,
+                        color: Colors.yellow,
+                        size: 50,
+                      )
+                    ),
                   ),
                   placeholderBuilder: (context) => SkeletonAvatar(),
                 ),
@@ -146,16 +149,16 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
                       );
                     }
                   ),
-                  TextIconButton(
-                    text: 'Share',
-                    icon: RenderIcons.share,
-                    onPressed: share
-                  ),
-                  TextIconButton(
-                    text: savedToGallery ? 'Saved' : 'Save to Gallery',
-                    icon: savedToGallery ? RenderIcons.done : RenderIcons.download,
-                    onPressed: savedToGallery ? () { } : () async => await saveToGallery()
-                  )
+                  // TextIconButton(
+                  //   text: 'Share',
+                  //   icon: RenderIcons.share,
+                  //   onPressed: share
+                  // ),
+                  // TextIconButton(
+                  //   text: savedToGallery ? 'Saved' : 'Save to Gallery',
+                  //   icon: savedToGallery ? RenderIcons.done : RenderIcons.download,
+                  //   onPressed: savedToGallery ? () { } : () async => await saveToGallery()
+                  // )
                 ],
               ),
             ),
@@ -175,29 +178,29 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
     }
   }
 
-  Future<void> share() async {
-    if (files == null) await saveToGallery();
-    await Share.shareFiles(
-      files!,
-      text: glance.title,
-      subject: glance.description,
-    );
-  }
+  // Future<void> share() async {
+  //   if (files == null) await saveToGallery();
+  //   await Share.shareFiles(
+  //     files!,
+  //     text: glance.title,
+  //     subject: glance.description,
+  //   );
+  // }
 
-  Future<void> saveToGallery() async {
-    files = [];
-    if (originalPost == null) {
-      await createOriginalPost();
-      if (originalPost == null) return;
-    }
-    await Spinner.fullscreen(
-      context,
-      task: () async {
-        savedToGallery = await originalPost!.saveToGallery();
-      }
-    );
-    setState(() { });
-  }
+  // Future<void> saveToGallery() async {
+  //   files = [];
+  //   if (originalPost == null) {
+  //     await createOriginalPost();
+  //     if (originalPost == null) return;
+  //   }
+  //   await Spinner.fullscreen(
+  //     context,
+  //     task: () async {
+  //       savedToGallery = await originalPost!.saveToGallery();
+  //     }
+  //   );
+  //   setState(() { });
+  // }
 
   Future<void> createOriginalPost() async {
     await Spinner.fullscreen(

@@ -55,6 +55,9 @@ class _ProjectIssuesState extends State<ProjectIssues> {
                     if (exception is WidgetCreationException) ListTile(
                       title: Text('Rendering Error'),
                       subtitle: Text(exception.message),
+                    ) else if (exception is AssetException) ListTile(
+                      title: Text('Asset Error'),
+                      subtitle: Text(exception.message),
                     ) else ListTile(
                       title: Text('[Unknown Issues]'),
                       subtitle: Text(exception.toString()),

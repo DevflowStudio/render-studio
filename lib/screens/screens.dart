@@ -14,6 +14,7 @@ export 'others/edit_text.dart';
 export 'others/glance.dart';
 export 'others/icon_finder.dart';
 export 'others/qr_data_editor.dart';
+export 'others/unsplash.dart';
 export 'palette/create.dart';
 export 'palette/palettes.dart';
 export 'palette/edit.dart';

@@ -58,7 +58,7 @@ class Preferences extends ChangeNotifier {
   bool get allowAnalytics => prefs.getBool('allow-analytics') ?? true;
   set allowAnalytics(bool allow) => prefs.setBool('allow-analytics', allow).then((value) => notifyListeners());
 
-  double get snapSensitivity => prefs.getDouble('snap-sensitivity') ?? 2;
+  double get snapSensitivity => prefs.getDouble('snap-sensitivity') ?? 1;
   set snapSensitivity(double sensitivity) => prefs.setDouble('snap-sensitivity', sensitivity).then((value) => notifyListeners());
 
   double get nudgeSensitivity => prefs.getDouble('nudge-sensitivity') ?? 2;

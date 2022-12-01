@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/material.dart';
 import 'package:image_pixels/image_pixels.dart';
 import 'package:octo_image/octo_image.dart';

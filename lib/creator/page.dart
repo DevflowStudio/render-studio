@@ -1,10 +1,9 @@
 import 'dart:ui';
-import 'package:universal_io/io.dart';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+import 'package:render_studio/creator/helpers/history.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
 import 'package:render_studio/creator/state.dart';
 import 'package:screenshot/screenshot.dart';
@@ -15,6 +14,7 @@ class CreatorPage extends PropertyChangeNotifier {
 
   CreatorPage({
     required this.project,
+    Map<String, dynamic>? data
   }) {
 
     if (!initialisedBackground) {
@@ -28,12 +28,19 @@ class CreatorPage extends PropertyChangeNotifier {
     ];
 
     // Create an initial history
-    history = [_getJSON()];
+    List<Map<String, dynamic>>? _data;
+    if (data != null) {
+      _data = [];
+      for (Map map in data['widgets']) {
+        _data.add(Map<String, dynamic>.from(map));
+      }
+    }
+    history = History.build(this, data: _data);
 
     // Change the selection to page's background
     _selections = [backround.uid!];
     
-    updateListeners();
+    rebuildListeners();
 
     gridState = GridState(
       page: backround,
@@ -132,25 +139,23 @@ class CreatorPage extends PropertyChangeNotifier {
   Widget build(BuildContext context) {
     return AbsorbPointer(
       absorbing: locked,
-      child: Screenshot(
-        controller: screenshotController,
-        child: SizedBox.fromSize(
-          size: project.canvasSize(context),
-          child: Stack(
-            clipBehavior: Clip.antiAlias,
-            children: [
-              ... List.generate(
-                widgets.length,
-                (index) => WidgetState(
-                  key: UniqueKey(),
-                  context: context,
-                  controller: widgets[index].stateCtrl,
-                  creator_widget: widgets[index]
-                )
-              ),
-              PageGridView(state: gridState)
-            ],
-          ),
+      child: SizedBox.fromSize(
+        size: project.canvasSize(context),
+        child: Stack(
+          clipBehavior: Clip.antiAlias,
+          children: [
+            ... List.generate(
+              widgets.length,
+              (index) => WidgetState(
+                key: UniqueKey(),
+                context: context,
+                controller: widgets[index].stateCtrl,
+                creator_widget: widgets[index],
+                page: this
+              )
+            ),
+            PageGridView(state: gridState)
+          ],
         ),
       ),
     );
@@ -186,8 +191,8 @@ class CreatorPage extends PropertyChangeNotifier {
     multiselect = false;
     widgets.add(widget);
     select(widget);
-    updateListeners();
-    _writeHistory();
+    rebuildListeners();
+    history.log();
     notifyListeners(PageChange.update);
   }
 
@@ -209,16 +214,20 @@ class CreatorPage extends PropertyChangeNotifier {
 
   /// Updates listeners for all the widgets in the page.
   /// First all the listeners are removed and then new listeners are created
-  void updateListeners() {
+  void rebuildListeners() {
     removeListeners();
     addListeners();
+  }
+
+  void updateListeners(PageChange change) {
+    notifyListeners(change);
   }
 
   /// Set the state of the page when a widget is updated.
   /// Also records history.
   void onWidgetUpdate() {
     // notifyListeners(PageChange.update);
-    _writeHistory();
+    history.log();
   }
 
   /// This method is different from `onWidgetUpdate`.
@@ -239,91 +248,18 @@ class CreatorPage extends PropertyChangeNotifier {
     multiselect = false;
     widget.onDelete();
     widgets.remove(widget);
-    _writeHistory();
+    history.log();
     select(backround);
-    updateListeners();
+    rebuildListeners();
     notifyListeners(PageChange.update);
   }
 
-  // Undo Redo Functions
-
-  int historyDate = 0;
-  late List<List<Map<String, dynamic>>> history;
-
-  bool get hasHistory => history.length > 1;
-
-  bool get undoEnabled => historyDate > 0;
-
-  bool get redoEnabled => history.length > historyDate + 1;
-
-  Function()? get undoFuntion => undoEnabled ? _undo : null;
-  Function()? get redoFuntion => redoEnabled ? _redo : null;
-
-  void _undo() {
-    multiselect = false;
-    select(backround);
-    historyDate -= 1;
-    _doFromHistory(history[historyDate]);
-    updateListeners();
-    notifyListeners(PageChange.update);
-  }
-
-  void _redo() {
-    multiselect = false;
-    select(backround);
-    historyDate += 1;
-    _doFromHistory(history[historyDate]);
-    updateListeners();
-    notifyListeners(PageChange.update);
-  }
-
-  void _writeHistory() {
-    if (history.length >= 20) history.removeAt(0);
-    if (historyDate < history.length - 1) history.removeRange(historyDate + 1, history.length);
-    List<Map<String, dynamic>> event = _getJSON();
-    Function eq =  const DeepCollectionEquality().equals;
-    if (!eq(event, history.last)) {
-      history.add(event);
-      historyDate = history.length - 1;
-    }
-    notifyListeners(PageChange.update);
-  }
-
-  List<Map<String, dynamic>> _getJSON() {
-    List<Map<String, dynamic>> jsons = [];
-    for (CreatorWidget widget in widgets) {
-      jsons.add(widget.toJSON());
-    }
-    return jsons;
-  }
-  
-  void _doFromHistory(List<Map<String, dynamic>> jsons) {
-    List<CreatorWidget> _widgets = [];
-    for (Map<String, dynamic> json in jsons) try {
-      CreatorWidget widget = CreatorWidget.fromJSON(json, page: this);
-      _widgets.add(widget);
-    } on WidgetCreationException catch (e) {
-      analytics.logError(e);
-      project.issues.add(Exception('${json['name']} failed to rebuild'));
-    }
-    widgets = _widgets;
-    backround = _widgets.where((element) => element.id == 'background').first as BackgroundWidget;
-    gridState.reset();
-    widgets.forEach((widget) {
-      widget.updateGrids();
-      widget.updateListeners(WidgetChange.misc);
-      // widget.stateCtrl.renewKey();
-    });
-    multiselect = false;
-    select(backround);
-    notifyListeners(PageChange.update);
-  }
+  late History history;
 
   /// Saves the page to a file and returns the file path
   /// 
   /// Enable [saveToGallery] to also save the exported image to the gallery
   Future<String?> save(BuildContext context, {
-    String? path,
     bool saveToGallery = false,
     bool autoExportQualtiy = true,
   }) async {
@@ -331,28 +267,28 @@ class CreatorPage extends PropertyChangeNotifier {
     locked = true;
     select(backround);
     String? _path;
-    if (path != null) {
-      _path = path;
-    } else {
-      _path = '${(await getApplicationDocumentsDirectory()).path}/Render Project ${project.id}/Thumbnail-${Constants.generateID(4)}.png';
-    }
     try {
-      Uint8List? data = await screenshotController.captureFromWidget(
+      DateTime _start = DateTime.now();
+      Uint8List bytes = await screenshotController.captureFromWidget(
         Material(
           child: build(context),
         ),
         context: context,
         pixelRatio: autoExportQualtiy ? preferences.exportQuality.pixelRatio(context) : MediaQuery.of(context).devicePixelRatio
       );
-      File file = await File(_path).create(recursive: true);
-      _path = (await file.writeAsBytes(data)).path;
-      if (saveToGallery) await ImageGallerySaver.saveFile(_path);
-    } catch (e) {
-      analytics.logError(e, cause: 'failed to save page');
+      _path = '/Render Projects/${project.id}/page-${Constants.generateID(3)}.png';
+      await pathProvider.saveToDocumentsDirectory(_path, bytes: bytes);
+      if (saveToGallery) await ImageGallerySaver.saveFile(pathProvider.generateRelativePath(_path));
+      DateTime _end = DateTime.now();
+      analytics.logProcessingTime('page_export', duration: _end.difference(_start));
+    } catch (e, stacktrace) {
+      print(stacktrace);
+      analytics.logError(e, cause: 'failed to save page', stacktrace: stacktrace);
       return null;
     }
     locked = false;
     notifyListeners(PageChange.selection);
+    print('export $_path');
     return _path;
   }
 
@@ -375,10 +311,10 @@ class CreatorPage extends PropertyChangeNotifier {
   //   }
   // }
 
-  Map<String, dynamic> toJSON() {
+  Future<Map<String, dynamic>> toJSON() async {
     List<Map<String, dynamic>> _widgets = [];
     for (var widget in widgets) {
-      _widgets.add(widget.toJSON());
+      _widgets.add(await widget.toJSON());
     }
     Map<String, dynamic> data = {
       'widgets': _widgets,
@@ -390,30 +326,32 @@ class CreatorPage extends PropertyChangeNotifier {
   /// Builds a page from scratch using the JSON data provided
   /// Returns a new `CreatorPage`
   /// Return `null` if the build fails. In this case, warn the user that this project has been corrupted
-  static CreatorPage? fromJSON(
-    Map<String, dynamic> json, {
+  static Future<CreatorPage?> fromJSON(
+    Map<String, dynamic> data, {
     required Project project,
-  }) {
+  }) async {
     try {
-      CreatorPage page = CreatorPage(project: project);
+      CreatorPage page = CreatorPage(project: project, data: data);
       List<CreatorWidget> widgets = [];
-      json['widgets'].forEach((json) {
+      data['widgets'].forEach((json) {
         try {
-          CreatorWidget _widget = CreatorWidget.fromJSON(json, page: page);
+          BuildInfo info = BuildInfo(buildType: BuildType.restore);
+          CreatorWidget _widget = CreatorWidget.fromJSON(json, page: page, buildInfo: info);
           widgets.add(_widget);
-        } on WidgetCreationException catch (e) {
+        } on WidgetCreationException catch (e, stacktrace) {
           project.issues.add(e);
+          analytics.logError(e, cause: 'failed to restore widget', stacktrace: stacktrace);
         }
       });
       page.widgets = widgets;
       page.backround = widgets.where((element) => element.id == 'background').first as BackgroundWidget;
-      page.palette = ColorPalette.fromJSON(json['palette']);
-      page.history = [page._getJSON()];
+      page.palette = ColorPalette.fromJSON(data['palette']);
+      // page.history = History.build(page);
       page.addListeners();
       page.select(page.backround);
       return page;
-    } on WidgetCreationException catch (e) {
-      analytics.logError(e, cause: 'error building page');
+    } on WidgetCreationException catch (e, stacktrace) {
+      analytics.logError(e, cause: 'error building page', stacktrace: stacktrace);
       project.issues.add(Exception('Failed to build page.'));
       return null;
     }

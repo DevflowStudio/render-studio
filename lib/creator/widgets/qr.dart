@@ -6,7 +6,7 @@ import '../../rehmat.dart';
 
 class QRWidget extends CreatorWidget {
 
-  QRWidget({required CreatorPage page, Map? data}) : super(page, data: data);
+  QRWidget({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
 
   static Future<void> create(BuildContext context, {
     required CreatorPage page
@@ -261,8 +261,10 @@ class QRWidget extends CreatorWidget {
   );
 
   @override
-  Map<String, dynamic> toJSON() => {
-    ... super.toJSON(),
+  Map<String, dynamic> toJSON({
+    BuildInfo buildInfo = BuildInfo.unknown
+  }) => {
+    ... super.toJSON(buildInfo: buildInfo),
     'data': data,
     'backgroundColor': backgroundColor.toHex(),
     'dataColor': dataColor.toHex(),
@@ -271,8 +273,10 @@ class QRWidget extends CreatorWidget {
   };
 
   @override
-  void buildFromJSON(Map<String, dynamic> json) {
-    super.buildFromJSON(json);
+  void buildFromJSON(Map<String, dynamic> json, {
+    required BuildInfo buildInfo
+  }) {
+    super.buildFromJSON(json, buildInfo: buildInfo);
 
     try {
       data = json['data'];
@@ -280,8 +284,8 @@ class QRWidget extends CreatorWidget {
       dataColor = HexColor.fromHex(json['dataColor']);
       gapless = json['gapless'];
       padding = PaddingExtension.fromJSON(json['padding']);
-    } catch (e) {
-      analytics.logError(e, cause: 'failed to build QR code');
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'failed to build QR code', stacktrace: stacktrace);
       throw WidgetCreationException(
         'Failed to render QR Code',
         details: 'Failed to render QR Code: $e',

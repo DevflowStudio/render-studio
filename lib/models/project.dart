@@ -14,13 +14,10 @@ class Project extends ChangeNotifier {
     created ??= DateTime.now();
     edited ??= DateTime.now(); // if (edited == null) edited = DateTime.now();
     deviceSize = MediaQuery.of(context).size;
-    this.context = context;
   }
 
   late final PageManager pages;
   final bool fromSaves;
-
-  late final BuildContext context;
 
   String? id;
 
@@ -96,33 +93,37 @@ class Project extends ChangeNotifier {
   /// Renders and saves each of the page as a png file to the device gallery
   ///
   /// Returns false if an issue is encountered in any of the pages
-  Future<bool> saveToGallery() async {
+  Future<bool> saveToGallery(BuildContext context) async {
     images.clear();
     for (CreatorPage page in pages.pages) {
       try {
-        images.add((await page.save(context, saveToGallery: true))!);
-      } catch (e) {
+        print(page.backround.uid);
+        String? _image = await page.save(context, saveToGallery: true);
+        if (_image != null) images.add(_image);
+      } catch (e, stacktrace) {
         issues.add(Exception('Failed to render page ${pages.pages.indexOf(page) + 1}'));
+        analytics.logError(e, cause: 'Failed to render page ${pages.pages.indexOf(page) + 1}', stacktrace: stacktrace);
       }
     }
     return issues.isEmpty;
   }
 
-  Future<Map<String, dynamic>> toJSON(BuildContext context) async {
+  Future<Map<String, dynamic>> toJSON(BuildContext context, {
+    bool saveToGallery = false
+  }) async {
 
     List<Map<String, dynamic>> pageData = [];
     for (var page in pages.pages) {
-      pageData.add(page.toJSON());
+      pageData.add(await page.toJSON());
     }
-
-    thumbnail = await pages.pages.first.save(context, saveToGallery: true, autoExportQualtiy: false);
 
     images.clear();
     for (CreatorPage page in pages.pages) {
-      String? thumbnail = await page.save(context, saveToGallery: false);
+      String? thumbnail = await page.save(context, saveToGallery: saveToGallery);
       if (thumbnail != null) images.add(thumbnail);
       else issues.add(Exception('Failed to render page ${pages.pages.indexOf(page) + 1}'));
     }
+    thumbnail = images.first;
 
     Map<String, dynamic> json = {
       'id': id,
@@ -140,7 +141,7 @@ class Project extends ChangeNotifier {
         'created': created?.millisecondsSinceEpoch,
         'edited': DateTime.now().millisecondsSinceEpoch,
       },
-      'assets': assetManager.toJSON(),
+      'assets': await assetManager.toJSON(),
     };
 
     return json;
@@ -161,8 +162,8 @@ class Project extends ChangeNotifier {
     project.edited = DateTime.fromMillisecondsSinceEpoch(data['meta']['edited']);
     project.assetManager = await AssetManager.initialize(project, data: data);
 
-    for (dynamic pageDate in data['pages']) {
-      CreatorPage? page = CreatorPage.fromJSON(Map.from(pageDate), project: project);
+    for (Map pageDate in data['pages']) {
+      CreatorPage? page = await CreatorPage.fromJSON(Map<String, dynamic>.from(pageDate), project: project);
       if (page != null) project.pages.pages.add(page);
     }
 
@@ -179,8 +180,8 @@ class Project extends ChangeNotifier {
       Map json = Map.from(box.get(id));
       Project? project = await Project.fromJSON(json, context: context);
       return project;
-    } catch (e) {
-      analytics.logError(e, cause: 'project rendering error');
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'project rendering error', stacktrace: stacktrace);
       return null;
     }
   }

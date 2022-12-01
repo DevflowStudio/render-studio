@@ -4,7 +4,7 @@ import '../../rehmat.dart';
 
 class CreatorWidgetSyntax extends CreatorWidget {
 
-  CreatorWidgetSyntax({required CreatorPage page, Map? data}) : super(page, data: data);
+  CreatorWidgetSyntax({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
 
   static Future<void> create(BuildContext context, {
     required CreatorPage page
@@ -76,17 +76,21 @@ class CreatorWidgetSyntax extends CreatorWidget {
   Widget widget(BuildContext context) => Container();
 
   @override
-  Map<String, dynamic> toJSON() => {
-    ... super.toJSON(),
+  Map<String, dynamic> toJSON({
+    BuildInfo buildInfo = BuildInfo.unknown
+  }) => {
+    ... super.toJSON(buildInfo: buildInfo),
   };
 
   @override
-  void buildFromJSON(Map<String, dynamic> json) {
-    super.buildFromJSON(json);
+  void buildFromJSON(Map<String, dynamic> json, {
+    required BuildInfo buildInfo
+  }) {
+    super.buildFromJSON(json, buildInfo: buildInfo);
     try {
       // Build properties from JSON here ...
-    } catch (e) {
-      analytics.logError(e, cause: 'Failed to build widget from JSON');
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'Failed to build widget from JSON', stacktrace: stacktrace);
       throw WidgetCreationException(
         'Error building widget',
         details: 'Error building widget: $e'
