@@ -66,6 +66,9 @@ class CreatorDesignAsset extends CreatorWidget {
           onChange: (_color) async {
             if (_color == null) return;
             color = _color;
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (color) {
             updateListeners(WidgetChange.update);
           },
         ),

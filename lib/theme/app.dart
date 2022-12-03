@@ -39,10 +39,15 @@ class AppTheme {
       popupMenuTheme: PopupMenuThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(15)),
+          side: BorderSide(
+            color: colorScheme.onSurfaceVariant.withOpacity(0.2),
+            width: 0
+          )
         ),
         textStyle: TextStyle(
           fontFamily: 'Google Sans',
-          letterSpacing: 1
+          letterSpacing: 1,
+          color: colorScheme.onSurfaceVariant
         ),
         color: colorScheme.surfaceVariant,
         enableFeedback: true,

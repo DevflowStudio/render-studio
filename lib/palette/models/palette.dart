@@ -16,38 +16,22 @@ class ColorPalette {
   late Color background;
   late Color surface;
 
-  static ColorPalette get defaultSet {
-    ColorScheme _colorScheme = ColorScheme.fromSeed(seedColor: [
-      Colors.redAccent,
-      Colors.indigoAccent,
-      Colors.yellowAccent,
-      Colors.greenAccent,
-      Colors.blueAccent,
-      Colors.purpleAccent,
-    ].getRandom());
-    ColorPalette palette = ColorPalette(
-      id: 'default',
-      colors: [
-        _colorScheme.primary,
-        _colorScheme.secondary,
-        _colorScheme.tertiary,
-        Colors.white,
-        _colorScheme.surfaceVariant,
-      ]
-    );
-    palette.primary = _colorScheme.primary;
-    palette.secondary = _colorScheme.secondary;
-    palette.tertiary = _colorScheme.tertiary;
-    palette.background = Colors.white;
-    palette.surface = _colorScheme.surfaceVariant;
-    return palette;
-  }
-
   ColorPalette({
     required this.id,
     required this.colors
   }) {
     refresh(true);
+  }
+
+  factory ColorPalette.fromColors(String id, {
+    required List<Color> colors
+  }) {
+    ColorPalette palette = ColorPalette(
+      id: id,
+      colors: colors
+    );
+    palette.refresh(true);
+    return palette;
   }
 
   static Future<ColorPalette> generate() async {
@@ -75,11 +59,10 @@ class ColorPalette {
       _colors = colorPalette.colors;
     }
 
-    ColorPalette _palette = ColorPalette(
-      id: 'color-palette-${Constants.generateID()}',
+    ColorPalette _palette = ColorPalette.fromColors(
+      'color-palette-${Constants.generateID()}',
       colors: _colors
     );
-    _palette.refresh(true);
     return _palette;
   }
 
@@ -103,14 +86,12 @@ class ColorPalette {
 
   void refresh([bool firstBuild = false]) {
     List<Color> _colors = new List.from(colors);
-    if (!firstBuild) { // Removes chances of same color being selected as background
-      List<Color> __colors = new List.from(_colors);
-      __colors.remove(background);
-      background = __colors.getRandom();
-      _colors.remove(background);
+    if (firstBuild) {
+      background = _colors.removeAt(0);
     } else {
-      background = _colors.getRandom();
-      _colors.remove(background);
+      int nextIndex = _colors.indexOf(background) + 1;
+      if (nextIndex >= _colors.length) nextIndex = 0;
+      background = _colors[nextIndex];
     }
     primary = _colors.getRandom();
     _colors.remove(primary);
@@ -156,5 +137,101 @@ class ColorPalette {
     if (other is ColorPalette && other.id == id) return true;
     return false;
   }
+
+  static ColorPalette get defaultSet => ColorPalette.fromColors(
+    '#0000',
+    colors: [
+      HexColor.fromHex('#FFFFFF'),
+      HexColor.fromHex('#FEE3C3'),
+      HexColor.fromHex('#FFE6E7'),
+      HexColor.fromHex('#838392'),
+      HexColor.fromHex('#000000'),
+    ]
+  );
+
+  static Map<String, List<ColorPalette>> collections = {
+    'From Render': [
+      ColorPalette.fromColors(
+        '#0044',
+        colors: [
+          HexColor.fromHex('#FFEDEC'),
+          HexColor.fromHex('#FEE3C3'),
+          HexColor.fromHex('#ADAAAB'),
+          HexColor.fromHex('#A68989'),
+          HexColor.fromHex('#000000'),
+        ]
+      ),
+      ColorPalette.fromColors(
+        '#0061',
+        colors: [
+          HexColor.fromHex('#F5F1F3'),
+          HexColor.fromHex('#F9A4AB'),
+          HexColor.fromHex('#AACFE2'),
+          HexColor.fromHex('#BDDE8F'),
+          HexColor.fromHex('#42635C'),
+        ]
+      ),
+      ColorPalette.fromColors(
+        '#0057',
+        colors: [
+          HexColor.fromHex('#F0F4F7'),
+          HexColor.fromHex('#D2DFFF'),
+          HexColor.fromHex('#FFCDEA'),
+          HexColor.fromHex('#838392'),
+          HexColor.fromHex('#3A3560'),
+        ]
+      ),
+      ColorPalette.fromColors(
+        '#0054',
+        colors: [
+          HexColor.fromHex('#ECEAF6'),
+          HexColor.fromHex('#D9D6DB'),
+          HexColor.fromHex('#F5E3D2'),
+          HexColor.fromHex('#423250'),
+          HexColor.fromHex('#59B89D'),
+        ]
+      ),
+      ColorPalette.fromColors(
+        '#0048',
+        colors: [
+          HexColor.fromHex('#EBE4F4'),
+          HexColor.fromHex('#FFE6E7'),
+          HexColor.fromHex('#CDE9FF'),
+          HexColor.fromHex('#6A5BE2'),
+          HexColor.fromHex('#1F1F3A'),
+        ]
+      ),
+      ColorPalette.fromColors(
+        '#0041',
+        colors: [
+          HexColor.fromHex('#F3F3FF'),
+          HexColor.fromHex('#C5DEFA'),
+          HexColor.fromHex('#E1F0F4'),
+          HexColor.fromHex('#FBC99C'),
+          HexColor.fromHex('#353739'),
+        ]
+      ),
+      ColorPalette.fromColors(
+        '#0045',
+        colors: [
+          HexColor.fromHex('#E9F3FB'),
+          HexColor.fromHex('#C3AED9'),
+          HexColor.fromHex('#84A6D3'),
+          HexColor.fromHex('#C35E9E'),
+          HexColor.fromHex('#362360'),
+        ]
+      ),
+      ColorPalette.fromColors(
+        '#0032',
+        colors: [
+          HexColor.fromHex('#E6E3E4'),
+          HexColor.fromHex('#BDD4F1'),
+          HexColor.fromHex('#BAA287'),
+          HexColor.fromHex('#7C8584'),
+          HexColor.fromHex('#121B28'),
+        ]
+      ),
+    ]
+  };
 
 }

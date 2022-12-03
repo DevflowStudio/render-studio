@@ -48,6 +48,9 @@ class CreatorText extends CreatorWidget {
             if (_color == null) return;
             this.color = _color;
             if (stroke != null) _updateStroke();
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (color) {
             updateListeners(WidgetChange.update);
           },
         ),
@@ -219,6 +222,9 @@ class CreatorText extends CreatorWidget {
           tooltip: 'Tap to select background color',
           onChange: (color) async {
             if (color != null) widgetColor = color;
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (color) {
             updateListeners(WidgetChange.update);
           },
         ),
@@ -693,14 +699,14 @@ class CreatorText extends CreatorWidget {
   }
 
   @override
-  void onResizeFinished(details, {
+  void onResizeFinished(details, handler, {
     bool updateNotify = true
   }) {
-    _removeExtraSpaceFromSize();
-    super.onResizeFinished(details);
+    _removeExtraSpaceFromSize(handler);
+    super.onResizeFinished(details, handler);
   }
 
-  void _removeExtraSpaceFromSize() {
+  void _removeExtraSpaceFromSize([ResizeHandler? handler]) {
     if (textWidget is Text) return;
     final span = TextSpan(
       style: (textWidget as AutoSizeText).style,
@@ -721,7 +727,41 @@ class CreatorText extends CreatorWidget {
     if (((_newSize.width - size.width)).abs() > 5) __size = Size(_newSize.width, __size.height);
     if (((_newSize.height - size.height)).abs() > 5) __size = Size(__size.width, _newSize.height);
     // if (__size < size) size = __size;
+    if (handler != null) _autoPositionAfterResize(handler, oldSize: size, newSize: __size);
     size = __size;
+  }
+  
+  /// Auto position after `_removeExtraSpaceFromSize()` has finished
+  /// 
+  /// Executing this provides a better experience when resizing the widget
+  void _autoPositionAfterResize(ResizeHandler handler, {
+    required Size newSize,
+    required Size oldSize
+  }) {
+    double changeInX = 0;
+    double changeInY = 0;
+
+    switch (handler) {
+      case ResizeHandler.bottomRight:
+        changeInX = (oldSize.width - newSize.width)/2;
+        changeInY = (oldSize.height - newSize.height)/2;
+        break;
+      case ResizeHandler.bottomLeft:
+        changeInX = -(oldSize.width - newSize.width)/2;
+        changeInY = (oldSize.height - newSize.height)/2;
+        break;
+      case ResizeHandler.topRight:
+        changeInX = (oldSize.width - newSize.width)/2;
+        changeInY = -(oldSize.height - newSize.height)/2;
+        break;
+      case ResizeHandler.topLeft:
+        changeInX = -(oldSize.width - newSize.width)/2;
+        changeInY = -(oldSize.height - newSize.height)/2;
+        break;
+      default:
+    }
+
+    position = Offset(position.dx - changeInX, position.dy - changeInY);
   }
 
   void _updateStroke([bool isToggling = false]) {

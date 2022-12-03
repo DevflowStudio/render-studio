@@ -257,7 +257,7 @@ class ResizeHandlerBall extends StatefulWidget {
   final CreatorWidget widget;
   final Function(Size size) onSizeChange;
   final Function(DragStartDetails details)? onResizeStart;
-  final Function(DragEndDetails details)? onResizeEnd;
+  final Function(DragEndDetails details, ResizeHandler type)? onResizeEnd;
   final bool isVisible;
   /// Set to `true` if the widget is currently being resized
   final bool isResizing;
@@ -335,7 +335,7 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
     setState(() {
       isDragging = false;
     });
-    if (widget.onResizeEnd != null) widget.onResizeEnd!(details);
+    if (widget.onResizeEnd != null) widget.onResizeEnd!(details, widget.type);
   }
 
   void _onDragCancel() => setState(() {

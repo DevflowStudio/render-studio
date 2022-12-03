@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:octo_image/octo_image.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:universal_io/io.dart';
 import 'package:skeletons/skeletons.dart';
 import '../../../rehmat.dart';
@@ -149,16 +150,16 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
                       );
                     }
                   ),
-                  // TextIconButton(
-                  //   text: 'Share',
-                  //   icon: RenderIcons.share,
-                  //   onPressed: share
-                  // ),
-                  // TextIconButton(
-                  //   text: savedToGallery ? 'Saved' : 'Save to Gallery',
-                  //   icon: savedToGallery ? RenderIcons.done : RenderIcons.download,
-                  //   onPressed: savedToGallery ? () { } : () async => await saveToGallery()
-                  // )
+                  TextIconButton(
+                    text: 'Share',
+                    icon: RenderIcons.share,
+                    onPressed: share
+                  ),
+                  TextIconButton(
+                    text: savedToGallery ? 'Saved' : 'Save to Gallery',
+                    icon: savedToGallery ? RenderIcons.done : RenderIcons.download,
+                    onPressed: savedToGallery ? () { } : () async => await saveToGallery()
+                  )
                 ],
               ),
             ),
@@ -178,29 +179,29 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
     }
   }
 
-  // Future<void> share() async {
-  //   if (files == null) await saveToGallery();
-  //   await Share.shareFiles(
-  //     files!,
-  //     text: glance.title,
-  //     subject: glance.description,
-  //   );
-  // }
+  Future<void> share() async {
+    if (files == null) await saveToGallery();
+    await Share.shareFiles(
+      files!,
+      text: glance.title,
+      subject: glance.description,
+    );
+  }
 
-  // Future<void> saveToGallery() async {
-  //   files = [];
-  //   if (originalPost == null) {
-  //     await createOriginalPost();
-  //     if (originalPost == null) return;
-  //   }
-  //   await Spinner.fullscreen(
-  //     context,
-  //     task: () async {
-  //       savedToGallery = await originalPost!.saveToGallery();
-  //     }
-  //   );
-  //   setState(() { });
-  // }
+  Future<void> saveToGallery() async {
+    files = [];
+    if (originalPost == null) {
+      await createOriginalPost();
+      if (originalPost == null) return;
+    }
+    await Spinner.fullscreen(
+      context,
+      task: () async {
+        savedToGallery = await originalPost!.saveToGallery(context);
+      }
+    );
+    setState(() { });
+  }
 
   Future<void> createOriginalPost() async {
     await Spinner.fullscreen(

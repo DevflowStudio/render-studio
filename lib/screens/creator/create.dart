@@ -184,6 +184,7 @@ class _CreateState extends State<Create> {
       message: 'Exporting...',
       task: () async {
         await manager.save(context, project: project, saveToGallery: true);
+        _lastSaved = DateTime.now();
         // await Future.delayed(const Duration(seconds: 3));
       }
     );

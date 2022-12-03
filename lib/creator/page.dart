@@ -70,8 +70,6 @@ class CreatorPage extends PropertyChangeNotifier {
 
   bool multiselect = false;
 
-  bool locked = false;
-
   ColorPalette palette = ColorPalette.defaultSet;
 
   void updatePalette(ColorPalette palette) {
@@ -137,26 +135,23 @@ class CreatorPage extends PropertyChangeNotifier {
   // BackgroundWidget get properties => BackgroundWidget(project: project, page: this);
 
   Widget build(BuildContext context) {
-    return AbsorbPointer(
-      absorbing: locked,
-      child: SizedBox.fromSize(
-        size: project.canvasSize(context),
-        child: Stack(
-          clipBehavior: Clip.antiAlias,
-          children: [
-            ... List.generate(
-              widgets.length,
-              (index) => WidgetState(
-                key: UniqueKey(),
-                context: context,
-                controller: widgets[index].stateCtrl,
-                creator_widget: widgets[index],
-                page: this
-              )
-            ),
-            PageGridView(state: gridState)
-          ],
-        ),
+    return SizedBox.fromSize(
+      size: project.canvasSize(context),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ... List.generate(
+            widgets.length,
+            (index) => WidgetState(
+              key: UniqueKey(),
+              context: context,
+              controller: widgets[index].stateCtrl,
+              creator_widget: widgets[index],
+              page: this
+            )
+          ),
+          PageGridView(state: gridState)
+        ],
       ),
     );
   }
@@ -178,8 +173,9 @@ class CreatorPage extends PropertyChangeNotifier {
       context: context,
       backgroundColor: Palette.of(context).background.withOpacity(0.5),
       barrierColor: Colors.transparent,
-      // isScrollControlled: true,
+      isScrollControlled: true,
       builder: (context) => _AddWidgetModal(),
+      enableDrag: true
     );
     if (id == null) return;
     await CreatorWidget.create(context, id: id, page: this);
@@ -264,7 +260,6 @@ class CreatorPage extends PropertyChangeNotifier {
     bool autoExportQualtiy = true,
   }) async {
     multiselect = false;
-    locked = true;
     select(backround);
     String? _path;
     try {
@@ -282,13 +277,10 @@ class CreatorPage extends PropertyChangeNotifier {
       DateTime _end = DateTime.now();
       analytics.logProcessingTime('page_export', duration: _end.difference(_start));
     } catch (e, stacktrace) {
-      print(stacktrace);
       analytics.logError(e, cause: 'failed to save page', stacktrace: stacktrace);
       return null;
     }
-    locked = false;
     notifyListeners(PageChange.selection);
-    print('export $_path');
     return _path;
   }
 
@@ -391,6 +383,10 @@ class _AddWidgetModal extends StatelessWidget {
       'title': 'Design Asset',
       'icon': RenderIcons.design_asset,
     },
+    'box': {
+      'title': 'Box',
+      'icon': RenderIcons.design_asset,
+    },
     'image': {
       'title': 'Image',
       'icon': RenderIcons.image,
@@ -400,56 +396,56 @@ class _AddWidgetModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      child: SizedBox(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-            child: GridView.builder(
-              shrinkWrap: false,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-              itemBuilder: (context, index) => GestureDetector(
-                onTap: () {
-                  Navigator.of(context).pop(widgets.keys.toList()[index]);
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Palette.of(context).surfaceVariant,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Palette.of(context).shadow.withOpacity(0.25),
-                        blurRadius: 10,
-                        offset: Offset(0, 5),
-                      ),
-                    ],
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: GridView.builder(
+          padding: EdgeInsets.only(
+            left: 6,
+            right: 6,
+            top: 6,
+            bottom: MediaQuery.of(context).padding.bottom
+          ),
+          shrinkWrap: true,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+          itemBuilder: (context, index) => GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop(widgets.keys.toList()[index]);
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Palette.of(context).surfaceVariant,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Palette.of(context).shadow.withOpacity(0.25),
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
                   ),
-                  margin: EdgeInsets.all(6),
-                  child: Column(
-                    children: [
-                      Spacer(flex: 3,),
-                      Center(
-                        child: Icon(
-                          widgets.values.elementAt(index)['icon'],
-                          size: 50,
-                        ),
-                      ),
-                      Spacer(flex: 1,),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text(
-                          widgets.values.elementAt(index)['title'],
-                          style: Theme.of(context).textTheme.headline6,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
-              itemCount: widgets.length,
+              margin: EdgeInsets.all(6),
+              child: Column(
+                children: [
+                  Spacer(flex: 3,),
+                  Center(
+                    child: Icon(
+                      widgets.values.elementAt(index)['icon'],
+                      size: 50,
+                    ),
+                  ),
+                  Spacer(flex: 1,),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      widgets.values.elementAt(index)['title'],
+                      style: Theme.of(context).textTheme.headline6,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+          itemCount: widgets.length,
         ),
       ),
     );

@@ -220,3 +220,194 @@ class _ColorToolState extends State<ColorTool> {
   ) : Container();
 
 }
+
+class ColorEditorTab extends StatefulWidget {
+
+  ColorEditorTab({
+    Key? key,
+    this.color,
+    required this.onChange,
+    this.palette
+  }) : super(key: key);
+
+  final ColorPalette? palette;
+
+  final void Function(Color color) onChange;
+
+  final Color? color;
+
+  @override
+  State<ColorEditorTab> createState() => _ColorEditorTabState();
+}
+
+class _ColorEditorTabState extends State<ColorEditorTab> {
+
+  ColorPalette? palette;
+
+  late Color color;
+
+  late List<Color> colors;
+
+  @override
+  void initState() {
+    palette = widget.palette;
+    color = widget.color ?? Colors.white;
+    colors = [];
+    if (palette != null) colors.addAll(palette!.colors);
+    colors.addAll([
+      Colors.black,
+      Colors.white,
+      Colors.grey.shade200,
+      Colors.grey.shade300,
+      Colors.grey.shade400,
+      Colors.grey.shade600,
+      Colors.grey.shade800,
+      Colors.grey.shade900,
+      Colors.brown,
+      Colors.red,
+      Colors.redAccent,
+      Colors.blue,
+      Colors.blueAccent,
+      Colors.blueGrey,
+      Colors.lightBlue,
+      Colors.lightBlueAccent,
+      Colors.green,
+      Colors.greenAccent,
+      Colors.lightGreen,
+      Colors.lightGreenAccent,
+      Colors.yellow,
+      Colors.yellowAccent,
+      Colors.orange,
+      Colors.orangeAccent,
+      Colors.pink,
+      Colors.pinkAccent,
+      Colors.purple,
+      Colors.purpleAccent,
+      Colors.indigo,
+      Colors.indigoAccent,
+      Colors.teal,
+      Colors.tealAccent,
+      Colors.cyan,
+      Colors.cyanAccent,
+      Colors.lime,
+      Colors.limeAccent,
+      Colors.amber,
+      Colors.amberAccent,
+      Colors.deepOrange,
+      Colors.deepOrangeAccent,
+      Colors.deepPurple,
+      Colors.deepPurpleAccent,
+    ]);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            bottom: 12,
+            left: 12,
+            right: 12,
+            top: 12
+          ),
+          child: Center(
+            child: SizedBox(
+              height: 100,
+              width: MediaQuery.of(context).size.width,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: ColorPickerArea(
+                  HSVColor.fromColor(color),
+                  (value) => onChange(value.toColor()),
+                  PaletteType.hsv
+                ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 40,
+          child: Row(
+            children: [
+              SizedBox(width: 12,),
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: Center(
+                  child: OutlinedIconButtons(
+                    onPressed: () async {
+                      Color? _color = await ColorTool.openTool(
+                        context,
+                        palette: palette,
+                        selection: color
+                      );
+                      if (_color != null) onChange(_color);
+                    },
+                    icon: Icon(RenderIcons.add),
+                    tooltip: 'Open Advanced Color Tool',
+                  ),
+                ),
+              ),
+              SizedBox(width: 6),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: colors.length,
+                    separatorBuilder: (context, index) {
+                      if (palette != null && index == palette!.colors.length - 1) return SizedBox(
+                        height: 40,
+                        child: VerticalDivider(
+                          width: 24,
+                          endIndent: 3,
+                          indent: 3,
+                        )
+                      );
+                      else return SizedBox(width: 6,);
+                    },
+                    itemBuilder: (context, index) => SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: colors[index],
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                            width: 0
+                          )
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            onChange(colors[index]);
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: MediaQuery.of(context).padding.bottom,
+        )
+      ],
+    );
+  }
+
+  void onChange(Color color) {
+    widget.onChange(color);
+    setState(() {
+      this.color = color;
+    });
+  }
+
+}

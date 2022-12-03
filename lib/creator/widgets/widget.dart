@@ -104,7 +104,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   late List<ResizeHandler> _defaultResizeHandlerSet;
   bool isResizing = false;
 
-  Size? previousSize;
   Size size = const Size(0, 0);
   Size? minSize;
 
@@ -132,7 +131,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }
 
   /// This method is called when the resizing of the widget is finished
-  void onResizeFinished(DragEndDetails details, {
+  void onResizeFinished(DragEndDetails details, ResizeHandler type, {
     bool updateNotify = true
   }) {
     isResizing = false;
@@ -140,7 +139,11 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     updateListeners(WidgetChange.update);
   }
 
-  void resizeByScale(double scale) {
+  /// Use this method to resize the widget using scale factor
+  /// 
+  /// For example, to resize the widget by 10%,
+  /// use `scale(1.1)`
+  void scale(double scale) {
     Size _size = Size(size.width * scale, size.height * scale);
     if (allowResize(_size)) size = _size;
     updateListeners(WidgetChange.misc);
@@ -168,8 +171,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   bool allowResize(Size _size) {
     if (_size.width < (minSize?.width ?? 10)) return false;
     if (_size.height < (minSize?.height ?? 10)) return false;
-    if (_size.width > (project.deviceSize.width - 40)) return false;
-    if (_size.height > (project.deviceSize.height - 40)) return false;
+    if (_size.width > ((project.deviceSize.width * 1.4) - 40)) return false;
+    if (_size.height > ((project.deviceSize.height * 1.4) - 40)) return false;
     return true;
   }
 
@@ -242,130 +245,133 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (!_firstBuildDont) doFirstBuild();
     bool _isSelected = isSelected();
     bool _isOnlySelected = isOnlySelected();
-    return SizedBox.fromSize(
-      size: project.contentSize(context),
-      child: Transform.rotate(
-        angle: angle,
-        child: GestureDetector(
-          behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
-          onPanStart: (details) => onGestureStart(),
-          onPanUpdate: (details) => _onGestureUpdate(details, context),
-          onPanEnd: (details) => _onGestureEnd(details, context),
-          dragStartBehavior: DragStartBehavior.down,
-          child: Stack(
-            clipBehavior: Clip.antiAlias,
-            children: [
-              AlignPositioned(
-                dx: position.dx,
-                dy: position.dy,
-                // rotateDegrees: angle,
-                child: _isSelected ? GestureDetector(
-                  onDoubleTap: () => onDoubleTap(context),
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Center(
-                      child: Container(
-                        // borderType: BorderType.RRect,
-                        // color: Colors.grey[400]!,
-                        // strokeWidth: 2,
-                        // dashPattern: [3, 0, 3],
-                        // radius: Radius.circular(5),
-                        // padding: EdgeInsets.zero,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: page.palette.background.computeThemedTextColor(180),
-                            width: 0
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              blurStyle: BlurStyle.outer,
-                              color: Colors.black.withOpacity(0.25),
-                              blurRadius: 10,
-                              spreadRadius: 0,
-                              offset: Offset(0, 0),
-                            ),
-                          ],
-                        ),
-                        child: SizedBox.fromSize(
-                          size: size,
-                          child: Opacity(
-                            opacity: opacity,
-                            child: widget(context)
-                          )
-                        )
-                      ),
-                    ),
-                  ),
-                ) : GestureDetector(
-                  onTap: () => page.select(this),
+    return Transform.rotate(
+      angle: angle,
+      child: GestureDetector(
+        behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
+        onPanStart: (details) => onGestureStart(),
+        onPanUpdate: (details) => _onGestureUpdate(details, context),
+        onPanEnd: (details) => _onGestureEnd(details, context),
+        dragStartBehavior: DragStartBehavior.down,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            AlignPositioned(
+              dx: position.dx,
+              dy: position.dy,
+              childHeight: size.height + 40,
+              childWidth: size.width + 40,
+              // rotateDegrees: angle,
+              child: _isSelected ? GestureDetector(
+                onDoubleTap: () => onDoubleTap(context),
+                child: Padding(
+                  padding: EdgeInsets.all(20),
                   child: Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(isBackgroundWidget ? 0 : 22),
+                    child: Container(
+                      // borderType: BorderType.RRect,
+                      // color: Colors.grey[400]!,
+                      // strokeWidth: 2,
+                      // dashPattern: [3, 0, 3],
+                      // radius: Radius.circular(5),
+                      // padding: EdgeInsets.zero,
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: page.palette.background.computeThemedTextColor(180),
+                          width: 0
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            blurStyle: BlurStyle.outer,
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 10,
+                            spreadRadius: 0,
+                            offset: Offset(0, 0),
+                          ),
+                        ],
+                      ),
                       child: SizedBox.fromSize(
                         size: size,
                         child: Opacity(
                           opacity: opacity,
                           child: widget(context)
                         )
-                      ),
-                    )
-                  ),
-                ),
-              ),
-          
-              if (resizeHandlers.length == 1 && isDraggable && _isOnlySelected) Builder(
-                builder: (_) {
-                  double dy = position.dy;
-                  double dx = position.dx;
-                  double positionY = dy + size.height + 15;
-                  double positionX = dx;
-          
-                  if ((positionY + 15) > project.contentSize(context).height/2) {
-                    positionY = dy - size.height - 15;
-                  }
-          
-                  return AlignPositioned(
-                    dy: positionY,
-                    dx: positionX,
-                    // rotateDegrees: angle,
-                    child: DragHandler(
-                      onPositionUpdate: (details) => _onGestureUpdate(details, context),
-                      onPositionUpdateEnd: (details) => _onGestureEnd(details, context),
-                      backgroundColor: page.palette.background.computeThemedTextColor(180),
-                      iconColor: page.palette.background,
+                      )
                     ),
-                  );
-                }
-              ),
-            
-              if (isResizable && !locked && _isOnlySelected) AlignPositioned(
-                dx: position.dx,
-                dy: position.dy,
-                // rotateDegrees: angle,
-                child: SizedBox(
-                  width: size.width + 40,
-                  height: size.height + 40,
-                  child: Stack(
-                    children: [
-                      for (ResizeHandler handler in resizeHandlers) ResizeHandlerBall(
-                        type: handler,
-                        widget: this,
-                        onSizeChange: (Size size) {
-                          this.size = size;
-                          updateListeners(WidgetChange.resize);
-                        },
-                        onResizeEnd: onResizeFinished,
-                        isResizing: isResizing,
-                        onResizeStart: (details) => onResizeStart(details: details, handler: handler),
-                        isVisible: _resizeHandlers.contains(handler),
-                      ),
-                    ],
                   ),
                 ),
-              )
+              ) : GestureDetector(
+                onTap: () => page.select(this),
+                child: Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(isBackgroundWidget ? 0 : 20),
+                    child: SizedBox.fromSize(
+                      size: size,
+                      child: Opacity(
+                        opacity: opacity,
+                        child: widget(context)
+                      )
+                    ),
+                  )
+                ),
+              ),
+            ),
+        
+            if (resizeHandlers.length == 1 && isDraggable && _isOnlySelected) Builder(
+              builder: (_) {
+                double dy = position.dy;
+                double dx = position.dx;
+                double positionY = dy + size.height + 15;
+                double positionX = dx;
+        
+                if ((positionY + 15) > project.contentSize(context).height/2) {
+                  positionY = dy - size.height - 15;
+                }
+        
+                return AlignPositioned(
+                  dy: positionY,
+                  dx: positionX,
+                  childHeight: size.height + 40,
+                  childWidth: size.width + 40,
+                  // rotateDegrees: angle,
+                  child: DragHandler(
+                    onPositionUpdate: (details) => _onGestureUpdate(details, context),
+                    onPositionUpdateEnd: (details) => _onGestureEnd(details, context),
+                    backgroundColor: page.palette.background.computeThemedTextColor(180),
+                    iconColor: page.palette.background,
+                  ),
+                );
+              }
+            ),
           
-            ],
-          ),
+            if (isResizable && !locked && _isOnlySelected) AlignPositioned(
+              dx: position.dx,
+              dy: position.dy,
+              childHeight: size.height + 40,
+              childWidth: size.width + 40,
+              // rotateDegrees: angle,
+              child: SizedBox(
+                width: size.width + 40,
+                height: size.height + 40,
+                child: Stack(
+                  children: [
+                    for (ResizeHandler handler in resizeHandlers) ResizeHandlerBall(
+                      type: handler,
+                      widget: this,
+                      onSizeChange: (Size size) {
+                        this.size = size;
+                        updateListeners(WidgetChange.resize);
+                      },
+                      onResizeEnd: onResizeFinished,
+                      isResizing: isResizing,
+                      onResizeStart: (details) => onResizeStart(details: details, handler: handler),
+                      isVisible: _resizeHandlers.contains(handler),
+                    ),
+                  ],
+                ),
+              ),
+            )
+        
+          ],
         ),
       ),
     );
@@ -623,6 +629,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       case 'image':
         widget = ImageWidget(page: page, data: data, buildInfo: buildInfo);
         break;
+      case 'box':
+        widget = CreatorBoxWidget(page: page, data: data, buildInfo: buildInfo);
+        break;
       default:
         throw WidgetCreationException('Failed to build widget ${data['name']}');
     }
@@ -647,6 +656,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         break;
       case 'image':
         ImageWidget.create(context, page: page);
+        break;
+      case 'box':
+        CreatorBoxWidget.create(context, page: page);
         break;
       default:
         break;

@@ -521,51 +521,44 @@ class EditorTab {
                 height: 150,
                 child: VerticalDivider(),
               ),
-              if (paletteManager.palettes.isNotEmpty) ... [
-                _PaletteListView(
-                  title: 'Saved',
-                  palettes: [
-                    ... paletteManager.palettes
-                  ],
-                  onSelected: onSelected,
-                  page: page,
-                ),
+              if (paletteManager.palettes.isNotEmpty) _PaletteListView(
+                title: 'Saved',
+                palettes: [
+                  ... paletteManager.palettes
+                ],
+                onSelected: onSelected,
+                page: page,
+              ),
+              for (String collectionName in ColorPalette.collections.keys) ... [
                 SizedBox(
                   height: 150,
                   child: Center(child: VerticalDivider()),
+                ),
+                _PaletteListView(
+                  title: collectionName,
+                  palettes: ColorPalette.collections[collectionName]!,
+                  onSelected: onSelected,
+                  page: page,
                 )
-              ],
-              FutureBuilder(
-                future: paletteManager.suggestions,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return _PaletteListView(
-                      title: 'Suggestion',
-                      palettes: snapshot.data as List<ColorPalette>,
-                      onSelected: onSelected,
-                      page: page,
-                    );
-                  } else {
-                    return SizedBox(
-                      height: 150,
-                      width: 100,
-                      child: Center(
-                        child: Spinner(
-                          adaptive: true,
-                        ),
-                      ),
-                    );
-                  }
-                  // return _PaletteListView(
-                  //   title: 'Suggestions',
-                  //   palettes: [
-                  //     ... List.generate(paletteManager.palettes.length < 5 ? 5 : 3, (index) => ColorPalette.offlineGenerator())
-                  //   ],
-                  // );
-                },
-              )
+              ]
             ],
           ),
+        ),
+      )
+    ]
+  );
+
+  static EditorTab color(BuildContext context, {
+    ColorPalette? palette,
+    required void Function(Color color) onChange
+  }) => EditorTab(
+    tab: 'Color',
+    type: EditorTabType.single,
+    options: [
+      Option.custom(
+        widget: (context) => ColorEditorTab(
+          onChange: onChange,
+          palette: palette,
         ),
       )
     ]

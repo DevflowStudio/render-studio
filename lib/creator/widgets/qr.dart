@@ -65,6 +65,9 @@ class QRWidget extends CreatorWidget {
           onChange: (_color) {
             if (_color == null) return;
             backgroundColor = _color;
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (color) {
             updateListeners(WidgetChange.update);
           },
         ),
@@ -75,6 +78,9 @@ class QRWidget extends CreatorWidget {
           onChange: (_color) {
             if (_color == null) return;
             dataColor = _color;
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (color) {
             updateListeners(WidgetChange.update);
           },
         ),

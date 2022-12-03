@@ -43,6 +43,15 @@ class _LabState extends State<Lab> {
                 subtitle: Text('View and create color palettes'),
                 onTap: () => AppRouter.push(context, page: MyPalettes()),
               ),
+              divider,
+              ListTile(
+                leading: Icon(RenderIcons.lab),
+                title: Text(
+                  'Custom Widgets',
+                ),
+                subtitle: Text('View and create color palettes'),
+                onTap: () => AppRouter.push(context, page: HTMLWidgetCreator()),
+              ),
             ])
           )
         ],

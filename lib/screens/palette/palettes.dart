@@ -26,56 +26,11 @@ class _MyPalettesState extends State<MyPalettes> {
               bottom: 10
             ),
             sliver: SliverToBoxAdapter(
-              child: Label(label: 'Random (Default)'),
+              child: Label(label: 'Default'),
             ),
           ),
           SliverToBoxAdapter(
             child: _PaletteViewModal(palette: ColorPalette.defaultSet),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            sliver: SliverToBoxAdapter(
-              child: Divider(),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.only(
-              left: 16,
-              bottom: 10
-            ),
-            sliver: SliverToBoxAdapter(
-              child: Label(label: 'Inspiration'),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Builder(
-              builder: (context) {
-                ColorPalette palette = ColorPalette.offlineGenerator();
-                return Slidable(
-                  endActionPane: ActionPane(
-                    motion: const ScrollMotion(),
-                    dragDismissible: false,
-                    children: [
-                      SlidableAction(
-                        onPressed: (context) async {
-                          await paletteManager.add(palette);
-                          setState(() { });
-                          Alerts.snackbar(context, text: 'Saved palette');
-                        },
-                        borderRadius: BorderRadius.horizontal(
-                          left: Radius.circular(20)
-                        ),
-                        backgroundColor: palette.primary,
-                        foregroundColor: palette.primary.computeThemedTextColor(180),
-                        icon: RenderIcons.save,
-                        label: 'Save',
-                      ),
-                    ],
-                  ),
-                  child: _PaletteViewModal(palette: palette)
-                );
-              },
-            )
           ),
           SliverPadding(
             padding: EdgeInsets.symmetric(vertical: 12),
@@ -138,7 +93,33 @@ class _MyPalettesState extends State<MyPalettes> {
                 style: Theme.of(context).textTheme.subtitle2,
               ),
             ),
-          )
+          ),
+          for (String collectionName in ColorPalette.collections.keys) ... [
+            SliverPadding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              sliver: SliverToBoxAdapter(
+                child: Divider(),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.only(
+                left: 16,
+                bottom: 4
+              ),
+              sliver: SliverToBoxAdapter(
+                child: Label(label: collectionName),
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: _PaletteViewModal(palette: ColorPalette.collections[collectionName]![index]),
+                ),
+                childCount: ColorPalette.collections[collectionName]!.length
+              )
+            ),
+          ]
         ],
       ),
       floatingActionButton: FloatingActionButton(

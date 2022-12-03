@@ -138,7 +138,10 @@ class _OutlinedIconButtonsState extends State<OutlinedIconButtons> {
         hoverColor: widget.selected ? colors.onInverseSurface.withOpacity(0.08) : colors.onSurfaceVariant.withOpacity(0.08),
         focusColor: widget.selected ? colors.onInverseSurface.withOpacity(0.12) : colors.onSurfaceVariant.withOpacity(0.12),
         highlightColor: widget.selected ? colors.onInverseSurface.withOpacity(0.12) : colors.onSurface.withOpacity(0.12),
-        side: BorderSide(color: colors.outline),
+        side: BorderSide(
+          color: colors.outline,
+          width: 0
+        ),
       ).copyWith(
         foregroundColor: MaterialStateProperty.resolveWith((Set<MaterialState> states) {
           if (states.contains(MaterialState.selected)) {

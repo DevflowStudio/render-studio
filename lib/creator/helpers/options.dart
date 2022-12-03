@@ -62,6 +62,7 @@ class Option {
     Color Function()? selected,
     ColorPalette Function()? palette,
     required Function(Color? color) onChange,
+    required Function(Color? color) onChangeEnd,
     String? title,
     IconData? icon,
     String? tooltip,
@@ -69,8 +70,16 @@ class Option {
   }) => Option.button(
     title: title ?? 'Color',
     onTap: (context) async {
-      Color? color = await AppRouter.push(context, page: ColorTool(palette: palette?.call(), selection: selected?.call(), allowClear: allowClear,));
-      if (color != null) onChange(color);
+      await EditorTab.modal(
+        context,
+        padding: EdgeInsets.zero,
+        tab: EditorTab.color(
+          context,
+          onChange: onChange,
+          palette: palette?.call(),
+        )
+      );
+      onChangeEnd(null);
     },
     icon: icon ?? RenderIcons.color,
     tooltip: tooltip ?? 'Tap to select a color',
