@@ -10,7 +10,7 @@ class CreatorWidgetSyntax extends CreatorWidget {
     required CreatorPage page
   }) async {
     CreatorWidgetSyntax widget = CreatorWidgetSyntax(page: page);
-    page.addWidget(widget);
+    page.widgets.add(widget);
   }
 
   // Inherited
@@ -43,7 +43,7 @@ class CreatorWidgetSyntax extends CreatorWidget {
           title: 'Delete',
           tooltip: 'Delete asset',
           onTap: (context) async {
-            page.delete(this);
+            page.widgets.delete(this);
           },
         ),
       ],

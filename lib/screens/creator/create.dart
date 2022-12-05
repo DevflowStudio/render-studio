@@ -78,13 +78,13 @@ class _CreateState extends State<Create> {
                   )
                   : PageView.builder(
                     controller: project.pages.controller,
-                    physics: (project.pages.current.selections.length == 1 && project.pages.current.selections.single is BackgroundWidget) ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
+                    physics: (project.pages.current.widgets.nSelections == 1 && project.pages.current.widgets.selections.single is BackgroundWidget) ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
                     onPageChanged: (value) {
                       project.pages.changePage(value);
                     },
                     itemBuilder: (context, index) => GestureDetector(
                       onTap: () {
-                        project.pages.current.select(widget.project.pages.current.backround);
+                        project.pages.current.widgets.select(widget.project.pages.current.widgets.background);
                       },
                       child: Container(
                         color: Colors.transparent,
@@ -132,7 +132,7 @@ class _CreateState extends State<Create> {
   }
 
   String? get info {
-    if (project.pages.current.multiselect) return 'Multiselect (${project.pages.current.selections.length})';
+    if (project.pages.current.widgets.multiselect) return 'Multiselect (${project.pages.current.widgets.nSelections})';
     else return null;
   }
 
@@ -221,7 +221,7 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
     project.pages.addListener(onUpdate);
     if (project.pages.pages.isEmpty) project.pages.add();
     project.pages.pages.forEach((page) {
-      page.rebuildListeners();
+      page.widgets.rebuildListeners();
     });
     super.initState();
   }
@@ -236,9 +236,9 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
   Widget build(BuildContext context) {
     return project.editorVisible
       ? (
-          project.pages.current.selections.length > 1
-            ? project.pages.current.backround.editor.build
-            : (project.pages.current.selections.firstOrNull ?? project.pages.current.backround).editor.build
+          project.pages.current.widgets.nSelections > 1
+            ? project.pages.current.widgets.background.editor.build
+            : (project.pages.current.widgets.selections.firstOrNull ?? project.pages.current.widgets.background).editor.build
         )
       : Container();
   }
@@ -268,7 +268,7 @@ class __DebugModeWidgetState extends State<_DebugModeWidget> {
   void initState() {
     project = widget.project;
     page = project.pages.current;
-    creatorWidget = page.selections.firstOrNull ?? page.backround;
+    creatorWidget = page.widgets.selections.firstOrNull ?? page.widgets.background;
     project.pages.addListener(onPageChange);
     page.addListener(onProjectPageChange);
     creatorWidget.stateCtrl.addListener(onWidgetChange);
@@ -299,7 +299,7 @@ class __DebugModeWidgetState extends State<_DebugModeWidget> {
                 fontWeight: FontWeight.w500
               ),
             ),
-            if (page.selections.length == 1) ... [
+            if (page.widgets.nSelections == 1) ... [
               Text(
                 'Selection: ${creatorWidget.id} #${creatorWidget.uid}',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
@@ -321,7 +321,7 @@ class __DebugModeWidgetState extends State<_DebugModeWidget> {
                   fontWeight: FontWeight.w500
                 ),
               ),
-            ] else if (page.selections.isEmpty) Text(
+            ] else if (page.widgets.nSelections == 0) Text(
               'No Widget Selected',
               style: Theme.of(context).textTheme.bodySmall!.copyWith(
                 color: Colors.red,
@@ -345,7 +345,7 @@ class __DebugModeWidgetState extends State<_DebugModeWidget> {
     creatorWidget.stateCtrl.removeListener(onWidgetChange);
 
     page = project.pages.current;
-    creatorWidget = page.selections.firstOrNull ?? page.backround;
+    creatorWidget = page.widgets.selections.firstOrNull ?? page.widgets.background;
 
     page.addListener(onProjectPageChange);
     creatorWidget.stateCtrl.addListener(onWidgetChange);
@@ -417,7 +417,7 @@ class _AppBarState extends State<_AppBar> {
       centerTitle: true,
       elevation: 0,
       toolbarHeight: MediaQuery.of(context).size.height * 0.07, // Toolbar can cover a maximum of 5% of the screen area
-      actions: [
+      actions: project.pages.pages.isNotEmpty ? [
         IconButton(
           onPressed: project.pages.current.history.undo,
           icon: Icon(
@@ -476,14 +476,14 @@ class _AppBarState extends State<_AppBar> {
               value: 'toggle-debug',
             ),
             PopupMenuItem(
-              child: Text('${project.pages.current.multiselect ? 'Disable ' : ''}Multiselect'),
+              child: Text('${project.pages.current.widgets.multiselect ? 'Disable ' : ''}Multiselect'),
               value: 'toggle-multiselect',
             ),
-            if (project.pages.current.selections.length > 1) PopupMenuItem(
+            if (project.pages.current.widgets.nSelections > 1) PopupMenuItem(
               child: Text('Create Group'),
               value: 'create-group',
             ),
-            if (project.pages.current.selections.length == 1 && project.pages.current.selections.single.allowClipboard) ... [
+            if (project.pages.current.widgets.nSelections == 1 && project.pages.current.widgets.selections.single.allowClipboard) ... [
               const PopupMenuItem(
                 child: Text('Duplicate'),
                 value: 'duplicate-widget',
@@ -525,13 +525,13 @@ class _AppBarState extends State<_AppBar> {
                 preferences.debugMode = !preferences.debugMode;
                 setState(() { });
                 break;
-              case 'create-group':
-                CreatorWidget? _group = await WidgetGroup.create(context, page: project.pages.current, project: project);
-                if (_group != null) project.pages.current.addWidget(_group);
-                setState(() { });
-                break;
+              // case 'create-group':
+              //   CreatorWidget? _group = await WidgetGroup.create(context, page: project.pages.current, project: project);
+              //   if (_group != null) project.pages.current.addWidget(_group);
+              //   setState(() { });
+              //   break;
               case 'toggle-multiselect':
-                project.pages.current.toggleMultiselect();
+                project.pages.current.widgets.multiselect = !project.pages.current.widgets.multiselect;
                 setState(() { });
                 break;
               case 'duplicate-widget':
@@ -543,8 +543,8 @@ class _AppBarState extends State<_AppBar> {
                 break;
               case 'cut-widget':
                 copyToClipboard();
-                project.pages.current.delete(project.pages.current.selections.single);
-                project.pages.current.select(project.pages.current.backround);
+                project.pages.current.widgets.delete(project.pages.current.widgets.selections.single);
+                project.pages.current.widgets.select(project.pages.current.widgets.background);
                 setState(() { });
                 break;
               case 'paste-widget':
@@ -564,13 +564,13 @@ class _AppBarState extends State<_AppBar> {
             }
           },
         )
-      ],
+      ] : [],
     );
   }
 
   void copyToClipboard() {
     try {
-      clipboard = project.pages.current.selections.single.duplicate();
+      clipboard = project.pages.current.widgets.selections.single.duplicate();
       setState(() { });
     } on WidgetCreationException catch (e, stacktrace) {
       analytics.logError(e, cause: 'copyToClipboard failed', stacktrace: stacktrace);
@@ -580,7 +580,7 @@ class _AppBarState extends State<_AppBar> {
 
   void pasteWidget() {
     if (clipboard == null) return;
-    project.pages.current.addWidget(clipboard!);
+    project.pages.current.widgets.add(clipboard!);
     clipboard = null;
     setState(() { });
     Alerts.snackbar(context, text: 'Added Widget From Clipboard');

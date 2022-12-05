@@ -32,9 +32,13 @@ class Option {
   static Option toggle({
     Key? key,
     required String title,
+    // Title to display when the toggle is off
+    String? disabledTitle,
     required bool Function() valueBuilder,
     required Function(bool value) onChange,
+    /// The icon to display when the toggle is enabled
     required IconData enabledIcon,
+    /// The icon to display when the toggle is disabled
     required IconData disabledIcon,
     required String enabledTooltip,
     required String disabledTooltip,
@@ -43,6 +47,7 @@ class Option {
     widget: (context) => ToggleIconButton(
       key: key,
       title: title,
+      disabledTitle: disabledTitle,
       disabledIcon: disabledIcon,
       enabledIcon: enabledIcon,
       onChange: onChange,

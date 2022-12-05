@@ -29,20 +29,18 @@ class History {
   bool get redoEnabled => dates.length > date + 1;
 
   void _undo() {
-    page.multiselect = false;
-    page.select(page.backround);
+    page.widgets.select();
     date -= 1;
     restore(date);
-    page.rebuildListeners();
+    page.widgets.rebuildListeners();
     page.updateListeners(PageChange.update);
   }
 
   void _redo() {
-    page.multiselect = false;
-    page.select(page.backround);
+    page.widgets.select();
     date += 1;
     restore(date);
-    page.rebuildListeners();
+    page.widgets.rebuildListeners();
     page.updateListeners(PageChange.update);
   }
 
@@ -91,34 +89,11 @@ class HistoryDate {
   }
 
   void restore() {
-    List<CreatorWidget> _widgets = [];
-    for (Map<String, dynamic> _data in data) try {
-      CreatorWidget widget = CreatorWidget.fromJSON(_data, page: page, buildInfo: generateBuildInfo());
-      _widgets.add(widget);
-    } on WidgetCreationException catch (e, stacktrace) {
-      analytics.logError(e, cause: 'could not restore history', stacktrace: stacktrace);
-      page.project.issues.add(Exception('${_data['name']} failed to rebuild'));
-    }
-    page.widgets = _widgets;
-    page.backround = _widgets.where((element) => element.id == 'background').first as BackgroundWidget;
-    page.gridState.reset();
-    page.widgets.forEach((widget) {
-      widget.updateGrids();
-      widget.updateListeners(WidgetChange.misc);
-      // widget.stateCtrl.renewKey();
-    });
-    page.multiselect = false;
-    page.select(page.backround);
-    page.updateListeners(PageChange.update);
+    page.widgets.restoreHistory(data);
   }
 
   static List<Map<String, dynamic>> _getJSON(CreatorPage page) {
-    List<Map<String, dynamic>> jsons = [];
-    for (CreatorWidget widget in page.widgets) {
-      jsons.add(widget.toJSON(
-        buildInfo: BuildInfo(buildType: BuildType.history)
-      ));
-    }
+    List<Map<String, dynamic>> jsons = page.widgets.toJSON();
     return jsons;
   }
 

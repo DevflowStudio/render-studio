@@ -1,11 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:render_studio/creator/helpers/history.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
-import 'package:render_studio/creator/state.dart';
+import 'package:render_studio/creator/helpers/widget_manager.dart';
 import 'package:screenshot/screenshot.dart';
 
 import '../rehmat.dart';
@@ -17,15 +16,12 @@ class CreatorPage extends PropertyChangeNotifier {
     Map<String, dynamic>? data
   }) {
 
-    if (!initialisedBackground) {
-      backround = BackgroundWidget(page: this);
-      initialisedBackground = true;
-    }
+    gridState = GridState(
+      project: project
+    );
 
     // Add the background to page
-    widgets = [
-      backround
-    ];
+    widgets = WidgetManager.create(this, data: data);
 
     // Create an initial history
     List<Map<String, dynamic>>? _data;
@@ -36,100 +32,24 @@ class CreatorPage extends PropertyChangeNotifier {
       }
     }
     history = History.build(this, data: _data);
-
-    // Change the selection to page's background
-    _selections = [backround.uid!];
-    
-    rebuildListeners();
-
-    gridState = GridState(
-      page: backround,
-      project: project
-    );
     
   }
 
   ScreenshotController screenshotController = ScreenshotController();
-
-  /// Background widget for the page
-  late BackgroundWidget backround;
-  bool initialisedBackground = false;
   
   final Project project;
 
   /// List of all the widgets in the page
-  late List<CreatorWidget> widgets;
+  late WidgetManager widgets;
 
   late GridState gridState;
-
-  /// Display any important information as a chip
-  // String? info = 'Multiselect Enabled';
-
-  /// List of uid(s) of selected widgets
-  late List<String> _selections;
-
-  bool multiselect = false;
 
   ColorPalette palette = ColorPalette.defaultSet;
 
   void updatePalette(ColorPalette palette) {
     this.palette = palette;
-    for (CreatorWidget widget in widgets) {
-      widget.onPaletteUpdate();
-    }
+    widgets.forEach((widget) => widget.onPaletteUpdate());
     notifyListeners();
-  }
-
-  void toggleMultiselect() {
-    if (multiselect) {
-      // Disable
-      _selections = [backround.uid!];
-      multiselect = false;
-    } else {
-      // Enable
-      if (selections.firstWhereOrNull((element) => element is BackgroundWidget) != null) _selections.clear();
-      multiselect = true;
-    }
-    notifyListeners();
-  }
-
-  /// Widget which is currently selected
-  /// The currently selected widget has a border around it and some drag balls to resize
-  List<CreatorWidget> get selections {
-    List<CreatorWidget> _results = widgets.where((widget) => _selections.contains(widget.uid)).toList();
-    if (_results.isEmpty) {
-      return [];
-    } else {
-      return _results;
-    }
-  }
-
-  bool isSelected(CreatorWidget widget) {
-    return _selections.contains(widget.uid);
-  }
-  
-  void select(CreatorWidget widget) {
-    if (multiselect) {
-      if (widget is BackgroundWidget) {
-        _selections = [widget.uid!];
-        multiselect = false;
-      } else {
-        if (isSelected(widget)) {
-          _selections.remove(widget.uid);
-        } else {
-          _selections.add(widget.uid!);
-        }
-      }
-    } else {
-      _selections = [widget.uid!];
-    }
-    gridState.grids.removeWhere((grid) => grid.widget is! BackgroundWidget);
-    for (var widget in widgets) {
-      widget.updateGrids();
-    }
-    gridState.visible.clear();
-    widget.stateCtrl.update();
-    notifyListeners(PageChange.selection);
   }
 
   // BackgroundWidget get properties => BackgroundWidget(project: project, page: this);
@@ -140,16 +60,7 @@ class CreatorPage extends PropertyChangeNotifier {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          ... List.generate(
-            widgets.length,
-            (index) => WidgetState(
-              key: UniqueKey(),
-              context: context,
-              controller: widgets[index].stateCtrl,
-              creator_widget: widgets[index],
-              page: this
-            )
-          ),
+          ... widgets.build(context),
           PageGridView(state: gridState)
         ],
       ),
@@ -181,73 +92,14 @@ class CreatorPage extends PropertyChangeNotifier {
     await CreatorWidget.create(context, id: id, page: this);
   }
 
-  /// Adds the given widget to the page
-  void addWidget(CreatorWidget widget) {
-    // Add a listener for that widget here
-    multiselect = false;
-    widgets.add(widget);
-    select(widget);
-    rebuildListeners();
-    history.log();
-    notifyListeners(PageChange.update);
-  }
-
-  /// Adds listener for every widget
-  void addListeners() {
-    for (CreatorWidget widget in widgets) {
-      widget.addListener(onWidgetUpdate, [WidgetChange.update]);
-      widget.addListener(onWidgetNotReallyUpdate, [WidgetChange.resize, WidgetChange.drag, WidgetChange.rotate, WidgetChange.misc]);
-    }
-  }
-
-  /// Removes listener for every single widget
-  void removeListeners() {
-    for (CreatorWidget widget in widgets) {
-      widget.removeListener(onWidgetUpdate, [WidgetChange.update]);
-      widget.removeListener(onWidgetNotReallyUpdate, [WidgetChange.resize, WidgetChange.drag, WidgetChange.rotate, WidgetChange.misc]);
-    }
-  }
-
-  /// Updates listeners for all the widgets in the page.
-  /// First all the listeners are removed and then new listeners are created
-  void rebuildListeners() {
-    removeListeners();
-    addListeners();
-  }
-
   void updateListeners(PageChange change) {
     notifyListeners(change);
   }
 
-  /// Set the state of the page when a widget is updated.
-  /// Also records history.
-  void onWidgetUpdate() {
-    // notifyListeners(PageChange.update);
-    history.log();
-  }
-
-  /// This method is different from `onWidgetUpdate`.
-  /// This is called when the widget is dragged, resized or rotated.
-  /// This has to be separated because it does not record history.
-  void onWidgetNotReallyUpdate() {
-    // notifyListeners(PageChange.update);
-  }
-
   @override
   void dispose() {
-    removeListeners();
+    widgets.dispose();
     super.dispose();
-  }
-
-  /// Delete widget from page
-  void delete(CreatorWidget widget) {
-    multiselect = false;
-    widget.onDelete();
-    widgets.remove(widget);
-    history.log();
-    select(backround);
-    rebuildListeners();
-    notifyListeners(PageChange.update);
   }
 
   late History history;
@@ -259,8 +111,7 @@ class CreatorPage extends PropertyChangeNotifier {
     bool saveToGallery = false,
     bool autoExportQualtiy = true,
   }) async {
-    multiselect = false;
-    select(backround);
+    widgets.select();
     String? _path;
     try {
       DateTime _start = DateTime.now();
@@ -303,17 +154,10 @@ class CreatorPage extends PropertyChangeNotifier {
   //   }
   // }
 
-  Future<Map<String, dynamic>> toJSON() async {
-    List<Map<String, dynamic>> _widgets = [];
-    for (var widget in widgets) {
-      _widgets.add(await widget.toJSON());
-    }
-    Map<String, dynamic> data = {
-      'widgets': _widgets,
-      'palette': palette.toJSON(),
-    };
-    return data;
-  }
+  Map<String, dynamic> toJSON() => {
+    'widgets': widgets.toJSON(),
+    'palette': palette.toJSON(),
+  };
 
   /// Builds a page from scratch using the JSON data provided
   /// Returns a new `CreatorPage`
@@ -324,23 +168,7 @@ class CreatorPage extends PropertyChangeNotifier {
   }) async {
     try {
       CreatorPage page = CreatorPage(project: project, data: data);
-      List<CreatorWidget> widgets = [];
-      data['widgets'].forEach((json) {
-        try {
-          BuildInfo info = BuildInfo(buildType: BuildType.restore);
-          CreatorWidget _widget = CreatorWidget.fromJSON(json, page: page, buildInfo: info);
-          widgets.add(_widget);
-        } on WidgetCreationException catch (e, stacktrace) {
-          project.issues.add(e);
-          analytics.logError(e, cause: 'failed to restore widget', stacktrace: stacktrace);
-        }
-      });
-      page.widgets = widgets;
-      page.backround = widgets.where((element) => element.id == 'background').first as BackgroundWidget;
       page.palette = ColorPalette.fromJSON(data['palette']);
-      // page.history = History.build(page);
-      page.addListeners();
-      page.select(page.backround);
       return page;
     } on WidgetCreationException catch (e, stacktrace) {
       analytics.logError(e, cause: 'error building page', stacktrace: stacktrace);

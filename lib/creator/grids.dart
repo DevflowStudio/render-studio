@@ -6,10 +6,10 @@ import '../rehmat.dart';
 
 class GridState extends ChangeNotifier {
 
-  final CreatorWidget page;
+  // final CreatorWidget page;
   final Project project;
 
-  GridState({required this.project, required this.page}) {
+  GridState({required this.project}) {
     _addBackgroundGrids();
   }
   
@@ -28,7 +28,6 @@ class GridState extends ChangeNotifier {
         position: const Offset(0, 0),
         color: Colors.red,
         layout: GridLayout.vertical,
-        widget: page,
         project: project,
         gridWidgetPlacement: GridWidgetPlacement.centerVertical
       ),
@@ -36,7 +35,6 @@ class GridState extends ChangeNotifier {
         position: const Offset(0, 0),
         color: Colors.red,
         layout: GridLayout.horizontal,
-        widget: page,
         project: project,
         gridWidgetPlacement: GridWidgetPlacement.centerHorizontal
       )
@@ -51,7 +49,7 @@ class Grid {
     required this.position,
     required this.color,
     required this.layout,
-    required this.widget,
+    this.widget,
     required this.project,
     required this.gridWidgetPlacement
   });
@@ -70,7 +68,7 @@ class Grid {
   final GridLayout layout;
 
   /// The widget for which the grid has been created
-  final CreatorWidget widget;
+  final CreatorWidget? widget;
 
   final Project project;
 

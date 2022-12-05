@@ -13,7 +13,6 @@ class IconFinder extends ChangeNotifier {
       'Travel',
       'Art',
     ].getRandom());
-    isLoading = false;
     notifyListeners();
   }
 

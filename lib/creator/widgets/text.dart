@@ -10,7 +10,7 @@ class CreatorText extends CreatorWidget {
   static Future<void> create(BuildContext context, {
     required CreatorPage page
   }) async {
-    page.addWidget(CreatorText(page: page));
+    page.widgets.add(CreatorText(page: page));
   }
   
   @override
@@ -37,7 +37,7 @@ class CreatorText extends CreatorWidget {
           title: 'Delete',
           tooltip: 'Delete Text Widget',
           onTap: (context) async {
-            page.delete(this);
+            page.widgets.delete(this);
           },
         ),
         Option.color(
@@ -57,7 +57,7 @@ class CreatorText extends CreatorWidget {
         Option.toggle(
           title: 'Auto Size',
           valueBuilder: () {
-            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).autoSize;
+            return (page.widgets.get(uid) as CreatorText).autoSize;
           },
           onChange: (value) {
             autoSize = value;
@@ -131,7 +131,7 @@ class CreatorText extends CreatorWidget {
         Option.toggle(
           title: 'Bold',
           valueBuilder: () {
-            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).bold;
+            return (page.widgets.get(uid) as CreatorText).bold;
           },
           onChange: (value) {
             bold = value;
@@ -146,7 +146,7 @@ class CreatorText extends CreatorWidget {
         Option.toggle(
           title: 'Italics',
           valueBuilder: () {
-            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).italics;
+            return (page.widgets.get(uid) as CreatorText).italics;
           },
           onChange: (value) {
             italics = value;
@@ -160,7 +160,7 @@ class CreatorText extends CreatorWidget {
         Option.toggle(
           title: 'Underline',
           valueBuilder: () {
-            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).underline;
+            return (page.widgets.get(uid) as CreatorText).underline;
           },
           onChange: (value) {
             underline = value;
@@ -176,7 +176,7 @@ class CreatorText extends CreatorWidget {
         Option.toggle(
           title: 'Strikethough',
           valueBuilder: () {
-            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).strikethrough;
+            return (page.widgets.get(uid) as CreatorText).strikethrough;
           },
           onChange: (value) {
             strikethrough = value;
@@ -190,7 +190,7 @@ class CreatorText extends CreatorWidget {
         Option.toggle(
           title: 'Overline',
           valueBuilder: () {
-            return (page.widgets.singleWhere((element) => element.uid == uid) as CreatorText).overline;
+            return (page.widgets.get(uid) as CreatorText).overline;
           },
           onChange: (value) {
             overline = value;

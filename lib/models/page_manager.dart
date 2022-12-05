@@ -56,7 +56,7 @@ class PageManager extends PropertyChangeNotifier {
 
   void _removeListeners() {
     for (var page in pages) {
-      page.removeListeners();
+      page.widgets.removeListeners();
     }
   }
 

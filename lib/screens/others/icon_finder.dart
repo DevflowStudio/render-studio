@@ -41,7 +41,8 @@ class _IconFinderScreenState extends State<IconFinderScreen> {
       body: CustomScrollView(
         slivers: [
           RenderAppBar(
-            title: Text('Icons')
+            title: Text('Icons'),
+            isExpandable: false,
           ),
           SliverToBoxAdapter(
             child: Padding(

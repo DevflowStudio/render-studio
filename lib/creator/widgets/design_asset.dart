@@ -15,7 +15,7 @@ class CreatorDesignAsset extends CreatorWidget {
     Asset? _asset = await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
     if (_asset == null) return null;
     designAsset.asset = _asset;
-    page.addWidget(designAsset);
+    page.widgets.add(designAsset);
   }
 
   // Inherited
@@ -77,7 +77,7 @@ class CreatorDesignAsset extends CreatorWidget {
           title: 'Delete',
           tooltip: 'Delete asset',
           onTap: (context) async {
-            page.delete(this);
+            page.widgets.delete(this);
           },
         ),
       ],

@@ -23,7 +23,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     Map? data,
     BuildInfo buildInfo = BuildInfo.unknown,
   }) {
-    uid ??= Constants.generateID(6);
+    uid = Constants.generateID(6);
     project = page.project;
     _defaultResizeHandlerSet = _resizeHandlers = resizeHandlers;
     stateCtrl = WidgetStateController(this);
@@ -52,7 +52,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   late WidgetStateController stateCtrl;
 
-  String? uid;
+  late String uid;
 
   final CreatorPage page;
 
@@ -187,7 +187,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   final bool isDraggable = true;
 
   void updatePosition(DragUpdateDetails details) {
-    if (!isDraggable || page.multiselect) return;
+    if (!isDraggable) return;
     position = position + details.delta;
     bool snap = details.delta.dx.isBetween(-preferences.snapSensitivity, preferences.snapSensitivity);
     if (angle == 0) updateGrids(showGridLines: true, snap: snap);
@@ -195,12 +195,12 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }
 
   void _onGestureUpdate(DragUpdateDetails details, BuildContext context) {
-    if (isDraggable && !page.multiselect) updatePosition(details);
+    if (isDraggable) updatePosition(details);
     updateListeners(WidgetChange.misc);
   }
 
   void _onGestureEnd(DragEndDetails details, BuildContext context) {
-    page.select(this);
+    if (!page.widgets.multiselect) page.widgets.select(this);
     // updatePosition(Offset(position.dx, position.dy));
     onDragFinish(context);
   }
@@ -227,9 +227,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   void onDoubleTap(BuildContext context) {}
 
-  bool isSelected() => page.isSelected(this);
+  bool isSelected() => page.widgets.isSelected(this);
 
-  bool isOnlySelected() => page.isSelected(this) && page.selections.length == 1;
+  bool isOnlySelected() => page.widgets.isSelected(this) && page.widgets.selections.length == 1;
 
   /// ###
 
@@ -246,6 +246,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     bool _isSelected = isSelected();
     bool _isOnlySelected = isOnlySelected();
     return Transform.rotate(
+      key: ValueKey<String>(uid),
       angle: angle,
       child: GestureDetector(
         behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
@@ -300,7 +301,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
                   ),
                 ),
               ) : GestureDetector(
-                onTap: () => page.select(this),
+                onTap: () => page.widgets.select(this),
                 child: Center(
                   child: Padding(
                     padding: EdgeInsets.all(isBackgroundWidget ? 0 : 20),

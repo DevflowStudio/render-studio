@@ -97,7 +97,6 @@ class Project extends ChangeNotifier {
     images.clear();
     for (CreatorPage page in pages.pages) {
       try {
-        print(page.backround.uid);
         String? _image = await page.save(context, saveToGallery: true);
         if (_image != null) images.add(_image);
       } catch (e, stacktrace) {

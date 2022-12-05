@@ -48,7 +48,8 @@ class _UnsplashImagePickerState extends State<UnsplashImagePicker> {
       body: CustomScrollView(
         slivers: [
           RenderAppBar(
-            title: Text('Unsplash')
+            title: Text('Unsplash'),
+            isExpandable: false,
           ),
           SliverToBoxAdapter(
             child: Padding(

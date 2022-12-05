@@ -24,7 +24,7 @@ class ImageWidget extends CreatorWidget {
     Asset _asset = await Asset.create(context, project: page.project, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
     image.asset = _asset;
     await image.resizeByImage();
-    page.addWidget(image);
+    page.widgets.add(image);
   }
 
   // Inherited
@@ -140,7 +140,7 @@ class ImageWidget extends CreatorWidget {
           title: 'Delete',
           tooltip: 'Delete asset',
           onTap: (context) async {
-            page.delete(this);
+            page.widgets.delete(this);
           },
         ),
       ],

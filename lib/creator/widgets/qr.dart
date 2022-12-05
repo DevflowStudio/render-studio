@@ -20,7 +20,7 @@ class QRWidget extends CreatorWidget {
     );
     if (_data == null) return;
     qr.data = _data;
-    page.addWidget(qr);
+    page.widgets.add(qr);
   }
 
   // Inherited
@@ -89,7 +89,7 @@ class QRWidget extends CreatorWidget {
           title: 'Delete',
           tooltip: 'Delete Widget',
           onTap: (context) async {
-            page.delete(this);
+            page.widgets.delete(this);
           },
         ),
       ],
@@ -118,7 +118,7 @@ class QRWidget extends CreatorWidget {
         Option.toggle(
           title: 'Gapless',
           valueBuilder: () {
-            return (page.widgets.singleWhere((element) => element.uid == uid) as QRWidget).gapless;
+            return (page.widgets.get(uid) as QRWidget).gapless;
           },
           onChange: (value) {
             gapless = value;

@@ -461,6 +461,7 @@ class ToggleIconButton extends StatefulWidget {
   ToggleIconButton({
     Key? key,
     required this.title,
+    this.disabledTitle,
     required this.valueBuilder,
     required this.enabledIcon,
     required this.disabledIcon,
@@ -471,6 +472,7 @@ class ToggleIconButton extends StatefulWidget {
 
   final bool Function() valueBuilder;
   final String title;
+  final String? disabledTitle;
   final IconData enabledIcon;
   final IconData disabledIcon;
   final void Function(bool value) onChange;
@@ -507,7 +509,7 @@ class _ToggleIconButton extends State<ToggleIconButton> {
         setState(() { });
       },
       tooltip: (value ? widget.enabledTooltip : widget.disabledTooltip) ?? 'Toggle',
-      title: widget.title,
+      title: value ? widget.title : widget.disabledTitle ?? widget.title,
     );
   }
 
