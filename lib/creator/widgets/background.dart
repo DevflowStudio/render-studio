@@ -206,7 +206,7 @@ class BackgroundWidget extends CreatorWidget {
                       if (gradient == null) return;
                       if (gradient!.length < 2) {
                         changeBackgroundType(BackgroundType.color);
-                        Alerts.snackbar(context, text: 'Gradient must have atleast 2 colors');
+                        Alerts.snackbar(context, text: 'Gradient must have at least 2 colors');
                       }
                       updateListeners(WidgetChange.update);
                     },

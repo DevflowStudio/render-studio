@@ -418,7 +418,7 @@ class ImageWidget extends CreatorWidget {
           child: Stack(
             children: [
               Container(
-                // color: page.backround.color.withOpacity(0.5),
+                // color: page.background.color.withOpacity(0.5),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [

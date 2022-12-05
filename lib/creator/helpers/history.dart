@@ -92,9 +92,6 @@ class HistoryDate {
     page.widgets.restoreHistory(data);
   }
 
-  static List<Map<String, dynamic>> _getJSON(CreatorPage page) {
-    List<Map<String, dynamic>> jsons = page.widgets.toJSON();
-    return jsons;
-  }
+  static List<Map<String, dynamic>> _getJSON(CreatorPage page) => page.widgets.toJSON();
 
 }

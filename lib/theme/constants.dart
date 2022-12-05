@@ -34,9 +34,9 @@ class Constants {
 
   static Duration get animationDuration => const Duration(milliseconds: 200);
 
-  // static double get snapSenstivity => 5;
+  // static double get snapSensitivity => 5;
 
-  static double get nudgeSenstivity => 2;
+  static double get nudgeSensitivity => 2;
 
   static double get appBarExpandedHeight => 150;
 
@@ -167,7 +167,7 @@ final List<String> months = [
   'September',
   'October',
   'November',
-  'Decemeber'
+  'December'
 ];
 
 String getTimeAgo(DateTime date, {bool includeHour = false}) {

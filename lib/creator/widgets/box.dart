@@ -281,7 +281,7 @@ class CreatorBoxWidget extends CreatorWidget {
             );
           },
           icon: Icons.border_all,
-          tooltip: 'Customise the border',
+          tooltip: 'Customize the border',
         ),
         Option.button(
           title: 'Radius',

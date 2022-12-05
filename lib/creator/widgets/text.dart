@@ -174,7 +174,7 @@ class CreatorText extends CreatorWidget {
           enabledTooltip: 'Remove underline formatting',
         ),
         Option.toggle(
-          title: 'Strikethough',
+          title: 'Strikethrough',
           valueBuilder: () {
             return (page.widgets.get(uid) as CreatorText).strikethrough;
           },

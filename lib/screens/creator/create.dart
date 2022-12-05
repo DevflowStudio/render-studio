@@ -10,10 +10,10 @@ class Create extends StatefulWidget {
   final Project project;
 
   @override
-  _CreateState createState() => _CreateState();
+  background createState() => background();
 }
 
-class _CreateState extends State<Create> {
+class background extends State<Create> {
 
   late Project project;
 
@@ -141,7 +141,7 @@ class _CreateState extends State<Create> {
   //   child: GestureDetector(
   //     behavior: HitTestBehavior.translucent,
   //     onTap: () {
-  //       project.pages.current.select(project.pages.current.backround);
+  //       project.pages.current.select(project.pages.current.background);
   //     },
   //     child: Container(
   //       color: Colors.transparent

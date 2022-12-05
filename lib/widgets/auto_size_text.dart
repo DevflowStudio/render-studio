@@ -173,7 +173,7 @@ class AutoSizeText extends StatefulWidget {
   /// Is being ignored if [presetFontSizes] is set.
   final double stepGranularity;
 
-  /// Predefines all the possible font sizes.
+  /// Predefine all the possible font sizes.
   ///
   /// **Important:** PresetFontSizes have to be in descending order.
   final List<double>? presetFontSizes;

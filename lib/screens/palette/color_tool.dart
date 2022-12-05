@@ -128,7 +128,7 @@ class _ColorToolState extends State<ColorTool> {
           SizedBox(height: 60),
           wheel,
           slider,
-          paletterColors,
+          paletteColors,
         ],
       ),
     );
@@ -175,7 +175,7 @@ class _ColorToolState extends State<ColorTool> {
     ),
   );
 
-  Widget get paletterColors => (widget.palette != null) ? Padding(
+  Widget get paletteColors => (widget.palette != null) ? Padding(
     padding: EdgeInsets.symmetric(vertical: 0),
     child: Wrap(
       spacing: 12,

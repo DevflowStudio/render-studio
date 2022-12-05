@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-extension ListsEntenstion<T> on List<T> {
+extension ListsExtension<T> on List<T> {
 
   T getRandom() {
     int lth = length;
@@ -9,8 +9,8 @@ extension ListsEntenstion<T> on List<T> {
     return this[random];
   }
 
-  List<T> maybeReverse([bool reverese = true]) {
-    return reverese ? this.reversed.toList() : this;
+  List<T> maybeReverse([bool reverse = true]) {
+    return reverse ? this.reversed.toList() : this;
   }
 
   T? indexOrNull(int index) =>  index + 1 <= this.length ? this[index] : null;

@@ -174,13 +174,11 @@ class WidgetManager {
   /// }
   /// ```
   List<Map<String, dynamic>> toJSON() {
-    List<Map<String, dynamic>> jsons = [];
+    List<Map<String, dynamic>> widgetData = [];
     for (CreatorWidget widget in _widgets.values) {
-      jsons.add(widget.toJSON());
+      widgetData.add(widget.toJSON());
     }
-    return [
-      ... jsons
-    ];
+    return widgetData;
   }
 
   /// Use this method in `CreatorPage.build` to build material widgets.

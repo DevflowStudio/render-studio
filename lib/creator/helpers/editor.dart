@@ -412,7 +412,7 @@ class EditorTab {
           children: [
             ButtonWithIcon(
               onTap: (context) {
-                onDYchange(-Constants.nudgeSenstivity);
+                onDYchange(-Constants.nudgeSensitivity);
                 TapFeedback.light();
               },
               tooltip: 'Move Up',
@@ -424,7 +424,7 @@ class EditorTab {
               children: [
                 ButtonWithIcon(
                   onTap: (context) {
-                    onDXchange(-Constants.nudgeSenstivity);
+                    onDXchange(-Constants.nudgeSensitivity);
                   },
                   tooltip: 'Move Left',
                   icon: RenderIcons.arrow_left,
@@ -432,7 +432,7 @@ class EditorTab {
                 SizedBox(width: 6),
                 ButtonWithIcon(
                   onTap: (context) {
-                    onDYchange(Constants.nudgeSenstivity);
+                    onDYchange(Constants.nudgeSensitivity);
                   },
                   tooltip: 'Move Down',
                   icon: RenderIcons.arrow_down,
@@ -440,7 +440,7 @@ class EditorTab {
                 SizedBox(width: 6),
                 ButtonWithIcon(
                   onTap: (context) {
-                    onDXchange(Constants.nudgeSenstivity);
+                    onDXchange(Constants.nudgeSensitivity);
                   },
                   tooltip: 'Move Right',
                   icon: RenderIcons.arrow_right,
@@ -726,7 +726,7 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
 
   late final TextEditingController xController;
   late final TextEditingController yController;
-  late final TextEditingController opactiyController;
+  late final TextEditingController opacityController;
   late final TextEditingController blurController;
   final TextEditingController spreadController = TextEditingController(text: '0');
 
@@ -748,7 +748,7 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
     xController = TextEditingController.fromValue(TextEditingValue(text: x.toString()));
     yController = TextEditingController.fromValue(TextEditingValue(text: y.toString()));
     blurController = TextEditingController.fromValue(TextEditingValue(text: blur.toString()));
-    opactiyController = TextEditingController.fromValue(TextEditingValue(text: opacity.toString()));
+    opacityController = TextEditingController.fromValue(TextEditingValue(text: opacity.toString()));
     super.initState();
   }
 
@@ -800,7 +800,7 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
             _ShadowEditorGroupValueEditor(
               label: 'Opacity',
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              textEditingController: opactiyController,
+              textEditingController: opacityController,
               onChange: (value) {
                 opacity = value;
                 onChange();

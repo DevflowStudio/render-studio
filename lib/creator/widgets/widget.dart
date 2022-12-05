@@ -73,12 +73,12 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   final bool allowClipboard = true;
 
-  bool _firstBuildDont = false;
+  bool _firstBuildDone = false;
 
   void doFirstBuild() {
     // First build function is run once the rendering is over
     // Only once for the widget lifecycle
-    _firstBuildDont = true;
+    _firstBuildDone = true;
     onFirstBuild();
   }
 
@@ -112,7 +112,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   final bool keepAspectRatio = false;
 
   /// Set to `false` if you want the widget
-  /// to not be resizeable.
+  /// to not be resizable.
   /// Defaults to `true`
   final bool isResizable = true;
   
@@ -212,14 +212,14 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     updateGrids(showGridLines: true, snap: true, snapSensitivity: 2);
     double dx = position.dx;
     double dy = position.dy;
-    double mindx = -(project.contentSize(context).width/2) - size.width/4;
-    double mindy = -(project.contentSize(context).height/2) - size.height/4;
-    double maxdx = project.contentSize(context).width/2 + size.width/4;
-    double maxdy = project.contentSize(context).height/2 + size.height/4;
-    if (dx < mindx) dx = mindx;
-    if (dy < mindy) dy = mindy;
-    if (dx > maxdx) dx = maxdx;
-    if (dy > maxdy) dy = maxdy;
+    double minDX = -(project.contentSize(context).width/2) - size.width/4;
+    double minDY = -(project.contentSize(context).height/2) - size.height/4;
+    double maxDX = project.contentSize(context).width/2 + size.width/4;
+    double maxDY = project.contentSize(context).height/2 + size.height/4;
+    if (dx < minDX) dx = minDX;
+    if (dy < minDY) dy = minDY;
+    if (dx > maxDX) dx = maxDX;
+    if (dy > maxDY) dy = maxDY;
     // Prevent the widget from going out of the safe area
     position = Offset(dx, dy);
     updateListeners(WidgetChange.update, removeGrids: true);
@@ -242,7 +242,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// @override this method to disable drag, resizing, tapping and others
   Widget build(BuildContext context) {
     // updateResizeHandlers();
-    if (!_firstBuildDont) doFirstBuild();
+    if (!_firstBuildDone) doFirstBuild();
     bool _isSelected = isSelected();
     bool _isOnlySelected = isOnlySelected();
     return Transform.rotate(

@@ -270,7 +270,7 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
 
   bool isDragging = false;
   
-  Widget build(BuildContext contetx) {
+  Widget build(BuildContext context) {
     return widget.type.positioned(
       size: widget.widget.size,
       child: GestureDetector(

@@ -109,7 +109,7 @@ class CreatorPage extends PropertyChangeNotifier {
   /// Enable [saveToGallery] to also save the exported image to the gallery
   Future<String?> save(BuildContext context, {
     bool saveToGallery = false,
-    bool autoExportQualtiy = true,
+    bool autoExportQuality = true,
   }) async {
     widgets.select();
     String? _path;
@@ -120,7 +120,7 @@ class CreatorPage extends PropertyChangeNotifier {
           child: build(context),
         ),
         context: context,
-        pixelRatio: autoExportQualtiy ? preferences.exportQuality.pixelRatio(context) : MediaQuery.of(context).devicePixelRatio
+        pixelRatio: autoExportQuality ? preferences.exportQuality.pixelRatio(context) : MediaQuery.of(context).devicePixelRatio
       );
       _path = '/Render Projects/${project.id}/page-${Constants.generateID(3)}.png';
       await pathProvider.saveToDocumentsDirectory(_path, bytes: bytes);
