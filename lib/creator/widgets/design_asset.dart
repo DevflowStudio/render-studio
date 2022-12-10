@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:universal_io/io.dart';
 
 import '../../rehmat.dart';
 
@@ -12,9 +13,9 @@ class CreatorDesignAsset extends CreatorWidget {
     required CreatorPage page
   }) async {
     CreatorDesignAsset designAsset = CreatorDesignAsset(page: page);
-    Asset? _asset = await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
-    if (_asset == null) return null;
-    designAsset.asset = _asset;
+    File? _file = await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
+    if (_file == null) return null;
+    designAsset.asset = Asset.create(project: page.project, file: _file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
     page.widgets.add(designAsset);
   }
 
@@ -33,8 +34,6 @@ class CreatorDesignAsset extends CreatorWidget {
   Size? minSize = Size(20, 20);
 
   Color? color;
-
-  late Asset asset;
   
   @override
   List<ResizeHandler> resizeHandlers = [
@@ -52,10 +51,10 @@ class CreatorDesignAsset extends CreatorWidget {
           title: 'Replace',
           tooltip: 'Replace the asset file',
           onTap: (context) async {
-            Asset? _asset = await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
-            if (_asset == null) return null;
-            await asset.delete();
-            asset = _asset;
+            File? _file = await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
+            if (_file == null) return null;
+            color = null;
+            asset?.logVersion(version: page.history.nextVersion ?? '', file: _file);
             updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.replace
@@ -72,14 +71,7 @@ class CreatorDesignAsset extends CreatorWidget {
             updateListeners(WidgetChange.update);
           },
         ),
-        Option.button(
-          icon: RenderIcons.delete,
-          title: 'Delete',
-          tooltip: 'Delete asset',
-          onTap: (context) async {
-            page.widgets.delete(this);
-          },
-        ),
+        ... defaultOptions,
       ],
       tab: 'Design Asset',
     ),
@@ -88,19 +80,15 @@ class CreatorDesignAsset extends CreatorWidget {
       options: [
         Option.rotate(
           widget: this,
-          project: project
         ),
         Option.scale(
           widget: this,
-          project: project
         ),
         Option.opacity(
           widget: this,
-          project: project
         ),
         Option.nudge(
           widget: this,
-          project: project
         ),
       ]
     )
@@ -110,7 +98,7 @@ class CreatorDesignAsset extends CreatorWidget {
   Widget widget(BuildContext context) => MeasureSize(
     onChange: (size) { },
     child: SvgPicture.file(
-      asset.file,
+      asset!.file,
       color: color,
     )
   );
@@ -121,7 +109,6 @@ class CreatorDesignAsset extends CreatorWidget {
   }) => {
     ... super.toJSON(buildInfo: buildInfo),
     'color': color?.toHex(),
-    'asset': asset.id,
   };
 
   @override
@@ -130,9 +117,7 @@ class CreatorDesignAsset extends CreatorWidget {
   }) {
     super.buildFromJSON(json, buildInfo: buildInfo);
     try {
-      Asset? _asset = project.assetManager.get(json['asset']);
-      if (_asset == null) throw WidgetCreationException('Could not build Design Asset. File may have been deleted.');
-      else asset = _asset;
+      if (asset == null) throw WidgetCreationException('Could not build Design Asset. File may have been deleted.');
       if (json['color'] != null) color = HexColor.fromHex(json['color']);
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'error building design asset from json', stacktrace: stacktrace);
@@ -144,11 +129,33 @@ class CreatorDesignAsset extends CreatorWidget {
   }
 
   @override
-  void onDelete() {
-    project.assetManager.delete(asset);
+  void updateListeners(
+    /// Type of change when notifying listeners
+    /// Affects the history of the widget
+    WidgetChange change, {
+    /// Pass `true` to remove all grids
+    bool removeGrids = false
+  }) {
+    super.updateListeners(change, removeGrids: removeGrids);
   }
 
-  static Future<Asset?> buildOptionsForAsset(BuildContext context, {
+  @override
+  Future<void> onDuplicate() async {
+    asset = await asset!.duplicate(buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
+    updateListeners(WidgetChange.misc);
+  }
+
+  @override
+  void onDelete() {
+    // page.project.assetManager.delete(asset);
+  }
+
+  void onPaletteUpdate() {
+    if (color != null) color = page.palette.onBackground;
+    updateListeners(WidgetChange.misc);
+  }
+
+  static Future<File?> buildOptionsForAsset(BuildContext context, {
     required CreatorPage page
   }) async {
     String? option = await Alerts.optionsBuilder(
@@ -159,17 +166,17 @@ class CreatorDesignAsset extends CreatorWidget {
         AlertOption(title: 'IconFinder', id: 'iconfinder'),
       ]
     );
-    Asset? asset;
+    File? file;
     switch (option) {
       case 'svg':
-        asset = await Asset.pick(page.project, type: FileType.svg, context: context);
+        file = await FilePicker.pick(context: context, type: FileType.svg,);
         break;
       case 'iconfinder':
-        asset = await AppRouter.push(context, page: IconFinderScreen(project: page.project,));
+        file = await AppRouter.push(context, page: IconFinderScreen(project: page.project,));
         break;
       default:
     }
-    return asset;
+    return file;
   }
 
 }

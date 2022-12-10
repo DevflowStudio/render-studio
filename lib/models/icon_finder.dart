@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:universal_io/io.dart';
 import '../rehmat.dart';
 
 class IconFinder extends ChangeNotifier {
@@ -93,25 +94,24 @@ class IconFinderIcon extends ChangeNotifier {
 
   bool isLoading = false;
 
-  void toAsset(BuildContext context, {
+  void toFile(BuildContext context, {
     required Project project,
-    required Function(Asset? asset) onDownloadComplete
+    required Function(File? file) onDownloadComplete
   }) {
     isLoading = true;
     notifyListeners();
-    Asset.downloadAndCreateAsset(
+    Asset.downloadFile(
       context,
-      project: project,
       url: downloadURL,
       headers: {
         'accept': 'application/json',
         'Authorization': 'Bearer ${environment.iconFinderToken}'
       },
       extension: 'svg',
-      onDownloadComplete: (asset) {
+      onDownloadComplete: (file) {
         isLoading = false;
         notifyListeners();
-        onDownloadComplete(asset);
+        onDownloadComplete(file);
       }
     ).listen((event) {
       progress = event;

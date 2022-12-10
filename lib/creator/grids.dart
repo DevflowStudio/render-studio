@@ -7,9 +7,9 @@ import '../rehmat.dart';
 class GridState extends ChangeNotifier {
 
   // final CreatorWidget page;
-  final Project project;
+  final CreatorPage page;
 
-  GridState({required this.project}) {
+  GridState({required this.page}) {
     _addBackgroundGrids();
   }
   
@@ -28,14 +28,14 @@ class GridState extends ChangeNotifier {
         position: const Offset(0, 0),
         color: Colors.red,
         layout: GridLayout.vertical,
-        project: project,
+        page: page,
         gridWidgetPlacement: GridWidgetPlacement.centerVertical
       ),
       Grid(
         position: const Offset(0, 0),
         color: Colors.red,
         layout: GridLayout.horizontal,
-        project: project,
+        page: page,
         gridWidgetPlacement: GridWidgetPlacement.centerHorizontal
       )
     ]);
@@ -50,8 +50,8 @@ class Grid {
     required this.color,
     required this.layout,
     this.widget,
-    required this.project,
-    required this.gridWidgetPlacement
+    required this.gridWidgetPlacement,
+    required this.page
   });
 
   /// Position for the grid line
@@ -70,15 +70,14 @@ class Grid {
   /// The widget for which the grid has been created
   final CreatorWidget? widget;
 
-  final Project project;
+  final CreatorPage page;
 
   final GridWidgetPlacement gridWidgetPlacement;
   
-  Widget build(BuildContext context) {
+  Widget build() {
     return layout.build(
-      context,
       color: color,
-      project: project
+      page: page
     );
   }
 
@@ -100,15 +99,15 @@ enum GridWidgetPlacement {
 
 extension GridLayoutExtension on GridLayout {
 
-  Widget build(BuildContext context, {
+  Widget build({
     required Color color,
-    required Project project
+    required CreatorPage page
   }) {
     switch (this) {
       case GridLayout.horizontal:
         return SizedBox(
           height: 3,
-          width: project.size!.size.width,
+          width: page.project.size!.size.width,
           child: Center(
             child: DottedLine(
               direction: Axis.horizontal,
@@ -119,7 +118,7 @@ extension GridLayoutExtension on GridLayout {
       case GridLayout.vertical:
         return SizedBox(
           width: 3,
-          height: project.size!.size.height,
+          height: page.project.size!.size.height,
           child: Center(
             child: DottedLine(
               direction: Axis.vertical,
@@ -171,7 +170,7 @@ class PageGridViewState extends State<PageGridView> {
         for (Grid grid in state.visible) AlignPositioned(
           dy: grid.position.dy,
           dx: grid.position.dx,
-          child: grid.build(context)
+          child: grid.build()
         )
       ],
     );

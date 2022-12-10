@@ -137,6 +137,21 @@ extension HexColor on Color {
     };
     return MaterialColor(this.value, swatch);
   }
+
+  /// Finds the color with the highest contrast to the given color.
+  Color findContrast(List<Color> colors) {
+    Map<Color, double> contrasts = {};
+    for (Color _color in colors) {
+      contrasts[_color] = _color.computeLuminance();
+    }
+    var sortedKeys = contrasts.keys.toList(growable:false)..sort((k1, k2) => contrasts[k1]!.compareTo(contrasts[k2]!));
+    if (this.computeLuminance() > 0.5) {
+      return sortedKeys.first;
+    } else {
+      return sortedKeys.last;
+    }
+  }
+
 }
 
 extension StringExtension on String {

@@ -28,14 +28,20 @@ class background extends State<Create> {
   @override
   void initState() {
     project = widget.project;
-    project.pages.addListener(onProjectUpdate);
-    WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
+    if (project.pages.pages.isEmpty) project.pages.add(silent: true);
+    project.pages.pages.forEach((page) {
+      page.widgets.rebuildListeners();
+    });
+    project.pages.addListener(onProjectUpdate, [PageViewChange.page, PageViewChange.update]);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {});
+    });
     super.initState();
   }
 
   @override
   void dispose() {
-    project.pages.removeListener(onProjectUpdate);
+    project.pages.removeListener(onProjectUpdate, [PageViewChange.page, PageViewChange.update]);
     super.dispose();
   }
 
@@ -219,10 +225,6 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
   void initState() {
     project = widget.project;
     project.pages.addListener(onUpdate);
-    if (project.pages.pages.isEmpty) project.pages.add();
-    project.pages.pages.forEach((page) {
-      page.widgets.rebuildListeners();
-    });
     super.initState();
   }
 
@@ -397,12 +399,14 @@ class _AppBarState extends State<_AppBar> {
   void initState() {
     project = widget.project;
     project.addListener(onProjectUpdate);
+    project.pages.addListener(onProjectUpdate);
     super.initState();
   }
 
   @override
   void dispose() {
     project.removeListener(onProjectUpdate);
+    project.pages.removeListener(onProjectUpdate);
     super.dispose();
   }
 
@@ -423,7 +427,7 @@ class _AppBarState extends State<_AppBar> {
           icon: Icon(
             RenderIcons.undo,
           ),
-          tooltip: 'Undo',
+          tooltip: project.pages.current.history.undoTooltip,
         ),
         IconButton(
           onPressed: project.pages.current.history.redo,
@@ -483,25 +487,6 @@ class _AppBarState extends State<_AppBar> {
               child: Text('Create Group'),
               value: 'create-group',
             ),
-            if (project.pages.current.widgets.nSelections == 1 && project.pages.current.widgets.selections.single.allowClipboard) ... [
-              const PopupMenuItem(
-                child: Text('Duplicate'),
-                value: 'duplicate-widget',
-              ),
-              const PopupMenuItem(
-                child: Text('Copy'),
-                value: 'copy-widget',
-              ),
-              const PopupMenuItem(
-                child: Text('Cut'),
-                value: 'cut-widget',
-              ),
-            ],
-            PopupMenuItem(
-              child: const Text('Paste'),
-              enabled: clipboard != null,
-              value: 'paste-widget',
-            ),
             PopupMenuItem(
               child: Text('${project.editorVisible ? 'Hide' : 'Show'} Editor'),
               value: 'toggle-editor',
@@ -525,30 +510,12 @@ class _AppBarState extends State<_AppBar> {
                 preferences.debugMode = !preferences.debugMode;
                 setState(() { });
                 break;
-              // case 'create-group':
-              //   CreatorWidget? _group = await WidgetGroup.create(context, page: project.pages.current, project: project);
-              //   if (_group != null) project.pages.current.addWidget(_group);
-              //   setState(() { });
-              //   break;
+              case 'create-group':
+                // await WidgetGroup.create(project.pages.current);
+                break;
               case 'toggle-multiselect':
                 project.pages.current.widgets.multiselect = !project.pages.current.widgets.multiselect;
                 setState(() { });
-                break;
-              case 'duplicate-widget':
-                copyToClipboard();
-                pasteWidget();
-                break;
-              case 'copy-widget':
-                copyToClipboard();
-                break;
-              case 'cut-widget':
-                copyToClipboard();
-                project.pages.current.widgets.delete(project.pages.current.widgets.selections.single);
-                project.pages.current.widgets.select(project.pages.current.widgets.background);
-                setState(() { });
-                break;
-              case 'paste-widget':
-                pasteWidget();
                 break;
               case 'toggle-editor':
                 project.editorVisible = !project.editorVisible;
@@ -566,24 +533,6 @@ class _AppBarState extends State<_AppBar> {
         )
       ] : [],
     );
-  }
-
-  void copyToClipboard() {
-    try {
-      clipboard = project.pages.current.widgets.selections.single.duplicate();
-      setState(() { });
-    } on WidgetCreationException catch (e, stacktrace) {
-      analytics.logError(e, cause: 'copyToClipboard failed', stacktrace: stacktrace);
-      Alerts.snackbar(context, text: 'Failed to build widget');
-    }
-  }
-
-  void pasteWidget() {
-    if (clipboard == null) return;
-    project.pages.current.widgets.add(clipboard!);
-    clipboard = null;
-    setState(() { });
-    Alerts.snackbar(context, text: 'Added Widget From Clipboard');
   }
 
 }

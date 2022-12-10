@@ -34,7 +34,7 @@ class Option {
     required String title,
     // Title to display when the toggle is off
     String? disabledTitle,
-    required bool Function() valueBuilder,
+    required bool value,
     required Function(bool value) onChange,
     /// The icon to display when the toggle is enabled
     required IconData enabledIcon,
@@ -51,7 +51,7 @@ class Option {
       disabledIcon: disabledIcon,
       enabledIcon: enabledIcon,
       onChange: onChange,
-      valueBuilder: valueBuilder,
+      value: value,
       disabledTooltip: disabledTooltip,
       enabledTooltip: enabledTooltip,
     )
@@ -112,6 +112,24 @@ class Option {
     ),
   );
 
+  static Option openReorderTab({
+    required CreatorWidget widget,
+    required CreatorPage page
+  }) => Option.button(
+    title: 'Reorder',
+    onTap: (context) {
+      EditorTab.modal(
+        context,
+        tab: EditorTab.reorder(
+          widget: widget,
+          onReorder: () {},
+          onReorderEnd: () {}
+        )
+      );
+    },
+    icon: RenderIcons.layers
+  );
+
   static Option showSlider({
     String? label,
     required String title,
@@ -123,8 +141,10 @@ class Option {
     required Function(double value) onChange,
     Function(double value)? onChangeStart,
     Function(double value)? onChangeEnd,
+    String? tooltip
   }) => Option.button(
     title: title,
+    tooltip: tooltip,
     onTap: (context) => {
       EditorTab.modal(
         context,
@@ -193,6 +213,7 @@ class Option {
   static Option font({
     required String font,
     required Function(BuildContext context, String font) onFontSelect,
+    bool isSelected = false
   }) => Option(
     widget: (context) => ButtonWithIcon(
       title: font,
@@ -201,7 +222,8 @@ class Option {
         'Aa',
         style: GoogleFonts.getFont(font).copyWith(
           fontSize: Theme.of(context).textTheme.headline6!.fontSize,
-          color: Palette.of(context).onSecondaryContainer
+          color: Palette.of(context).onSecondaryContainer,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
         ),
       ),
       tooltip: '$font',
@@ -213,7 +235,6 @@ class Option {
     IconData icon = RenderIcons.refresh,
     String tooltip = 'Tap to open angle adjuster',
     required CreatorWidget widget,
-    required Project project
   }) => Option.button(
     title: 'Rotate',
     onTap: (context) {
@@ -241,7 +262,6 @@ class Option {
     IconData icon = RenderIcons.scale,
     String tooltip = 'Tap to scale the widget size',
     required CreatorWidget widget,
-    required Project project
   }) => Option.button(
     title: title,
     onTap: (context) {
@@ -250,7 +270,7 @@ class Option {
         tab: EditorTab.scale(
           size: widget.size,
           minSize: widget.minSize ?? Size(20, 20),
-          maxSize: project.contentSize(context),
+          maxSize: widget.page.project.contentSize,
           onChange: (value) {
             widget.size  = value;
             widget.updateResizeHandlers();
@@ -272,7 +292,6 @@ class Option {
     IconData icon = RenderIcons.opacity,
     String tooltip = 'Opacity',
     required CreatorWidget widget,
-    required Project project
   }) => Option.button(
     title: title,
     onTap: (context) {
@@ -300,7 +319,6 @@ class Option {
     IconData icon = RenderIcons.nudge,
     String tooltip = 'Nudge',
     required CreatorWidget widget,
-    required Project project
   }) => Option.button(
     title: title,
     onTap: (context) async {

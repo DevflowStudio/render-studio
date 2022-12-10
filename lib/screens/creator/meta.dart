@@ -180,7 +180,7 @@ class _InformationState extends State<Information> {
               SizedBox(height: 22,),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: PrimaryButton(
+                child: RenderButton(
                   child: widget.isNewPost ? Text('Create') : Text('Done'),
                   onPressed: next,
                 ),

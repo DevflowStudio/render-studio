@@ -64,7 +64,7 @@ class _UnsplashImagePickerState extends State<UnsplashImagePicker> {
                     icon: Icon(RenderIcons.clear)
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(40),
                     borderSide: BorderSide.none
                   ),
                 ),

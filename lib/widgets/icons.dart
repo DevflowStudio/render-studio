@@ -105,6 +105,8 @@ abstract class RenderIcons {
 
   static const IconData shadow = Icons.blur_on;
 
+  static const IconData blur = Icons.blur_on;
+
   static const IconData align_left = Iconsax.align_left;
 
   static const IconData align_center = Iconsax.align_horizontally;
@@ -170,5 +172,13 @@ abstract class RenderIcons {
   static const IconData duplicate = Iconsax.copy;
 
   static const IconData expand = Iconsax.arrow_down_1;
+
+  static const IconData layers = CupertinoIcons.layers_alt;
+  
+  static const IconData splice = CupertinoIcons.scissors;
+
+  static const IconData echo = CupertinoIcons.square_stack_3d_down_right;
+
+  static const IconData lifted = CupertinoIcons.square_split_1x2;
 
 }

@@ -18,10 +18,13 @@ class PageManager extends PropertyChangeNotifier {
 
   int get length => pages.length;
 
-  void add() {
+  void add({
+    bool silent = false
+  }) {
     pages.add(CreatorPage(project: project));
     if (pages.length > 1) controller.animateToPage(pages.length - 1, duration: Constants.animationDuration, curve: Curves.easeInOut);
     updateListeners();
+    if (!silent) notifyListeners(PageViewChange.page);
   }
 
   void delete() {
@@ -30,6 +33,7 @@ class PageManager extends PropertyChangeNotifier {
     controller.animateToPage(currentPage, duration: Constants.animationDuration, curve: Curves.easeInOut);
     updateListeners();
     notifyListeners();
+    notifyListeners(PageViewChange.page);
   }
 
   CreatorPage get current => pages[currentPage];

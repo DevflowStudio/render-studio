@@ -57,7 +57,7 @@ class _IconFinderScreenState extends State<IconFinderScreen> {
                     icon: Icon(RenderIcons.clear)
                   ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(40),
                     borderSide: BorderSide.none
                   ),
                 ),
@@ -150,7 +150,7 @@ class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () => icon.toAsset(context, project: project, onDownloadComplete: (asset) {
+      onTap: () => icon.toFile(context, project: project, onDownloadComplete: (asset) {
         if (mounted) Navigator.of(context).pop(asset);
       }),
       child: Container(

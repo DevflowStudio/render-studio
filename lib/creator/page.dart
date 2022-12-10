@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:render_studio/creator/helpers/history.dart';
 import 'package:flutter/material.dart';
@@ -17,21 +16,16 @@ class CreatorPage extends PropertyChangeNotifier {
   }) {
 
     gridState = GridState(
-      project: project
+      page: this
     );
 
-    // Add the background to page
-    widgets = WidgetManager.create(this, data: data);
-
-    // Create an initial history
-    List<Map<String, dynamic>>? _data;
-    if (data != null) {
-      _data = [];
-      for (Map map in data['widgets']) {
-        _data.add(Map<String, dynamic>.from(map));
-      }
+    if (data == null) {
+      widgets = WidgetManager.create(this, data: data);
+      history = History.build(this, data: data);
+    } else {
+      history = History.build(this, data: data);
+      widgets = WidgetManager.create(this, data: data);
     }
-    history = History.build(this, data: _data);
     
   }
 
@@ -54,15 +48,20 @@ class CreatorPage extends PropertyChangeNotifier {
 
   // BackgroundWidget get properties => BackgroundWidget(project: project, page: this);
 
-  Widget build(BuildContext context) {
-    return SizedBox.fromSize(
-      size: project.canvasSize(context),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          ... widgets.build(context),
-          PageGridView(state: gridState)
-        ],
+  Widget build(BuildContext context, {
+    bool isInteractive = true,
+  }) {
+    return AbsorbPointer(
+      absorbing: !isInteractive,
+      child: SizedBox.fromSize(
+        size: project.canvasSize(context),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ... widgets.build(context, isInteractive: isInteractive),
+            PageGridView(state: gridState)
+          ],
+        ),
       ),
     );
   }
@@ -72,24 +71,11 @@ class CreatorPage extends PropertyChangeNotifier {
     Duration? duration
   }) {
     if (!gridState.visible.contains(grid)) gridState.visible.add(grid);
-    notifyListeners(PageChange.update);
+    notifyListeners(PageChange.misc);
     Future.delayed(duration ?? Constants.animationDuration, () {
       if (gridState.visible.contains(grid)) gridState.visible.remove(grid);
-      notifyListeners(PageChange.update);
+      notifyListeners(PageChange.misc);
     });
-  }
-
-  Future<void> showAddWidgetModal(BuildContext context) async {
-    String? id = await showModalBottomSheet(
-      context: context,
-      backgroundColor: Palette.of(context).background.withOpacity(0.5),
-      barrierColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => _AddWidgetModal(),
-      enableDrag: true
-    );
-    if (id == null) return;
-    await CreatorWidget.create(context, id: id, page: this);
   }
 
   void updateListeners(PageChange change) {
@@ -154,8 +140,8 @@ class CreatorPage extends PropertyChangeNotifier {
   //   }
   // }
 
-  Map<String, dynamic> toJSON() => {
-    'widgets': widgets.toJSON(),
+  Map<String, dynamic> toJSON([BuildInfo buildInfo = BuildInfo.unknown]) => {
+    'widgets': widgets.toJSON(buildInfo),
     'palette': palette.toJSON(),
   };
 
@@ -181,7 +167,8 @@ class CreatorPage extends PropertyChangeNotifier {
 
 enum PageChange {
   selection,
-  update
+  update,
+  misc
 }
 
 class PageCreationException implements Exception {
@@ -192,90 +179,4 @@ class PageCreationException implements Exception {
 
   PageCreationException(this.message, {this.details, this.code});
 
-}
-
-class _AddWidgetModal extends StatelessWidget {
-
-  _AddWidgetModal({Key? key}) : super(key: key);
-
-  final Map<String, dynamic> widgets = {
-    'text': {
-      'title': 'Text',
-      'icon': RenderIcons.text,
-    },
-    'qr_code': {
-      'title': 'QR Code',
-      'icon': RenderIcons.qr,
-    },
-    'design_asset': {
-      'title': 'Design Asset',
-      'icon': RenderIcons.design_asset,
-    },
-    'box': {
-      'title': 'Box',
-      'icon': RenderIcons.design_asset,
-    },
-    'image': {
-      'title': 'Image',
-      'icon': RenderIcons.image,
-    },
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: GridView.builder(
-          padding: EdgeInsets.only(
-            left: 6,
-            right: 6,
-            top: 6,
-            bottom: MediaQuery.of(context).padding.bottom
-          ),
-          shrinkWrap: true,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-          itemBuilder: (context, index) => GestureDetector(
-            onTap: () {
-              Navigator.of(context).pop(widgets.keys.toList()[index]);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: Palette.of(context).surfaceVariant,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Palette.of(context).shadow.withOpacity(0.25),
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              margin: EdgeInsets.all(6),
-              child: Column(
-                children: [
-                  Spacer(flex: 3,),
-                  Center(
-                    child: Icon(
-                      widgets.values.elementAt(index)['icon'],
-                      size: 50,
-                    ),
-                  ),
-                  Spacer(flex: 1,),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      widgets.values.elementAt(index)['title'],
-                      style: Theme.of(context).textTheme.headline6,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          itemCount: widgets.length,
-        ),
-      ),
-    );
-  }
 }

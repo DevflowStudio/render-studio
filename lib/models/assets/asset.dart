@@ -37,8 +37,10 @@ class Asset {
   }) {
     if (history.containsKey(version)) {
       file = history[version]!;
-    } else {
+    } else if (history.isNotEmpty) {
       file = history.values.last;
+    } else {
+      return;
     }
   }
 
@@ -48,7 +50,7 @@ class Asset {
     }
   }
 
-  static Asset create(BuildContext context, {
+  static Asset create({
     required Project project,
     required File file,
     FileType type = FileType.image,
@@ -77,7 +79,7 @@ class Asset {
   }) async {
     File? _file = await FilePicker.pick(type: type, crop: crop, cropRatio: cropRatio, context: context);
     if (_file == null) return null;
-    Asset? asset = Asset.create(context, project: project, file: _file, buildInfo: buildInfo);
+    Asset? asset = Asset.create(project: project, file: _file, buildInfo: buildInfo);
     return asset;
   }
 
@@ -96,10 +98,16 @@ class Asset {
   }
 
   Future<String> compile() async {
-    await onCompile?.call(file);
-    String _path = '/Render Projects/${project.id}/Assets/${id}.${file.path.split('/').last.split('.').last}';
-    file = await pathProvider.saveToDocumentsDirectory(_path, bytes: file.readAsBytesSync());
-    return _path;
+    try {
+      await onCompile?.call(file);
+      String _path = '/Render Projects/${project.id}/Assets/${id}.${file.path.split('/').last.split('.').last}';
+      file = await pathProvider.saveToDocumentsDirectory(_path, bytes: file.readAsBytesSync());
+      return _path;
+    } catch (e, stacktrace) {
+      project.issues.add(AssetException('Failed to compile asset', code: 'asset-missing'));
+      analytics.logError(e, cause: 'Failed to compile asset', stacktrace: stacktrace);
+      throw Exception('Failed to compile asset');
+    }
   }
 
   Future<Map<String, dynamic>> toJSON() async {
@@ -130,6 +138,14 @@ class Asset {
     }
   }
 
+  Future<Asset> duplicate({
+    BuildInfo buildInfo = BuildInfo.unknown
+  }) async {
+    File _file = await file.copy('${file.path.split('/').sublist(0, file.path.split('/').length - 1).join('/')}/${Constants.generateID()}.${file.path.split('/').last.split('.').last}');
+    Asset asset = Asset.create(project: project, file: _file, buildInfo: buildInfo);
+    return asset;
+  }
+
   static Stream<double> downloadAndCreateAsset(BuildContext context, {
     required Project project,
     required String url,
@@ -153,7 +169,7 @@ class Asset {
         String savePath = '${tempFilePath.path}/${Constants.generateID()}.$extension';
         File file = await new File(savePath).create(recursive: true);
         File _newFile = await file.writeAsString(response.data);
-        Asset? asset = await Asset.create(context, project: project, file: _newFile);
+        Asset? asset = await Asset.create(project: project, file: _newFile);
         onDownloadComplete(asset);
       } else {
         yield 0.0;

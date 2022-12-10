@@ -10,12 +10,10 @@ class Editor extends StatefulWidget {
   
   const Editor({
     Key? key,
-    required this.tabs,
-    this.widget,
+    required this.widget,
   }) : super(key: key);
 
-  final List<EditorTab> tabs;
-  final CreatorWidget? widget;
+  final CreatorWidget widget;
 
   Widget get build => this;
 
@@ -31,15 +29,18 @@ class Editor extends StatefulWidget {
 
 class _EditorState extends State<Editor> with TickerProviderStateMixin {
 
+  late CreatorWidget creatorWidget;
+
   @override
   void initState() {
-    widget.widget?.addListener(onPropertyChange);
+    creatorWidget = widget.widget;
+    creatorWidget.addListener(onPropertyChange);
     super.initState();
   }
 
   @override
   void dispose() {
-    widget.widget?.removeListener(onPropertyChange);
+    creatorWidget.removeListener(onPropertyChange);
     super.dispose();
   }
 
@@ -47,7 +48,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     Size editorSize = Editor.calculateSize(context);
     return DefaultTabController(
-      length: widget.tabs.length,
+      length: widget.widget.tabs.length,
       child: SizedBox.fromSize(
         size: editorSize,
         child: Container(
@@ -70,14 +71,14 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                 indicatorSize: TabBarIndicatorSize.label,
                 indicatorColor: Constants.getThemedBlackAndWhite(context),
                 labelColor: Constants.getThemedBlackAndWhite(context),
-                indicator: widget.tabs.length > 1 ? null : const BoxDecoration(),
+                indicator: creatorWidget.tabs.length > 1 ? null : const BoxDecoration(),
                 unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
                 isScrollable: true,
                 labelStyle: Theme.of(context).textTheme.subtitle2,
                 tabs: List.generate(
-                  widget.tabs.length,
+                  creatorWidget.tabs.length,
                   (index) => Tab(
-                    text: widget.tabs[index].tab,
+                    text: creatorWidget.tabs[index].tab,
                   )
                 )
               ),
@@ -100,9 +101,9 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                             child: TabBarView(
                               physics: const NeverScrollableScrollPhysics(),
                               children: List.generate(
-                                widget.tabs.length,
+                                creatorWidget.tabs.length,
                                 (index) {
-                                  return widget.tabs[index].build(context);
+                                  return creatorWidget.tabs[index].build(context);
                                 }
                               )
                             ),
@@ -120,9 +121,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
     );
   }
 
-  void onPropertyChange() {
-    setState(() { });
-  }
+  void onPropertyChange() => setState(() { });
 
 }
 
@@ -315,12 +314,15 @@ class EditorTab {
       }
     }
 
+    double value = ratio < 1 ? size.height : size.width;
+    if (value <= min) value = min;
+
     return EditorTab(
       type: EditorTabType.single,
       tab: 'Scale',
       options: [
         Option.slider(
-          value: ratio < 1 ? size.height : size.width,
+          value: value,
           min: min,
           max: max,
           label: 'Scale',
@@ -550,7 +552,8 @@ class EditorTab {
 
   static EditorTab color(BuildContext context, {
     ColorPalette? palette,
-    required void Function(Color color) onChange
+    required void Function(Color color) onChange,
+    bool allowOpacity = true,
   }) => EditorTab(
     tab: 'Color',
     type: EditorTabType.single,
@@ -563,6 +566,106 @@ class EditorTab {
       )
     ]
   );
+
+  static EditorTab reorder({
+    required CreatorWidget widget,
+    required void Function() onReorder,
+    required void Function() onReorderEnd,
+  }) => EditorTab(
+    tab: 'Reorder',
+    type: EditorTabType.single,
+    options: [
+      Option.custom(
+        widget: (context) => _ReorderEditorTab(
+          widget: widget,
+          onReorder: onReorder,
+          onReorderEnd: onReorderEnd,
+        )
+      )
+    ]
+  );
+
+}
+
+class _ReorderEditorTab extends StatefulWidget {
+
+  const _ReorderEditorTab({
+    required this.widget,
+    required this.onReorder,
+    required this.onReorderEnd,
+  });
+
+  final CreatorWidget widget;
+  final void Function() onReorder;
+  final void Function() onReorderEnd;
+  
+
+  @override
+  State<_ReorderEditorTab> createState() => __ReorderEditorTabState();
+}
+
+class __ReorderEditorTabState extends State<_ReorderEditorTab> {
+
+  late final CreatorWidget creatorWidget;
+
+  @override
+  void initState() {
+    creatorWidget = widget.widget;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        OutlinedIconButtons(
+          onPressed: (index > 1) ? () {
+            reorderByChange(-1);
+          } : null,
+          icon: Icon(RenderIcons.arrow_down)
+        ),
+        Expanded(
+          child: SizedBox(
+            height: 20,
+            child: Slider(
+              value: creatorWidget.page.widgets.sortedUIDs.indexOf(creatorWidget.uid).toDouble(),
+              min: 1,
+              max: creatorWidget.page.widgets.sortedUIDs.length.toDouble() - 1,
+              divisions: creatorWidget.page.widgets.sortedUIDs.length - 2,
+              onChanged: (value) {
+                reorder(value.toInt());
+                widget.onReorder();
+              },
+              onChangeEnd: (value) {
+                reorder(value.toInt(), notify: true);
+                widget.onReorderEnd();
+              },
+            ),
+          ),
+        ),
+        OutlinedIconButtons(
+          onPressed: (index < creatorWidget.page.widgets.nWidgets - 1) ? () {
+            reorderByChange(1);
+          } : null,
+          icon: Icon(RenderIcons.arrow_up)
+        ),
+      ],
+    );
+  }
+
+  void reorder(int value, {bool notify = true}) {
+    creatorWidget.page.widgets.reorder(creatorWidget.uid, value.toInt(), log: notify);
+    setState(() { });
+    creatorWidget.page.updateListeners(PageChange.selection);
+  }
+
+  void reorderByChange(int change) {
+    reorder(index + change, notify: true);
+    widget.onReorderEnd();
+    creatorWidget.page.updateListeners(PageChange.selection);
+  }
+
+  int get index => creatorWidget.page.widgets.sortedUIDs.indexOf(creatorWidget.uid);
 
 }
 

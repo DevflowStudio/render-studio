@@ -40,11 +40,27 @@ class AssetManager {
   }
 
   Future<Map<String, dynamic>> toJSON() async {
+    await _removeUnlinkedAssets();
     Map<String, dynamic> _assets = {};
     for (Asset asset in assets.values) {
       _assets[asset.id] = await asset.toJSON();
     }
     return _assets;
+  }
+
+  /// Checks for all the assets linked with the project and removes the ones that are not used
+  Future<void> _removeUnlinkedAssets() async {
+    List<String> unusedAssets = [];
+    for (CreatorPage page in project.pages.pages) {
+      for (CreatorWidget widget in page.widgets.widgets) {
+        if (widget.asset != null && unusedAssets.contains(widget.asset!.id)) {
+          unusedAssets.remove(widget.asset!.id);
+        }
+      }
+    }
+    for (String id in unusedAssets) {
+      await delete(assets[id]!);
+    }
   }
 
 }

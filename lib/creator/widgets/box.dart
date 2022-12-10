@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../../rehmat.dart';
@@ -40,6 +42,8 @@ class CreatorBoxWidget extends CreatorWidget {
   double borderRadius = 0;
 
   BoxShadow? shadow;
+
+  double blur = 0;
   
   @override
   List<ResizeHandler> resizeHandlers = [
@@ -54,14 +58,6 @@ class CreatorBoxWidget extends CreatorWidget {
     EditorTab(
       tab: 'Box',
       options: [
-        Option.button(
-          icon: Icons.delete,
-          title: 'Delete',
-          tooltip: 'Delete asset',
-          onTap: (context) async {
-            page.widgets.delete(this);
-          },
-        ),
         Option.color(
           selected: () => color,
           palette: () => page.palette,
@@ -77,132 +73,36 @@ class CreatorBoxWidget extends CreatorWidget {
           title: 'Shadow',
           onTap: (context) {
             if (shadow == null) {
-              shadow = const BoxShadow(
-              blurRadius: 1,
-              spreadRadius: 2,
-              color: Colors.red,
-            );
+              shadow = BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 5,
+                offset: Offset(0, 5)
+              );
             }
-            updateListeners(WidgetChange.misc);
             EditorTab.modal(
               context,
-              height: 150,
-              tab: EditorTab(
-                type: EditorTabType.column,
-                options: [
-                  Option.custom(
-                    widget: (context) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          ColorSelector(
-                            title: 'Color',
-                            onColorSelect: (color) {
-                              shadow = BoxShadow(
-                                blurRadius: shadow!.blurRadius,
-                                color: color,
-                                offset: shadow!.offset,
-                                spreadRadius: shadow!.blurSigma
-                              );
-                              updateListeners(WidgetChange.update);
-                            },
-                            size: const Size(40, 40),
-                            color: shadow!.color,
-                            tooltip: 'Shadow Color'
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              shadow = null;
-                              updateListeners(WidgetChange.update);
-                              Navigator.of(context).pop();
-                            },
-                            icon: const Icon(Icons.delete)
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                  Option.custom(
-                    widget: (context) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: Row(
-                        children: [
-                          const Text('DX'),
-                          Container(width: 10,),
-                          Expanded(
-                            child: CustomSlider(
-                              value: shadow!.offset.dx,
-                              min: -15,
-                              max: 15,
-                              onChangeEnd: (value) {
-                                shadow = BoxShadow(
-                                  blurRadius: shadow!.blurRadius,
-                                  color: shadow!.color,
-                                  offset: Offset(value, shadow!.offset.dy),
-                                  spreadRadius: shadow!.blurSigma
-                                );
-                                updateListeners(WidgetChange.update);
-                              },
-                              onChange: (value) {
-                                shadow = BoxShadow(
-                                  blurRadius: shadow!.blurRadius,
-                                  color: shadow!.color,
-                                  offset: Offset(value, shadow!.offset.dy),
-                                  spreadRadius: shadow!.blurSigma
-                                );
-                                updateListeners(WidgetChange.misc);
-                              }
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                  Option.custom(
-                    widget: (context) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      child: Row(
-                        children: [
-                          const Text('DY'),
-                          Container(width: 10,),
-                          Expanded(
-                            child: CustomSlider(
-                              value: shadow!.offset.dy,
-                              min: -15,
-                              max: 15,
-                              onChangeEnd: (value) {
-                                shadow = BoxShadow(
-                                  blurRadius: shadow!.blurRadius,
-                                  color: shadow!.color,
-                                  offset: Offset(shadow!.offset.dx, value),
-                                  spreadRadius: shadow!.blurSigma
-                                );
-                                updateListeners(WidgetChange.update);
-                              },
-                              onChange: (value) {
-                                shadow = BoxShadow(
-                                  blurRadius: shadow!.blurRadius,
-                                  color: shadow!.color,
-                                  offset: Offset(shadow!.offset.dx, value),
-                                  spreadRadius: shadow!.blurSigma
-                                );
-                                updateListeners(WidgetChange.misc);
-                              }
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-                tab: 'Shadow'
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    shadow = null;
+                    updateListeners(WidgetChange.update);
+                  },
+                  icon: Icon(RenderIcons.delete)
+                )
+              ],
+              tab: EditorTab.shadow<BoxShadow>(
+                shadow: shadow!,
+                onChange: (value) {
+                  shadow = value;
+                  updateListeners(WidgetChange.update);
+                },
               )
             );
           },
           icon: Icons.text_fields,
           tooltip: 'Customize shadow of box'
         ),
+        ... defaultOptions,
       ],
     ),
     EditorTab(
@@ -283,56 +183,74 @@ class CreatorBoxWidget extends CreatorWidget {
           icon: Icons.border_all,
           tooltip: 'Customize the border',
         ),
-        Option.button(
-          title: 'Radius',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: EditorTab(
-                type: EditorTabType.single,
-                options: [
-                  Option.slider(
-                    value: borderRadius,
-                    min: 0,
-                    max: size.width,
-                    onChange: (value) {
-                      borderRadius = value;
-                      updateListeners(WidgetChange.misc);
-                    },
-                    onChangeEnd: (value) {
-                      borderRadius = value;
-                      updateListeners(WidgetChange.update);
-                    },
-                  ),
-                ],
-                tab: 'Border Radius'
-              )
-            );
-          },
+        Option.showSlider(
+          title: 'Border Radius',
           icon: Icons.rounded_corner,
-          tooltip: 'Adjust border radius'
-        ),
+          tooltip: 'Adjust border radius',
+          value: borderRadius,
+          min: 0,
+          max: 100,
+          onChange: (value) {
+            borderRadius = value;
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (value) {
+            borderRadius = value;
+            updateListeners(WidgetChange.update);
+          },
+        )
       ],
+    ),
+    EditorTab(
+      tab: 'Customize',
+      options: [
+        Option.showSlider(
+          title: 'Blur',
+          icon: RenderIcons.blur,
+          value: blur,
+          min: 0,
+          max: 20,
+          onChange: (value) {
+            blur = value;
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (value) {
+            blur = value;
+            updateListeners(WidgetChange.update);
+          },
+        )
+      ]
     )
   ];
 
   @override
   Widget widget(BuildContext context) => Container(
     decoration: BoxDecoration(
-      color: type == BackgroundType.color ? color : Colors.white,
-      gradient: (type == BackgroundType.gradient && gradient != null) ? LinearGradient(
-        colors: gradient!,
-        begin: gradientType.begin,
-        end: gradientType.end,
-      ) : null,
-      border: (borderColor != null && borderWidth != null) ? Border.all(
-        color: borderColor!,
-        width: borderWidth!
-      ) : null,
       borderRadius: BorderRadius.circular(borderRadius),
       boxShadow: [
         if (shadow != null) shadow!
       ],
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+        child: Container(
+          decoration: BoxDecoration(
+            color: type == BackgroundType.color ? color : Colors.white,
+            gradient: (type == BackgroundType.gradient && gradient != null) ? LinearGradient(
+              colors: gradient!,
+              begin: gradientType.begin,
+              end: gradientType.end,
+            ) : null,
+            border: (borderColor != null && borderWidth != null) ? Border.all(
+              color: borderColor!,
+              width: borderWidth!
+            ) : null,
+            borderRadius: BorderRadius.circular(borderRadius),
+          ),
+        ),
+      ),
     ),
   );
 
@@ -363,7 +281,8 @@ class CreatorBoxWidget extends CreatorWidget {
     'border-color': borderColor?.toHex(),
     'border-width': borderWidth,
     'border-radius': borderRadius,
-    'shadow': {
+    'blur': blur,
+    'shadow': shadow == null ? null : {
       'color': shadow?.color.toHex(),
       'blur-radius': shadow?.blurRadius,
       'spread-radius': shadow?.spreadRadius,
@@ -403,6 +322,7 @@ class CreatorBoxWidget extends CreatorWidget {
           )
         );
       }
+      blur = json['blur'] ?? 0;
       return true;
     } catch (e) {
       return false;

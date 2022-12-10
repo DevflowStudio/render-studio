@@ -32,14 +32,6 @@ class CreatorText extends CreatorWidget {
           },
           icon: RenderIcons.keyboard
         ),
-        Option.button(
-          icon: RenderIcons.delete,
-          title: 'Delete',
-          tooltip: 'Delete Text Widget',
-          onTap: (context) async {
-            page.widgets.delete(this);
-          },
-        ),
         Option.color(
           tooltip: 'Tap to select text color',
           palette: () => page.palette,
@@ -56,9 +48,7 @@ class CreatorText extends CreatorWidget {
         ),
         Option.toggle(
           title: 'Auto Size',
-          valueBuilder: () {
-            return (page.widgets.get(uid) as CreatorText).autoSize;
-          },
+          value: autoSize,
           onChange: (value) {
             autoSize = value;
             updateListeners(WidgetChange.update);
@@ -90,11 +80,22 @@ class CreatorText extends CreatorWidget {
           },
           icon: RenderIcons.text_size
         ),
+        ... defaultOptions,
       ],
     ),
     EditorTab(
       tab: 'Font',
       options: [
+        Option.button(
+          title: 'Search',
+          onTap: (context) async {
+            String? _font = await AppRouter.push<String>(context, page: const FontSelector());
+            if (_font != null) fontFamily = _font;
+            notifyListeners(WidgetChange.update);
+          },
+          icon: RenderIcons.search,
+          tooltip: 'Search Fonts'
+        ),
         for (String font in [
           'Roboto',
           'Poppins',
@@ -108,21 +109,12 @@ class CreatorText extends CreatorWidget {
           'DM Sans'
         ]) Option.font(
           font: font,
+          isSelected: fontFamily == font,
           onFontSelect: (context, font) {
             this.fontFamily = font;
             updateListeners(WidgetChange.update);
           },
         ),
-        Option.button(
-          title: 'Search',
-          onTap: (context) async {
-            String? _font = await AppRouter.push<String>(context, page: const FontSelector());
-            if (_font != null) fontFamily = _font;
-            notifyListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.search,
-          tooltip: 'Search Fonts'
-        )
       ],
     ),
     EditorTab(
@@ -130,9 +122,7 @@ class CreatorText extends CreatorWidget {
       options: [
         Option.toggle(
           title: 'Bold',
-          valueBuilder: () {
-            return (page.widgets.get(uid) as CreatorText).bold;
-          },
+          value: bold,
           onChange: (value) {
             bold = value;
             _updateStroke();
@@ -145,9 +135,7 @@ class CreatorText extends CreatorWidget {
         ),
         Option.toggle(
           title: 'Italics',
-          valueBuilder: () {
-            return (page.widgets.get(uid) as CreatorText).italics;
-          },
+          value: italics,
           onChange: (value) {
             italics = value;
             updateListeners(WidgetChange.update);
@@ -159,9 +147,7 @@ class CreatorText extends CreatorWidget {
         ),
         Option.toggle(
           title: 'Underline',
-          valueBuilder: () {
-            return (page.widgets.get(uid) as CreatorText).underline;
-          },
+          value: underline,
           onChange: (value) {
             underline = value;
             overline = false;
@@ -175,9 +161,7 @@ class CreatorText extends CreatorWidget {
         ),
         Option.toggle(
           title: 'Strikethrough',
-          valueBuilder: () {
-            return (page.widgets.get(uid) as CreatorText).strikethrough;
-          },
+          value: strikethrough,
           onChange: (value) {
             strikethrough = value;
             updateListeners(WidgetChange.update);
@@ -189,9 +173,7 @@ class CreatorText extends CreatorWidget {
         ),
         Option.toggle(
           title: 'Overline',
-          valueBuilder: () {
-            return (page.widgets.get(uid) as CreatorText).overline;
-          },
+          value: overline,
           onChange: (value) {
             overline = value;
             underline = false;
@@ -228,67 +210,20 @@ class CreatorText extends CreatorWidget {
             updateListeners(WidgetChange.update);
           },
         ),
-        Option.button(
-          title: 'Shadow',
-          onTap: (context) {
-            if (boxShadow == null) boxShadow = BoxShadow();
-            EditorTab.modal(
-              context,
-              tab: EditorTab.shadow<BoxShadow>(
-                shadow: shadow!,
-                onChange: (value) {
-                  boxShadow = value;
-                  updateListeners(WidgetChange.misc);
-                },
-                onChangeEnd: (value) {
-                  boxShadow = value;
-                  updateListeners(WidgetChange.update);
-                },
-              ),
-              actions: [
-                IconButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    boxShadow = null;
-                    updateListeners(WidgetChange.update);
-                  },
-                  icon: Icon(RenderIcons.delete),
-                  iconSize: 20,
-                )
-              ]
-            );
-          },
-          icon: RenderIcons.shadow,
-          tooltip: 'Customize shadow of background'
-        ),
-        Option.button(
-          title: 'Radius',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: EditorTab(
-                type: EditorTabType.single,
-                options: [
-                  Option.slider(
-                    value: radius,
-                    min: 0,
-                    max: 100,
-                    onChange: (value) {
-                      radius = value;
-                      updateListeners(WidgetChange.misc);
-                    },
-                    onChangeEnd: (value) {
-                      radius = value;
-                      updateListeners(WidgetChange.update);
-                    },
-                  )
-                ],
-                tab: 'Radius'
-              )
-            );
-          },
+        Option.showSlider(
           icon: RenderIcons.border_radius,
-          tooltip: 'Adjust Widget Border Radius'
+          title: 'Radius',
+          max: 0,
+          min: 100,
+          value: borderRadius,
+          onChange: (value) {
+            radius = value;
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (value) {
+            radius = value;
+            updateListeners(WidgetChange.update);
+          },
         ),
         Option.button(
           title: 'Padding',
@@ -358,17 +293,19 @@ class CreatorText extends CreatorWidget {
         Option.button(
           title: 'Shadow',
           onTap: (context) {
-            if (shadow == null) shadow = Shadow();
+            if (shadows == null) shadows = [Shadow()];
             EditorTab.modal(
               context,
               tab: EditorTab.shadow<Shadow>(
-                shadow: shadow!,
+                shadow: shadows!.first,
                 onChange: (value) {
-                  shadow = value;
+                  if (value == null) shadows = null;
+                  else shadows = [value];
                   updateListeners(WidgetChange.misc);
                 },
                 onChangeEnd: (value) {
-                  shadow = value;
+                  if (value == null) shadows = null;
+                  else shadows = [value];
                   updateListeners(WidgetChange.update);
                 },
               ),
@@ -376,7 +313,7 @@ class CreatorText extends CreatorWidget {
                 IconButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    shadow = null;
+                    shadows = null;
                     updateListeners(WidgetChange.update);
                   },
                   icon: Icon(RenderIcons.delete),
@@ -396,25 +333,82 @@ class CreatorText extends CreatorWidget {
           },
           icon: RenderIcons.outline
         ),
+        Option.button(
+          title: 'Lifted',
+          tooltip: 'Add a lifted effect to text',
+          onTap: (context) async {
+            if ((shadows?.length ?? 0) == 1 && shadows!.first.offset == Offset(0, 0) && shadows!.first.blurRadius == 30 && shadows!.first.color == Colors.black.withOpacity(0.5)) {
+              shadows = null;
+            } else shadows = [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 30,
+                spreadRadius: 30,
+                offset: Offset(0, 0)
+              )
+            ];
+            updateListeners(WidgetChange.update);
+          },
+          icon: RenderIcons.lifted
+        ),
+        Option.button(
+          title: 'Echo',
+          tooltip: 'Add echo effect to text',
+          onTap: (context) async {
+            if ((shadows?.length ?? 0) == 2 && shadows!.first.offset == Offset(5, 5) && shadows!.first.blurRadius == 2 && shadows![1].blurRadius == 4 && shadows![1].offset == Offset(10, 10)) {
+              shadows = null;
+            } else shadows = [
+              BoxShadow(
+                color: color.withOpacity(0.4),
+                blurRadius: 2,
+                offset: Offset(5, 5)
+              ),
+              BoxShadow(
+                color: color.withOpacity(0.2),
+                blurRadius: 4,
+                offset: Offset(10, 10)
+              ),
+            ];
+            updateListeners(WidgetChange.update);
+          },
+          icon: RenderIcons.echo
+        ),
+        Option.button(
+          title: 'Splice',
+          tooltip: 'Add splice effect to text',
+          onTap: (context) async {
+            if (stroke != null && (shadows?.length ?? 0) == 1 && shadows!.first.blurRadius == 2 && shadows!.first.offset == Offset(5, 5)) {
+              if (stroke != null) _updateStroke(true);
+              shadows = [];
+            } else {
+              if (stroke == null) _updateStroke(true);
+              shadows = [
+                BoxShadow(
+                  color: color.withOpacity(0.4),
+                  blurRadius: 2,
+                  offset: Offset(5, 5)
+                ),
+              ];
+            }
+            updateListeners(WidgetChange.update);
+          },
+          icon: RenderIcons.splice
+        ),
       ],
     ),
     EditorTab(
       options: [
         Option.rotate(
           widget: this,
-          project: project
         ),
         Option.scale(
           widget: this,
-          project: project
         ),
         Option.opacity(
           widget: this,
-          project: project,
         ),
         Option.nudge(
           widget: this,
-          project: project
         ),
       ],
       tab: 'Adjust',
@@ -423,63 +417,37 @@ class CreatorText extends CreatorWidget {
       tab: 'Spacing',
       type: EditorTabType.row,
       options: [
-        Option.button(
-          title: 'Letter',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: EditorTab(
-                type: EditorTabType.single,
-                options: [
-                  Option.slider(
-                    value: letterSpacing,
-                    min: -10,
-                    max: 20,
-                    onChange: (value) {
-                      letterSpacing = value;
-                      updateListeners(WidgetChange.misc);
-                    },
-                    onChangeEnd: (value) {
-                      letterSpacing = value;
-                      updateListeners(WidgetChange.update);
-                    },
-                  ),
-                ],
-                tab: 'Letter Spacing'
-              )
-            );
-          },
+        Option.showSlider(
           icon: RenderIcons.spacing,
-          tooltip: 'Adjust Letter Spacing'
-        ),
-        Option.button(
-          title: 'Word',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: EditorTab(
-                type: EditorTabType.single,
-                options: [
-                  Option.slider(
-                    value: wordSpacing,
-                    min: -10,
-                    max: 20,
-                    onChange: (value) {
-                      wordSpacing = value;
-                      updateListeners(WidgetChange.misc);
-                    },
-                    onChangeEnd: (value) {
-                      wordSpacing = value;
-                      updateListeners(WidgetChange.update);
-                    },
-                  )
-                ],
-                tab: 'Word Spacing'
-              )
-            );
+          tooltip: 'Adjust Letter Spacing',
+          title: 'Letter',
+          max: 20,
+          min: -10,
+          value: letterSpacing,
+          onChange: (value) {
+            letterSpacing = value;
+            updateListeners(WidgetChange.misc);
           },
+          onChangeEnd: (value) {
+            letterSpacing = value;
+            updateListeners(WidgetChange.update);
+          },
+        ),
+        Option.showSlider(
           icon: RenderIcons.word_spacing,
-          tooltip: 'Adjust Word Spacing'
+          tooltip: 'Adjust Word Spacing',
+          title: 'Word',
+          max: 20,
+          min: -10,
+          value: wordSpacing,
+          onChange: (value) {
+            wordSpacing = value;
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (value) {
+            wordSpacing = value;
+            updateListeners(WidgetChange.update);
+          },
         ),
         Option.button(
           icon: RenderIcons.height,
@@ -549,7 +517,7 @@ class CreatorText extends CreatorWidget {
 
   EdgeInsets padding = EdgeInsets.zero;
 
-  Shadow? shadow;
+  List<Shadow>? shadows;
 
   Paint? stroke;
 
@@ -601,7 +569,7 @@ class CreatorText extends CreatorWidget {
     wordSpacing: wordSpacing,
     fontFeatures: [ ],
     shadows: [
-      if (shadow != null) shadow!
+      if (shadows != null) ... shadows!
     ],
     foreground: stroke,
     decorationStyle: decorationStyle,
@@ -788,7 +756,7 @@ class CreatorText extends CreatorWidget {
       widgetColor = page.palette.primary;
       color = widgetColor!.computeTextColor();
     } else {
-      color = page.palette.background.computeTextColor();
+      color = page.palette.onBackground;
     }
     _updateStroke();
     updateListeners(WidgetChange.misc);
@@ -823,12 +791,16 @@ class CreatorText extends CreatorWidget {
       'radius': radius,
     },
     'alignment': align.index,
-    'shadow': shadow != null ? {
-      'blurRadius': shadow!.blurRadius,
-      'dx': shadow!.offset.dx,
-      'dy': shadow!.offset.dy,
-      'color': shadow!.color.toHex()
-    } : null,
+    'shadows': shadows != null ? [
+      for (Shadow shadow in shadows!) {
+        'color': shadow.color.toHex(),
+        'offset': {
+          'dx': shadow.offset.dx,
+          'dy': shadow.offset.dy
+        },
+        'blur': shadow.blurRadius
+      }
+    ] : null,
     'padding': padding.toJSON(),
     'spacing': {
       'word': wordSpacing,
@@ -865,11 +837,14 @@ class CreatorText extends CreatorWidget {
 
       align = TextAlign.values.where((element) => element.index == json['alignment']).first;
 
-      if (json['shadow'] != null) {
-        shadow = Shadow(
-          blurRadius: json['shadow']['blurRadius'],
-          color: HexColor.fromHex(json['shadow']['color']),
-          offset: Offset(json['shadow']['dx'], json['shadow']['dy'])
+      for (final shadowData in json['shadows'] ?? []) {
+        if (shadows == null) shadows = [];
+        shadows!.add(
+          Shadow(
+            blurRadius: shadowData['blur'],
+            color: HexColor.fromHex(shadowData['color']),
+            offset: Offset(shadowData['offset']['dx'], shadowData['offset']['dy'])
+          )
         );
       }
 

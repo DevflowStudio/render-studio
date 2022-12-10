@@ -20,15 +20,15 @@ class WidgetState extends StatefulWidget {
   WidgetState({
     Key? key,
     required this.controller,
-    required this.creator_widget,
-    required this.context,
-    required this.page
+    required this.widget,
+    required this.page,
+    this.isInteractive = true
   }) : super(key: key);
 
   final WidgetStateController controller;
-  final CreatorWidget creator_widget;
-  final BuildContext context;
+  final CreatorWidget widget;
   final CreatorPage page;
+  final bool isInteractive;
 
   @override
   State<WidgetState> createState() => _WidgetStateState();
@@ -54,7 +54,7 @@ class _WidgetStateState extends State<WidgetState> {
   Widget build(BuildContext context) {
     return MediaQuery(
       data: MediaQueryData(),
-      child: widget.creator_widget.build(widget.context)
+      child: widget.widget.build(context, isInteractive: widget.isInteractive)
     );
   }
 

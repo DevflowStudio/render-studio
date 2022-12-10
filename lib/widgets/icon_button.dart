@@ -103,14 +103,14 @@ class OutlinedIconButtons extends StatefulWidget {
   const OutlinedIconButtons({
     super.key,
     this.selected = false,
-    required this.onPressed,
+    this.onPressed,
     required this.icon,
     this.selectedIcon,
     this.tooltip
   });
 
   final bool selected;
-  final void Function() onPressed;
+  final void Function()? onPressed;
   final Icon icon;
   final Icon? selectedIcon;
   final String? tooltip;
@@ -266,14 +266,16 @@ class _ColorSelectorState extends State<ColorSelector> {
               onTap: () async {
                 reduceRadius();
                 TapFeedback.light();
-                Color? _color = await Palette.showColorPicker(
+                await EditorTab.modal(
                   context,
-                  selected: color
+                  tab: EditorTab.color(
+                    context,
+                    onChange: (_color) {
+                      color = _color;
+                      widget.onColorSelect(_color);
+                    },
+                  )
                 );
-                if (_color != null) {
-                  color = _color;
-                  widget.onColorSelect(color);
-                }
                 setState(() { });
                 Future.delayed(const Duration(milliseconds: 300), () => resetRadius());
               },
@@ -462,7 +464,7 @@ class ToggleIconButton extends StatefulWidget {
     Key? key,
     required this.title,
     this.disabledTitle,
-    required this.valueBuilder,
+    required this.value,
     required this.enabledIcon,
     required this.disabledIcon,
     required this.onChange,
@@ -470,7 +472,7 @@ class ToggleIconButton extends StatefulWidget {
     this.disabledTooltip,
   }) : super(key: key);
 
-  final bool Function() valueBuilder;
+  final bool value;
   final String title;
   final String? disabledTitle;
   final IconData enabledIcon;
@@ -485,14 +487,12 @@ class ToggleIconButton extends StatefulWidget {
 
 class _ToggleIconButton extends State<ToggleIconButton> {
 
-  late bool value;
   late IconData enabledIcon;
   late IconData disabledIcon;
   late void Function(bool value) onChange;
 
   @override
   void initState() {
-    value = widget.valueBuilder();
     enabledIcon = widget.enabledIcon;
     disabledIcon = widget.disabledIcon;
     onChange = widget.onChange;
@@ -502,14 +502,12 @@ class _ToggleIconButton extends State<ToggleIconButton> {
   @override
   Widget build(BuildContext context) {
     return ButtonWithIcon(
-      icon: value ? enabledIcon : disabledIcon,
+      icon: widget.value ? enabledIcon : disabledIcon,
       onTap: (context) {
-        value = !value;
-        onChange(value);
-        setState(() { });
+        onChange(!widget.value);
       },
-      tooltip: (value ? widget.enabledTooltip : widget.disabledTooltip) ?? 'Toggle',
-      title: value ? widget.title : widget.disabledTitle ?? widget.title,
+      tooltip: (widget.value ? widget.enabledTooltip : widget.disabledTooltip) ?? 'Toggle',
+      title: widget.value ? widget.title : widget.disabledTitle ?? widget.title,
     );
   }
 

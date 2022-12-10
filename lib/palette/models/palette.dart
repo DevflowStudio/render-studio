@@ -14,6 +14,7 @@ class ColorPalette {
   late Color secondary;
   late Color tertiary;
   late Color background;
+  late Color onBackground;
   late Color surface;
 
   ColorPalette({
@@ -86,13 +87,13 @@ class ColorPalette {
 
   void refresh([bool firstBuild = false]) {
     List<Color> _colors = new List.from(colors);
-    if (firstBuild) {
-      background = _colors.removeAt(0);
-    } else {
-      int nextIndex = _colors.indexOf(background) + 1;
-      if (nextIndex >= _colors.length) nextIndex = 0;
-      background = _colors[nextIndex];
+    int _bIndex = 0;
+    if (!firstBuild) {
+      _bIndex = _colors.indexOf(background) + 1;
+      if (_bIndex >= _colors.length) _bIndex = 0;
     }
+    background = _colors.removeAt(_bIndex);
+    onBackground = background.findContrast(_colors);
     primary = _colors.getRandom();
     _colors.remove(primary);
     secondary = _colors.getRandom();

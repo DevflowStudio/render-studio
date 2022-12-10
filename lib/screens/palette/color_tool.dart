@@ -227,7 +227,8 @@ class ColorEditorTab extends StatefulWidget {
     Key? key,
     this.color,
     required this.onChange,
-    this.palette
+    this.palette,
+    this.allowOpacity = true
   }) : super(key: key);
 
   final ColorPalette? palette;
@@ -235,6 +236,8 @@ class ColorEditorTab extends StatefulWidget {
   final void Function(Color color) onChange;
 
   final Color? color;
+
+  final bool allowOpacity;
 
   @override
   State<ColorEditorTab> createState() => _ColorEditorTabState();
@@ -391,6 +394,32 @@ class _ColorEditorTabState extends State<ColorEditorTab> {
                       ),
                     ),
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (widget.allowOpacity) Padding(
+          padding: const EdgeInsets.only(
+            left: 12,
+            right: 12,
+            top: 12
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Label(
+                label: 'Opacity',
+                subtitle: true,
+              ),
+              Expanded(
+                child: Slider(
+                  value: color.opacity,
+                  min: 0,
+                  max: 1,
+                  onChanged: (opacity) {
+                    onChange(color.withOpacity(opacity));
+                  },
                 ),
               ),
             ],

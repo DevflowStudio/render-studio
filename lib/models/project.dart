@@ -70,20 +70,20 @@ class Project extends ChangeNotifier {
 
   /// This is the actual size of the page
   /// and will be used to export the image
-  Size contentSize(BuildContext context) {
+  Size get contentSize {
     double height = size!.size.height;
     double width = size!.size.width;
     double ratio = width/height;
 
-    double actualWidth = MediaQuery.of(context).size.width;
-    double actualHeight = MediaQuery.of(context).size.width / ratio;
+    double actualWidth = deviceSize.width;
+    double actualHeight = deviceSize.width / ratio;
 
     Size actualSize = Size(actualWidth, actualHeight);
 
     double maxCanvasRatio = editorVisible ? 0.6 : 0.7;
 
-    if (actualHeight > MediaQuery.of(context).size.height * maxCanvasRatio) {
-      double _height = MediaQuery.of(context).size.height * maxCanvasRatio;
+    if (actualHeight > deviceSize.height * maxCanvasRatio) {
+      double _height = deviceSize.height * maxCanvasRatio;
       actualSize = Size(_height * ratio, _height);
     }
 

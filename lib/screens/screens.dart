@@ -1,13 +1,13 @@
+export 'home.dart';
+export 'auth/onboarding.dart';
+export 'auth/profile.dart';
 export 'creator/meta.dart';
 export 'creator/size.dart';
 export 'creator/create.dart';
-export 'auth/onboarding.dart';
 export 'creator/font_selector.dart';
-export 'home.dart';
-export 'auth/profile.dart';
+export 'creator/gradient_picker.dart';
 export 'others/settings.dart';
 export 'others/permissions.dart';
-export 'creator/gradient_picker.dart';
 export 'others/lab.dart';
 export 'others/project_errors.dart';
 export 'others/edit_text.dart';

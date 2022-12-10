@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../../rehmat.dart';
@@ -20,6 +22,7 @@ class WidgetManager {
         return widget;
       }
     );
+    updateSortedUIDs();
     _selections.add(background.uid);
   }
 
@@ -53,6 +56,8 @@ class WidgetManager {
 
   List<String> _selections = [];
   int get nSelections => _selections.length;
+
+  int get nWidgets => _widgets.length;
 
   bool _multiselect = false;
 
@@ -94,27 +99,47 @@ class WidgetManager {
     page.updateListeners(PageChange.selection);
   }
 
-  CreatorWidget? get(String uid) => _widgets[uid];
+  T? get<T extends CreatorWidget>(String uid) => _widgets[uid] as T;
+
+  Future<void> showAddWidgetModal(BuildContext context) async {
+    String? id = await showModalBottomSheet(
+      context: context,
+      backgroundColor: Palette.of(context).background.withOpacity(0.5),
+      barrierColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _AddWidgetModal(),
+      enableDrag: true
+    );
+    if (id == null) return;
+    await CreatorWidget.create(context, id: id, page: page);
+  }
 
   /// Adds the given widget to the page
   void add(CreatorWidget widget) {
     // Add a listener for that widget here
     multiselect = false;
     _widgets[widget.uid] = widget;
+    sortedUIDs.add(widget.uid);
     select(widget);
     rebuildListeners();
-    page.history.log();
-    page.updateListeners(PageChange.update);
+    page.history.log('Add widget');
+    page.updateListeners(PageChange.misc);
   }
 
-  void delete(CreatorWidget widget) {
+  void delete(String uid, {
+    /// If true, then the widget will be deleted without calling `dispose()` on it.
+    bool soft = false
+  }) {
+    if (!_widgets.containsKey(uid)) return;
     multiselect = false;
-    widget.onDelete();
+    CreatorWidget widget = _widgets[uid]!;
+    if (!soft) widget.onDelete();
     _widgets.remove(widget.uid);
-    page.history.log();
+    sortedUIDs.remove(widget.uid);
+    page.history.log('Delete widget');
     select();
     rebuildListeners();
-    page.updateListeners(PageChange.update);
+    page.updateListeners(PageChange.misc);
   }
 
   void updateGrids() {
@@ -173,12 +198,36 @@ class WidgetManager {
   ///   "widgets": widgetManager.toJSON()
   /// }
   /// ```
-  List<Map<String, dynamic>> toJSON() {
+  List<Map<String, dynamic>> toJSON([BuildInfo buildInfo = BuildInfo.unknown]) {
     List<Map<String, dynamic>> widgetData = [];
     for (CreatorWidget widget in _widgets.values) {
-      widgetData.add(widget.toJSON());
+      widgetData.add(widget.toJSON(buildInfo: buildInfo));
     }
     return widgetData;
+  }
+
+  List<CreatorWidget> get widgets {
+    return sortedUIDs.map((uid) {
+      return _widgets[uid]!;
+    }).toList();
+  }
+
+  List<String> sortedUIDs = [];
+  void updateSortedUIDs() {
+    sortedUIDs = List<String>.from(_widgets.values.map((widget) => widget.uid));
+  }
+
+  void reorder(String uid, int index, {
+    /// Enables history logging of the reorder
+    /// Use it when the slider of reorder calls `onChangeEnd` method
+    bool log = false,
+  }) {
+    int oldIndex = sortedUIDs.indexOf(uid);
+    if (oldIndex == index) return;
+    sortedUIDs.removeAt(oldIndex);
+    sortedUIDs.insert(index, uid);
+    if (log) page.history.log('Reorder');
+    page.updateListeners(PageChange.misc);
   }
 
   /// Use this method in `CreatorPage.build` to build material widgets.
@@ -191,26 +240,35 @@ class WidgetManager {
   ///   ... other widgets
   /// ]
   /// ```
-  List<Widget> build(BuildContext context) => _widgets.values.map(
-    (widget) => WidgetState(
+  List<Widget> build(BuildContext context, {
+    bool isInteractive = true,
+  }) {
+    return sortedUIDs.map((uid) => WidgetState(
       key: UniqueKey(),
-      context: context,
-      controller: widget.stateCtrl,
-      creator_widget: widget,
-      page: page
-    )
-  ).toList();
+      controller: _widgets[uid]!.stateCtrl,
+      widget: _widgets[uid]!,
+      page: page,
+      isInteractive: isInteractive,
+    )).toList();
+  }
 
   /// This method rebuild all the widgets in the page from a previous state in the history.
-  void restoreHistory(List<Map<String, dynamic>> data) {
+  void restoreHistory(List<Map> data, {
+    required String? version
+  }) {
     page.gridState.reset();
     _widgets.clear();
     for (Map widgetData in data) try {
-      CreatorWidget widget = CreatorWidget.fromJSON(widgetData, page: page);
+      CreatorWidget widget = CreatorWidget.fromJSON(
+        widgetData,
+        page: page,
+        buildInfo: BuildInfo(buildType: BuildType.restore, version: version)
+      );
       if (widget is BackgroundWidget) {
         _background = widget.uid;
       }
       this._widgets[widget.uid] = widget;
+      updateSortedUIDs();
       widget.updateGrids();
       widget.updateListeners(WidgetChange.misc);
     } catch (e, stacktrace) {
@@ -219,10 +277,96 @@ class WidgetManager {
     }
     _selections = [];
     _selections.add(background.uid);
-    page.updateListeners(PageChange.update);
+    page.updateListeners(PageChange.misc);
   }
 
   /// Runs a function on every widget in the page.
   void forEach(void Function(CreatorWidget widget) callback) => _widgets.values.forEach(callback);
   
+}
+
+class _AddWidgetModal extends StatelessWidget {
+
+  _AddWidgetModal({Key? key}) : super(key: key);
+
+  final Map<String, dynamic> widgets = {
+    'text': {
+      'title': 'Text',
+      'icon': RenderIcons.text,
+    },
+    'qr_code': {
+      'title': 'QR Code',
+      'icon': RenderIcons.qr,
+    },
+    'design_asset': {
+      'title': 'Design Asset',
+      'icon': RenderIcons.design_asset,
+    },
+    'box': {
+      'title': 'Box',
+      'icon': RenderIcons.design_asset,
+    },
+    'image': {
+      'title': 'Image',
+      'icon': RenderIcons.image,
+    },
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: GridView.builder(
+          padding: EdgeInsets.only(
+            left: 6,
+            right: 6,
+            top: 6,
+            bottom: MediaQuery.of(context).padding.bottom
+          ),
+          shrinkWrap: true,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+          itemBuilder: (context, index) => GestureDetector(
+            onTap: () {
+              Navigator.of(context).pop(widgets.keys.toList()[index]);
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Palette.of(context).surfaceVariant,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Palette.of(context).shadow.withOpacity(0.25),
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              margin: EdgeInsets.all(6),
+              child: Column(
+                children: [
+                  Spacer(flex: 3,),
+                  Center(
+                    child: Icon(
+                      widgets.values.elementAt(index)['icon'],
+                      size: 50,
+                    ),
+                  ),
+                  Spacer(flex: 1,),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      widgets.values.elementAt(index)['title'],
+                      style: Theme.of(context).textTheme.headline6,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          itemCount: widgets.length,
+        ),
+      ),
+    );
+  }
 }

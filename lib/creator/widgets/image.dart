@@ -21,7 +21,7 @@ class ImageWidget extends CreatorWidget {
     ImageWidget image = ImageWidget(page: page);
     File? file = await FilePicker.imagePicker(context, crop: true);
     if (file == null) return;
-    Asset _asset = await Asset.create(context, project: page.project, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
+    Asset _asset = await Asset.create(project: page.project, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
     image.asset = _asset;
     await image.resizeByImage();
     page.widgets.add(image);
@@ -51,8 +51,6 @@ class ImageWidget extends CreatorWidget {
     ResizeHandler.bottomRight
   ];
 
-  late Asset asset;
-
   @override
   List<EditorTab> get tabs => [
     EditorTab(
@@ -62,7 +60,7 @@ class ImageWidget extends CreatorWidget {
           onTap: (context) async {
             File? file = await FilePicker.imagePicker(context, crop: true);
             if (file == null) return;
-            asset.logVersion(version: page.history.nextVersion ?? '', file: file);
+            asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
             await resizeByImage();
             updateListeners(WidgetChange.update);
           },
@@ -74,46 +72,32 @@ class ImageWidget extends CreatorWidget {
           title: 'Crop',
           tooltip: 'Tap to crop image',
           onTap: (context) async {
-            File? cropped = await FilePicker.crop(context, file: asset.file);
+            File? cropped = await FilePicker.crop(context, file: asset!.file);
             if (cropped == null) return;
-            asset.logVersion(version: page.history.nextVersion ?? '', file: cropped);
+            asset!.logVersion(version: page.history.nextVersion ?? '', file: cropped);
             await resizeByImage();
             updateListeners(WidgetChange.update);
             // asset.updateFile(cropped);
           },
         ),
-        Option.button(
-          title: 'Radius',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: EditorTab(
-                type: EditorTabType.single,
-                options: [
-                  Option.slider(
-                    value: borderRadius,
-                    min: 0,
-                    max: 100,
-                    onChange: (value) {
-                      borderRadius = value;
-                      updateListeners(WidgetChange.misc);
-                    },
-                    onChangeEnd: (value) {
-                      borderRadius = value;
-                      updateListeners(WidgetChange.update);
-                    },
-                  )
-                ],
-                tab: 'Radius'
-              )
-            );
-          },
+        Option.showSlider(
           icon: RenderIcons.border_radius,
-          tooltip: 'Adjust Widget Border Radius'
+          title: 'Radius',
+          max: 0,
+          min: 100,
+          value: borderRadius,
+          onChange: (value) {
+            borderRadius = value;
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (value) {
+            borderRadius = value;
+            updateListeners(WidgetChange.update);
+          },
         ),
         Option.toggle(
           title: 'Flip Vertical',
-          valueBuilder: () => flipVertical,
+          value: flipVertical,
           onChange: (value) {
             flipVertical = value;
             updateListeners(WidgetChange.update);
@@ -125,7 +109,7 @@ class ImageWidget extends CreatorWidget {
         ),
         Option.toggle(
           title: 'Flip Horizontal',
-          valueBuilder: () => flipHorizontal,
+          value: flipHorizontal,
           onChange: (value) {
             flipHorizontal = value;
             updateListeners(WidgetChange.update);
@@ -135,14 +119,7 @@ class ImageWidget extends CreatorWidget {
           enabledTooltip: 'Flip Horizontally',
           disabledTooltip: 'Flip Horizontally',
         ),
-        Option.button(
-          icon: RenderIcons.delete,
-          title: 'Delete',
-          tooltip: 'Delete asset',
-          onTap: (context) async {
-            page.widgets.delete(this);
-          },
-        ),
+        ... defaultOptions,
       ],
       tab: 'Image',
     ),
@@ -345,19 +322,15 @@ class ImageWidget extends CreatorWidget {
       options: [
         Option.rotate(
           widget: this,
-          project: project
         ),
         Option.scale(
           widget: this,
-          project: project
         ),
         Option.opacity(
           widget: this,
-          project: project
         ),
         Option.nudge(
           widget: this,
-          project: project
         ),
       ]
     )
@@ -413,7 +386,7 @@ class ImageWidget extends CreatorWidget {
       child: OctoImage(
         fadeInCurve: Sprung(),
         fadeInDuration: Constants.animationDuration,
-        image: FileImage(asset.file),
+        image: FileImage(asset!.file),
         placeholderBuilder: (context) => ClipRRect(
           child: Stack(
             children: [
@@ -454,7 +427,7 @@ class ImageWidget extends CreatorWidget {
   );
 
   Future<void> resizeByImage() async {
-    Size? dimensions = await asset.dimensions;
+    Size? dimensions = await asset!.dimensions;
     if (dimensions != null) {
       Size _size;
       if (dimensions.height > dimensions.width) _size = Size(size.height * dimensions.width/dimensions.height, size.height);
@@ -471,9 +444,6 @@ class ImageWidget extends CreatorWidget {
     /// Pass `true` to remove all grids
     bool removeGrids = false
   }) {
-    if (change == WidgetChange.update) {
-      asset.logVersion(version: page.history.nextVersion ?? '', file: asset.file);
-    }
     super.updateListeners(change, removeGrids: removeGrids);
   }
 
@@ -486,34 +456,29 @@ class ImageWidget extends CreatorWidget {
   @override
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
-  }) => {
-    ... super.toJSON(buildInfo: buildInfo),
-    'asset': asset.id,
-    'radius': borderRadius,
-    'brightness': brightness,
-    'contrast': contrast,
-    'exposure': exposure,
-    'saturation': saturation,
-    'visibility': visibility,
-    'sepia': sepia,
-    'hue': hue,
-    'flipHorizontal': flipHorizontal,
-    'flipVertical': flipVertical,
-    'filter': filter?.matrix,
-  };
+  }) {
+    return {
+      ... super.toJSON(buildInfo: buildInfo),
+      'radius': borderRadius,
+      'brightness': brightness,
+      'contrast': contrast,
+      'exposure': exposure,
+      'saturation': saturation,
+      'visibility': visibility,
+      'sepia': sepia,
+      'hue': hue,
+      'flipHorizontal': flipHorizontal,
+      'flipVertical': flipVertical,
+      'filter': filter?.matrix,
+    };
+  }
 
   @override
   void buildFromJSON(Map<String, dynamic> json, {
     required BuildInfo buildInfo
   }) {
     super.buildFromJSON(json, buildInfo: buildInfo);
-    Asset? _asset = project.assetManager.get(json['asset']);
-    if (_asset == null) throw WidgetCreationException('Could not build Image. File may have been deleted.');
-    else asset = _asset;
-    if (asset.history.isEmpty) {
-      asset.history[page.history.dates.first.version ?? ''] = asset.file;
-    }
-    if (buildInfo.version != null) asset.restoreVersion(version: buildInfo.version!);
+    if (asset == null) throw WidgetCreationException('Could not build Design Asset. File may have been deleted.');
     borderRadius = json['radius'] ?? 0;
     brightness = json['brightness'] ?? 0;
     contrast = json['contrast'] ?? 0;

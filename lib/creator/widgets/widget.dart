@@ -24,14 +24,12 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     BuildInfo buildInfo = BuildInfo.unknown,
   }) {
     uid = Constants.generateID(6);
-    project = page.project;
     _defaultResizeHandlerSet = _resizeHandlers = resizeHandlers;
     stateCtrl = WidgetStateController(this);
     onInitialize();
     onPaletteUpdate();
     editor = Editor(
       key: ValueKey(uid),
-      tabs: tabs,
       widget: this
     );
     if (data != null) try {
@@ -56,13 +54,41 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   final CreatorPage page;
 
-  late final Project project;
-
   /// Bottom Navigation Bar with editing options
   late Editor editor;
 
+  Asset? asset;
+
   /// Tabs with editing options
   List<EditorTab> get tabs => [ ];
+
+  List<Option> get defaultOptions => [
+    if (allowClipboard) Option.button(
+      icon: RenderIcons.duplicate,
+      title: 'Duplicate',
+      tooltip: 'Duplicate this widget',
+      onTap: (context) {
+        Spinner.fullscreen(
+          context,
+          task: () async {
+            page.widgets.add(await duplicate());
+          },
+        );
+      },
+    ),
+    if (page.widgets.nWidgets >= 3) Option.openReorderTab(
+      page: page,
+      widget: this,
+    ),
+    Option.button(
+      icon: RenderIcons.delete,
+      title: 'Delete',
+      tooltip: 'Delete Text Widget',
+      onTap: (context) async {
+        page.widgets.delete(this.uid);
+      },
+    ),
+  ];
 
   /// Name of the widget
   final String name = 'Widget';
@@ -171,8 +197,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   bool allowResize(Size _size) {
     if (_size.width < (minSize?.width ?? 10)) return false;
     if (_size.height < (minSize?.height ?? 10)) return false;
-    if (_size.width > ((project.deviceSize.width * 1.4) - 40)) return false;
-    if (_size.height > ((project.deviceSize.height * 1.4) - 40)) return false;
+    if (_size.width > ((page.project.deviceSize.width * 1.4) - 40)) return false;
+    if (_size.height > ((page.project.deviceSize.height * 1.4) - 40)) return false;
     return true;
   }
 
@@ -212,10 +238,10 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     updateGrids(showGridLines: true, snap: true, snapSensitivity: 2);
     double dx = position.dx;
     double dy = position.dy;
-    double minDX = -(project.contentSize(context).width/2) - size.width/4;
-    double minDY = -(project.contentSize(context).height/2) - size.height/4;
-    double maxDX = project.contentSize(context).width/2 + size.width/4;
-    double maxDY = project.contentSize(context).height/2 + size.height/4;
+    double minDX = -(page.project.contentSize.width/2) - size.width/4;
+    double minDY = -(page.project.contentSize.height/2) - size.height/4;
+    double maxDX = page.project.contentSize.width/2 + size.width/4;
+    double maxDY = page.project.contentSize.height/2 + size.height/4;
     if (dx < minDX) dx = minDX;
     if (dy < minDY) dy = minDY;
     if (dx > maxDX) dx = maxDX;
@@ -240,11 +266,13 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Build function of the widget
   /// All of the resizing, drag, tap and double tap related code is written here
   /// @override this method to disable drag, resizing, tapping and others
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, {
+    bool isInteractive = true,
+  }) {
     // updateResizeHandlers();
     if (!_firstBuildDone) doFirstBuild();
-    bool _isSelected = isSelected();
-    bool _isOnlySelected = isOnlySelected();
+    bool _isSelected = isInteractive && isSelected();
+    bool _isOnlySelected = isInteractive && isOnlySelected();
     return Transform.rotate(
       key: ValueKey<String>(uid),
       angle: angle,
@@ -324,16 +352,13 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
                 double positionY = dy + size.height + 15;
                 double positionX = dx;
         
-                if ((positionY + 15) > project.contentSize(context).height/2) {
+                if ((positionY + 15) > page.project.contentSize.height/2) {
                   positionY = dy - size.height - 15;
                 }
         
                 return AlignPositioned(
                   dy: positionY,
                   dx: positionX,
-                  childHeight: size.height + 40,
-                  childWidth: size.width + 40,
-                  // rotateDegrees: angle,
                   child: DragHandler(
                     onPositionUpdate: (details) => _onGestureUpdate(details, context),
                     onPositionUpdateEnd: (details) => _onGestureEnd(details, context),
@@ -395,6 +420,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (removeGrids) page.gridState.visible.clear();
     if (change == WidgetChange.update) notifyListeners(change);
     stateCtrl.update(change);
+    if (change == WidgetChange.update && asset != null) {
+      asset!.logVersion(version: page.history.nextVersion ?? '', file: asset!.file);
+    }
   }
 
   /// Update all the grids present in the page for the current widget
@@ -429,7 +457,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           color: Colors.blue,
           layout: GridLayout.horizontal,
           widget: this,
-          project: project,
+          page: page,
           gridWidgetPlacement: GridWidgetPlacement.centerHorizontal
         )
       );
@@ -447,7 +475,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           color: Colors.red,
           layout: GridLayout.vertical,
           widget: this,
-          project: project,
+          page: page,
           gridWidgetPlacement: GridWidgetPlacement.centerVertical
         )
       );
@@ -465,7 +493,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           color: Colors.blue,
           layout: GridLayout.horizontal,
           widget: this,
-          project: project,
+          page: page,
           gridWidgetPlacement: GridWidgetPlacement.top
         )
       );
@@ -483,7 +511,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           color: Colors.red,
           layout: GridLayout.vertical,
           widget: this,
-          project: project,
+          page: page,
           gridWidgetPlacement: GridWidgetPlacement.left
         )
       );
@@ -501,7 +529,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           color: Colors.red,
           layout: GridLayout.vertical,
           widget: this,
-          project: project,
+          page: page,
           gridWidgetPlacement: GridWidgetPlacement.right
         )
       );
@@ -519,7 +547,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           color: Colors.blue,
           layout: GridLayout.horizontal,
           widget: this,
-          project: project,
+          page: page,
           gridWidgetPlacement: GridWidgetPlacement.bottom
         )
       );
@@ -572,21 +600,30 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Duplicate Widget
   /// 
   /// Returns the widget with same properties but new uid and altered position
-  CreatorWidget duplicate() {
+  Future<CreatorWidget> duplicate() async {
     CreatorWidget widget = CreatorWidget.fromJSON(toJSON(), page: page, buildInfo: BuildInfo(buildType: BuildType.unknown));
     widget.uid = Constants.generateID();
     widget.position = Offset(position.dx + 10, position.dy + 10);
+    await widget.onDuplicate();
     return widget;
   }
+
+  /// This method is called when a widget is duplicated from another
+  /// Handle asset duplication here
+  Future<void> onDuplicate() async {}
 
   /// Convert the state and properties of the widget to JSON
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
   }) {
+    if (buildInfo.version != null && asset != null) {
+      asset!.logVersion(version: buildInfo.version!, file: asset!.file);
+    }
     return {
       'id': id,
       'uid': uid,
       'name': name,
+      'asset': asset?.id,
       'properties': {
         'position': {
           'dx': position.dx,
@@ -615,9 +652,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       case 'background':
         widget = BackgroundWidget(page: page, data: data, buildInfo: buildInfo);
         break;
-      // case 'box':
-      //   widget = CreatorBoxWidget(page: page, project: project, uid: data['uid']);
-      //   break;
       case 'text':
         widget = CreatorText(page: page, data: data, buildInfo: buildInfo);
         break;
@@ -673,6 +707,11 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     angle = data['properties']['angle'];
     opacity = data['properties']['opacity'];
     size = Size(data['properties']['size']['width'], data['properties']['size']['height']);
+    if (data['asset'] != null) asset = page.project.assetManager.get(data['asset']);
+    if (asset?.history.isEmpty ?? false) {
+      asset!.history[page.history.dates.first.version ?? ''] = asset!.file;
+    }
+    if (buildInfo.version != null && asset != null) asset!.restoreVersion(version: buildInfo.version!);
     updateListeners(WidgetChange.misc);
   }
 

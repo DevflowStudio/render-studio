@@ -11,7 +11,7 @@ class History {
   String? nextVersion;
 
   static History build(CreatorPage page, {
-    List<Map<String, dynamic>>? data
+    Map? data
   }) {
     History history = History();
     history.dates = [HistoryDate.create(page, data: data)];
@@ -27,6 +27,8 @@ class History {
 
   bool get undoEnabled => date > 0;
   bool get redoEnabled => dates.length > date + 1;
+
+  String get undoTooltip => undoEnabled ? 'Undo${dates[date].title != null ? ' ' + dates[date].title!.toLowerCase() : ''}' : 'Undo not available';
 
   void _undo() {
     page.widgets.select();
@@ -44,8 +46,12 @@ class History {
     page.updateListeners(PageChange.update);
   }
 
-  Future<void> log() async {
-    HistoryDate event = await HistoryDate.create(page, version: nextVersion);
+  /// Logs a new history event with the current state of the page
+  /// Uses method [create] to create a new history event
+  /// The JSON is fetched from the widgets manager and passed to the [create] method
+  /// Pass the `title` to set the title of the history event. May be used as a tooltip in the history menu
+  Future<void> log([String? title]) async {
+    HistoryDate event = await HistoryDate.create(page, version: nextVersion, title: title);
     nextVersion = Constants.generateID();
     if (dates.length >= 20) dates.removeAt(0);
     if (date < dates.length - 1) dates.removeRange(date + 1, dates.length);
@@ -54,7 +60,7 @@ class History {
       dates.add(event);
       date = dates.length - 1;
     }
-    page.updateListeners(PageChange.update);
+    page.updateListeners(PageChange.misc);
   }
 
   void restore(int date) => dates[date].restore();
@@ -63,13 +69,15 @@ class History {
 
 class HistoryDate {
 
-  final List<Map<String, dynamic>> data;
+  final Map data;
   String? version;
+  final String? title;
   final CreatorPage page;
 
   HistoryDate(this.data, {
     required this.page,
-    this.version
+    this.version,
+    this.title
   }) {
     version ??= Constants.generateID();
   }
@@ -80,18 +88,25 @@ class HistoryDate {
   );
 
   static HistoryDate create(CreatorPage page, {
+    String? title,
     String? version,
-    List<Map<String, dynamic>>? data
+    Map? data,
   }) {
     version ??= Constants.generateID();
-    HistoryDate event = HistoryDate(data ?? _getJSON(page), page: page, version: version);
+    HistoryDate event = HistoryDate(data ?? _getJSON(page, version), page: page, version: version, title: title);
     return event;
   }
 
   void restore() {
-    page.widgets.restoreHistory(data);
+    page.widgets.restoreHistory(List<Map>.from(data['widgets']), version: version);
+    page.palette = ColorPalette.fromJSON(data['palette']);
   }
 
-  static List<Map<String, dynamic>> _getJSON(CreatorPage page) => page.widgets.toJSON();
+  static Map<String, dynamic> _getJSON(CreatorPage page, String version) => page.toJSON(
+    BuildInfo(
+      version: version,
+      buildType: BuildType.history
+    )
+  );
 
 }

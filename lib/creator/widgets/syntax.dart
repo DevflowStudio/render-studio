@@ -38,14 +38,7 @@ class CreatorWidgetSyntax extends CreatorWidget {
   List<EditorTab> get tabs => [
     EditorTab(
       options: [
-        Option.button(
-          icon: RenderIcons.delete,
-          title: 'Delete',
-          tooltip: 'Delete asset',
-          onTap: (context) async {
-            page.widgets.delete(this);
-          },
-        ),
+        ... defaultOptions,
       ],
       tab: 'Example Widget',
     ),
@@ -54,19 +47,15 @@ class CreatorWidgetSyntax extends CreatorWidget {
       options: [
         Option.rotate(
           widget: this,
-          project: project
         ),
         Option.scale(
           widget: this,
-          project: project
         ),
         Option.opacity(
           widget: this,
-          project: project
         ),
         Option.nudge(
           widget: this,
-          project: project
         ),
       ]
     )

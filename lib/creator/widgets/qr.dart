@@ -84,14 +84,7 @@ class QRWidget extends CreatorWidget {
             updateListeners(WidgetChange.update);
           },
         ),
-        Option.button(
-          icon: RenderIcons.delete,
-          title: 'Delete',
-          tooltip: 'Delete Widget',
-          onTap: (context) async {
-            page.widgets.delete(this);
-          },
-        ),
+        ... defaultOptions,
       ],
     ),
     EditorTab(
@@ -117,9 +110,7 @@ class QRWidget extends CreatorWidget {
         ),
         Option.toggle(
           title: 'Gapless',
-          valueBuilder: () {
-            return (page.widgets.get(uid) as QRWidget).gapless;
-          },
+          value: gapless,
           onChange: (value) {
             gapless = value;
             updateListeners(WidgetChange.update);
@@ -135,7 +126,7 @@ class QRWidget extends CreatorWidget {
           tooltip: 'Tap to add embed an image',
           onTap: (context) async {
             embeddedImage = await Asset.pick(
-              project,
+              page.project,
               cropRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
               context: context
             );
@@ -176,7 +167,7 @@ class QRWidget extends CreatorWidget {
               tab: EditorTab.scale(
                 size: size,
                 minSize: minSize ?? Size(20, 20),
-                maxSize: project.contentSize(context),
+                maxSize: page.project.contentSize,
                 onChange: (value) {
                   // angle = value;
                   size  = value;
