@@ -88,20 +88,15 @@ class _PrimaryButtonState extends State<PrimaryButton> {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      child: widget.isLoading ? SizedBox(
-        height: 18,
-        width: 18,
-        child: Spinner(
-          valueColor: Palette.of(context).onPrimary,
-          strokeWidth: 2,
-        )
-      ) : widget.child,
-      onPressed: () {
-        TapFeedback.tap();
-        widget.onPressed?.call();
-      },
+    return _RenderButton(
+      child: widget.child,
+      isLoading: widget.isLoading,
+      disabled: widget.disabled,
+      feedback: widget.feedback,
       onLongPress: widget.onLongPress,
+      onPressed: widget.onPressed,
+      backgroundColor: Palette.of(context).primaryContainer,
+      textColor: Palette.of(context).onPrimaryContainer
     );
   }
 
@@ -134,35 +129,32 @@ class _SecondaryButtonState extends State<SecondaryButton> {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        foregroundColor: Palette.of(context).onSecondaryContainer,
-        backgroundColor: Palette.of(context).secondaryContainer,
-      ).copyWith(elevation: ButtonStyleButton.allOrNull(0.0)),
+    return _RenderButton(
+      child: widget.child,
+      isLoading: widget.isLoading,
+      disabled: widget.disabled,
+      feedback: widget.feedback,
+      onLongPress: widget.onLongPress,
       onPressed: widget.onPressed,
-      child: widget.isLoading ? SizedBox(
-        height: 18,
-        width: 18,
-        child: Spinner(
-          valueColor: Palette.of(context).onSecondaryContainer,
-          strokeWidth: 2,
-        )
-      ) : widget.child,
+      backgroundColor: Palette.of(context).secondaryContainer,
+      textColor: Palette.of(context).onSecondaryContainer
     );
   }
 
 }
 
-class RenderButton extends StatefulWidget {
+class _RenderButton extends StatefulWidget {
 
-  const RenderButton({
+  const _RenderButton({
     Key? key,
     required this.child,
     this.onPressed,
     this.onLongPress,
     this.feedback = true,
     this.disabled = false,
-    this.isLoading = false
+    this.isLoading = false,
+    required this.backgroundColor,
+    required this.textColor
   }) : super(key: key);
 
   final Widget child;
@@ -171,12 +163,15 @@ class RenderButton extends StatefulWidget {
   final bool feedback;
   final bool disabled;
   final bool isLoading;
+  final Color backgroundColor;
+  final Color textColor;
 
   @override
-  State<RenderButton> createState() => _RenderButtonState();
+  State<_RenderButton> createState() => _RenderButtonState();
 }
 
-class _RenderButtonState extends State<RenderButton> {
+class _RenderButtonState extends State<_RenderButton> {
+
   double radius = 60;
   
   @override
@@ -205,17 +200,12 @@ class _RenderButtonState extends State<RenderButton> {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 150),
         decoration: BoxDecoration(
-          // color: Palette.of(context).surface,
-          color: Palette.of(context).primary,
-          border: Border.all(
-            color: Constants.getThemedObject(context, light: Colors.grey[200]!, dark: Colors.grey[800]!),
-            width: 1,
-          ),
+          color: widget.backgroundColor,
           borderRadius: BorderRadius.circular(radius)
         ),
         child: DefaultTextStyle(
           style: Theme.of(context).textTheme.subtitle1!.copyWith(
-            color: Palette.of(context).onPrimary,
+            color: widget.textColor,
             fontWeight: FontWeight.w500,
             fontSize: 17
           ),
@@ -226,7 +216,7 @@ class _RenderButtonState extends State<RenderButton> {
                 height: 18,
                 width: 18,
                 child: Spinner(
-                  valueColor: Palette.of(context).onPrimary,
+                  valueColor: widget.textColor,
                   strokeWidth: 2,
                 )
               ) : widget.child,

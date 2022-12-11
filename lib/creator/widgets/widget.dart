@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:align_positioned/align_positioned.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
 import 'package:render_studio/creator/state.dart';
-import 'package:render_studio/creator/widgets/image.dart';
 import 'package:supercharged/supercharged.dart';
 import '../../rehmat.dart';
 
@@ -308,15 +307,15 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
                           color: page.palette.background.computeThemedTextColor(180),
                           width: 0
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            blurStyle: BlurStyle.outer,
-                            color: Colors.black.withOpacity(0.25),
-                            blurRadius: 10,
-                            spreadRadius: 0,
-                            offset: Offset(0, 0),
-                          ),
-                        ],
+                        // boxShadow: [
+                        //   BoxShadow(
+                        //     blurStyle: BlurStyle.outer,
+                        //     color: Colors.black.withOpacity(0.25),
+                        //     blurRadius: 10,
+                        //     spreadRadius: 0,
+                        //     offset: Offset(0, 0),
+                        //   ),
+                        // ],
                       ),
                       child: SizedBox.fromSize(
                         size: size,

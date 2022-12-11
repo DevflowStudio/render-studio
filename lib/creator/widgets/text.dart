@@ -35,7 +35,7 @@ class CreatorText extends CreatorWidget {
         Option.color(
           tooltip: 'Tap to select text color',
           palette: () => page.palette,
-          selected: () => color,
+          selected: color,
           onChange: (_color) {
             if (_color == null) return;
             this.color = _color;

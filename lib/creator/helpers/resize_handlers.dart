@@ -250,7 +250,8 @@ class ResizeHandlerBall extends StatefulWidget {
     this.onResizeStart,
     this.onResizeEnd,
     this.isVisible = true,
-    this.isResizing = false
+    this.isResizing = false,
+    this.color
   }) : super(key: key);
 
   final ResizeHandler type;
@@ -261,6 +262,7 @@ class ResizeHandlerBall extends StatefulWidget {
   final bool isVisible;
   /// Set to `true` if the widget is currently being resized
   final bool isResizing;
+  final Color? color;
 
   @override
   _ResizeHandlerBallState createState() => _ResizeHandlerBallState();
@@ -298,7 +300,7 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
                   height: _size.height,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: Colors.white,
+                    color: color,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
@@ -315,6 +317,15 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
         ),
       ),
     );
+  }
+
+  Color get color {
+    if (widget.color != null) return widget.color!;
+    if (widget.widget.page.widgets.background.type == BackgroundType.color) {
+      return widget.widget.page.palette.onBackground.withAlpha(180);
+    } else {
+      return Colors.white;
+    }
   }
 
   Size get _size => isDragging ? widget.type.feedbackSize : (widget.isResizing ? widget.type.size/2 : widget.type.size);

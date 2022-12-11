@@ -9,34 +9,37 @@ class GridState extends ChangeNotifier {
   // final CreatorWidget page;
   final CreatorPage page;
 
-  GridState({required this.page}) {
-    _addBackgroundGrids();
-  }
-  
+  GridState({required this.page});
 
   List<Grid> grids = [];
   List<Grid> visible = [];
 
-  void reset() {
+  void clear() {
     grids.clear();
-    _addBackgroundGrids();
+    _addBackgroundGrids(
+      page.widgets.background.type == BackgroundType.color
+        ? page.palette.onBackground
+        : Colors.white
+    );
   }
 
-  void _addBackgroundGrids() {
+  void _addBackgroundGrids([Color? color]) {
     grids.addAll([
       Grid(
         position: const Offset(0, 0),
-        color: Colors.red,
+        color: color ?? page.palette.onBackground,
         layout: GridLayout.vertical,
         page: page,
-        gridWidgetPlacement: GridWidgetPlacement.centerVertical
+        gridWidgetPlacement: GridWidgetPlacement.centerVertical,
+        dotted: false
       ),
       Grid(
         position: const Offset(0, 0),
-        color: Colors.red,
+        color: color ?? page.palette.onBackground,
         layout: GridLayout.horizontal,
         page: page,
-        gridWidgetPlacement: GridWidgetPlacement.centerHorizontal
+        gridWidgetPlacement: GridWidgetPlacement.centerHorizontal,
+        dotted: false
       )
     ]);
   }
@@ -51,7 +54,8 @@ class Grid {
     required this.layout,
     this.widget,
     required this.gridWidgetPlacement,
-    required this.page
+    required this.page,
+    this.dotted = true
   });
 
   /// Position for the grid line
@@ -73,11 +77,14 @@ class Grid {
   final CreatorPage page;
 
   final GridWidgetPlacement gridWidgetPlacement;
+
+  final bool dotted;
   
   Widget build() {
     return layout.build(
       color: color,
-      page: page
+      page: page,
+      dotted: dotted
     );
   }
 
@@ -101,7 +108,8 @@ extension GridLayoutExtension on GridLayout {
 
   Widget build({
     required Color color,
-    required CreatorPage page
+    required CreatorPage page,
+    bool dotted = true
   }) {
     switch (this) {
       case GridLayout.horizontal:
@@ -112,6 +120,7 @@ extension GridLayoutExtension on GridLayout {
             child: DottedLine(
               direction: Axis.horizontal,
               dashColor: color,
+              dashGapLength: dotted ? 3 : 0,
             ),
           ),
         );
@@ -123,6 +132,7 @@ extension GridLayoutExtension on GridLayout {
             child: DottedLine(
               direction: Axis.vertical,
               dashColor: color,
+              dashGapLength: dotted ? 3 : 0,
             ),
           ),
         );

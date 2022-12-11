@@ -112,24 +112,30 @@ class ColorPalette {
       'secondary': secondary.toHex(),
       'tertiary': tertiary.toHex(),
       'background': background.toHex(),
+      'onBackground': onBackground.toHex(),
       'surface': surface.toHex()
     };
   }
 
-  static ColorPalette fromJSON(Map json) {
+  static ColorPalette fromJSON(Map data) {
     List<Color> _colors = [];
-    for (String color in json['colors']) {
+    for (String color in data['colors']) {
       _colors.add(HexColor.fromHex(color));
     }
     ColorPalette colorPalette = ColorPalette(
-      id: json['id'],
+      id: data['id'],
       colors: _colors,
     );
-    colorPalette.primary = HexColor.fromHex(json['primary']);
-    colorPalette.secondary = HexColor.fromHex(json['secondary']);
-    colorPalette.tertiary = HexColor.fromHex(json['tertiary']);
-    colorPalette.background = HexColor.fromHex(json['background']);
-    colorPalette.surface = HexColor.fromHex(json['surface']);
+    try {
+      colorPalette.primary = HexColor.fromHex(data['primary']);
+      colorPalette.secondary = HexColor.fromHex(data['secondary']);
+      colorPalette.tertiary = HexColor.fromHex(data['tertiary']);
+      colorPalette.background = HexColor.fromHex(data['background']);
+      colorPalette.onBackground = HexColor.fromHex(data['onBackground']);
+      colorPalette.surface = HexColor.fromHex(data['surface']);
+    } catch (e) {
+      colorPalette.refresh(true);
+    }
     return colorPalette;
   }
 

@@ -54,7 +54,7 @@ class CreatorPage extends PropertyChangeNotifier {
     return AbsorbPointer(
       absorbing: !isInteractive,
       child: SizedBox.fromSize(
-        size: project.canvasSize(context),
+        size: project.contentSize,
         child: Stack(
           clipBehavior: Clip.none,
           children: [

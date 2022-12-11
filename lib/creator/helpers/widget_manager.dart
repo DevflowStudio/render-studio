@@ -143,7 +143,7 @@ class WidgetManager {
   }
 
   void updateGrids() {
-    page.gridState.reset();
+    page.gridState.clear();
     for (CreatorWidget widget in _widgets.values) {
       widget.updateGrids();
       widget.stateCtrl.update();
@@ -200,7 +200,8 @@ class WidgetManager {
   /// ```
   List<Map<String, dynamic>> toJSON([BuildInfo buildInfo = BuildInfo.unknown]) {
     List<Map<String, dynamic>> widgetData = [];
-    for (CreatorWidget widget in _widgets.values) {
+    for (String uid in sortedUIDs) {
+      CreatorWidget widget = _widgets[uid]!;
       widgetData.add(widget.toJSON(buildInfo: buildInfo));
     }
     return widgetData;
@@ -256,7 +257,7 @@ class WidgetManager {
   void restoreHistory(List<Map> data, {
     required String? version
   }) {
-    page.gridState.reset();
+    page.gridState.clear();
     _widgets.clear();
     for (Map widgetData in data) try {
       CreatorWidget widget = CreatorWidget.fromJSON(

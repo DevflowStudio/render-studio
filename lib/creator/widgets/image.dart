@@ -11,6 +11,368 @@ import '../../rehmat.dart';
 import 'package:colorfilter_generator/colorfilter_generator.dart';
 import 'dart:math' as math;
 
+class CreativeImageProvider {
+
+  CreativeImageProvider._(this.widget);
+  final CreatorWidget widget;
+
+  factory CreativeImageProvider.create(CreatorWidget widget) {
+    return CreativeImageProvider._(widget);
+  }
+
+  double brightness = 0;
+  double contrast = 0;
+  double exposure = 0;
+  double saturation = 0;
+  double visibility = 0;
+  double? sepia;
+  double hue = 0;
+
+  bool flipHorizontal = false;
+  bool flipVertical = false;
+
+  ColorFilterGenerator? filter;
+
+  List<double> get matrix {
+    ColorFilterGenerator myFilter = ColorFilterGenerator(
+      name: "Custom Filter",
+      filters: [
+        ColorFilterAddons.brightness(brightness),
+        ColorFilterAddons.contrast(contrast),
+        ColorFilterAddons.saturation(saturation),
+        ColorFilterAddons.hue(hue),
+        if (sepia != null) ColorFilterAddons.sepia(sepia!),
+        if (filter != null) filter!.matrix,
+        // PresetFilters.ludwig.opacity(0.20),
+      ]
+    );
+    return myFilter.matrix;
+  }
+  
+  Map<String, dynamic> toJSON() => {
+    'brightness': brightness,
+    'contrast': contrast,
+    'exposure': exposure,
+    'saturation': saturation,
+    'visibility': visibility,
+    'sepia': sepia,
+    'hue': hue,
+    'flipHorizontal': flipHorizontal,
+    'flipVertical': flipVertical,
+    'filter': filter?.matrix,
+  };
+
+  static CreativeImageProvider fromJSON(Map data, {
+    required CreatorWidget widget
+  }) {
+    CreativeImageProvider provider = CreativeImageProvider._(widget);
+    provider.brightness = data['brightness'] ?? 0;
+    provider.contrast = data['contrast'] ?? 0;
+    provider.exposure = data['exposure'] ?? 0;
+    provider.saturation = data['saturation'] ?? 0;
+    provider.visibility = data['visibility'] ?? 0;
+    provider.sepia = data['sepia'];
+    provider.hue = data['hue'] ?? 0;
+    provider.flipHorizontal = data['flipHorizontal'] ?? false;
+    provider.flipVertical = data['flipVertical'] ?? false;
+    provider.filter = data['filter'] != null ? ColorFilterGenerator(
+      name: "Custom Filter",
+      filters: [
+        if (data['filter'] != null) data['filter'],
+      ]
+    ) : null;
+    return provider;
+  }
+
+  EditorTab editor(Asset asset, {
+    required void Function(WidgetChange change) onChange,
+    String name = 'Image',
+    List<Option> options = const [],
+  }) => EditorTab(
+    tab: name,
+    options: [
+      Option.showSlider(
+        icon: RenderIcons.brightness,
+        title: 'Brightness',
+        max: 0.25,
+        min: -0.25,
+        value: brightness,
+        onChange: (value) {
+          brightness = value;
+          onChange(WidgetChange.misc);
+        },
+        onChangeEnd: (value) {
+          brightness = value;
+          onChange(WidgetChange.update);
+        },
+      ),
+      Option.showSlider(
+        icon: RenderIcons.contrast,
+        title: 'Contrast',
+        max: 0.25,
+        min: -0.25,
+        value: contrast,
+        onChange: (value) {
+          contrast = value;
+          onChange(WidgetChange.misc);
+        },
+        onChangeEnd: (value) {
+          contrast = value;
+          onChange(WidgetChange.update);
+        },
+      ),
+      Option.showSlider(
+        icon: RenderIcons.exposure,
+        title: 'Exposure',
+        max: 1,
+        min: -1,
+        value: exposure,
+        onChange: (value) {
+          exposure = value;
+          onChange(WidgetChange.misc);
+        },
+        onChangeEnd: (value) {
+          exposure = value;
+          onChange(WidgetChange.update);
+        },
+      ),
+      Option.showSlider(
+        icon: RenderIcons.saturation,
+        title: 'Saturation',
+        max: 1,
+        min: -1,
+        value: saturation,
+        onChange: (value) {
+          saturation = value;
+          onChange(WidgetChange.misc);
+        },
+        onChangeEnd: (value) {
+          saturation = value;
+          onChange(WidgetChange.update);
+        },
+      ),
+      // Option.showSlider(
+      //   icon: RenderIcons.visibility,
+      //   title: 'Visibility',
+      //   max: 1,
+      //   min: -1,
+      //   value: visibility,
+      //   onChange: (value) {
+      //     visibility = value;
+      //     updateListeners(WidgetChange.misc);
+      //   },
+      //   onChangeEnd: (value) {
+      //     visibility = value;
+      //     updateListeners(WidgetChange.update);
+      //   },
+      // ),
+      Option.showSlider(
+        icon: RenderIcons.hue,
+        title: 'Hue',
+        max: 1,
+        min: 0,
+        value: hue,
+        onChange: (value) {
+          hue = value;
+          onChange(WidgetChange.misc);
+        },
+        onChangeEnd: (value) {
+          hue = value;
+          onChange(WidgetChange.update);
+        },
+      ),
+      Option.button(
+        title: 'Filters',
+        onTap: (context) {
+          EditorTab.modal(
+            context,
+            padding: EdgeInsets.zero,
+            tab: EditorTab(
+              tab: 'Filters',
+              type: EditorTabType.single,
+              options: [
+                Option.custom(
+                  widget: (context) {
+                    List<ColorFilterGenerator> filters = [
+                      PresetFilters.none,
+                      PresetFilters.addictiveBlue,
+                      PresetFilters.addictiveRed,
+                      PresetFilters.aden,
+                      PresetFilters.amaro,
+                      PresetFilters.ashby,
+                      PresetFilters.brannan,
+                      PresetFilters.brooklyn,
+                      PresetFilters.charmes,
+                      PresetFilters.clarendon,
+                      PresetFilters.crema,
+                      PresetFilters.dogpatch,
+                      PresetFilters.earlybird,
+                      PresetFilters.f1977,
+                      PresetFilters.gingham,
+                      PresetFilters.ginza,
+                      PresetFilters.hefe,
+                      PresetFilters.helena,
+                      PresetFilters.hudson,
+                      PresetFilters.inkwell,
+                      PresetFilters.juno,
+                      PresetFilters.kelvin,
+                      PresetFilters.lark,
+                      PresetFilters.loFi,
+                      PresetFilters.ludwig,
+                      PresetFilters.maven,
+                      PresetFilters.mayfair,
+                      PresetFilters.moon,
+                      PresetFilters.nashville,
+                      PresetFilters.perpetua,
+                      PresetFilters.reyes,
+                      PresetFilters.rise,
+                      PresetFilters.sierra,
+                      PresetFilters.skyline,
+                      PresetFilters.slumber,
+                      PresetFilters.stinson,
+                      PresetFilters.sutro,
+                      PresetFilters.toaster,
+                      PresetFilters.toaster,
+                      PresetFilters.valencia,
+                      PresetFilters.vesper,
+                      PresetFilters.walden,
+                      PresetFilters.willow,
+                      PresetFilters.xProII,
+                    ];
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).padding.bottom
+                      ),
+                      child: SizedBox(
+                        height: 150,
+                        child: ListView.separated(
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          scrollDirection: Axis.horizontal,
+                          separatorBuilder: (context, index) => SizedBox(width: 4),
+                          itemBuilder: (context, index) => GestureDetector(
+                            onTap: () {
+                              TapFeedback.light();
+                              filter = filters[index];
+                              onChange(WidgetChange.update);
+                            },
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: 150,
+                                maxHeight: 150,
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: _imageBuilder(
+                                  asset,
+                                  colorFilter: ColorFilter.matrix(filters[index].matrix),
+                                ),
+                              ),
+                            ),
+                          ),
+                          itemCount: filters.length,
+                        ),
+                      ),
+                    );
+                  },
+                )
+              ]
+            )
+          );
+        },
+        icon: RenderIcons.filter
+      ),
+      Option.divider(),
+      Option.toggle(
+        title: 'Flip Vertical',
+        value: flipVertical,
+        onChange: (value) {
+          flipVertical = value;
+          onChange(WidgetChange.update);
+        },
+        enabledIcon: RenderIcons.flip_vertical,
+        disabledIcon: RenderIcons.flip_vertical,
+        enabledTooltip: 'Flip Vertically',
+        disabledTooltip: 'Flip Vertically',
+      ),
+      Option.toggle(
+        title: 'Flip Horizontal',
+        value: flipHorizontal,
+        onChange: (value) {
+          flipHorizontal = value;
+          onChange(WidgetChange.update);
+        },
+        enabledIcon: RenderIcons.flip_horizontal,
+        disabledIcon: RenderIcons.flip_horizontal,
+        enabledTooltip: 'Flip Horizontally',
+        disabledTooltip: 'Flip Horizontally',
+      ),
+      if (options.isNotEmpty) Option.divider(),
+      ... options
+    ]
+  );
+
+  Widget _imageBuilder(Asset asset, {
+    required ColorFilter colorFilter,
+    BoxFit fit = BoxFit.cover,
+    Size? size
+  }) => Transform(
+    alignment: Alignment.center,
+    transform: Matrix4.rotationY(flipHorizontal ? math.pi : 0)..rotateX(flipVertical ? math.pi : 0),
+    child: ColorFiltered(
+      colorFilter: colorFilter,
+      child: OctoImage(
+        fadeInCurve: Sprung(),
+        fadeInDuration: Constants.animationDuration,
+        image: FileImage(asset.file),
+        placeholderBuilder: (context) => ClipRRect(
+          child: Stack(
+            children: [
+              Container(
+                // color: page.background.color.withOpacity(0.5),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      widget.page.palette.background.withAlpha(180).withOpacity(0.5),
+                      widget.page.palette.background.withOpacity(0.5),
+                    ]
+                  )
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: SizedBox.fromSize(
+                    size: size,
+                    child: Container(),
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  height: 50,
+                  width: 50,
+                  child: Spinner(
+                    adaptive: true,
+                  )
+                ),
+              )
+            ],
+          ),
+        ),
+        fit: fit,
+      )
+    ),
+  );
+
+  Widget build(Asset asset, {
+    required Size size,
+  }) => _imageBuilder(
+    asset,
+    colorFilter: ColorFilter.matrix(matrix),
+    size: size
+  );
+
+}
+
 class ImageWidget extends CreatorWidget {
 
   ImageWidget({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
@@ -22,6 +384,7 @@ class ImageWidget extends CreatorWidget {
     File? file = await FilePicker.imagePicker(context, crop: true);
     if (file == null) return;
     Asset _asset = await Asset.create(project: page.project, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
+    image.provider = CreativeImageProvider.create(image);
     image.asset = _asset;
     await image.resizeByImage();
     page.widgets.add(image);
@@ -95,227 +458,16 @@ class ImageWidget extends CreatorWidget {
             updateListeners(WidgetChange.update);
           },
         ),
-        Option.toggle(
-          title: 'Flip Vertical',
-          value: flipVertical,
-          onChange: (value) {
-            flipVertical = value;
-            updateListeners(WidgetChange.update);
-          },
-          enabledIcon: RenderIcons.flip_vertical,
-          disabledIcon: RenderIcons.flip_vertical,
-          enabledTooltip: 'Flip Vertically',
-          disabledTooltip: 'Flip Vertically',
-        ),
-        Option.toggle(
-          title: 'Flip Horizontal',
-          value: flipHorizontal,
-          onChange: (value) {
-            flipHorizontal = value;
-            updateListeners(WidgetChange.update);
-          },
-          enabledIcon: RenderIcons.flip_horizontal,
-          disabledIcon: RenderIcons.flip_horizontal,
-          enabledTooltip: 'Flip Horizontally',
-          disabledTooltip: 'Flip Horizontally',
-        ),
         ... defaultOptions,
       ],
       tab: 'Image',
     ),
-    EditorTab(
-      tab: 'Properties',
-      options: [
-        Option.showSlider(
-          icon: RenderIcons.brightness,
-          title: 'Brightness',
-          max: 0.25,
-          min: -0.25,
-          value: brightness,
-          onChange: (value) {
-            brightness = value;
-            updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (value) {
-            brightness = value;
-            updateListeners(WidgetChange.update);
-          },
-        ),
-        Option.showSlider(
-          icon: RenderIcons.contrast,
-          title: 'Contrast',
-          max: 0.25,
-          min: -0.25,
-          value: contrast,
-          onChange: (value) {
-            contrast = value;
-            updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (value) {
-            contrast = value;
-            updateListeners(WidgetChange.update);
-          },
-        ),
-        Option.showSlider(
-          icon: RenderIcons.exposure,
-          title: 'Exposure',
-          max: 1,
-          min: -1,
-          value: exposure,
-          onChange: (value) {
-            exposure = value;
-            updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (value) {
-            exposure = value;
-            updateListeners(WidgetChange.update);
-          },
-        ),
-        Option.showSlider(
-          icon: RenderIcons.saturation,
-          title: 'Saturation',
-          max: 1,
-          min: -1,
-          value: saturation,
-          onChange: (value) {
-            saturation = value;
-            updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (value) {
-            saturation = value;
-            updateListeners(WidgetChange.update);
-          },
-        ),
-        // Option.showSlider(
-        //   icon: RenderIcons.visibility,
-        //   title: 'Visibility',
-        //   max: 1,
-        //   min: -1,
-        //   value: visibility,
-        //   onChange: (value) {
-        //     visibility = value;
-        //     updateListeners(WidgetChange.misc);
-        //   },
-        //   onChangeEnd: (value) {
-        //     visibility = value;
-        //     updateListeners(WidgetChange.update);
-        //   },
-        // ),
-        Option.showSlider(
-          icon: RenderIcons.hue,
-          title: 'Hue',
-          max: 1,
-          min: 0,
-          value: hue,
-          onChange: (value) {
-            hue = value;
-            updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (value) {
-            hue = value;
-            updateListeners(WidgetChange.update);
-          },
-        ),
-        Option.button(
-          title: 'Filters',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              padding: EdgeInsets.zero,
-              tab: EditorTab(
-                tab: 'Filters',
-                type: EditorTabType.single,
-                options: [
-                  Option.custom(
-                    widget: (context) {
-                      List<ColorFilterGenerator> filters = [
-                        PresetFilters.none,
-                        PresetFilters.addictiveBlue,
-                        PresetFilters.addictiveRed,
-                        PresetFilters.aden,
-                        PresetFilters.amaro,
-                        PresetFilters.ashby,
-                        PresetFilters.brannan,
-                        PresetFilters.brooklyn,
-                        PresetFilters.charmes,
-                        PresetFilters.clarendon,
-                        PresetFilters.crema,
-                        PresetFilters.dogpatch,
-                        PresetFilters.earlybird,
-                        PresetFilters.f1977,
-                        PresetFilters.gingham,
-                        PresetFilters.ginza,
-                        PresetFilters.hefe,
-                        PresetFilters.helena,
-                        PresetFilters.hudson,
-                        PresetFilters.inkwell,
-                        PresetFilters.juno,
-                        PresetFilters.kelvin,
-                        PresetFilters.lark,
-                        PresetFilters.loFi,
-                        PresetFilters.ludwig,
-                        PresetFilters.maven,
-                        PresetFilters.mayfair,
-                        PresetFilters.moon,
-                        PresetFilters.nashville,
-                        PresetFilters.perpetua,
-                        PresetFilters.reyes,
-                        PresetFilters.rise,
-                        PresetFilters.sierra,
-                        PresetFilters.skyline,
-                        PresetFilters.slumber,
-                        PresetFilters.stinson,
-                        PresetFilters.sutro,
-                        PresetFilters.toaster,
-                        PresetFilters.toaster,
-                        PresetFilters.valencia,
-                        PresetFilters.vesper,
-                        PresetFilters.walden,
-                        PresetFilters.willow,
-                        PresetFilters.xProII,
-                      ];
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: MediaQuery.of(context).padding.bottom
-                        ),
-                        child: SizedBox(
-                          height: 150,
-                          child: ListView.separated(
-                            padding: EdgeInsets.symmetric(horizontal: 6),
-                            scrollDirection: Axis.horizontal,
-                            separatorBuilder: (context, index) => SizedBox(width: 4),
-                            itemBuilder: (context, index) => GestureDetector(
-                              onTap: () {
-                                TapFeedback.light();
-                                filter = filters[index];
-                                updateListeners(WidgetChange.update);
-                              },
-                              child: ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxWidth: 150,
-                                  maxHeight: 150,
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: _imageBuilder(
-                                    colorFilter: ColorFilter.matrix(filters[index].matrix),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            itemCount: filters.length,
-                          ),
-                        ),
-                      );
-                    },
-                  )
-                ]
-              )
-            );
-          },
-          icon: RenderIcons.filter
-        )
-      ]
+    provider.editor(
+      asset!,
+      onChange: (change) {
+        updateListeners(change);
+      },
+      name: 'Edit'
     ),
     EditorTab(
       tab: 'Adjust',
@@ -340,90 +492,15 @@ class ImageWidget extends CreatorWidget {
 
   OnImageController controller = OnImageController();
 
-  double brightness = 0;
-  double contrast = 0;
-  double exposure = 0;
-  double saturation = 0;
-  double visibility = 0;
-  double? sepia;
-  double hue = 0;
-
-  bool flipHorizontal = false;
-  bool flipVertical = false;
-
-  ColorFilterGenerator? filter;
-
-  List<double> get matrix {
-    ColorFilterGenerator myFilter = ColorFilterGenerator(
-      name: "Custom Filter",
-      filters: [
-        ColorFilterAddons.brightness(brightness),
-        ColorFilterAddons.contrast(contrast),
-        ColorFilterAddons.saturation(saturation),
-        ColorFilterAddons.hue(hue),
-        if (sepia != null) ColorFilterAddons.sepia(sepia!),
-        if (filter != null) filter!.matrix,
-        // PresetFilters.ludwig.opacity(0.20),
-      ]
-    );
-    return myFilter.matrix;
-  }
+  late CreativeImageProvider provider;
 
   @override
   Widget widget(BuildContext context) => ClipRRect(
     borderRadius: BorderRadius.circular(borderRadius),
-    child: _imageBuilder(colorFilter: ColorFilter.matrix(matrix))
-  );
-
-  Widget _imageBuilder({
-    required ColorFilter colorFilter,
-    BoxFit fit = BoxFit.cover,
-  }) => Transform(
-    alignment: Alignment.center,
-    transform: Matrix4.rotationY(flipHorizontal ? math.pi : 0)..rotateX(flipVertical ? math.pi : 0),
-    child: ColorFiltered(
-      colorFilter: colorFilter,
-      child: OctoImage(
-        fadeInCurve: Sprung(),
-        fadeInDuration: Constants.animationDuration,
-        image: FileImage(asset!.file),
-        placeholderBuilder: (context) => ClipRRect(
-          child: Stack(
-            children: [
-              Container(
-                // color: page.background.color.withOpacity(0.5),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      page.palette.background.withAlpha(180).withOpacity(0.5),
-                      page.palette.background.withOpacity(0.5),
-                    ]
-                  )
-                ),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: SizedBox.fromSize(
-                    size: size,
-                    child: Container(),
-                  ),
-                ),
-              ),
-              Align(
-                alignment: Alignment.center,
-                child: SizedBox(
-                  height: 50,
-                  width: 50,
-                  child: Spinner(
-                    adaptive: true,
-                  )
-                ),
-              )
-            ],
-          ),
-        ),
-        fit: fit,
-      )
-    ),
+    child: provider.build(
+      asset!,
+      size: size,
+    )
   );
 
   Future<void> resizeByImage() async {
@@ -460,16 +537,7 @@ class ImageWidget extends CreatorWidget {
     return {
       ... super.toJSON(buildInfo: buildInfo),
       'radius': borderRadius,
-      'brightness': brightness,
-      'contrast': contrast,
-      'exposure': exposure,
-      'saturation': saturation,
-      'visibility': visibility,
-      'sepia': sepia,
-      'hue': hue,
-      'flipHorizontal': flipHorizontal,
-      'flipVertical': flipVertical,
-      'filter': filter?.matrix,
+      'provider': provider.toJSON()
     };
   }
 
@@ -480,21 +548,7 @@ class ImageWidget extends CreatorWidget {
     super.buildFromJSON(json, buildInfo: buildInfo);
     if (asset == null) throw WidgetCreationException('Could not build Design Asset. File may have been deleted.');
     borderRadius = json['radius'] ?? 0;
-    brightness = json['brightness'] ?? 0;
-    contrast = json['contrast'] ?? 0;
-    exposure = json['exposure'] ?? 0;
-    saturation = json['saturation'] ?? 0;
-    visibility = json['visibility'] ?? 0;
-    sepia = json['sepia'];
-    hue = json['hue'] ?? 0;
-    flipHorizontal = json['flipHorizontal'] ?? false;
-    flipVertical = json['flipVertical'] ?? false;
-    filter = json['filter'] != null ? ColorFilterGenerator(
-      name: "Custom Filter",
-      filters: [
-        if (json['filter'] != null) json['filter'],
-      ]
-    ) : null;
+    provider = CreativeImageProvider.fromJSON(json['provider'] ?? {}, widget: this);
   }
 
 }

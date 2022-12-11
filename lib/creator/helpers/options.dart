@@ -29,6 +29,13 @@ class Option {
     )
   );
 
+  static Option divider() => Option(
+    widget: (context) => VerticalDivider(
+      indent: 3,
+      endIndent: 24,
+    )
+  );
+
   static Option toggle({
     Key? key,
     required String title,
@@ -64,7 +71,7 @@ class Option {
   );
 
   static Option color({
-    Color Function()? selected,
+    Color? selected,
     ColorPalette Function()? palette,
     required Function(Color? color) onChange,
     required Function(Color? color) onChangeEnd,
@@ -82,6 +89,7 @@ class Option {
           context,
           onChange: onChange,
           palette: palette?.call(),
+          selected: selected
         )
       );
       onChangeEnd(null);

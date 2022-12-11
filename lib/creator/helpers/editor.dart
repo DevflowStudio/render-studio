@@ -554,6 +554,7 @@ class EditorTab {
     ColorPalette? palette,
     required void Function(Color color) onChange,
     bool allowOpacity = true,
+    Color? selected
   }) => EditorTab(
     tab: 'Color',
     type: EditorTabType.single,
@@ -562,6 +563,7 @@ class EditorTab {
         widget: (context) => ColorEditorTab(
           onChange: onChange,
           palette: palette,
+          color: selected,
         ),
       )
     ]

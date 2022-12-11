@@ -30,6 +30,8 @@ class BackgroundWidget extends CreatorWidget {
 
   BackgroundType type = BackgroundType.color;
 
+  CreativeImageProvider? imageProvider;
+
   @override
   Size get size => page.project.size!.size;
 
@@ -113,97 +115,22 @@ class BackgroundWidget extends CreatorWidget {
           icon: RenderIcons.padding,
           tooltip: 'Adjust Padding'
         ),
-        Option.button(
-          title: 'Color',
-          tooltip: 'Background Color',
-          onTap: (context) async {
-            await showModalBottomSheet<CreatorWidget>(
-              context: context,
-              backgroundColor: Palette.of(context).surface,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Constants.borderRadius.bottomLeft)
-              ),
-              builder: (_) => Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-                    child: Label(label: 'Background Color'),
-                  ),
-                  ListTile(
-                    leading: const Icon(RenderIcons.color),
-                    title: const Text('Color'),
-                    tileColor: Palette.of(context).surface,
-                    onTap: () async {
-                      TapFeedback.light();
-                      Navigator.of(context).pop();
-                      Color? _color = await Palette.showColorPicker(
-                        context,
-                        selected: color,
-                        palette: page.palette,
-                      );
-                      if (_color != null) {
-                        changeBackgroundType(BackgroundType.color);
-                        color = _color;
-                        updateListeners(WidgetChange.update);
-                      }
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(RenderIcons.gradient),
-                    title: const Text('Gradient'),
-                    tileColor: Palette.of(context).surface,
-                    onTap: () async {
-                      TapFeedback.light();
-                      Navigator.of(context).pop();
-                      await EditorTab.modal(
-                        context,
-                        tab: EditorTab(
-                          options: [
-                            Option.button(
-                              title: 'Style',
-                              onTap: (_) async {
-                                List<Color>? _gradients = await Navigator.of(context).push<List<Color>>(AppRouter(page: const GradientPicker()));
-                                if (_gradients != null) {
-                                  changeBackgroundType(BackgroundType.gradient);
-                                  gradient = _gradients;
-                                }
-                                updateListeners(WidgetChange.misc);
-                              },
-                              tooltip: 'Select Gradient Color',
-                              icon: RenderIcons.gradient,
-                            ),
-                            Option.button(
-                              title: 'Rotate',
-                              onTap: (_) async {
-                                int i = BackgroundGradient.values.indexOf(gradientType);
-                                i += 1;
-                                if (i >= BackgroundGradient.values.length) i = 0;
-                                gradientType = BackgroundGradient.values[i];
-                                updateListeners(WidgetChange.misc);
-                              },
-                              tooltip: 'Select Gradient Color',
-                              icon: RenderIcons.rotate,
-                            ),
-                          ],
-                          tab: 'Background Gradient'
-                        )
-                      );
-                      if (gradient == null) return;
-                      if (gradient!.length < 2) {
-                        changeBackgroundType(BackgroundType.color);
-                        Alerts.snackbar(context, text: 'Gradient must have at least 2 colors');
-                      }
-                      updateListeners(WidgetChange.update);
-                    },
-                  ),
-                  Container(height: 20,)
-                ],
-              ),
-            );
+        Option.color(
+          onChange: (color) {
+            if (color == null) return;
+            this.color = color;
+            if (type != BackgroundType.color) {
+              changeBackgroundType(BackgroundType.color);
+            }
+            updateListeners(WidgetChange.misc);
           },
-          icon: RenderIcons.color
+          onChangeEnd: (color) {
+            if (color != null) this.color = color;
+            if (type != BackgroundType.color) {
+              changeBackgroundType(BackgroundType.color);
+            }
+            updateListeners(WidgetChange.update);
+          },
         ),
         Option.button(
           icon: RenderIcons.image,
@@ -214,6 +141,7 @@ class BackgroundWidget extends CreatorWidget {
             if (file == null) return;
             if (asset == null) {
               asset = Asset.create(project: page.project, file: file);
+              imageProvider = CreativeImageProvider.create(this);
             } else {
               asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
             }
@@ -251,6 +179,25 @@ class BackgroundWidget extends CreatorWidget {
         ),
       ],
     ),
+    if (asset != null && imageProvider != null) imageProvider!.editor(
+      asset!,
+      onChange: (change) {
+        updateListeners(change);
+      },
+      name: 'Image Editor',
+      options: [
+        Option.button(
+          title: 'Remove Image',
+          onTap: (context) {
+            asset = null;
+            imageProvider = null;
+            changeBackgroundType(BackgroundType.color);
+            updateListeners(WidgetChange.update);
+          },
+          icon: RenderIcons.remove
+        )
+      ]
+    )
   ];
 
   @override
@@ -284,6 +231,10 @@ class BackgroundWidget extends CreatorWidget {
             end: gradientType.end,
           ) : null
         ),
+        child: (asset != null && imageProvider != null) ? imageProvider!.build(
+          asset!,
+          size: size,
+        ) : null,
       ),
     );
   }
@@ -311,50 +262,60 @@ class BackgroundWidget extends CreatorWidget {
     double? snapSensitivity,
   }) {
     page.gridState.grids.removeWhere((grid) => grid.widget == this);
+    Color gridColor;
+    if (type == BackgroundType.color) {
+      gridColor = page.palette.onBackground;
+    } else {
+      gridColor = Colors.white;
+    }
     List<Grid> grids = [
       Grid(
         position: Offset(
           - page.project.contentSize.width/2 + padding.left,
           0
         ),
-        color: Colors.green,
+        color: gridColor,
         layout: GridLayout.vertical,
         gridWidgetPlacement: GridWidgetPlacement.left,
         widget: this,
-        page: page
+        page: page,
+        dotted: false
       ),
       Grid(
         position: Offset(
           page.project.contentSize.width/2 - padding.right,
           0
         ),
-        color: Colors.green,
+        color: gridColor,
         layout: GridLayout.vertical,
         gridWidgetPlacement: GridWidgetPlacement.right,
         widget: this,
-        page: page
+        page: page,
+        dotted: false
       ),
       Grid(
         position: Offset(
           0,
           page.project.contentSize.height/2 - padding.bottom,
         ),
-        color: Colors.green,
+        color: gridColor,
         layout: GridLayout.horizontal,
         gridWidgetPlacement: GridWidgetPlacement.bottom,
         widget: this,
-        page: page
+        page: page,
+        dotted: false
       ),
       Grid(
         position: Offset(
           0,
           - page.project.contentSize.height/2 + padding.top,
         ),
-        color: Colors.green,
+        color: gridColor,
         layout: GridLayout.horizontal,
         gridWidgetPlacement: GridWidgetPlacement.top,
         widget: this,
-        page: page
+        page: page,
+        dotted: false
       )
     ];
     page.gridState.grids.addAll(grids);
@@ -368,12 +329,14 @@ class BackgroundWidget extends CreatorWidget {
       case BackgroundType.color:
         asset = null;
         gradient = null;
+        imageProvider = null;
         break;
       case BackgroundType.image:
         gradient = null;
         break;
       case BackgroundType.gradient:
         asset = null;
+        imageProvider = null;
         break;
       default:
     }
@@ -411,6 +374,7 @@ class BackgroundWidget extends CreatorWidget {
     'color': color.toHex(),
     'gradient': _generateGradientsHex(),
     'padding': padding.toJSON(),
+    'image-provider': imageProvider?.toJSON(),
   };
 
   @override
@@ -429,6 +393,9 @@ class BackgroundWidget extends CreatorWidget {
       }
       if (json['padding'] != null) {
         padding = PaddingExtension.fromJSON(Map.from(json['padding']));
+      }
+      if (json['image-provider'] != null) {
+        imageProvider = CreativeImageProvider.fromJSON(Map.from(json['image-provider']), widget: this);
       }
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'Error building background', stacktrace: stacktrace);

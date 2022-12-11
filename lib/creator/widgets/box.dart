@@ -59,7 +59,7 @@ class CreatorBoxWidget extends CreatorWidget {
       tab: 'Box',
       options: [
         Option.color(
-          selected: () => color,
+          selected: color,
           palette: () => page.palette,
           onChange: (color) {
             if (color != null) this.color = color;

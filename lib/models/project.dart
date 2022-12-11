@@ -44,30 +44,6 @@ class Project extends ChangeNotifier {
 
   List<Exception> issues = [];
 
-  /// Render Project: Canvas Size
-  /// The interactive area as a whole is referred to as the canvas
-  /// Canvas is larger than the actual project's content size
-  /// i.e. the interactive area is more to enhance experience even though the content size will be smaller
-  Size canvasSize(BuildContext context) {
-    double height = size!.size.height;
-    double width = size!.size.width;
-    double ratio = width/height;
-
-    double actualWidth = MediaQuery.of(context).size.width;
-    double actualHeight = MediaQuery.of(context).size.width / ratio;
-
-    Size actualSize = Size(actualWidth, actualHeight);
-
-    double maxCanvasRatio = editorVisible ? 0.6 : 0.7;
-
-    if (actualHeight > MediaQuery.of(context).size.height * maxCanvasRatio) {
-      double _height = MediaQuery.of(context).size.height * maxCanvasRatio;
-      actualSize = Size(_height * ratio, _height);
-    }
-
-    return actualSize;
-  }
-
   /// This is the actual size of the page
   /// and will be used to export the image
   Size get contentSize {
