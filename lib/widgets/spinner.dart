@@ -72,6 +72,7 @@ class Spinner extends StatefulWidget {
       backgroundColor: Palette.of(context).background.withOpacity(0.2),
       barrierColor: Palette.of(context).background.withOpacity(0.2),
       isDismissible: false,
+      enableDrag: false,
       builder: (context) => WillPopScope(
         onWillPop: () async {
           return true;

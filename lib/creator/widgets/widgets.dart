@@ -6,3 +6,4 @@ export 'box.dart';
 export 'group.dart';
 export 'qr.dart';
 export 'image.dart';
+export 'shape.dart';

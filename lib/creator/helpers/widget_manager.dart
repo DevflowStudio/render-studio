@@ -311,6 +311,10 @@ class _AddWidgetModal extends StatelessWidget {
       'title': 'Image',
       'icon': RenderIcons.image,
     },
+    'shape': {
+      'title': 'Shape',
+      'icon': RenderIcons.shapes,
+    },
   };
 
   @override

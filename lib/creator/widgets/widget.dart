@@ -666,6 +666,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       case 'box':
         widget = CreatorBoxWidget(page: page, data: data, buildInfo: buildInfo);
         break;
+      case 'shape':
+        widget = ShapeWidget(page: page, data: data, buildInfo: buildInfo);
+        break;
       default:
         throw WidgetCreationException('Failed to build widget ${data['name']}');
     }
@@ -693,6 +696,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         break;
       case 'box':
         CreatorBoxWidget.create(context, page: page);
+        break;
+      case 'shape':
+        ShapeWidget.create(context, page: page);
         break;
       default:
         break;

@@ -72,7 +72,7 @@ class QRWidget extends CreatorWidget {
           },
         ),
         Option.color(
-          icon: RenderIcons.color2,
+          icon: RenderIcons.color,
           title: 'Data Color',
           tooltip: 'Change the color of QR Data',
           onChange: (_color) {

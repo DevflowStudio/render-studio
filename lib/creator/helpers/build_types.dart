@@ -6,7 +6,7 @@
 /// than being saved or exported to an image
 enum BuildType {
   /// The widget is being exported to an image,
-  /// finalise the widget and remove any temporary data or history
+  /// finalize the widget and remove any temporary data or history
   save,
   /// The widget is being restored from JSON
   /// maybe when the project is opened or when the widget is restored from history

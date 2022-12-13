@@ -15,6 +15,7 @@ export 'others/glance.dart';
 export 'others/icon_finder.dart';
 export 'others/qr_data_editor.dart';
 export 'others/unsplash.dart';
+export 'others/shape_selector.dart';
 export 'palette/create.dart';
 export 'palette/palettes.dart';
 export 'palette/edit.dart';

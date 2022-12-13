@@ -195,7 +195,18 @@ class BackgroundWidget extends CreatorWidget {
             updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.remove
-        )
+        ),
+        Option.button(
+          icon: RenderIcons.image,
+          title: 'Replace',
+          tooltip: 'Tap to replace image',
+          onTap: (context) async {
+            File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size!.cropRatio);
+            if (file == null) return;
+            asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
+            updateListeners(WidgetChange.update);
+          },
+        ),
       ]
     )
   ];
@@ -217,14 +228,6 @@ class BackgroundWidget extends CreatorWidget {
       child: Container(
         decoration: BoxDecoration(
           color: type == BackgroundType.color ? color : Colors.white,
-          image: type == BackgroundType.image ? DecorationImage(
-            image: FileImage(asset!.file),
-            onError: (exception, stackTrace) {
-              Alerts.snackbar(context, text: 'The background image could not be loaded. It might have been deleted.');
-              changeBackgroundType(BackgroundType.color);
-              updateListeners(WidgetChange.misc);
-            },
-          ) : null,
           gradient: (type == BackgroundType.gradient && gradient != null) ? LinearGradient(
             colors: gradient!,
             begin: gradientType.begin,
@@ -369,13 +372,20 @@ class BackgroundWidget extends CreatorWidget {
   @override
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
-  }) => {
-    ... super.toJSON(buildInfo: buildInfo),
-    'color': color.toHex(),
-    'gradient': _generateGradientsHex(),
-    'padding': padding.toJSON(),
-    'image-provider': imageProvider?.toJSON(),
-  };
+  }) {
+    if (asset != null && type != BackgroundType.image && buildInfo.buildType == BuildType.save) {
+      asset!.delete();
+      asset = null;
+      imageProvider = null;
+    }
+    return {
+      ... super.toJSON(buildInfo: buildInfo),
+      'color': color.toHex(),
+      'gradient': _generateGradientsHex(),
+      'padding': padding.toJSON(),
+      'image-provider': imageProvider?.toJSON(),
+    };
+  }
 
   @override
   void buildFromJSON(Map<String, dynamic> json, {

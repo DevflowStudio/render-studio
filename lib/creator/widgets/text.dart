@@ -15,7 +15,7 @@ class CreatorText extends CreatorWidget {
   
   @override
   void onInitialize() {
-    color = page.palette.background.computeTextColor();
+    color = page.palette.onBackground;
     super.onInitialize();
   }
 
@@ -34,7 +34,7 @@ class CreatorText extends CreatorWidget {
         ),
         Option.color(
           tooltip: 'Tap to select text color',
-          palette: () => page.palette,
+          palette: page.palette,
           selected: color,
           onChange: (_color) {
             if (_color == null) return;

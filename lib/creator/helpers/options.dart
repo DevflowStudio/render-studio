@@ -72,7 +72,7 @@ class Option {
 
   static Option color({
     Color? selected,
-    ColorPalette Function()? palette,
+    ColorPalette? palette,
     required Function(Color? color) onChange,
     required Function(Color? color) onChangeEnd,
     String? title,
@@ -88,7 +88,7 @@ class Option {
         tab: EditorTab.color(
           context,
           onChange: onChange,
-          palette: palette?.call(),
+          palette: palette,
           selected: selected
         )
       );

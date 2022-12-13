@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 abstract class RenderIcons {
 
@@ -13,11 +14,11 @@ abstract class RenderIcons {
 
   static const IconData design_system = Iconsax.designtools5;
 
-  static const IconData image = Iconsax.image;
+  static const IconData image = CupertinoIcons.photo;
 
   static const IconData add = CupertinoIcons.add;
 
-  static const IconData resize = Iconsax.size;
+  static const IconData resize = CupertinoIcons.resize;
 
   static const IconData palette = Iconsax.color_swatch;
 
@@ -79,13 +80,13 @@ abstract class RenderIcons {
 
   static const IconData nudge = Icons.drag_indicator;
 
-  static const IconData padding = Icons.padding_rounded;
+  static const IconData padding = CupertinoIcons.rectangle_split_3x3;
 
   static const IconData gap = Icons.space_bar;
 
-  static const IconData auto_size = Icons.auto_fix_normal;
+  static const IconData auto_size = PhosphorIcons.magicWand;
 
-  static const IconData auto_size_off = Icons.auto_fix_off;
+  static const IconData auto_size_off = PhosphorIcons.magicWand;
 
   static const IconData text_size = Icons.text_fields;
 
@@ -173,12 +174,14 @@ abstract class RenderIcons {
 
   static const IconData expand = Iconsax.arrow_down_1;
 
-  static const IconData layers = CupertinoIcons.layers_alt;
+  static const IconData layers = PhosphorIcons.stack;
   
   static const IconData splice = CupertinoIcons.scissors;
 
   static const IconData echo = CupertinoIcons.square_stack_3d_down_right;
 
   static const IconData lifted = CupertinoIcons.square_split_1x2;
+
+  static const IconData shapes = Iconsax.shapes;
 
 }
