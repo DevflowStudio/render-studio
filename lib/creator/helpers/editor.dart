@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 import '../../rehmat.dart';
 
@@ -232,19 +233,12 @@ class EditorTab {
       case EditorTabType.single:
         return options[0].build(context);
       case EditorTabType.grid:
-        return SizedBox(
-          height: 80,
-          child: GridView.builder(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: options.length ~/ 2),
-            itemBuilder: (context, index) => Container(
-              color: Colors.red.withOpacity(0.2),
-              width: 40,
-              height: 40,
-              padding: const EdgeInsets.all(5),
-              child: options[index].build(context),
-            ),
-            itemCount: options.length,
-            // physics: NeverScrollableScrollPhysics(),
+        return StaggeredGrid.count(
+          crossAxisCount: 2,
+          axisDirection: AxisDirection.down,
+          children: List.generate(
+            options.length,
+            (index) => options[index].build(context)
           ),
         );
       default:
@@ -400,6 +394,38 @@ class EditorTab {
     tab: title
   );
 
+  static EditorTab adjustTab({
+    required CreatorWidget widget,
+    bool rotate = true,
+    bool scale = true,
+    bool opacity = true,
+    bool nudge = true,
+    bool position = true,
+    bool order = true,
+  }) => EditorTab(
+    tab: 'Adjust',
+    options: [
+      if (rotate) Option.rotate(
+        widget: widget,
+      ),
+      if (scale) Option.scale(
+        widget: widget,
+      ),
+      if (opacity) Option.opacity(
+        widget: widget,
+      ),
+      if (nudge) Option.nudge(
+        widget: widget,
+      ),
+      if (position) Option.position(
+        widget: widget
+      ),
+      if (order && widget.page.widgets.nWidgets >= 3) Option.openReorderTab(
+        widget: widget,
+      )
+    ]
+  );
+
   static EditorTab nudge({
     required Function(double dx) onDXchange,
     required Function(double dy) onDYchange,
@@ -454,6 +480,55 @@ class EditorTab {
       )
     ],
     tab: 'Nudge'
+  );
+
+  static EditorTab position({
+    required CreatorWidget widget
+  }) => EditorTab(
+    tab: 'Position',
+    type: EditorTabType.grid,
+    options: [
+      for (Map data in [
+        {
+          'title': 'Top',
+          'icon': RenderIcons.align_top,
+          'alignment': WidgetAlignment.top
+        },
+        {
+          'title': 'Left',
+          'icon': RenderIcons.align_left,
+          'alignment': WidgetAlignment.left
+        },
+        {
+          'title': 'Middle',
+          'icon': RenderIcons.align_middle,
+          'alignment': WidgetAlignment.middle
+        },
+        {
+          'title': 'Center',
+          'icon': RenderIcons.align_center,
+          'alignment': WidgetAlignment.center
+        },
+        {
+          'title': 'Bottom',
+          'icon': RenderIcons.align_bottom,
+          'alignment': WidgetAlignment.bottom
+        },
+        {
+          'title': 'Right',
+          'icon': RenderIcons.align_right,
+          'alignment': WidgetAlignment.right
+        },
+      ]) Option.custom(
+        widget: (context) => ListTile(
+          title: Text(data['title']),
+          leading: Icon(data['icon']),
+          onTap: () {
+            widget.alignPositioned(data['alignment']);
+          },
+        )
+      )
+    ],
   );
 
   static EditorTab paddingEditor({

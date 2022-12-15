@@ -17,7 +17,7 @@ class Spinner extends StatefulWidget {
   final double? value;
   final bool adaptive;
 
-  const Spinner({Key? key, this.valueColor, this.backgroundColor, this.strokeWidth = 4.0, this.value, this.adaptive = false}) : super(key: key);
+  const Spinner({Key? key, this.valueColor, this.backgroundColor, this.strokeWidth = 4.0, this.value, this.adaptive = true}) : super(key: key);
 
   static Future<void> fullscreen(
     BuildContext context, {

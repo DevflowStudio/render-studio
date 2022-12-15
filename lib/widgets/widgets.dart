@@ -9,3 +9,4 @@ export 'navigation_bar.dart';
 export 'no_space_widget.dart';
 export 'app_bar.dart';
 export 'icons.dart';
+export 'projects.dart';

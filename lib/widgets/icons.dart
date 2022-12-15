@@ -108,13 +108,13 @@ abstract class RenderIcons {
 
   static const IconData blur = Icons.blur_on;
 
-  static const IconData align_left = Iconsax.align_left;
+  static const IconData text_align_left = Iconsax.align_left;
 
-  static const IconData align_center = Iconsax.align_horizontally;
+  static const IconData text_align_center = Iconsax.align_horizontally;
 
-  static const IconData align_right = Iconsax.align_right;
+  static const IconData text_align_right = Iconsax.align_right;
 
-  static const IconData align_justify = Iconsax.textalign_justifycenter;
+  static const IconData text_align_justify = Iconsax.textalign_justifycenter;
 
   static const IconData outline = FontAwesomeIcons.borderAll;
 
@@ -183,5 +183,19 @@ abstract class RenderIcons {
   static const IconData lifted = CupertinoIcons.square_split_1x2;
 
   static const IconData shapes = Iconsax.shapes;
+
+  static const IconData position = PhosphorIcons.dotsNine;
+
+  static const IconData align_top = PhosphorIcons.alignTopSimple;
+
+  static const IconData align_center = PhosphorIcons.alignCenterHorizontalSimple;
+
+  static const IconData align_bottom = PhosphorIcons.alignBottomSimple;
+
+  static const IconData align_left = PhosphorIcons.alignLeftSimple;
+
+  static const IconData align_right = PhosphorIcons.alignRightSimple;
+
+  static const IconData align_middle = PhosphorIcons.alignCenterVerticalSimple;
 
 }

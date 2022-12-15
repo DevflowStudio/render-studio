@@ -27,7 +27,7 @@ class CreativeShape extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 
   factory CreativeShape.fromJSON(Map<String, dynamic> json) => CreativeShape(
     color: Color(json['color']),

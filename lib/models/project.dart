@@ -136,6 +136,7 @@ class Project extends ChangeNotifier {
     project.created = DateTime.fromMillisecondsSinceEpoch(data['meta']['created']);
     project.edited = DateTime.fromMillisecondsSinceEpoch(data['meta']['edited']);
     project.assetManager = await AssetManager.initialize(project, data: data);
+    project.thumbnail = data['thumbnail'];
 
     for (Map pageDate in data['pages']) {
       CreatorPage? page = await CreatorPage.fromJSON(Map<String, dynamic>.from(pageDate), project: project);

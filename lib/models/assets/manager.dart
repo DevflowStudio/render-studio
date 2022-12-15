@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../../rehmat.dart';
 
 class AssetManager {
@@ -23,6 +25,19 @@ class AssetManager {
       }
     }
     return _manager;
+  }
+
+  bool _hasPrecached = false;
+  bool canPrecache() {
+    if (_hasPrecached) return false;
+    return assets.isNotEmpty;
+  }
+
+  Future<void> precache(BuildContext context) async {
+    for (Asset asset in assets.values) {
+      await asset.precache(context);
+    }
+    _hasPrecached = true;
   }
 
   /// Add an asset to the project

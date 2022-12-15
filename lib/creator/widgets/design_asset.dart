@@ -75,23 +75,7 @@ class CreatorDesignAsset extends CreatorWidget {
       ],
       tab: 'Design Asset',
     ),
-    EditorTab(
-      tab: 'Adjust',
-      options: [
-        Option.rotate(
-          widget: this,
-        ),
-        Option.scale(
-          widget: this,
-        ),
-        Option.opacity(
-          widget: this,
-        ),
-        Option.nudge(
-          widget: this,
-        ),
-      ]
-    )
+    EditorTab.adjustTab(widget: this)
   ];
 
   @override
@@ -126,17 +110,6 @@ class CreatorDesignAsset extends CreatorWidget {
         details: 'Error building Design Asset from JSON: $e'
       );
     }
-  }
-
-  @override
-  void updateListeners(
-    /// Type of change when notifying listeners
-    /// Affects the history of the widget
-    WidgetChange change, {
-    /// Pass `true` to remove all grids
-    bool removeGrids = false
-  }) {
-    super.updateListeners(change, removeGrids: removeGrids);
   }
 
   @override

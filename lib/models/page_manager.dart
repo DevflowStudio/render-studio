@@ -32,7 +32,6 @@ class PageManager extends PropertyChangeNotifier {
     if (currentPage >= pages.length) currentPage -= 1;
     controller.animateToPage(currentPage, duration: Constants.animationDuration, curve: Curves.easeInOut);
     updateListeners();
-    notifyListeners();
     notifyListeners(PageViewChange.page);
   }
 
@@ -53,8 +52,7 @@ class PageManager extends PropertyChangeNotifier {
 
   void _addListeners() {
     for (var page in pages) {
-      page.addListener(onPageUpdate, [PageChange.update]);
-      page.addListener(onPageUpdate, [PageChange.selection]);
+      page.addListener(onPageUpdate, [PageChange.update, PageChange.misc, PageChange.selection]);
     }
   }
 

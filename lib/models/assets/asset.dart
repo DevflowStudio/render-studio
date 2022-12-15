@@ -97,6 +97,8 @@ class Asset {
     }
   }
 
+  Future<void> precache(BuildContext context) => precacheImage(FileImage(file), context);
+
   Future<String> compile() async {
     try {
       await onCompile?.call(file);

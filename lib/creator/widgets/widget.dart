@@ -75,10 +75,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         );
       },
     ),
-    if (page.widgets.nWidgets >= 3) Option.openReorderTab(
-      page: page,
-      widget: this,
-    ),
     Option.button(
       icon: RenderIcons.delete,
       title: 'Delete',
@@ -210,6 +206,14 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// to not be draggable.
   /// Defaults to `true`
   final bool isDraggable = true;
+
+  List<WidgetAlignment> get alignment => WidgetAlignmentExtension.fromPosition(this);
+
+  void alignPositioned(WidgetAlignment alignment) {
+    if (this.alignment.contains(alignment)) return;
+    position = alignment.getPosition(this);
+    updateListeners(WidgetChange.update);
+  }
 
   void updatePosition(DragUpdateDetails details) {
     if (!isDraggable) return;

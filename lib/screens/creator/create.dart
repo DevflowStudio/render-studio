@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart';
@@ -21,6 +23,8 @@ class background extends State<Create> {
 
   bool isLoading = false;
 
+  late final Widget creator;
+
   void onProjectUpdate() {
     setState(() {});
   }
@@ -36,6 +40,7 @@ class background extends State<Create> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {});
     });
+    creator = CreatorView(project: project);
     super.initState();
   }
 
@@ -56,6 +61,14 @@ class background extends State<Create> {
 
   @override
   Widget build(BuildContext context) {
+    if (project.assetManager.canPrecache()) {
+      isLoading = true;
+      project.assetManager.precache(context).then((value) {
+        setState(() {
+          isLoading = false;
+        });
+      });
+    }
     return WillPopScope(
       onWillPop: canPagePop,
       child: Scaffold(
@@ -78,52 +91,32 @@ class background extends State<Create> {
                 child: _DebugModeWidget(project: project),
               ),
               Expanded(
-                child: project.pages.pages.isEmpty
-                  ? const Center(
-                    child: Spinner(),
-                  )
-                  : PageView.builder(
-                    controller: project.pages.controller,
-                    physics: (project.pages.current.widgets.nSelections == 1 && project.pages.current.widgets.selections.single is BackgroundWidget) ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
-                    onPageChanged: (value) {
-                      project.pages.changePage(value);
-                    },
-                    itemBuilder: (context, index) => GestureDetector(
-                      onTap: () {
-                        project.pages.current.widgets.select(widget.project.pages.current.widgets.background);
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Stack(
-                          children: [
-                            if (info != null) Align(
-                              alignment: Alignment.topCenter,
-                              child: Chip(
-                                label: Text(info!)
-                              ),
-                            ),
-                            Center(
+                child: Stack(
+                  children: [
+                    creator,
+                    AnimatedSwitcher(
+                      duration: kAnimationDuration,
+                      child: isLoading ? BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: SizedBox.expand(
+                          child: Container(
+                            color: Palette.of(context).background.withOpacity(0.25),
+                            child: Center(
                               child: Container(
                                 decoration: BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      spreadRadius: 0,
-                                      blurRadius: 3,
-                                      offset: const Offset(0, 0),
-                                    ),
-                                  ]
+                                  color: Palette.of(context).background,
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                clipBehavior: Clip.antiAliasWithSaveLayer,
-                                child: project.pages.pages[index].build(context),
+                                padding: const EdgeInsets.all(20),
+                                child: Spinner()
                               ),
                             ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                    itemCount: project.pages.length,
-                  )
+                      ) : const SizedBox.shrink(),
+                    )
+                  ],
+                ),
               ),
               // spacer(project.editorVisible ? 1 : 2),
             ],
@@ -185,15 +178,14 @@ class background extends State<Create> {
   Future<void> save({
     bool export = false
   }) async {
-    await Spinner.linearFullscreen(
-      context,
-      message: 'Exporting...',
-      task: () async {
-        await manager.save(context, project: project, saveToGallery: true);
-        _lastSaved = DateTime.now();
-        // await Future.delayed(const Duration(seconds: 3));
-      }
-    );
+    setState(() {
+      isLoading = true;
+    });
+    await manager.save(context, project: project, saveToGallery: true);
+    _lastSaved = DateTime.now();
+    setState(() {
+      isLoading = false;
+    });
     Alerts.snackbar(
       context,
       text: 'Saved to Gallery',

@@ -37,8 +37,10 @@ class ShapeWidget extends CreatorWidget {
   Size? minSize = Size(20, 20);
 
   late Color color;
+
+  late String shape;
+
   ShapeShadow? shadow;
-  String shape = 'heart';
   
   @override
   List<ResizeHandler> resizeHandlers = [
@@ -60,53 +62,42 @@ class ShapeWidget extends CreatorWidget {
           icon: RenderIcons.replace
         ),
         Option.color(
-          palette: page.palette,
-          selected: color,
-          onChange: (color) {
-            if (color == null) return;
-            this.color = color;
+          title: 'Color',
+          tooltip: 'Tap to select asset color',
+          onChange: (_color) async {
+            if (_color == null) return;
+            color = _color;
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (color) {
-            if (color != null) this.color = color;
             updateListeners(WidgetChange.update);
           },
+        ),
+        Option.button(
+          title: 'title',
+          onTap: (context) {
+            if (shape == 'heart') {
+              shape = 'triangle';
+            } else {
+              shape = 'heart';
+            }
+            updateListeners(WidgetChange.misc);
+          },
+          icon: RenderIcons.add
         ),
         ... defaultOptions,
       ],
       tab: 'Shape',
     ),
-    EditorTab(
-      tab: 'Adjust',
-      options: [
-        Option.rotate(
-          widget: this,
-        ),
-        Option.scale(
-          widget: this,
-        ),
-        Option.opacity(
-          widget: this,
-        ),
-        Option.nudge(
-          widget: this,
-        ),
-      ]
-    )
+    EditorTab.adjustTab(widget: this)
   ];
 
   @override
-  Widget widget(BuildContext context) => Container(
-    child: CustomPaint(
-      painter: CreativeShape(
-        color: color,
-        name: shape,
-        shadow: shadow
-      ),
-      child: SizedBox(
-        width: size.width,
-        height: size.height,
-      ),
+  Widget widget(BuildContext context) => CustomPaint(
+    painter: CreativeShape(
+      color: color,
+      name: shape,
+      shadow: shadow
     ),
   );
 

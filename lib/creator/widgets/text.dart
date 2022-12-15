@@ -256,7 +256,7 @@ class CreatorText extends CreatorWidget {
             align = TextAlign.left;
             updateListeners(WidgetChange.update);
           },
-          icon: RenderIcons.align_left
+          icon: RenderIcons.text_align_left
         ),
         Option.button(
           title: 'Center',
@@ -265,7 +265,7 @@ class CreatorText extends CreatorWidget {
             align = TextAlign.center;
             updateListeners(WidgetChange.update);
           },
-          icon: RenderIcons.align_center
+          icon: RenderIcons.text_align_center
         ),
         Option.button(
           title: 'Right',
@@ -274,7 +274,7 @@ class CreatorText extends CreatorWidget {
             align = TextAlign.right;
             updateListeners(WidgetChange.update);
           },
-          icon: RenderIcons.align_right
+          icon: RenderIcons.text_align_right
         ),
         Option.button(
           title: 'Justify',
@@ -283,7 +283,7 @@ class CreatorText extends CreatorWidget {
             align = TextAlign.justify;
             updateListeners(WidgetChange.update);
           },
-          icon: RenderIcons.align_justify
+          icon: RenderIcons.text_align_justify
         ),
       ],
     ),
@@ -396,23 +396,7 @@ class CreatorText extends CreatorWidget {
         ),
       ],
     ),
-    EditorTab(
-      options: [
-        Option.rotate(
-          widget: this,
-        ),
-        Option.scale(
-          widget: this,
-        ),
-        Option.opacity(
-          widget: this,
-        ),
-        Option.nudge(
-          widget: this,
-        ),
-      ],
-      tab: 'Adjust',
-    ),
+    EditorTab.adjustTab(widget: this),
     EditorTab(
       tab: 'Spacing',
       type: EditorTabType.row,

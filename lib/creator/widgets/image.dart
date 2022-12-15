@@ -469,23 +469,7 @@ class ImageWidget extends CreatorWidget {
       },
       name: 'Edit'
     ),
-    EditorTab(
-      tab: 'Adjust',
-      options: [
-        Option.rotate(
-          widget: this,
-        ),
-        Option.scale(
-          widget: this,
-        ),
-        Option.opacity(
-          widget: this,
-        ),
-        Option.nudge(
-          widget: this,
-        ),
-      ]
-    )
+    EditorTab.adjustTab(widget: this)
   ];
 
   double borderRadius = 0;

@@ -122,7 +122,6 @@ class Option {
 
   static Option openReorderTab({
     required CreatorWidget widget,
-    required CreatorPage page
   }) => Option.button(
     title: 'Reorder',
     onTap: (context) {
@@ -345,6 +344,23 @@ class Option {
       );
       widget.updateListeners(WidgetChange.update);
     },
+    icon: icon,
+    tooltip: tooltip
+  );
+
+  static Option position({
+    String title = 'Position',
+    IconData icon = RenderIcons.position,
+    String tooltip = 'Position the widget across the page',
+    required CreatorWidget widget,
+  }) => Option.button(
+    title: title,
+    onTap: (context) =>  EditorTab.modal(
+      context,
+      tab: EditorTab.position(
+        widget: widget
+      )
+    ),
     icon: icon,
     tooltip: tooltip
   );

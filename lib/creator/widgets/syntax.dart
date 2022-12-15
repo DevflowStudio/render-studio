@@ -42,23 +42,7 @@ class CreatorWidgetSyntax extends CreatorWidget {
       ],
       tab: 'Example Widget',
     ),
-    EditorTab(
-      tab: 'Adjust',
-      options: [
-        Option.rotate(
-          widget: this,
-        ),
-        Option.scale(
-          widget: this,
-        ),
-        Option.opacity(
-          widget: this,
-        ),
-        Option.nudge(
-          widget: this,
-        ),
-      ]
-    )
+    EditorTab.adjustTab(widget: this)
   ];
 
   @override

@@ -1,5 +1,4 @@
 import 'package:google_fonts/google_fonts.dart';
-import 'package:render_studio/widgets/projects.dart';
 import 'package:flutter/material.dart';
 import '../../../rehmat.dart';
 
@@ -12,26 +11,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-
-  final scrollController = ScrollController();
-
-  late List<ProjectGlance> projects;
-
-  @override
-  void initState() {
-    projects = projectSaves.projects;
-    projectSaves.stream.addListener(onProjectsUpdate);
-    super.initState();
-  }
-
-  @override
-  void setState(VoidCallback fn) {
-    if (mounted) {
-      super.setState(fn);
-    } else {
-      fn();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -104,41 +83,6 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
-  }
-
-  void onProjectsUpdate() {
-    List<ProjectGlance> newProjects = projectSaves.projects;
-
-    List<String> added = [];
-    List<ProjectGlance> _added = [];
-    List<String> deleted = [];
-    
-    bool isAdded = projects.length < newProjects.length;
-
-    List<String> ids = [];
-    for (ProjectGlance overview in projects) {
-      ids.add(overview.id);
-    }
-    List<String> _ids = [];
-    for (ProjectGlance overview in newProjects) {
-      _ids.add(overview.id);
-    }
-
-    if (isAdded) {
-      added.addAll(_ids.where((id) => !ids.contains(id)));
-      for (String id in added) {
-        _added.addAll(newProjects.where((project) => project.id == id));
-      }
-    } else {
-      deleted.addAll(ids.where((id) => !_ids.contains(id)));
-    }
-
-    projects.removeWhere((project) => deleted.contains(project.id));
-    projects.addAll(_added);
-
-    projects.sort((a, b) => b.edited!.compareTo(a.edited!),);
-
-    setState(() { });
   }
 
 }
