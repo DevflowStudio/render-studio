@@ -5,7 +5,6 @@ export 'tile.dart';
 export 'card.dart';
 export 'auto_size_text.dart';
 export 'icon_button.dart';
-export 'navigation_bar.dart';
 export 'no_space_widget.dart';
 export 'app_bar.dart';
 export 'icons.dart';

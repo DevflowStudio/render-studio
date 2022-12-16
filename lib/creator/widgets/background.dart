@@ -48,6 +48,26 @@ class BackgroundWidget extends CreatorWidget {
           tooltip: 'Add a new widget',
           onTap: (context) => page.widgets.showAddWidgetModal(context),
         ),
+        if (page.widgets.nSelections >= 2 && page.widgets.multiselect) Option.button(
+          icon: RenderIcons.group,
+          title: 'Group',
+          tooltip: 'Group the selected widgets',
+          onTap: (context) {
+            WidgetGroup.create(page: page);
+          }
+        ),
+        Option.toggle(
+          disabledIcon: RenderIcons.multiselect,
+          enabledIcon: RenderIcons.multiselectDisabled,
+          title: 'Multiselect',
+          enabledTooltip: 'Tap to disable multiselect',
+          disabledTooltip: 'Tap to enable multiselect',
+          value: page.widgets.multiselect,
+          onChange: (value) {
+            page.widgets.multiselect = value;
+            updateListeners(WidgetChange.misc);
+          },
+        ),
         Option.button(
           icon: RenderIcons.resize,
           title: 'Resize',
@@ -260,9 +280,12 @@ class BackgroundWidget extends CreatorWidget {
 
   @override
   void updateGrids({
+    bool realtime = false,
     bool showGridLines = false,
+    bool createGrids = true,
     bool snap = true,
     double? snapSensitivity,
+    Offset? position
   }) {
     page.gridState.grids.removeWhere((grid) => grid.widget == this);
     Color gridColor;

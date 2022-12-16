@@ -19,9 +19,11 @@ class Editor extends StatefulWidget {
   Widget get build => this;
 
   static Size calculateSize(BuildContext context) {
-    Size editorSize = Size(double.infinity, MediaQuery.of(context).size.height * 0.25); // The editor can only be allowed to cover 23% of the screen area.
-    if (MediaQuery.of(context).size.height * 0.25 > 180) editorSize = Size(double.infinity, 180);
-    return editorSize;
+    double verticalPadding = MediaQuery.of(context).padding.bottom + 12 + 10;
+    Size editorSize = Size(double.infinity, MediaQuery.of(context).size.height * 0.1); // The editor can only be allowed to cover 10% of the screen area.
+    if (editorSize.height > 180) editorSize = Size(editorSize.width, 180);
+    else if (editorSize.height < 90) editorSize = Size(editorSize.width, 90);
+    return Size(editorSize.width, editorSize.height + verticalPadding);
   }
 
   @override
@@ -32,10 +34,15 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
 
   late CreatorWidget creatorWidget;
 
+  late TabController tabController;
+
+  bool isHidden = false;
+
   @override
   void initState() {
     creatorWidget = widget.widget;
     creatorWidget.addListener(onPropertyChange);
+    tabController = TabController(length: creatorWidget.tabs.length, vsync: this);
     super.initState();
   }
 
@@ -48,77 +55,80 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     Size editorSize = Editor.calculateSize(context);
-    return DefaultTabController(
-      length: widget.widget.tabs.length,
-      child: SizedBox.fromSize(
-        size: editorSize,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Palette.of(context).surfaceVariant,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 3,
-                spreadRadius: 0,
+    return Container(
+      decoration: BoxDecoration(
+        color: Palette.of(context).surfaceVariant,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 3,
+            spreadRadius: 0,
+          )
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TabBar(
+            controller: tabController,
+            enableFeedback: true,
+            indicatorSize: TabBarIndicatorSize.label,
+            indicatorColor: Constants.getThemedBlackAndWhite(context),
+            labelColor: Constants.getThemedBlackAndWhite(context),
+            indicator: creatorWidget.tabs.length > 1 ? null : const BoxDecoration(),
+            unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
+            isScrollable: true,
+            labelStyle: Theme.of(context).textTheme.subtitle2,
+            tabs: List.generate(
+              creatorWidget.tabs.length,
+              (index) => Tab(
+                text: creatorWidget.tabs[index].tab,
               )
-            ],
+            ),
+            onTap: (value) {
+              if (!tabController.indexIsChanging) {
+                setState(() {
+                  isHidden = !isHidden;
+                });
+              } else {
+                if (isHidden) setState(() {
+                  isHidden = false;
+                });
+              }
+            },
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              TabBar(
-                enableFeedback: true,
-                indicatorSize: TabBarIndicatorSize.label,
-                indicatorColor: Constants.getThemedBlackAndWhite(context),
-                labelColor: Constants.getThemedBlackAndWhite(context),
-                indicator: creatorWidget.tabs.length > 1 ? null : const BoxDecoration(),
-                unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
-                isScrollable: true,
-                labelStyle: Theme.of(context).textTheme.subtitle2,
-                tabs: List.generate(
-                  creatorWidget.tabs.length,
-                  (index) => Tab(
-                    text: creatorWidget.tabs[index].tab,
-                  )
-                )
-              ),
-              const Divider(
-                indent: 0,
-                height: 0,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Container(
-                    // color: Colors.yellow,
-                    child: SizedBox.fromSize(
-                      size: Size.fromHeight(editorSize.height * 3/5),
-                      child: Center(
-                        child: SizedBox.fromSize(
-                          size: Size.fromHeight(editorSize.height * 1.1/2),
-                          child: Container(
-                            // color: Colors.red,
-                            child: TabBarView(
-                              physics: const NeverScrollableScrollPhysics(),
-                              children: List.generate(
-                                creatorWidget.tabs.length,
-                                (index) {
-                                  return creatorWidget.tabs[index].build(context);
-                                }
-                              )
-                            ),
-                          ),
-                        ),
-                      )
-                    ),
+          const Divider(
+            indent: 0,
+            height: 0,
+          ),
+          AnimatedSize(
+            duration: kAnimationDuration,
+            curve: Curves.easeInOut,
+            child: SizedBox.fromSize(
+              size: isHidden ? Size.zero : editorSize,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: 12,
+                  bottom: MediaQuery.of(context).padding.bottom,
+                ),
+                child: Center(
+                  child: TabBarView(
+                    controller: tabController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: List.generate(
+                      creatorWidget.tabs.length,
+                      (index) {
+                        return creatorWidget.tabs[index].build(context);
+                      }
+                    )
                   ),
                 ),
-              )
-            ],
+              ),
+            ),
           )
-        ),
-      ),
+        ],
+      )
     );
   }
 
@@ -193,9 +203,8 @@ class EditorTab {
           ),
           if (builder != null) builder(context, tab.build(context))
           else Container(
-            // color: Colors.red,
             constraints: BoxConstraints(
-              minHeight: Editor.calculateSize(context).height - 50,
+              minHeight: Editor.calculateSize(context).height,
               maxHeight: MediaQuery.of(context).size.height/2.7,
             ),
             child: Padding(
@@ -406,22 +415,22 @@ class EditorTab {
     tab: 'Adjust',
     options: [
       if (rotate) Option.rotate(
-        widget: widget,
+        widget: widget.widgetOrGroup,
       ),
-      if (scale) Option.scale(
+      if (scale && widget.group != null) Option.scale(
         widget: widget,
       ),
       if (opacity) Option.opacity(
         widget: widget,
       ),
       if (nudge) Option.nudge(
-        widget: widget,
+        widget: widget.widgetOrGroup,
       ),
       if (position) Option.position(
-        widget: widget
+        widget: widget.widgetOrGroup
       ),
       if (order && widget.page.widgets.nWidgets >= 3) Option.openReorderTab(
-        widget: widget,
+        widget: widget.widgetOrGroup,
       )
     ]
   );

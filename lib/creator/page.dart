@@ -141,7 +141,7 @@ class CreatorPage extends PropertyChangeNotifier {
   // }
 
   Map<String, dynamic> toJSON([BuildInfo buildInfo = BuildInfo.unknown]) => {
-    'widgets': widgets.toJSON(buildInfo),
+    ... widgets.toJSON(buildInfo),
     'palette': palette.toJSON(),
   };
 

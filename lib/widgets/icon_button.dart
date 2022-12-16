@@ -346,6 +346,8 @@ class ButtonWithIcon extends StatefulWidget {
   /// Setting this to `true` will make the icon look grey, showing the button is disabled or the value is turned off
   final bool greyOut;
 
+  // static double calculateHeight(BuildContext context) 
+
   @override
   _ButtonWithIconState createState() => _ButtonWithIconState();
 }
@@ -367,7 +369,6 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
   Widget build(BuildContext context) {
     return tooltip(
       child: SizedBox(
-        height: calculateHeight(),
         width: 60,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -421,6 +422,7 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                         fontFamily: 'Google Sans'
                       ),
                       overflow: TextOverflow.visible,
+                      maxLines: 2,
                       textAlign: TextAlign.center,
                     ),
                   ),

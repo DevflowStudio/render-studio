@@ -40,8 +40,6 @@ class Project extends ChangeNotifier {
 
   late AssetManager assetManager;
 
-  bool editorVisible = true;
-
   List<Exception> issues = [];
 
   /// This is the actual size of the page
@@ -56,7 +54,7 @@ class Project extends ChangeNotifier {
 
     Size actualSize = Size(actualWidth, actualHeight);
 
-    double maxCanvasRatio = editorVisible ? 0.6 : 0.7;
+    double maxCanvasRatio = 0.6;
 
     if (actualHeight > deviceSize.height * maxCanvasRatio) {
       double _height = deviceSize.height * maxCanvasRatio;

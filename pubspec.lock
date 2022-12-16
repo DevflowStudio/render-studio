@@ -64,13 +64,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.3"
-  beamer:
-    dependency: "direct main"
-    description:
-      name: beamer
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.5.3"
   boolean_selector:
     dependency: transitive
     description:
@@ -597,6 +590,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "10.2.1"
+  gesture_x_detector:
+    dependency: "direct main"
+    description:
+      name: gesture_x_detector
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.1"
   get:
     dependency: "direct main"
     description:
@@ -604,6 +604,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.6.5"
+  go_router:
+    dependency: "direct main"
+    description:
+      name: go_router
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.2.4"
   google_fonts:
     dependency: "direct main"
     description:
@@ -786,6 +793,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.3"
+  logging:
+    dependency: transitive
+    description:
+      name: logging
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.1.0"
   matcher:
     dependency: transitive
     description:

@@ -84,7 +84,7 @@ abstract class RenderIcons {
 
   static const IconData gap = Icons.space_bar;
 
-  static const IconData auto_size = PhosphorIcons.magicWand;
+  static const IconData auto_size = PhosphorIcons.magicWandFill;
 
   static const IconData auto_size_off = PhosphorIcons.magicWand;
 
@@ -197,5 +197,15 @@ abstract class RenderIcons {
   static const IconData align_right = PhosphorIcons.alignRightSimple;
 
   static const IconData align_middle = PhosphorIcons.alignCenterVerticalSimple;
+
+  static const IconData group = PhosphorIcons.selectionPlus;
+
+  static const IconData ungroup = PhosphorIcons.selectionSlash;
+
+  static const IconData deleteGroup = CupertinoIcons.rectangle_3_offgrid;
+
+  static const IconData multiselect = PhosphorIcons.selectionPlus;
+
+  static const IconData multiselectDisabled = PhosphorIcons.selectionInverse;
 
 }

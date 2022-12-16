@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart';
+import 'package:flutter/services.dart';
 import '../../../rehmat.dart';
 
 class Create extends StatefulWidget {
@@ -74,6 +75,7 @@ class background extends State<Create> {
       child: Scaffold(
         appBar: _AppBar(
           project: project,
+          isLoading: isLoading,
           onBackPressed: () async {
             if (await canPagePop()) Navigator.of(context).pop();
           },
@@ -181,8 +183,9 @@ class background extends State<Create> {
     setState(() {
       isLoading = true;
     });
-    await manager.save(context, project: project, saveToGallery: true);
-    _lastSaved = DateTime.now();
+    // await manager.save(context, project: project, saveToGallery: true);
+    // _lastSaved = DateTime.now();
+    await Future.delayed(const Duration(seconds: 3));
     setState(() {
       isLoading = false;
     });
@@ -228,13 +231,9 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    return project.editorVisible
-      ? (
-          project.pages.current.widgets.nSelections > 1
-            ? project.pages.current.widgets.background.editor.build
-            : (project.pages.current.widgets.selections.firstOrNull ?? project.pages.current.widgets.background).editor.build
-        )
-      : Container();
+    return project.pages.current.widgets.nSelections > 1
+      ? project.pages.current.widgets.background.editor.build
+      : (project.pages.current.widgets.selections.firstOrNull ?? project.pages.current.widgets.background).editor.build;
   }
 
 }
@@ -363,6 +362,7 @@ class _AppBar extends StatefulWidget implements PreferredSizeWidget {
     required this.project,
     required this.onBackPressed,
     required this.onSave,
+    this.isLoading = false
   }) : super(key: key);
 
   final Project project;
@@ -370,6 +370,8 @@ class _AppBar extends StatefulWidget implements PreferredSizeWidget {
   final void Function() onBackPressed;
 
   final void Function() onSave;
+
+  final bool isLoading;
 
   @override
   State<_AppBar> createState() => _AppBarState();
@@ -405,15 +407,20 @@ class _AppBarState extends State<_AppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leading: IconButton(
+      leading: widget.isLoading ? Container() : IconButton(
         onPressed: widget.onBackPressed,
         icon: Icon(CupertinoIcons.arrow_turn_up_left),
         iconSize: 20,
       ),
       centerTitle: true,
       elevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarBrightness: MediaQuery.of(context).platformBrightness,
+      ),
+      backgroundColor: Colors.transparent,
       toolbarHeight: MediaQuery.of(context).size.height * 0.07, // Toolbar can cover a maximum of 5% of the screen area
-      actions: project.pages.pages.isNotEmpty ? [
+      actions: (project.pages.pages.isNotEmpty && !widget.isLoading) ? [
         IconButton(
           onPressed: project.pages.current.history.undo,
           icon: Icon(
@@ -479,10 +486,6 @@ class _AppBarState extends State<_AppBar> {
               child: Text('Create Group'),
               value: 'create-group',
             ),
-            PopupMenuItem(
-              child: Text('${project.editorVisible ? 'Hide' : 'Show'} Editor'),
-              value: 'toggle-editor',
-            ),
             const PopupMenuItem(
               child: Text('Save'),
               value: 'project-save',
@@ -503,14 +506,10 @@ class _AppBarState extends State<_AppBar> {
                 setState(() { });
                 break;
               case 'create-group':
-                // await WidgetGroup.create(project.pages.current);
+                await WidgetGroup.create(page: project.pages.current);
                 break;
               case 'toggle-multiselect':
                 project.pages.current.widgets.multiselect = !project.pages.current.widgets.multiselect;
-                setState(() { });
-                break;
-              case 'toggle-editor':
-                project.editorVisible = !project.editorVisible;
                 setState(() { });
                 break;
               case 'project-save':

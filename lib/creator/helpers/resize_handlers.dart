@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sprung/sprung.dart';
 
 import '../../rehmat.dart';
 
@@ -289,7 +290,7 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
           child: AnimatedOpacity(
             opacity: widget.isVisible ? 1 : 0,
             duration: Constants.animationDuration,
-            curve: Curves.easeInOut,
+            curve: Sprung.overDamped,
             child: Container(
               width: 40,
               height: 40,

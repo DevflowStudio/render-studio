@@ -53,7 +53,7 @@ Future<void> run(Flavor flavor) async {
 
 class Render extends StatelessWidget {
 
-  const Render({
+  Render({
     Key? key,
   }) : super(key: key);
 

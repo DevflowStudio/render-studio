@@ -433,25 +433,19 @@ class CreatorText extends CreatorWidget {
             updateListeners(WidgetChange.update);
           },
         ),
-        Option.button(
+        Option.showSlider(
           icon: RenderIcons.height,
           title: 'Height',
           tooltip: 'Change line height of the text',
-          onTap: (context) async {
-            List<double> _options = [0.6, 0.77, 0.85, 0.9, 1, 1.5, 2];
-            await EditorTab.modal(
-              context,
-              tab: EditorTab.pickerBuilder(
-                title: 'Line Height',
-                itemBuilder: (context, index) => Text(_options[index].toString()),
-                childCount: _options.length,
-                initialIndex: _options.indexOf(lineHeight),
-                onSelectedItemChanged: (index) {
-                  lineHeight = _options[index];
-                  updateListeners(WidgetChange.misc);
-                },
-              )
-            );
+          max: 2,
+          min: 0.66,
+          value: lineHeight,
+          onChange: (value) {
+            lineHeight = value;
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (value) {
+            lineHeight = value;
             updateListeners(WidgetChange.update);
           },
         ),
@@ -646,7 +640,7 @@ class CreatorText extends CreatorWidget {
     );
     if (text != null && text.trim() != '') this.text = text;
     if (autoSize) _removeExtraSpaceFromSize();
-    lineHeight = 1.0;
+    // lineHeight = 1.0;
     updateListeners(WidgetChange.update);
   }
 

@@ -23,7 +23,7 @@ class WidgetManager {
       }
     );
     updateSortedUIDs();
-    _selections.add(background.uid);
+    _selections.add(background);
   }
 
   /// Creates a new instance of [WidgetManager] when a new page is created.
@@ -46,7 +46,7 @@ class WidgetManager {
     }
     WidgetManager manager = WidgetManager._(
       widgets: widgets,
-      page: page
+      page: page,
     );
     manager.addListeners();
     return manager;
@@ -54,7 +54,7 @@ class WidgetManager {
 
   BackgroundWidget get background => _widgets[_background] as BackgroundWidget;
 
-  List<String> _selections = [];
+  List<CreatorWidget> _selections = [];
   int get nSelections => _selections.length;
 
   int get nWidgets => _widgets.length;
@@ -64,13 +64,22 @@ class WidgetManager {
   bool get multiselect => _multiselect;
   set multiselect(bool multiselect) {
     _multiselect = multiselect;
+    selections.forEach((element) {
+      element.updateListeners(WidgetChange.misc);
+    });
+    _selections = [_selections.firstOrNull ?? background];
   }
 
-  bool isSelected(CreatorWidget widget) {
-    return _selections.contains(widget.uid);
+  bool isSelected({
+    CreatorWidget? widget,
+    String? uid
+  }) {
+    assert(widget != null || uid != null);
+    if (widget != null) return _selections.contains(widget);
+    else return _selections.indexWhere((widget) => widget.uid == uid) != -1;
   }
 
-  List<CreatorWidget> get selections => _selections.map((uid) => _widgets[uid]!).toList();
+  List<CreatorWidget> get selections => _selections;
 
   /// Selects the provided widget.
   /// 
@@ -80,26 +89,29 @@ class WidgetManager {
   /// Incase the widget is a [BackgroundWidget], then the selection will be cleared and the widget will be the only selected widget.
   void select([CreatorWidget? widget]) {
     if (widget == null) widget = background;
-    if (widget.uid == background.uid) {
+    if (widget.uid == background.uid || widget is BackgroundWidget || widget is WidgetGroup) {
       multiselect = false;
       _selections.clear();
-      _selections.add(background.uid);
+      _selections.add(background);
     } else {
       if (multiselect) {
-        if (isSelected(widget)) {
-          _selections.remove(widget.uid);
+        if (isSelected(widget: widget)) {
+          _selections.remove(widget);
+        } else if (widget.group != null) {
+          multiselect = false;
+          select(widget);
         } else {
-          _selections.add(widget.uid);
+          _selections.add(widget);
         }
       } else {
-        _selections = [widget.uid];
+        _selections = [widget];
       }
     }
     updateGrids();
     page.updateListeners(PageChange.selection);
   }
 
-  T? get<T extends CreatorWidget>(String uid) => _widgets[uid] as T;
+  T? get<T extends CreatorWidget>(String uid) => _widgets[uid] as T?;
 
   Future<void> showAddWidgetModal(BuildContext context) async {
     String? id = await showModalBottomSheet(
@@ -115,14 +127,17 @@ class WidgetManager {
   }
 
   /// Adds the given widget to the page
-  void add(CreatorWidget widget) {
+  void add(CreatorWidget widget, {
+    /// If true, then the widget will be added without calling `init()` on it.
+    bool soft = false
+  }) {
     // Add a listener for that widget here
     multiselect = false;
     _widgets[widget.uid] = widget;
     sortedUIDs.add(widget.uid);
-    select(widget);
+    if (!soft) select(widget);
     rebuildListeners();
-    page.history.log('Add widget');
+    if (!soft) page.history.log('Add widget');
     page.updateListeners(PageChange.misc);
   }
 
@@ -136,7 +151,7 @@ class WidgetManager {
     if (!soft) widget.onDelete();
     _widgets.remove(widget.uid);
     sortedUIDs.remove(widget.uid);
-    page.history.log('Delete widget');
+    if (!soft) page.history.log('Delete widget');
     select();
     rebuildListeners();
     page.updateListeners(PageChange.misc);
@@ -189,22 +204,24 @@ class WidgetManager {
     removeListeners();
   }
 
-  /// Generates a list with all the selected widgets in JSON format
+  /// Generates a map with all the widgets in JSON format
   /// 
   /// See the example below for the use case of this method. (To be used in `CreatorPage.toJSON`)
   /// ```
   /// {
-  ///   ...
-  ///   "widgets": widgetManager.toJSON()
+  ///   ..
+  ///   ... widgetManager.toJSON()
   /// }
   /// ```
-  List<Map<String, dynamic>> toJSON([BuildInfo buildInfo = BuildInfo.unknown]) {
+  Map<String, dynamic> toJSON([BuildInfo buildInfo = BuildInfo.unknown]) {
     List<Map<String, dynamic>> widgetData = [];
     for (String uid in sortedUIDs) {
       CreatorWidget widget = _widgets[uid]!;
       widgetData.add(widget.toJSON(buildInfo: buildInfo));
     }
-    return widgetData;
+    return {
+      'widgets': widgetData
+    };
   }
 
   List<CreatorWidget> get widgets {
@@ -277,7 +294,7 @@ class WidgetManager {
       page.project.issues.add(Exception('${widgetData['name']} failed to rebuild'));
     }
     _selections = [];
-    _selections.add(background.uid);
+    _selections.add(background);
     page.updateListeners(PageChange.misc);
   }
 

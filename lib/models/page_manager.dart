@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
+import 'package:sprung/sprung.dart';
 
 import '../rehmat.dart';
 
@@ -22,7 +23,7 @@ class PageManager extends PropertyChangeNotifier {
     bool silent = false
   }) {
     pages.add(CreatorPage(project: project));
-    if (pages.length > 1) controller.animateToPage(pages.length - 1, duration: Constants.animationDuration, curve: Curves.easeInOut);
+    if (pages.length > 1) controller.animateToPage(pages.length - 1, duration: Constants.animationDuration, curve: Sprung.overDamped);
     updateListeners();
     if (!silent) notifyListeners(PageViewChange.page);
   }
@@ -30,7 +31,7 @@ class PageManager extends PropertyChangeNotifier {
   void delete() {
     pages.removeAt(currentPage);
     if (currentPage >= pages.length) currentPage -= 1;
-    controller.animateToPage(currentPage, duration: Constants.animationDuration, curve: Curves.easeInOut);
+    controller.animateToPage(currentPage, duration: Constants.animationDuration, curve: Sprung.overDamped);
     updateListeners();
     notifyListeners(PageViewChange.page);
   }

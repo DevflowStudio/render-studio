@@ -321,7 +321,7 @@ class CreativeImageProvider {
     child: ColorFiltered(
       colorFilter: colorFilter,
       child: OctoImage(
-        fadeInCurve: Sprung(),
+        fadeInCurve: Sprung.overDamped,
         fadeInDuration: Constants.animationDuration,
         image: FileImage(asset.file),
         placeholderBuilder: (context) => ClipRRect(
