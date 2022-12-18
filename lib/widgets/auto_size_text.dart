@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:sprung/sprung.dart';
 
 /// Controller to synchronize the fontSize of multiple AutoSizeTexts.
 class AutoSizeGroup {
@@ -331,7 +332,8 @@ class _AutoSizeTextState extends State<AutoSizeText> {
       } else {
         return AnimatedDefaultTextStyle(
           style: style.copyWith(fontSize: __fontSize),
-          duration: const Duration(milliseconds: 50),
+          duration: const Duration(milliseconds: 200),
+          curve: Sprung.overDamped,
           child: Text(
             widget.data!,
             key: widget.textKey,

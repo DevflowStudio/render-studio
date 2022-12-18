@@ -64,6 +64,7 @@ class ShapeWidget extends CreatorWidget {
         Option.color(
           title: 'Color',
           tooltip: 'Tap to select asset color',
+          palette: page.palette,
           onChange: (_color) async {
             if (_color == null) return;
             color = _color;

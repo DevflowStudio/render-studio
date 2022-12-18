@@ -48,26 +48,6 @@ class BackgroundWidget extends CreatorWidget {
           tooltip: 'Add a new widget',
           onTap: (context) => page.widgets.showAddWidgetModal(context),
         ),
-        if (page.widgets.nSelections >= 2 && page.widgets.multiselect) Option.button(
-          icon: RenderIcons.group,
-          title: 'Group',
-          tooltip: 'Group the selected widgets',
-          onTap: (context) {
-            WidgetGroup.create(page: page);
-          }
-        ),
-        Option.toggle(
-          disabledIcon: RenderIcons.multiselect,
-          enabledIcon: RenderIcons.multiselectDisabled,
-          title: 'Multiselect',
-          enabledTooltip: 'Tap to disable multiselect',
-          disabledTooltip: 'Tap to enable multiselect',
-          value: page.widgets.multiselect,
-          onChange: (value) {
-            page.widgets.multiselect = value;
-            updateListeners(WidgetChange.misc);
-          },
-        ),
         Option.button(
           icon: RenderIcons.resize,
           title: 'Resize',
@@ -206,16 +186,6 @@ class BackgroundWidget extends CreatorWidget {
       },
       name: 'Image Editor',
       options: [
-        Option.button(
-          title: 'Remove Image',
-          onTap: (context) {
-            asset = null;
-            imageProvider = null;
-            changeBackgroundType(BackgroundType.color);
-            updateListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.remove
-        ),
         Option.button(
           icon: RenderIcons.image,
           title: 'Replace',

@@ -1,12 +1,14 @@
 import 'dart:ui';
 
+import 'package:align_positioned/align_positioned.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../rehmat.dart';
 import '../state.dart';
 
 /// A class to manage and handle the widgets in the page.
-class WidgetManager {
+class WidgetManager extends ChangeNotifier {
 
   late Map<String, CreatorWidget> _widgets;
   late String _background;
@@ -64,10 +66,14 @@ class WidgetManager {
   bool get multiselect => _multiselect;
   set multiselect(bool multiselect) {
     _multiselect = multiselect;
+    if (multiselect) _selections.remove(background);
     selections.forEach((element) {
       element.updateListeners(WidgetChange.misc);
     });
-    _selections = [_selections.firstOrNull ?? background];
+    _selections = [
+      if (_selections.isNotEmpty) _selections.first,
+    ];
+    notifyListeners();
   }
 
   bool isSelected({
@@ -98,8 +104,9 @@ class WidgetManager {
         if (isSelected(widget: widget)) {
           _selections.remove(widget);
         } else if (widget.group != null) {
-          multiselect = false;
-          select(widget);
+          // multiselect = false;
+          // select(widget.group!.findGroup(widget));
+          _selections.add(widget);
         } else {
           _selections.add(widget);
         }
@@ -202,6 +209,7 @@ class WidgetManager {
 
   void dispose() {
     removeListeners();
+    super.dispose();
   }
 
   /// Generates a map with all the widgets in JSON format
@@ -261,13 +269,16 @@ class WidgetManager {
   List<Widget> build(BuildContext context, {
     bool isInteractive = true,
   }) {
-    return sortedUIDs.map((uid) => WidgetState(
-      key: UniqueKey(),
-      controller: _widgets[uid]!.stateCtrl,
-      widget: _widgets[uid]!,
-      page: page,
-      isInteractive: isInteractive,
-    )).toList();
+    return [
+      ... sortedUIDs.map((uid) => WidgetState(
+        key: UniqueKey(),
+        controller: _widgets[uid]!.stateCtrl,
+        widget: _widgets[uid]!,
+        page: page,
+        isInteractive: isInteractive,
+      )).toList(),
+      _MultiselectDragOverlay(widgets: this)
+    ];
   }
 
   /// This method rebuild all the widgets in the page from a previous state in the history.
@@ -391,4 +402,98 @@ class _AddWidgetModal extends StatelessWidget {
       ),
     );
   }
+}
+
+class _MultiselectDragOverlay extends StatefulWidget {
+
+  const _MultiselectDragOverlay({
+    required this.widgets
+  });
+
+  final WidgetManager widgets;
+
+  @override
+  State<_MultiselectDragOverlay> createState() => __MultiselectDragOverlayState();
+}
+
+class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
+
+  late WidgetManager widgets;
+
+  Offset? _selectorStart;
+  Offset? _selectorMiddle;
+  Offset? _selectorEnd;
+
+  void onMultiselectChange() => setState(() { });
+
+  @override
+  void initState() {
+    widgets = widget.widgets;
+    widgets.addListener(onMultiselectChange);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widgets.removeListener(onMultiselectChange);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      dragStartBehavior: DragStartBehavior.down,
+      behavior: HitTestBehavior.translucent,
+      onPanStart: widgets.multiselect ? (details) {
+        _selectorStart = _selectorEnd = details.localPosition - Offset(widgets.page.project.contentSize.width/2, widgets.page.project.contentSize.height/2);
+        setState(() { });
+      } : null,
+      onPanUpdate: widgets.multiselect ? (details) {
+        _selectorEnd = Offset(_selectorEnd!.dx + details.delta.dx, _selectorEnd!.dy + details.delta.dy);
+        _selectorMiddle = Offset((_selectorStart!.dx + _selectorEnd!.dx)/2, (_selectorStart!.dy + _selectorEnd!.dy)/2);
+        setState(() { });
+      } : null,
+      onPanEnd: widgets.multiselect ? (details) {
+        Size _selectorSize = Size((_selectorEnd!.dx - _selectorStart!.dx).abs(), (_selectorEnd!.dy - _selectorStart!.dy).abs());
+        Rect rect = _selectorMiddle!.translate(-_selectorSize.width/2, -_selectorSize.height/2) & _selectorSize;
+        _selectorStart = _selectorMiddle = _selectorEnd = null;
+        for (CreatorWidget widget in widgets.widgets) {
+          if (widget is BackgroundWidget) continue;
+          Rect intersect = widget.area.intersect(rect);
+          bool isIntersecting = intersect.size.width > 0 && intersect.size.height > 0;
+          if (isIntersecting) {
+            widgets.select(widget);
+          }
+        }
+        setState(() { });
+      } : null,
+      child: SizedBox.fromSize(
+        size: widgets.page.project.contentSize,
+        child: Stack(
+          children: [
+            if (_selectorStart != null && _selectorMiddle != null && _selectorEnd != null) AlignPositioned(
+              dx: _selectorMiddle!.dx,
+              dy: _selectorMiddle!.dy,
+              child: ClipRRect(
+                child: SizedBox(
+                  width: (_selectorStart!.dx - _selectorEnd!.dx).abs(),
+                  height: (_selectorStart!.dy - _selectorEnd!.dy).abs(),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Palette.of(context).background.withOpacity(0.25),
+                      border: Border.all(
+                        color: Palette.of(context).background,
+                        width: 1,
+                      ),
+                    ),
+                  )
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

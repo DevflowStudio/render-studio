@@ -13,10 +13,10 @@ class Create extends StatefulWidget {
   final Project project;
 
   @override
-  background createState() => background();
+  _CreateState createState() => _CreateState();
 }
 
-class background extends State<Create> {
+class _CreateState extends State<Create> {
 
   late Project project;
 
@@ -83,45 +83,48 @@ class background extends State<Create> {
             await save();
           },
         ),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (preferences.debugMode) Align(
-                alignment: Alignment.topLeft,
-                child: _DebugModeWidget(project: project),
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    creator,
-                    AnimatedSwitcher(
-                      duration: kAnimationDuration,
-                      child: isLoading ? BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: SizedBox.expand(
-                          child: Container(
-                            color: Palette.of(context).background.withOpacity(0.25),
-                            child: Center(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Palette.of(context).background,
-                                  borderRadius: BorderRadius.circular(10),
+        body: GestureDetector(
+          onTap: () => project.pages.current.widgets.select(project.pages.current.widgets.background),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (preferences.debugMode) Align(
+                  alignment: Alignment.topLeft,
+                  child: _DebugModeWidget(project: project),
+                ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      creator,
+                      AnimatedSwitcher(
+                        duration: kAnimationDuration,
+                        child: isLoading ? BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: SizedBox.expand(
+                            child: Container(
+                              color: Palette.of(context).background.withOpacity(0.25),
+                              child: Center(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Palette.of(context).background,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.all(20),
+                                  child: Spinner()
                                 ),
-                                padding: const EdgeInsets.all(20),
-                                child: Spinner()
                               ),
                             ),
                           ),
-                        ),
-                      ) : const SizedBox.shrink(),
-                    )
-                  ],
+                        ) : const SizedBox.shrink(),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              // spacer(project.editorVisible ? 1 : 2),
-            ],
+                // spacer(project.editorVisible ? 1 : 2),
+              ],
+            ),
           ),
         ),
         bottomNavigationBar: AnimatedSize(
@@ -183,9 +186,9 @@ class background extends State<Create> {
     setState(() {
       isLoading = true;
     });
-    // await manager.save(context, project: project, saveToGallery: true);
-    // _lastSaved = DateTime.now();
-    await Future.delayed(const Duration(seconds: 3));
+    await manager.save(context, project: project, saveToGallery: true);
+    _lastSaved = DateTime.now();
+    // await Future.delayed(const Duration(seconds: 3));
     setState(() {
       isLoading = false;
     });
@@ -232,8 +235,8 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
   @override
   Widget build(BuildContext context) {
     return project.pages.current.widgets.nSelections > 1
-      ? project.pages.current.widgets.background.editor.build
-      : (project.pages.current.widgets.selections.firstOrNull ?? project.pages.current.widgets.background).editor.build;
+      ? project.pages.current.widgets.background.editor
+      : (project.pages.current.widgets.selections.firstOrNull ?? project.pages.current.widgets.background).editor;
   }
 
 }
@@ -314,6 +317,13 @@ class __DebugModeWidgetState extends State<_DebugModeWidget> {
                   fontWeight: FontWeight.w500
                 ),
               ),
+              Text(
+                'Area: ${creatorWidget.area}',
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w500
+                ),
+              ),
             ] else if (page.widgets.nSelections == 0) Text(
               'No Widget Selected',
               style: Theme.of(context).textTheme.bodySmall!.copyWith(
@@ -321,7 +331,7 @@ class __DebugModeWidgetState extends State<_DebugModeWidget> {
                 fontWeight: FontWeight.w500
               ),
             ) else Text(
-              'Multiple Widgets Selected',
+              'Multiple Widgets Selected [${page.widgets.nSelections}] (${page.widgets.selections.map((e) => e.uid).join(', ')})',
               style: Theme.of(context).textTheme.bodySmall!.copyWith(
                 color: Colors.red,
                 fontWeight: FontWeight.w500
@@ -412,12 +422,15 @@ class _AppBarState extends State<_AppBar> {
         icon: Icon(CupertinoIcons.arrow_turn_up_left),
         iconSize: 20,
       ),
-      centerTitle: true,
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarBrightness: MediaQuery.of(context).platformBrightness,
       ),
+      centerTitle: false,
+      title: title != null ? Chip(
+        label: Text(title!)
+      ) : null,
       backgroundColor: Colors.transparent,
       toolbarHeight: MediaQuery.of(context).size.height * 0.07, // Toolbar can cover a maximum of 5% of the screen area
       actions: (project.pages.pages.isNotEmpty && !widget.isLoading) ? [
@@ -524,6 +537,12 @@ class _AppBarState extends State<_AppBar> {
         )
       ] : [],
     );
+  }
+
+  String? get title {
+    if (project.pages.current.widgets.multiselect) {
+      return 'Multiselect';
+    } else return null;
   }
 
 }

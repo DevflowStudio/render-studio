@@ -36,7 +36,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
 
   late TabController tabController;
 
-  bool isHidden = false;
+  static bool _isHidden = false;
 
   @override
   void initState() {
@@ -89,11 +89,11 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
             onTap: (value) {
               if (!tabController.indexIsChanging) {
                 setState(() {
-                  isHidden = !isHidden;
+                  _isHidden = !_isHidden;
                 });
               } else {
-                if (isHidden) setState(() {
-                  isHidden = false;
+                if (_isHidden) setState(() {
+                  _isHidden = false;
                 });
               }
             },
@@ -106,7 +106,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
             duration: kAnimationDuration,
             curve: Curves.easeInOut,
             child: SizedBox.fromSize(
-              size: isHidden ? Size.zero : editorSize,
+              size: _isHidden ? Size.fromHeight(MediaQuery.of(context).padding.bottom) : editorSize,
               child: Padding(
                 padding: EdgeInsets.only(
                   top: 12,
@@ -290,7 +290,6 @@ class EditorTab {
         onChangeStart: onChangeStart,
         onChange: onChange,
         onChangeEnd: onChangeEnd,
-        divisions: 45
       )
     ],
     tab: 'Rotate'
@@ -417,7 +416,7 @@ class EditorTab {
       if (rotate) Option.rotate(
         widget: widget.widgetOrGroup,
       ),
-      if (scale && widget.group != null) Option.scale(
+      if (scale && widget.group == null) Option.scale(
         widget: widget,
       ),
       if (opacity) Option.opacity(

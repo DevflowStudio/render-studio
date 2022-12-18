@@ -65,17 +65,13 @@ class AssetManager {
 
   /// Checks for all the assets linked with the project and removes the ones that are not used
   Future<void> _removeUnlinkedAssets() async {
-    List<String> unusedAssets = [];
+    List<String> unusedAssets = assets.keys.toList();
     for (CreatorPage page in project.pages.pages) {
       for (CreatorWidget widget in page.widgets.widgets) {
-        if (widget.asset != null && unusedAssets.contains(widget.asset!.id)) {
-          unusedAssets.remove(widget.asset!.id);
-        }
+        if (widget.asset != null && unusedAssets.contains(widget.asset!.id)) unusedAssets.remove(widget.asset!.id);
       }
     }
-    for (String id in unusedAssets) {
-      await delete(assets[id]!);
-    }
+    for (String id in unusedAssets) await delete(assets[id]!);
   }
 
 }

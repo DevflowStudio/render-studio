@@ -129,7 +129,10 @@ extension ResizeHandlerProperties on ResizeHandler {
     /// Drag update details
     required DragUpdateDetails details,
     /// Previous Size
-    required CreatorWidget widget
+    required CreatorWidget widget,
+    /// Setting this to `true` will keep updating the position of the widget as it is resized (default: `true`)
+    /// This will provide the feedback of resizing the widget with the opposite end of the widget locked to a position
+    bool updatePosition = true,
   }) {
     double changeInX = details.delta.dx;
     double changeInY = details.delta.dy;
@@ -138,14 +141,14 @@ extension ResizeHandlerProperties on ResizeHandler {
         Size _size = _calculateNewSize(widget, -changeInX, -changeInY);
         if (widget.allowResize(_size)) {
           if (widget.keepAspectRatio) changeInY = widget.size.height - _size.height;
-          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
+          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
       case ResizeHandler.topCenter:
         Size _size = _calculateNewSize(widget, 0, -changeInY);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
+          if (updatePosition) widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
@@ -153,7 +156,7 @@ extension ResizeHandlerProperties on ResizeHandler {
         Size _size = _calculateNewSize(widget, changeInX, -changeInY);
         if (widget.allowResize(_size)) {
           if (widget.keepAspectRatio) changeInY = widget.size.height - _size.height;
-          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
+          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
@@ -161,14 +164,14 @@ extension ResizeHandlerProperties on ResizeHandler {
       case ResizeHandler.centerLeft:
         Size _size = _calculateNewSize(widget, -changeInX, 0);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
+          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
           return _size;
         }
         return widget.size;
       case ResizeHandler.centerRight:
         Size _size = _calculateNewSize(widget, changeInX, 0);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
+          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
           return _size;
         }
         return widget.size;
@@ -177,14 +180,14 @@ extension ResizeHandlerProperties on ResizeHandler {
         Size _size = _calculateNewSize(widget, -changeInX, changeInY);
         if (widget.allowResize(_size)) {
           if (widget.keepAspectRatio) changeInY = _size.height - widget.size.height;
-          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
+          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
       case ResizeHandler.bottomCenter:
         Size _size = _calculateNewSize(widget, 0, changeInY);
         if (widget.allowResize(_size)) {
-          widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
+          if (updatePosition) widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
@@ -192,7 +195,7 @@ extension ResizeHandlerProperties on ResizeHandler {
         Size _size = _calculateNewSize(widget, changeInX, changeInY);
         if (widget.allowResize(_size)) {
           if (widget.keepAspectRatio) changeInY = _size.height - widget.size.height;
-          widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
+          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
@@ -252,7 +255,10 @@ class ResizeHandlerBall extends StatefulWidget {
     this.onResizeEnd,
     this.isVisible = true,
     this.isResizing = false,
-    this.color
+    this.color,
+    /// Setting this to `true` will keep updating the position of the widget as it is resized (default: `true`)
+    /// This will provide the feedback of resizing the widget with the opposite end of the widget locked to a position
+    this.updatePosition = true
   }) : super(key: key);
 
   final ResizeHandler type;
@@ -264,6 +270,7 @@ class ResizeHandlerBall extends StatefulWidget {
   /// Set to `true` if the widget is currently being resized
   final bool isResizing;
   final Color? color;
+  final bool updatePosition;
 
   @override
   _ResizeHandlerBallState createState() => _ResizeHandlerBallState();
@@ -332,7 +339,7 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
   Size get _size => isDragging ? widget.type.feedbackSize : (widget.isResizing ? widget.type.size/2 : widget.type.size);
 
   void _onDrag(DragUpdateDetails details) {
-    Size? size = widget.type.calculateSize(details: details, widget: widget.widget);
+    Size? size = widget.type.calculateSize(details: details, widget: widget.widget, updatePosition: widget.updatePosition);
     if (size != null) widget.onSizeChange(size);
   }
 

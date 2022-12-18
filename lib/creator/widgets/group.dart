@@ -11,19 +11,23 @@ class Group {
 
   factory Group.create(String uid) => Group(uid);
 
-  void ungroup(CreatorWidget widget) {
+  void ungroup(CreatorWidget widget, {
+    bool soft = false
+  }) {
     try {
       WidgetGroup group = findGroup(widget);
-      group.ungroup(widget.uid);
+      group.ungroup(widget.uid, soft: soft);
     } catch (e, stacktrace) {
       analytics.logError(e, stacktrace: stacktrace, cause: 'Failed to ungroup widget');
     }
   }
 
-  void delete(CreatorWidget widget) {
+  void delete(CreatorWidget widget, {
+    bool soft = false
+  }) {
     try {
       WidgetGroup group = findGroup(widget);
-      group.delete();
+      group.delete(soft: soft);
     } catch (e, stacktrace) {
       analytics.logError(e, stacktrace: stacktrace, cause: 'Failed to delete group');
     }
@@ -90,6 +94,9 @@ class WidgetGroup extends CreatorWidget {
       }
 
       for (CreatorWidget widget in _widgets) {
+        if (widget.group != null) {
+          widget.group!.ungroup(widget, soft: true);
+        }
         widget.group = group._group;
         group.widgets.add(widget);
       }
@@ -177,18 +184,23 @@ class WidgetGroup extends CreatorWidget {
       widget.position = Offset(widget.position.dx + position.dx, widget.position.dy + position.dy);
     }
     resizeGroup();
-    page.widgets.select(widget);
+    if (!soft) {
+      page.widgets.select(widget);
+      page.history.log('Ungroup Widget');
+    }
   }
 
-  void delete() {
+  void delete({
+    bool soft = false
+  }) {
     CreatorWidget _selected = page.widgets.selections.first;
     for (CreatorWidget widget in widgets) {
       widget.group = null;
       widget.position = Offset(widget.position.dx + position.dx, widget.position.dy + position.dy);
       page.widgets.add(widget, soft: true);
     }
-    page.widgets.delete(uid);
-    page.widgets.select(_selected);
+    page.widgets.delete(uid, soft: soft);
+    if (!soft) page.widgets.select(_selected);
   }
 
   void deleteWidget(String uid) {
@@ -258,12 +270,12 @@ class WidgetGroup extends CreatorWidget {
 
   @override
   bool isSelected() {
-    return page.widgets.selections.toSet().intersection(widgets.toSet()).isNotEmpty;
+    return (page.widgets.selections.toSet().intersection(widgets.toSet()).isNotEmpty && page.widgets.nSelections == 1);
   }
 
   @override
   bool isOnlySelected() {
-    return page.widgets.selections.toSet().intersection(widgets.toSet()).isNotEmpty;
+    return (page.widgets.selections.toSet().intersection(widgets.toSet()).isNotEmpty && page.widgets.nSelections == 1);
   }
 
   @override

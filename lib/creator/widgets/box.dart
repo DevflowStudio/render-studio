@@ -220,7 +220,8 @@ class CreatorBoxWidget extends CreatorWidget {
           },
         )
       ]
-    )
+    ),
+    EditorTab.adjustTab(widget: this)
   ];
 
   @override

@@ -5,7 +5,7 @@ import 'package:property_change_notifier/property_change_notifier.dart';
 import 'package:render_studio/creator/state.dart';
 import 'package:supercharged/supercharged.dart';
 import '../../rehmat.dart';
-
+import 'dart:math' as math;
 
 abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
@@ -226,8 +226,11 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   Offset position = const Offset(0, 0);
 
+  Rect get area => position.translate(-size.width/2, -size.height/2) & size;
+
   /// Set to `false` if you want the widget
   /// to not be draggable.
+  /// 
   /// Defaults to `true`
   final bool isDraggable = true;
 
@@ -311,32 +314,29 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   Widget build(BuildContext context, {
     bool isInteractive = true,
   }) {
-    // updateResizeHandlers();
     if (!_firstBuildDone) doFirstBuild();
     bool _isSelected = isSelected();
     bool _isOnlySelected = isInteractive && isOnlySelected();
     bool _allowDrag = isInteractive && isDraggable && group == null;
-    return Transform.rotate(
+    return GestureDetector(
       key: ValueKey<String>(uid),
-      angle: angle,
-      child: GestureDetector(
-        behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
-        onPanStart: _allowDrag ? (details) => onGestureStart() : null,
-        onPanUpdate: _allowDrag ? (details) => _onGestureUpdate(details, context) : null,
-        onPanEnd: _allowDrag ? (details) => _onGestureEnd(details, context) : null,
-        dragStartBehavior: DragStartBehavior.down,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            AlignPositioned(
-              dx: position.dx,
-              dy: position.dy,
-              childHeight: size.height + 40,
-              childWidth: size.width + 40,
-              child: GestureDetector(
-                // onTap: (event) => _isSelected ? null : page.widgets.select(this),
+      behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
+      onPanStart: _allowDrag ? (details) => onGestureStart() : null,
+      onPanUpdate: _allowDrag ? (details) => _onGestureUpdate(details, context) : null,
+      onPanEnd: _allowDrag ? (details) => _onGestureEnd(details, context) : null,
+      dragStartBehavior: DragStartBehavior.down,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
 
-                // onDoubleTap: (event) => onDoubleTap(context),
+          AlignPositioned(
+            dx: position.dx,
+            dy: position.dy,
+            childHeight: size.height + 40,
+            childWidth: size.width + 40,
+            child: rotatedWidget(
+              child: GestureDetector(
+                onDoubleTap: _isSelected ? () => onDoubleTap(context) : null,
                 onTap: () => _isSelected ? null : page.widgets.select(this),
                 child: Padding(
                   padding: EdgeInsets.all(20),
@@ -373,40 +373,42 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
                 )
               ),
             ),
-        
-            if (resizeHandlers.length == 1 && isDraggable && _isOnlySelected) Builder(
-              builder: (_) {
-                double dy = position.dy;
-                double dx = position.dx;
-                double positionY = dy + size.height + 15;
-                double positionX = dx;
-        
-                if ((positionY + 15) > page.project.contentSize.height/2) {
-                  positionY = dy - size.height - 15;
-                }
-        
-                return AlignPositioned(
-                  dy: positionY,
-                  dx: positionX,
-                  child: DragHandler(
-                    onPositionUpdate: (details) => _onGestureUpdate(details, context),
-                    onPositionUpdateEnd: (details) => _onGestureEnd(details, context),
-                    backgroundColor: page.palette.background.computeThemedTextColor(180),
-                    iconColor: page.palette.background,
-                  ),
-                );
+          ),
+      
+          if (resizeHandlers.length == 1 && isDraggable && _isOnlySelected) Builder(
+            builder: (_) {
+              double dy = position.dy;
+              double dx = position.dx;
+              double positionY = dy + size.height + 15;
+              double positionX = dx;
+      
+              if ((positionY + 15) > page.project.contentSize.height/2) {
+                positionY = dy - size.height - 15;
               }
-            ),
-          
-            if (isResizable && !locked && _isOnlySelected) AlignPositioned(
-              dx: position.dx,
-              dy: position.dy,
-              childHeight: size.height + 40,
-              childWidth: size.width + 40,
-              // rotateDegrees: angle,
-              child: SizedBox(
-                width: size.width + 40,
-                height: size.height + 40,
+      
+              return AlignPositioned(
+                dy: positionY,
+                dx: positionX,
+                child: DragHandler(
+                  onPositionUpdate: (details) => _onGestureUpdate(details, context),
+                  onPositionUpdateEnd: (details) => _onGestureEnd(details, context),
+                  backgroundColor: page.palette.background.computeThemedTextColor(180),
+                  iconColor: page.palette.background,
+                ),
+              );
+            }
+          ),
+        
+          if (isResizable && !locked && _isOnlySelected) AlignPositioned(
+            dx: position.dx,
+            dy: position.dy,
+            childHeight: size.height + 40,
+            childWidth: size.width + 40,
+            // rotateDegrees: angle,
+            child: SizedBox(
+              width: size.width + 40,
+              height: size.height + 40,
+              child: rotatedWidget(
                 child: Stack(
                   children: [
                     for (ResizeHandler handler in resizeHandlers) ResizeHandlerBall(
@@ -417,18 +419,23 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
                       isResizing: isResizing,
                       onResizeStart: (details) => onResizeStart(details: details, handler: handler),
                       isVisible: _resizeHandlers.contains(handler),
+                      updatePosition: angle == 0,
                     ),
                   ],
                 ),
               ),
-            )
-        
-          ],
-        ),
+            ),
+          )
+      
+        ],
       ),
     );
   }
 
+  Widget rotatedWidget({required Widget child}) => Transform.rotate(
+    angle: angle * math.pi / 180,
+    child: child
+  );
 
   /// This is the main widget of the widget
   Widget widget(BuildContext context) {
