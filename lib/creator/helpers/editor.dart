@@ -819,60 +819,88 @@ class __PaddingEditorState extends State<_PaddingEditor> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.max,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Slider(
-              value: locked ? vertical : horizontal,
-              label: 'Horizontal',
-              min: widget.min ?? 0,
-              max: widget.max ?? 24,
-              onChanged: (value) {
-                if (locked) {
-                  horizontal = vertical = value;
-                  padding = EdgeInsets.symmetric(vertical: value, horizontal: value);
-                } else {
-                  horizontal = value;
-                  padding = EdgeInsets.symmetric(horizontal: value, vertical: vertical);
-                }
-                setState(() { });
-                widget.onChange(padding);
-              },
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      RenderIcons.arrow_left_right
+                    ),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Slider(
+                        value: locked ? vertical : horizontal,
+                        label: 'Horizontal',
+                        min: widget.min ?? 0,
+                        max: widget.max ?? 24,
+                        onChanged: (value) {
+                          if (locked) {
+                            horizontal = vertical = value;
+                            padding = EdgeInsets.symmetric(vertical: value, horizontal: value);
+                          } else {
+                            horizontal = value;
+                            padding = EdgeInsets.symmetric(horizontal: value, vertical: vertical);
+                          }
+                          setState(() { });
+                          widget.onChange(padding);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12,),
+                Row(
+                  children: [
+                    Icon(
+                      RenderIcons.arrow_up_down
+                    ),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Slider(
+                        value: vertical,
+                        label: 'Vertical',
+                        min: widget.min ?? 0,
+                        max: widget.max ?? 24,
+                        onChanged: (value) {
+                          if (locked) {
+                            horizontal = vertical = value;
+                            padding = EdgeInsets.symmetric(vertical: value, horizontal: value);
+                          } else {
+                            vertical = value;
+                            padding = EdgeInsets.symmetric(horizontal: horizontal, vertical: value);
+                          }
+                          setState(() { });
+                          widget.onChange(padding);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            Slider(
-              value: vertical,
-              label: 'Vertical',
-              min: widget.min ?? 0,
-              max: widget.max ?? 24,
-              onChanged: (value) {
-                if (locked) {
-                  horizontal = vertical = value;
-                  padding = EdgeInsets.symmetric(vertical: value, horizontal: value);
-                } else {
-                  vertical = value;
-                  padding = EdgeInsets.symmetric(horizontal: value, vertical: vertical);
-                }
-                setState(() { });
-                widget.onChange(padding);
-              },
-            ),
-          ],
-        ),
-        SizedBox(width: 24),
-        OutlinedIconButtons(
-          onPressed: () {
-            TapFeedback.light();
-            setState(() => locked = !locked);
-          },
-          icon: Icon(
-            locked ? RenderIcons.lock : RenderIcons.unlock,
           ),
-        )
-      ],
+          SizedBox(width: 6),
+          OutlinedIconButtons(
+            onPressed: () {
+              TapFeedback.light();
+              setState(() => locked = !locked);
+            },
+            icon: Icon(
+              locked ? RenderIcons.lock : RenderIcons.unlock,
+            ),
+          )
+        ],
+      ),
     );
   }
 

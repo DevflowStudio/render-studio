@@ -74,18 +74,6 @@ class ShapeWidget extends CreatorWidget {
             updateListeners(WidgetChange.update);
           },
         ),
-        Option.button(
-          title: 'title',
-          onTap: (context) {
-            if (shape == 'heart') {
-              shape = 'triangle';
-            } else {
-              shape = 'heart';
-            }
-            updateListeners(WidgetChange.misc);
-          },
-          icon: RenderIcons.add
-        ),
         ... defaultOptions,
       ],
       tab: 'Shape',

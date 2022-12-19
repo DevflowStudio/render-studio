@@ -92,6 +92,14 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       },
     ),
     Option.button(
+      icon: RenderIcons.arrow_link,
+      title: 'Arrow Link',
+      tooltip: 'Make an arrow link to another widget',
+      onTap: (context) async {
+        // TODO: Arrow Link
+      },
+    ),
+    Option.button(
       icon: RenderIcons.delete,
       title: 'Delete',
       tooltip: 'Delete Text Widget',
@@ -531,17 +539,16 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
             hasSnapped = true;
           }
         }
+        
+        // Create a haptic feedback when the widget snaps to the grid
+        // Other conditions in the if statement prevent the feedback from being created multiple times
+        if (hasSnapped && !grid.isVisible && preferences.vibrateOnSnap) TapFeedback.light();
 
         if (hasSnapped) grid.isVisible = true;
         else grid.isVisible = false;
       }
       this.position = Offset(dx, dy);
       page.gridState.notifyListeners();
-      // page.gridState.visible.clear();
-      // if (snapableGrids.isNotEmpty) {
-      //   // if (preferences.vibrateOnSnap) TapFeedback.light();
-      //   // page.gridState.visible.addAll(snapableGrids);
-      // }
     }
 
     List<Grid> newGrids = [];

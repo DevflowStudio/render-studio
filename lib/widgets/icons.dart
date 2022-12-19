@@ -60,9 +60,15 @@ abstract class RenderIcons {
 
   static const IconData arrow_right = Icons.chevron_right;
 
-  static const IconData lock = Iconsax.lock;
+  static const IconData arrow_left_right = PhosphorIcons.arrowsOutLineHorizontal;
 
-  static const IconData unlock = Iconsax.unlock;
+  static const IconData arrow_up_down = PhosphorIcons.arrowsOutLineVertical;
+
+  static const IconData arrow_link = PhosphorIcons.flowArrow;
+
+  static const IconData lock = CupertinoIcons.lock;
+
+  static const IconData unlock = CupertinoIcons.lock_open;
 
   static const IconData edit = Iconsax.edit;
 

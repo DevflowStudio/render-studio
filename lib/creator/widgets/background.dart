@@ -314,6 +314,9 @@ class BackgroundWidget extends CreatorWidget {
         dotted: false
       )
     ];
+    grids.forEach((element) {
+      element.isVisible = showGridLines;
+    });
     page.gridState.grids.addAll(grids);
     page.gridState.notifyListeners();
   }
