@@ -240,7 +240,7 @@ class BackgroundWidget extends CreatorWidget {
     /// Pass `true` to remove all grids
     bool removeGrids = false
   }) {
-    if (removeGrids) page.gridState.visible.clear();
+    if (removeGrids) page.gridState.hideAll();
     if (change == WidgetChange.update) notifyListeners(change);
     stateCtrl.update(change);
     if (change == WidgetChange.update && asset != null) {
@@ -315,8 +315,6 @@ class BackgroundWidget extends CreatorWidget {
       )
     ];
     page.gridState.grids.addAll(grids);
-    page.gridState.visible.removeWhere((grid) => grid.widget == this);
-    if (showGridLines) page.gridState.visible.addAll(grids);
     page.gridState.notifyListeners();
   }
 

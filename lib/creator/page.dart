@@ -66,18 +66,6 @@ class CreatorPage extends PropertyChangeNotifier {
     );
   }
 
-  /// Shows a grid and then hides it
-  void showTemporaryGrid(Grid grid, {
-    Duration? duration
-  }) {
-    if (!gridState.visible.contains(grid)) gridState.visible.add(grid);
-    notifyListeners(PageChange.misc);
-    Future.delayed(duration ?? Constants.animationDuration, () {
-      if (gridState.visible.contains(grid)) gridState.visible.remove(grid);
-      notifyListeners(PageChange.misc);
-    });
-  }
-
   void updateListeners(PageChange change) {
     notifyListeners(change);
   }

@@ -450,7 +450,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     bool removeGrids = false
   }) {
     updateGrids();
-    if (removeGrids) page.gridState.visible.clear();
+    if (removeGrids) page.gridState.hideAll();
     if (change == WidgetChange.update) notifyListeners(change);
     stateCtrl.update(change);
     if (change == WidgetChange.update && asset != null) {
@@ -460,7 +460,10 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   /// Update all the grids present in the page for the current widget
   void updateGrids({
+    /// Set the `realtime` to `true` if this method is being called in realtime.
+    /// Example use: When the widget is being dragged
     bool realtime = false,
+    /// Settings this to `false` will not snap the widgets and not show the grid lines
     bool showGridLines = false,
     /// Settings this to false will only match the widget to the grid, but not create new ones
     bool createGrids = true,
@@ -472,147 +475,130 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     Offset? position
   }) {
 
-    Offset _position = position ?? this.position;
+    position ??= this.position;
 
-    double dx = _position.dx;
-    double dy = _position.dy;
-
-    List<Grid> _newVisibleGrids = [];
-    List<Grid> _newGrids = [];
-    List<GridWidgetPlacement> _toRemoveVisibleGrids = [];
-
-    page.gridState.grids.removeWhere((grid) {
-      if (this is WidgetGroup) {
-        return (grid.widget == this || ((this as WidgetGroup).widgets.contains(grid.widget)));
-      } else return (grid.widget == this);
-    });
-
-    double _snapSensitivity = snapSensitivity ?? preferences.snapSensitivity;
-
-    List<Grid> centerHorizontalGrids = page.gridState.grids.where((grid) => ((grid.position.dy - _position.dy).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal)).toList();
-    List<Grid> centerVerticalGrids = page.gridState.grids.where((grid) => ((grid.position.dx - _position.dx).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical)).toList();
-    List<Grid> topGrids = page.gridState.grids.where((grid) => ((grid.position.dy - (_position.dy - size.height / 2)).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.top)).toList();
-    List<Grid> leftGrids = page.gridState.grids.where((grid) => ((grid.position.dx - (_position.dx - size.width / 2)).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.left)).toList();
-    List<Grid> rightGrids = page.gridState.grids.where((grid) => ((grid.position.dx - (_position.dx + size.width / 2)).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.right)).toList();
-    List<Grid> bottomGrids = page.gridState.grids.where((grid) => ((grid.position.dy - (_position.dy + size.height / 2)).isBetween(-_snapSensitivity, _snapSensitivity) && grid.gridWidgetPlacement == GridWidgetPlacement.bottom)).toList();
-
-    if (centerHorizontalGrids.isNotEmpty) {
-      Offset newPosition = centerHorizontalGrids.first.position;
-      dy = newPosition.dy;
-      if (!page.gridState.visible.contains(centerHorizontalGrids.first)) _newVisibleGrids.add(centerHorizontalGrids.first);
-    } else {
-      _newGrids.add(
-        Grid(
-          position: Offset(0, _position.dy),
-          color: Colors.blue,
-          layout: GridLayout.horizontal,
-          widget: this,
-          page: page,
-          gridWidgetPlacement: GridWidgetPlacement.centerHorizontal
-        )
-      );
-      _toRemoveVisibleGrids.add(GridWidgetPlacement.centerHorizontal);
+    bool isInSnapSensitiveArea(double x, double target) {
+      double sensitivity = snapSensitivity ?? preferences.snapSensitivity;
+      return x >= target - sensitivity && x <= target + sensitivity;
     }
 
-    if (centerVerticalGrids.isNotEmpty) {
-      Offset newPosition = centerVerticalGrids.first.position;
-      dx = newPosition.dx;
-      if (!page.gridState.visible.contains(centerVerticalGrids.first)) _newVisibleGrids.add(centerVerticalGrids.first);
-    } else {
-      _newGrids.add(
-        Grid(
-          position: Offset(_position.dx, 0),
-          color: Colors.red,
-          layout: GridLayout.vertical,
-          widget: this,
-          page: page,
-          gridWidgetPlacement: GridWidgetPlacement.centerVertical
-        )
-      );
-      _toRemoveVisibleGrids.add(GridWidgetPlacement.centerVertical);
+    double x0 = position.dx - size.width/2;
+    double x = position.dx;
+    double x1 = position.dx + size.width/2;
+
+    double y0 = position.dy - size.height/2;
+    double y = position.dy;
+    double y1 = position.dy + size.height/2;
+
+    double dx = position.dx;
+    double dy = position.dy;
+
+    bool isWithinReachableDistance(Grid grid) {
+      if (grid.widget == null || grid.length == null) return true;
+      if (grid.layout == GridLayout.horizontal) return true;
+      double md = grid.length! / 1.5;
+      double d = (grid.position.dy - dy).abs();
+      return d <= md;
     }
 
-    if (topGrids.isNotEmpty) {
-      Offset newPosition = topGrids.first.position;
-      dy = newPosition.dy + size.height / 2;
-      if (!page.gridState.visible.contains(topGrids.first)) _newVisibleGrids.add(topGrids.first);
-    } else {
-      _newGrids.add(
-        Grid(
-          position: Offset(0, _position.dy - size.height / 2),
-          color: Colors.blue,
-          layout: GridLayout.horizontal,
-          widget: this,
-          page: page,
-          gridWidgetPlacement: GridWidgetPlacement.top
-        )
-      );
-      _toRemoveVisibleGrids.add(GridWidgetPlacement.top);
-    }
+    if (snap && showGridLines) {
+      for (Grid grid in page.gridState.grids) {
+        bool hasSnapped = false;
+        
+        if (grid.widget == this) continue;
+        else if (this is WidgetGroup && (this as WidgetGroup).widgets.contains(grid.widget)) continue;
 
-    if (leftGrids.isNotEmpty) {
-      Offset newPosition = leftGrids.first.position;
-      dx = newPosition.dx + size.width / 2;
-      if (!page.gridState.visible.contains(leftGrids.first)) _newVisibleGrids.add(leftGrids.first);
-    } else {
-      _newGrids.add(
-        Grid(
-          position: Offset(_position.dx - size.width / 2, 0),
-          color: Colors.red,
-          layout: GridLayout.vertical,
-          widget: this,
-          page: page,
-          gridWidgetPlacement: GridWidgetPlacement.left
-        )
-      );
-      _toRemoveVisibleGrids.add(GridWidgetPlacement.left);
-    }
+        if (grid.layout == GridLayout.vertical) {
+          if (isInSnapSensitiveArea(x0, grid.position.dx) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerVertical) {
+            dx = grid.position.dx + size.width/2;
+            hasSnapped = true;
+          } else if (isInSnapSensitiveArea(x, grid.position.dx) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical) {
+            dx = grid.position.dx;
+            hasSnapped = true;
+          } else if (isInSnapSensitiveArea(x1, grid.position.dx) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerVertical) {
+            dx = grid.position.dx - size.width/2;
+            hasSnapped = true;
+          }
+        } else if (grid.layout == GridLayout.horizontal) {
+          if (isInSnapSensitiveArea(y0, grid.position.dy) && grid.gridWidgetPlacement != GridWidgetPlacement.centerHorizontal) {
+            dy = grid.position.dy + size.height/2;
+            hasSnapped = true;
+          } else if (isInSnapSensitiveArea(y, grid.position.dy) && grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal) {
+            dy = grid.position.dy;
+            hasSnapped = true;
+          } else if (isInSnapSensitiveArea(y1, grid.position.dy) && grid.gridWidgetPlacement != GridWidgetPlacement.centerHorizontal) {
+            dy = grid.position.dy - size.height/2;
+            hasSnapped = true;
+          }
+        }
 
-    if (rightGrids.isNotEmpty) {
-      Offset newPosition = rightGrids.first.position;
-      dx = newPosition.dx - size.width / 2;
-      if (!page.gridState.visible.contains(rightGrids.first)) _newVisibleGrids.add(rightGrids.first);
-    } else {
-      _newGrids.add(
-        Grid(
-          position: Offset(_position.dx + size.width / 2, 0),
-          color: Colors.red,
-          layout: GridLayout.vertical,
-          widget: this,
-          page: page,
-          gridWidgetPlacement: GridWidgetPlacement.right
-        )
-      );
-      _toRemoveVisibleGrids.add(GridWidgetPlacement.right);
-    }
-
-    if (bottomGrids.isNotEmpty) {
-      Offset newPosition = bottomGrids.first.position;
-      dy = newPosition.dy - size.height / 2;
-      if (!page.gridState.visible.contains(bottomGrids.first)) _newVisibleGrids.add(bottomGrids.first);
-    } else {
-      _newGrids.add(
-        Grid(
-          position: Offset(0, _position.dy + size.height / 2),
-          color: Colors.blue,
-          layout: GridLayout.horizontal,
-          widget: this,
-          page: page,
-          gridWidgetPlacement: GridWidgetPlacement.bottom
-        )
-      );
-      _toRemoveVisibleGrids.add(GridWidgetPlacement.bottom);
-    }
-
-    if (createGrids) page.gridState.grids.addAll(_newGrids);
-
-    if (showGridLines) {
-      page.gridState.visible.removeWhere((grid) => _toRemoveVisibleGrids.contains(grid.gridWidgetPlacement));
-      if (preferences.snap && snap) this.position = Offset(dx, dy);
-      if (preferences.snap && snap && preferences.vibrateOnSnap && _newVisibleGrids.isNotEmpty) TapFeedback.light();
-      page.gridState.visible.addAll(_newVisibleGrids);
+        if (hasSnapped) grid.isVisible = true;
+        else grid.isVisible = false;
+      }
+      this.position = Offset(dx, dy);
       page.gridState.notifyListeners();
+      // page.gridState.visible.clear();
+      // if (snapableGrids.isNotEmpty) {
+      //   // if (preferences.vibrateOnSnap) TapFeedback.light();
+      //   // page.gridState.visible.addAll(snapableGrids);
+      // }
     }
+
+    List<Grid> newGrids = [];
+
+    Grid _createGrid({
+      required Offset position,
+      required GridLayout layout,
+      required GridWidgetPlacement gridWidgetPlacement,
+    }) => Grid(
+      position: position,
+      color: page.palette.onBackground,
+      layout: layout,
+      gridWidgetPlacement: gridWidgetPlacement,
+      page: page,
+      widget: this,
+      dotted: true,
+      length: layout == GridLayout.horizontal ? null : size.height * 3.5,
+    );
+
+    if (createGrids && !realtime) {
+      newGrids.addAll([
+        _createGrid(
+          position: Offset(x0, y),
+          layout: GridLayout.vertical,
+          gridWidgetPlacement: GridWidgetPlacement.left
+        ),
+        _createGrid(
+          position: Offset(x, y),
+          layout: GridLayout.vertical,
+          gridWidgetPlacement: GridWidgetPlacement.centerVertical
+        ),
+        _createGrid(
+          position: Offset(x1, y),
+          layout: GridLayout.vertical,
+          gridWidgetPlacement: GridWidgetPlacement.right
+        ),
+        _createGrid(
+          position: Offset(0, y0),
+          layout: GridLayout.horizontal,
+          gridWidgetPlacement: GridWidgetPlacement.top
+        ),
+        _createGrid(
+          position: Offset(0, y),
+          layout: GridLayout.horizontal,
+          gridWidgetPlacement: GridWidgetPlacement.centerHorizontal
+        ),
+        _createGrid(
+          position: Offset(0, y1),
+          layout: GridLayout.horizontal,
+          gridWidgetPlacement: GridWidgetPlacement.bottom
+        ),
+      ]);
+      page.gridState.grids.removeWhere((element) => element.widget == this);
+      page.gridState.grids.addAll(newGrids);
+    }
+
+    page.gridState.notifyListeners();
 
   }
 

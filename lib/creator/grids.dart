@@ -12,7 +12,6 @@ class GridState extends ChangeNotifier {
   GridState({required this.page});
 
   List<Grid> grids = [];
-  List<Grid> visible = [];
 
   void clear() {
     grids.clear();
@@ -44,6 +43,13 @@ class GridState extends ChangeNotifier {
     ]);
   }
 
+  void hideAll() {
+    grids.forEach((grid) {
+      grid.isVisible = false;
+    });
+    notifyListeners();
+  }
+
 }
 
 class Grid {
@@ -55,7 +61,8 @@ class Grid {
     this.widget,
     required this.gridWidgetPlacement,
     required this.page,
-    this.dotted = true
+    this.dotted = true,
+    this.length
   });
 
   /// Position for the grid line
@@ -79,9 +86,14 @@ class Grid {
   final GridWidgetPlacement gridWidgetPlacement;
 
   final bool dotted;
+
+  final double? length;
+
+  bool isVisible = false;
   
   Widget build() {
     return layout.build(
+      grid: this,
       color: color,
       page: page,
       dotted: dotted
@@ -107,6 +119,7 @@ enum GridWidgetPlacement {
 extension GridLayoutExtension on GridLayout {
 
   Widget build({
+    required Grid grid,
     required Color color,
     required CreatorPage page,
     bool dotted = true
@@ -115,7 +128,7 @@ extension GridLayoutExtension on GridLayout {
       case GridLayout.horizontal:
         return SizedBox(
           height: 3,
-          width: page.project.size!.size.width,
+          width: grid.length ?? page.project.size!.size.width,
           child: Center(
             child: DottedLine(
               direction: Axis.horizontal,
@@ -127,7 +140,7 @@ extension GridLayoutExtension on GridLayout {
       case GridLayout.vertical:
         return SizedBox(
           width: 3,
-          height: page.project.size!.size.height,
+          height: grid.length ?? page.project.size!.size.height,
           child: Center(
             child: DottedLine(
               direction: Axis.vertical,
@@ -177,7 +190,7 @@ class PageGridViewState extends State<PageGridView> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        for (Grid grid in state.visible) AlignPositioned(
+        for (Grid grid in state.grids) if (grid.isVisible) AlignPositioned(
           dy: grid.position.dy,
           dx: grid.position.dx,
           child: grid.build()
