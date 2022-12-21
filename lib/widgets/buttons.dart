@@ -136,8 +136,12 @@ class _SecondaryButtonState extends State<SecondaryButton> {
       feedback: widget.feedback,
       onLongPress: widget.onLongPress,
       onPressed: widget.onPressed,
-      backgroundColor: Palette.of(context).secondaryContainer,
-      textColor: Palette.of(context).onSecondaryContainer
+      backgroundColor: Palette.of(context).background,
+      textColor: Palette.of(context).onBackground,
+      border: Border.all(
+        color: Palette.of(context).outline,
+        width: 0
+      ),
     );
   }
 
@@ -154,7 +158,8 @@ class _RenderButton extends StatefulWidget {
     this.disabled = false,
     this.isLoading = false,
     required this.backgroundColor,
-    required this.textColor
+    required this.textColor,
+    this.border
   }) : super(key: key);
 
   final Widget child;
@@ -165,6 +170,7 @@ class _RenderButton extends StatefulWidget {
   final bool isLoading;
   final Color backgroundColor;
   final Color textColor;
+  final Border? border;
 
   @override
   State<_RenderButton> createState() => _RenderButtonState();
@@ -201,7 +207,8 @@ class _RenderButtonState extends State<_RenderButton> {
         duration: Duration(milliseconds: 150),
         decoration: BoxDecoration(
           color: widget.backgroundColor,
-          borderRadius: BorderRadius.circular(radius)
+          borderRadius: BorderRadius.circular(radius),
+          border: widget.border
         ),
         child: DefaultTextStyle(
           style: Theme.of(context).textTheme.subtitle1!.copyWith(

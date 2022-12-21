@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:sprung/sprung.dart';
 
+import '../rehmat.dart';
+
 /// Controller to synchronize the fontSize of multiple AutoSizeTexts.
 class AutoSizeGroup {
   final _listeners = <_AutoSizeTextState, double>{};
@@ -70,6 +72,7 @@ class AutoSizeText extends StatefulWidget {
     Key? key,
     this.textKey,
     this.style,
+    this.secondaryStyle,
     this.strutStyle,
     this.minFontSize = 12,
     this.maxFontSize = double.infinity,
@@ -96,6 +99,7 @@ class AutoSizeText extends StatefulWidget {
     Key? key,
     this.textKey,
     this.style,
+    this.secondaryStyle,
     this.strutStyle,
     this.minFontSize = 12,
     this.maxFontSize = double.infinity,
@@ -137,6 +141,13 @@ class AutoSizeText extends StatefulWidget {
   /// the closest enclosing [DefaultTextStyle]. Otherwise, the style will
   /// replace the closest enclosing [DefaultTextStyle].
   final TextStyle? style;
+
+  /// If non-null, the style to use for this text.
+  ///
+  /// If the style's "inherit" property is true, the style will be merged with
+  /// the closest enclosing [DefaultTextStyle]. Otherwise, the style will
+  /// replace the closest enclosing [DefaultTextStyle].
+  final TextStyle? secondaryStyle;
 
   // The default font size if none is specified.
   static const double _defaultFontSize = 14;
@@ -334,9 +345,10 @@ class _AutoSizeTextState extends State<AutoSizeText> {
           style: style.copyWith(fontSize: __fontSize),
           duration: const Duration(milliseconds: 200),
           curve: Sprung.overDamped,
-          child: Text(
+          child: CreativeTextWidget(
             widget.data!,
             key: widget.textKey,
+            secondaryStyle: widget.secondaryStyle,
             strutStyle: widget.strutStyle,
             textAlign: widget.textAlign,
             textDirection: widget.textDirection,
@@ -430,7 +442,7 @@ class _AutoSizeTextState extends State<AutoSizeText> {
 
   bool _checkTextFits(TextSpan text, double scale, int? maxLines, BoxConstraints constraints) {
     if (!widget.wrapWords) {
-      final words = text.toPlainText().split(RegExp('\\s+'));
+      final words = text.toPlainText().replaceAll('*', '').split(RegExp('\\s+'));
 
       final wordWrapTextPainter = TextPainter(
         text: TextSpan(

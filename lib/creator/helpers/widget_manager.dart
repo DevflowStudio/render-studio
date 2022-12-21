@@ -343,6 +343,10 @@ class _AddWidgetModal extends StatelessWidget {
       'title': 'Shape',
       'icon': RenderIcons.shapes,
     },
+    'progress': {
+      'title': 'Progress',
+      'icon': RenderIcons.progress,
+    },
   };
 
   @override
@@ -462,7 +466,13 @@ class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
           Rect intersect = widget.area.intersect(rect);
           bool isIntersecting = intersect.size.width > 0 && intersect.size.height > 0;
           if (isIntersecting) {
-            widgets.select(widget);
+            if (widget is WidgetGroup) {
+              for (CreatorWidget child in widget.widgets) {
+                widgets.select(child);
+              }
+            } else {
+              widgets.select(widget);
+            }
           }
         }
         setState(() { });

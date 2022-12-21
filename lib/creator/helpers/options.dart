@@ -107,6 +107,8 @@ class Option {
     required Function(double value) onChange,
     Function(double value)? onChangeStart,
     Function(double value)? onChangeEnd,
+    List<num>? snapPoints,
+    num? snapSensitivity,
   }) => Option(
     widget: (context) => CustomSlider(
       label: label,
@@ -117,6 +119,8 @@ class Option {
       onChange: onChange,
       onChangeEnd: onChangeEnd,
       onChangeStart: onChangeStart,
+      snapPoints: snapPoints,
+      snapSensitivity: snapSensitivity,
     ),
   );
 
@@ -148,7 +152,9 @@ class Option {
     required Function(double value) onChange,
     Function(double value)? onChangeStart,
     Function(double value)? onChangeEnd,
-    String? tooltip
+    String? tooltip,
+    num? snapSensitivity,
+    List<num>? snapPoints
   }) => Option.button(
     title: title,
     tooltip: tooltip,
@@ -165,7 +171,9 @@ class Option {
               max: max,
               onChange: onChange,
               onChangeEnd: onChangeEnd,
-              onChangeStart: onChangeStart
+              onChangeStart: onChangeStart,
+              snapPoints: snapPoints,
+              snapSensitivity: snapSensitivity,
             )
           ]
         )
@@ -182,6 +190,7 @@ class Option {
   }) => Option(
     widget: (context) => SizedBox(
       width: MediaQuery.of(context).size.width - 24,
+      height: ((children.length < itemExtent) ? children.length : itemExtent) * 20,
       child: CupertinoPicker(
         itemExtent: itemExtent,
         onSelectedItemChanged: onSelectedItemChanged,
@@ -380,7 +389,9 @@ class CustomSlider extends StatefulWidget {
     required this.onChange,
     this.onChangeStart,
     this.onChangeEnd,
-    this.label
+    this.label,
+    this.snapPoints,
+    this.snapSensitivity
   }) : super(key: key);
 
   final String? label;
@@ -391,6 +402,8 @@ class CustomSlider extends StatefulWidget {
   final Function(double value) onChange;
   final Function(double value)? onChangeStart;
   final Function(double value)? onChangeEnd;
+  final List<num>? snapPoints;
+  final num? snapSensitivity;
 
   @override
   _CustomSliderState createState() => _CustomSliderState();
@@ -419,11 +432,13 @@ class _CustomSliderState extends State<CustomSlider> {
           child: Slider(
             value: value,
             onChangeStart: widget.onChangeStart,
-            onChangeEnd: widget.onChangeEnd,
+            onChangeEnd: (value) {
+              onChange(value);
+              widget.onChangeEnd?.call(this.value);
+            },
             onChanged: (value) {
-              this.value = value;
-              widget.onChange(value);
-              setState(() { });
+              onChange(value);
+              widget.onChange(this.value);
             },
             divisions: widget.divisions,
             min: widget.min,
@@ -433,4 +448,14 @@ class _CustomSliderState extends State<CustomSlider> {
       ],
     );
   }
+
+  void onChange(double value) {
+    this.value = value;
+    if (widget.snapPoints != null) {
+      num closest = widget.snapPoints!.findClosestNumber(value);
+      if ((closest - value).abs() < 2 * (widget.snapSensitivity ?? preferences.snapSensitivity)) this.value = closest.toDouble();
+    }
+    setState(() { });
+  }
+
 }

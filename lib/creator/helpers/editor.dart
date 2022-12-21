@@ -148,7 +148,7 @@ class EditorTab {
   final List<Option> options;
   final String tab;
   final EditorTabType type;
-  final List<IconButton> actions;
+  final List<Widget> actions;
 
   static Future<T?> modal<T>(BuildContext context, {
     required EditorTab tab,
@@ -285,11 +285,18 @@ class EditorTab {
     options: [
       Option.slider(
         value: angle,
-        min: 0,
-        max: 360,
+        min: -90,
+        max: 90,
         onChangeStart: onChangeStart,
         onChange: onChange,
         onChangeEnd: onChangeEnd,
+        snapPoints: [
+          -90,
+          -45,
+          0,
+          45,
+          90,
+        ],
       )
     ],
     tab: 'Rotate'

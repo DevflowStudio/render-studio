@@ -194,7 +194,7 @@ class _NewBackButtonState extends State<NewBackButton> {
 
   Future<void> onBack() async {
     if (widget.confirm) {
-      if (await Alerts.showConfirmationDialog(context, title: widget.confirmTitle ?? 'Do you want to go back?', description: widget.confirmMessage ?? 'Any unsaved changes will be discarded. This cannot be undone.', cancelButtonText: 'Cancel', confirmButtonText: 'Discard')) Navigator.of(context).pop(widget.data);
+      if (await Alerts.showConfirmationDialog(context, title: widget.confirmTitle ?? 'Do you want to go back?', message: widget.confirmMessage ?? 'Any unsaved changes will be discarded. This cannot be undone.', cancelButtonText: 'Cancel', confirmButtonText: 'Discard')) Navigator.of(context).pop(widget.data);
     }
     else Navigator.of(context).pop(widget.data);
   }

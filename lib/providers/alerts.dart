@@ -47,27 +47,98 @@ class Alerts {
 
   static Future<bool> showConfirmationDialog(BuildContext context, {
     required String title,
-    required String description,
+    required String message,
     String confirmButtonText = 'Confirm',
     String cancelButtonText = 'Cancel',
     bool isDestructive = false,
   }) async {
-    bool? confirm = await showDialog(
+    bool? confirm = await showModalBottomSheet(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(description),
-        actions: [
-          TextButton(
-            child: Text(cancelButtonText),
-            onPressed: () => Navigator.of(context).pop(false),
+      backgroundColor: Colors.transparent,
+      // barrierColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => ClipRRect(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Palette.of(context).surfaceVariant,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
           ),
-          TextButton(
-            child: Text(confirmButtonText),
-            onPressed: () => Navigator.of(context).pop(true),
-          )
-        ],
-      )
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height * 0.2,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Palette.isDark(context) ? Colors.grey[800] : Colors.grey.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+              ),
+              SizedBox(height: 12,),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              SizedBox(
+                height: 24,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: PrimaryButton(
+                        child: Text(cancelButtonText),
+                        onPressed: () => Navigator.of(context).pop(false),
+                      ),
+                    ),
+                    SizedBox(width: 6,),
+                    Expanded(
+                      child: SecondaryButton(
+                        child: Text(confirmButtonText),
+                        onPressed: () => Navigator.of(context).pop(true),
+                      ),
+                    )
+                  ].maybeReverse(isDestructive),
+                ),
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).padding.bottom + 12,
+              )
+            ],
+          ),
+        ),
+      ),
     );
     return confirm ?? false;
   }
@@ -161,6 +232,76 @@ class Alerts {
                   height: 0,
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static Future<String?> modalInfoBuilder(BuildContext context, {
+    required String title,
+    required String message,
+  }) async {
+    return await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      // barrierColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => ClipRRect(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Palette.of(context).surfaceVariant,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height * 0.2,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Palette.isDark(context) ? Colors.grey[800] : Colors.grey.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+              SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Label(
+                  label: title,
+                ),
+              ),
+              SizedBox(height: 12,),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  message,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).padding.bottom + 12,
+              )
             ],
           ),
         ),

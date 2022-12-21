@@ -53,18 +53,27 @@ class CreatorPage extends PropertyChangeNotifier {
   }) {
     return AbsorbPointer(
       absorbing: !isInteractive,
-      child: SizedBox.fromSize(
-        size: project.contentSize,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            ... widgets.build(context, isInteractive: isInteractive),
-            PageGridView(state: gridState)
-          ],
-        ),
+      child: _PageZoomableViewer(
+        page: this,
+        child: Center(child: widget(context, isInteractive: isInteractive)),
       ),
     );
   }
+
+  Widget widget(BuildContext context, {
+    bool isInteractive = true,
+  }) => SizedBox.fromSize(
+    size: project.contentSize,
+    child: ClipRRect(
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          ... widgets.build(context, isInteractive: isInteractive),
+          PageGridView(state: gridState)
+        ],
+      ),
+    ),
+  );
 
   void updateListeners(PageChange change) {
     notifyListeners(change);
@@ -91,7 +100,7 @@ class CreatorPage extends PropertyChangeNotifier {
       DateTime _start = DateTime.now();
       Uint8List bytes = await screenshotController.captureFromWidget(
         Material(
-          child: build(context),
+          child: widget(context),
         ),
         context: context,
         pixelRatio: autoExportQuality ? preferences.exportQuality.pixelRatio(context) : MediaQuery.of(context).devicePixelRatio
@@ -166,5 +175,51 @@ class PageCreationException implements Exception {
   final String? details;
 
   PageCreationException(this.message, {this.details, this.code});
+
+}
+
+class _PageZoomableViewer extends StatefulWidget {
+
+  const _PageZoomableViewer({
+    required this.page,
+    required this.child
+  });
+
+  final CreatorPage page;
+  final Widget child;
+
+  @override
+  State<_PageZoomableViewer> createState() => __PageZoomableViewerState();
+}
+
+class __PageZoomableViewerState extends State<_PageZoomableViewer> {
+
+  late CreatorPage page;
+
+  void onMultiSelectChange() => setState(() { });
+
+  bool get enableZoom => page.widgets.nSelections == 1 && page.widgets.selections.firstOrNull is BackgroundWidget;
+
+  @override
+  void initState() {
+    page = widget.page;
+    page.widgets.addListener(onMultiSelectChange);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    page.widgets.removeListener(onMultiSelectChange);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InteractiveViewer(
+      panEnabled: enableZoom,
+      scaleEnabled: enableZoom,
+      child: widget.child,
+    );
+  }
 
 }

@@ -26,6 +26,7 @@
     "Microtask",
     "Navigationbar",
     "neopop",
+    "nums",
     "octo",
     "perpetua",
     "snapable",
@@ -34,6 +35,7 @@
     "sutro",
     "textalign",
     "UIDs",
-    "utsname"
+    "utsname",
+    "Zoomable"
   ]
 }

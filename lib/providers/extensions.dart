@@ -30,6 +30,20 @@ extension ListsExtension<T> on List<T> {
     }
   }
 
+  num findClosestNumber(num target) {
+    assert(this is List<num>);
+    num closest = first as num;
+    num minDiff = (target - (first as num)).abs();
+    for (num n in (this as List<num>)) {
+      num diff = (target - n).abs();
+      if (diff < minDiff) {
+        closest = n;
+        minDiff = diff;
+      }
+    }
+    return closest;
+  }
+
 }
 
 extension MapExtension<T, V> on Map<T, V> {

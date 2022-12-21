@@ -155,7 +155,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   /// Setting this to `true` will allow
   /// resizing but only in the fixed aspect ratio
-  final bool keepAspectRatio = false;
+  bool keepAspectRatio = false;
 
   /// Set to `false` if you want the widget
   /// to not be resizable.
@@ -422,6 +422,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
                     for (ResizeHandler handler in resizeHandlers) ResizeHandlerBall(
                       type: handler,
                       widget: this,
+                      keepAspectRatio: keepAspectRatio,
                       onSizeChange: onResize,
                       onResizeEnd: onResizeFinished,
                       isResizing: isResizing,
@@ -714,6 +715,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       case 'group':
         widget = WidgetGroup(page: page, data: data, buildInfo: buildInfo);
         break;
+      case 'progress':
+        widget = CreativeProgressWidget(page: page, data: data, buildInfo: buildInfo);
+        break;
       default:
         throw WidgetCreationException('Failed to build widget ${data['name']}');
     }
@@ -744,6 +748,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         break;
       case 'shape':
         ShapeWidget.create(context, page: page);
+        break;
+      case 'progress':
+        CreativeProgressWidget.create(context, page: page);
         break;
       default:
         break;

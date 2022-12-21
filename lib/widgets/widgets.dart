@@ -9,3 +9,4 @@ export 'no_space_widget.dart';
 export 'app_bar.dart';
 export 'icons.dart';
 export 'projects.dart';
+export 'dashed_circular_progress.dart';

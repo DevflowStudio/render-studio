@@ -56,7 +56,7 @@ class _ProjectsViewState extends State<ProjectsView> {
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             Container(height: 10,),
-            SecondaryButton(
+            PrimaryButton(
               child: Text('Create Project'),
               onPressed: () => Project.create(context),
             )

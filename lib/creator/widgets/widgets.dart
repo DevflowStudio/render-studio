@@ -7,3 +7,4 @@ export 'group.dart';
 export 'qr.dart';
 export 'image.dart';
 export 'shape.dart';
+export 'progress.dart';

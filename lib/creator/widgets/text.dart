@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:easy_rich_text/easy_rich_text.dart';
 import '../../rehmat.dart';
 
 class CreatorText extends CreatorWidget {
@@ -15,7 +15,8 @@ class CreatorText extends CreatorWidget {
   
   @override
   void onInitialize() {
-    color = page.palette.onBackground;
+    primaryStyle = CreativeTextStyle(widget: this);
+    primaryStyle.color = page.palette.onBackground;
     super.onInitialize();
   }
 
@@ -31,20 +32,6 @@ class CreatorText extends CreatorWidget {
             await showEditTextModal(context);
           },
           icon: RenderIcons.keyboard
-        ),
-        Option.color(
-          tooltip: 'Tap to select text color',
-          palette: page.palette,
-          selected: color,
-          onChange: (_color) {
-            if (_color == null) return;
-            this.color = _color;
-            if (stroke != null) _updateStroke();
-            updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (color) {
-            updateListeners(WidgetChange.update);
-          },
         ),
         Option.toggle(
           title: 'Auto Size',
@@ -118,73 +105,52 @@ class CreatorText extends CreatorWidget {
       ],
     ),
     EditorTab(
-      tab: 'Formatting',
+      tab: 'Style',
       options: [
-        Option.toggle(
-          title: 'Bold',
-          value: bold,
-          onChange: (value) {
-            bold = value;
-            _updateStroke();
+        ... primaryStyle.options
+      ],
+    ),
+    EditorTab(
+      tab: 'Secondary Style',
+      options: [
+        Option.button(
+          title: 'Info',
+          onTap: (context) => Alerts.modalInfoBuilder(
+            context,
+            title: 'Secondary Style',
+            message: 'Secondary style is used to apply a different style to a part of the text. For example, you can apply a different color to a part of the text. To apply a secondary style to a part of the text, enclose the text in asterisks (*). For example, "demo" in "Let\'s try with a *demo*" will be styled with the secondary style.',
+          ),
+          icon: RenderIcons.info
+        ),
+        if (secondaryStyle == null) Option.button(
+          title: 'Add Secondary Style',
+          onTap: (context) {
+            secondaryStyle = CreativeTextStyle(widget: this);
             updateListeners(WidgetChange.update);
           },
-          enabledIcon: RenderIcons.bold,
-          disabledIcon: RenderIcons.bold,
-          disabledTooltip: 'Add bold formatting',
-          enabledTooltip: 'Remove bold formatting',
-        ),
-        Option.toggle(
-          title: 'Italics',
-          value: italics,
-          onChange: (value) {
-            italics = value;
-            updateListeners(WidgetChange.update);
-          },
-          disabledIcon: RenderIcons.italic,
-          enabledIcon: RenderIcons.italic,
-          disabledTooltip: 'Add italics formatting',
-          enabledTooltip: 'Remove italics formatting',
-        ),
-        Option.toggle(
-          title: 'Underline',
-          value: underline,
-          onChange: (value) {
-            underline = value;
-            overline = false;
-            strikethrough = false;
-            updateListeners(WidgetChange.update);
-          },
-          disabledIcon: RenderIcons.underline,
-          enabledIcon: RenderIcons.underline,
-          disabledTooltip: 'Add underline formatting',
-          enabledTooltip: 'Remove underline formatting',
-        ),
-        Option.toggle(
-          title: 'Strikethrough',
-          value: strikethrough,
-          onChange: (value) {
-            strikethrough = value;
-            updateListeners(WidgetChange.update);
-          },
-          disabledIcon: RenderIcons.strike,
-          enabledIcon: RenderIcons.strike,
-          disabledTooltip: 'Add strikethrough formatting',
-          enabledTooltip: 'Remove strikethrough formatting',
-        ),
-        Option.toggle(
-          title: 'Overline',
-          value: overline,
-          onChange: (value) {
-            overline = value;
-            underline = false;
-            strikethrough = false;
-            updateListeners(WidgetChange.update);
-          },
-          disabledIcon: RenderIcons.overline,
-          enabledIcon: RenderIcons.overline,
-          disabledTooltip: 'Add overline formatting',
-          enabledTooltip: 'Remove overline formatting',
-        ),
+          icon: RenderIcons.add
+        ) else ... [
+          Option.button(
+            title: 'Swap Styles',
+            onTap: (context) {
+              CreativeTextStyle temp = primaryStyle;
+              primaryStyle = secondaryStyle!;
+              secondaryStyle = temp;
+              updateListeners(WidgetChange.update);
+            },
+            icon: RenderIcons.swap
+          ),
+          ... secondaryStyle!.options,
+          Option.button(
+            title: 'Remove Secondary Style',
+            tooltip: 'Remove secondary style',
+            onTap: (context) {
+              secondaryStyle = null;
+              updateListeners(WidgetChange.update);
+            },
+            icon: RenderIcons.remove
+          )
+        ]
       ],
     ),
     EditorTab(
@@ -329,7 +295,9 @@ class CreatorText extends CreatorWidget {
           title: 'Outline',
           tooltip: 'Add an outline to text',
           onTap: (context) async {
-            _updateStroke(true);
+            primaryStyle.addStroke();
+            secondaryStyle?.addStroke();
+            updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.outline
         ),
@@ -357,18 +325,21 @@ class CreatorText extends CreatorWidget {
           onTap: (context) async {
             if ((shadows?.length ?? 0) == 2 && shadows!.first.offset == Offset(5, 5) && shadows!.first.blurRadius == 2 && shadows![1].blurRadius == 4 && shadows![1].offset == Offset(10, 10)) {
               shadows = null;
-            } else shadows = [
-              BoxShadow(
-                color: color.withOpacity(0.4),
-                blurRadius: 2,
-                offset: Offset(5, 5)
-              ),
-              BoxShadow(
-                color: color.withOpacity(0.2),
-                blurRadius: 4,
-                offset: Offset(10, 10)
-              ),
-            ];
+            } else {
+              secondaryStyle = null;
+              shadows = [
+                BoxShadow(
+                  color: primaryStyle.color.withOpacity(0.4),
+                  blurRadius: 2,
+                  offset: Offset(5, 5)
+                ),
+                BoxShadow(
+                  color: primaryStyle.color.withOpacity(0.2),
+                  blurRadius: 4,
+                  offset: Offset(10, 10)
+                ),
+              ];
+            }
             updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.echo
@@ -377,14 +348,15 @@ class CreatorText extends CreatorWidget {
           title: 'Splice',
           tooltip: 'Add splice effect to text',
           onTap: (context) async {
-            if (stroke != null && (shadows?.length ?? 0) == 1 && shadows!.first.blurRadius == 2 && shadows!.first.offset == Offset(5, 5)) {
-              if (stroke != null) _updateStroke(true);
+            if (primaryStyle.stroke != null && (shadows?.length ?? 0) == 1 && shadows!.first.blurRadius == 2 && shadows!.first.offset == Offset(5, 5)) {
+              if (primaryStyle.stroke != null) primaryStyle.addStroke();
               shadows = [];
             } else {
-              if (stroke == null) _updateStroke(true);
+              secondaryStyle = null;
+              if (primaryStyle.stroke == null) primaryStyle.addStroke();
               shadows = [
                 BoxShadow(
-                  color: color.withOpacity(0.4),
+                  color: primaryStyle.color.withOpacity(0.4),
                   blurRadius: 2,
                   offset: Offset(5, 5)
                 ),
@@ -459,9 +431,6 @@ class CreatorText extends CreatorWidget {
 
   bool isResizable = true;
   bool isDraggable = true;
-
-  /// Text Color
-  late Color color;
   
   /// BackgroundWidget Color
   Color textBackground = Colors.transparent;
@@ -472,12 +441,6 @@ class CreatorText extends CreatorWidget {
   bool autoSize = true;
 
   TextAlign align = TextAlign.center;
-
-  bool bold = false;
-  bool italics = false;
-  bool underline = false;
-  bool strikethrough = false;
-  bool overline = false;
 
   double wordSpacing = 0;
   double letterSpacing = 0;
@@ -496,8 +459,6 @@ class CreatorText extends CreatorWidget {
   EdgeInsets padding = EdgeInsets.zero;
 
   List<Shadow>? shadows;
-
-  Paint? stroke;
 
   TextDecorationStyle decorationStyle = TextDecorationStyle.solid;
 
@@ -523,6 +484,7 @@ class CreatorText extends CreatorWidget {
     text,
     textAlign: align,
     style: style,
+    secondaryStyle: secondaryTextStyle,
     maxFontSize: 200,
     presetFontSizes: [
       ... List.generate(500, (index) => index.toDouble()).reversed
@@ -530,30 +492,34 @@ class CreatorText extends CreatorWidget {
     onFontSizeChanged: (fontSize) {
       this.fontSize = fontSize;
     },
-  ) : Text(
+  ) : CreativeTextWidget(
     text,
     textAlign: align,
     style: style,
+    secondaryStyle: secondaryTextStyle,
   );
 
-  TextStyle get style => GoogleFonts.getFont(fontFamily).copyWith(
-    fontWeight: bold ? (stroke != null ? FontWeight.normal : FontWeight.bold) : FontWeight.normal,
-    backgroundColor: textBackground,
-    decoration: underline ? TextDecoration.underline : (strikethrough ? TextDecoration.lineThrough : (overline ? TextDecoration.overline : null)),
-    fontStyle: italics ? FontStyle.italic : null,
-    color: stroke == null ? color : null,
-    fontSize: fontSize,
-    letterSpacing: letterSpacing,
-    wordSpacing: wordSpacing,
-    fontFeatures: [ ],
-    shadows: [
-      if (shadows != null) ... shadows!
-    ],
-    foreground: stroke,
+  late CreativeTextStyle primaryStyle;
+  CreativeTextStyle? secondaryStyle;
+
+  TextStyle get style => primaryStyle.style(
+    font: fontFamily,
+    lineHeight: lineHeight,
     decorationStyle: decorationStyle,
-    // decorationColor: stroke == null ? decorationColor : null,
-    decorationColor: stroke == null ? color : null,
-    height: lineHeight,
+    shadows: shadows,
+    wordSpacing: wordSpacing,
+    letterSpacing: letterSpacing,
+    fontSize: fontSize
+  );
+
+  TextStyle? get secondaryTextStyle => secondaryStyle?.style(
+    font: fontFamily,
+    lineHeight: lineHeight,
+    decorationStyle: decorationStyle,
+    shadows: shadows,
+    wordSpacing: wordSpacing,
+    letterSpacing: letterSpacing,
+    fontSize: fontSize
   );
 
   @override
@@ -653,15 +619,16 @@ class CreatorText extends CreatorWidget {
   }
 
   void _removeExtraSpaceFromSize([ResizeHandler? handler]) {
-    if (textWidget is Text) return;
+    if (textWidget is CreativeTextWidget) return;
+    String _text = text.replaceAll('*', '');
     final span = TextSpan(
       style: (textWidget as AutoSizeText).style,
-      text: text,
+      text: _text,
     );
     final words = span.toPlainText().split(RegExp('\\s+'));
     final TextPainter textPainter = TextPainter(
       text: TextSpan(
-        text: text,
+        text: _text,
         style: (textWidget as AutoSizeText).style,
       ),
       textAlign: align,
@@ -710,33 +677,18 @@ class CreatorText extends CreatorWidget {
     position = Offset(position.dx - changeInX, position.dy - changeInY);
   }
 
-  void _updateStroke([bool isToggling = false]) {
-    if ((isToggling && stroke == null) || (!isToggling && stroke != null)) {
-      stroke = Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = bold ? 2 : 1
-        ..color = color;
-      if (isToggling) updateListeners(WidgetChange.update);
-    } else if (isToggling && stroke != null) {
-      stroke = null;
-      updateListeners(WidgetChange.update);
-    }
-  }
-
   @override
   void updateListeners(WidgetChange change, {bool removeGrids = false}) {
-    _updateStroke();
     super.updateListeners(change, removeGrids: removeGrids);
   }
 
   void onPaletteUpdate() {
     if (widgetColor != null) {
       widgetColor = page.palette.primary;
-      color = widgetColor!.computeTextColor();
+      primaryStyle.color = widgetColor!.computeTextColor();
     } else {
-      color = page.palette.onBackground;
+      primaryStyle.color = page.palette.onBackground;
     }
-    _updateStroke();
     updateListeners(WidgetChange.misc);
   }
 
@@ -753,17 +705,10 @@ class CreatorText extends CreatorWidget {
       'line-height': lineHeight
     },
     'color': {
-      'text': color.toHex(),
       'background': textBackground.toHex()
     },
-    'formatting': {
-      'bold': bold,
-      'italics': italics,
-      'underline': underline,
-      'strike-through': strikethrough,
-      'overline': overline,
-      'stroke': stroke != null
-    },
+    'primary-style': primaryStyle.toJSON(),
+    'secondary-style': secondaryStyle?.toJSON(),
     'widget': {
       'color': widgetColor?.toHex(),
       'radius': radius,
@@ -798,17 +743,10 @@ class CreatorText extends CreatorWidget {
       autoSize = json['text']['auto-size'];
       fontSize = json['text']['font-size'];
 
-      color = HexColor.fromHex(json['color']['text']);
       textBackground = HexColor.fromHex(json['color']['background']);
 
-      bold = json['formatting']['bold'];
-      italics = json['formatting']['italics'];
-      underline = json['formatting']['underline'];
-      strikethrough = json['formatting']['strike-through'];
-      overline = json['formatting']['overline'];
-      if (json['formatting']['stroke'] == true) {
-        _updateStroke();
-      }
+      primaryStyle = CreativeTextStyle.fromJSON(json['primary-style'], widget: this);
+      if (json['secondary-style'] != null) secondaryStyle = CreativeTextStyle.fromJSON(json['secondary-style'], widget: this);
 
       if (json['widget']['color'] != null) widgetColor = HexColor.fromHex(json['widget']['color']);
       radius = json['widget']['radius'];
@@ -838,6 +776,235 @@ class CreatorText extends CreatorWidget {
         details: 'Failed to build text widget from JSON: $e',
       );
     }
+  }
+
+}
+
+class CreativeTextStyle {
+
+  bool bold = false;
+  bool italics = false;
+  bool underline = false;
+  bool strikethrough = false;
+  bool overline = false;
+
+  Paint? stroke;
+
+  late Color color;
+
+  final CreatorWidget widget;
+  CreativeTextStyle({required this.widget}) {
+    color = widget.page.palette.onBackground;
+  }
+
+  factory CreativeTextStyle.fromJSON(Map data, {
+    required CreatorWidget widget
+  }) {
+    final style = CreativeTextStyle(widget: widget);
+    style.bold = data['bold'];
+    style.italics = data['italics'];
+    style.underline = data['underline'];
+    style.strikethrough = data['strikethrough'];
+    style.overline = data['overline'];
+    style.color = HexColor.fromHex(data['color']);
+    return style;
+  }
+
+  Map<String, dynamic> toJSON() => {
+    'bold': bold,
+    'italics': italics,
+    'underline': underline,
+    'strikethrough': strikethrough,
+    'overline': overline,
+    'color': color.toHex(),
+  };
+
+  void _updateStroke([bool isToggling = false]) {
+    if ((isToggling && stroke == null) || (!isToggling && stroke != null)) {
+      stroke = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = bold ? 2 : 1
+        ..color = color;
+      // if (isToggling) updateListeners(WidgetChange.update);
+    } else if (isToggling && stroke != null) {
+      stroke = null;
+    }
+  }
+
+  void addStroke() {
+    _updateStroke(true);
+  }
+
+  void refresh() {
+    _updateStroke();
+    color = widget.page.palette.onBackground;
+  }
+
+  TextStyle style({
+    required String font,
+    required double lineHeight,
+    TextDecorationStyle? decorationStyle,
+    List<Shadow>? shadows,
+    double? wordSpacing,
+    double? letterSpacing,
+    double? fontSize,
+  }) => GoogleFonts.getFont(font).copyWith(
+    fontWeight: bold ? (stroke != null ? FontWeight.normal : FontWeight.bold) : FontWeight.normal,
+    decoration: TextDecoration.combine([
+      if (underline) TextDecoration.underline,
+      if (strikethrough) TextDecoration.lineThrough,
+      if (overline) TextDecoration.overline,
+    ]),
+    fontStyle: italics ? FontStyle.italic : null,
+    color: stroke == null ? color : null,
+    fontSize: fontSize,
+    letterSpacing: letterSpacing,
+    wordSpacing: wordSpacing,
+    fontFeatures: [ ],
+    shadows: [
+      if (shadows != null) ... shadows
+    ],
+    foreground: stroke,
+    decorationStyle: decorationStyle,
+    decorationColor: stroke == null ? color : null,
+    height: lineHeight,
+  );
+
+  List<Option> get options => [
+    Option.color(
+      tooltip: 'Tap to select text color',
+      palette: widget.page.palette,
+      selected: color,
+      onChange: (_color) {
+        if (_color == null) return;
+        this.color = _color;
+        if (stroke != null) _updateStroke();
+        widget.updateListeners(WidgetChange.misc);
+      },
+      onChangeEnd: (color) {
+        widget.updateListeners(WidgetChange.update);
+      },
+    ),
+    Option.toggle(
+      title: 'Bold',
+      value: bold,
+      onChange: (value) {
+        bold = value;
+        _updateStroke();
+        widget.updateListeners(WidgetChange.update);
+      },
+      enabledIcon: RenderIcons.bold,
+      disabledIcon: RenderIcons.bold,
+      disabledTooltip: 'Add bold formatting',
+      enabledTooltip: 'Remove bold formatting',
+    ),
+    Option.toggle(
+      title: 'Italics',
+      value: italics,
+      onChange: (value) {
+        italics = value;
+        widget.updateListeners(WidgetChange.update);
+      },
+      disabledIcon: RenderIcons.italic,
+      enabledIcon: RenderIcons.italic,
+      disabledTooltip: 'Add italics formatting',
+      enabledTooltip: 'Remove italics formatting',
+    ),
+    Option.toggle(
+      title: 'Underline',
+      value: underline,
+      onChange: (value) {
+        underline = value;
+        widget.updateListeners(WidgetChange.update);
+      },
+      disabledIcon: RenderIcons.underline,
+      enabledIcon: RenderIcons.underline,
+      disabledTooltip: 'Add underline formatting',
+      enabledTooltip: 'Remove underline formatting',
+    ),
+    Option.toggle(
+      title: 'Strikethrough',
+      value: strikethrough,
+      onChange: (value) {
+        strikethrough = value;
+        widget.updateListeners(WidgetChange.update);
+      },
+      disabledIcon: RenderIcons.strike,
+      enabledIcon: RenderIcons.strike,
+      disabledTooltip: 'Add strikethrough formatting',
+      enabledTooltip: 'Remove strikethrough formatting',
+    ),
+    Option.toggle(
+      title: 'Overline',
+      value: overline,
+      onChange: (value) {
+        overline = value;
+        widget.updateListeners(WidgetChange.update);
+      },
+      disabledIcon: RenderIcons.overline,
+      enabledIcon: RenderIcons.overline,
+      disabledTooltip: 'Add overline formatting',
+      enabledTooltip: 'Remove overline formatting',
+    ),
+  ];
+
+}
+
+class CreativeTextWidget extends StatelessWidget {
+
+  const CreativeTextWidget(this.text, {
+    super.key,
+    this.style,
+    this.secondaryStyle,
+    this.textAlign = TextAlign.center,
+    this.strutStyle,
+    this.textDirection,
+    this.locale,
+    this.softWrap = true,
+    this.maxLines,
+    this.semanticsLabel,
+    this.overflow = TextOverflow.visible,
+    this.textHeightBehavior
+  });
+
+  final String text;
+  final TextStyle? style;
+  final TextStyle? secondaryStyle;
+  final TextAlign? textAlign;
+  final StrutStyle? strutStyle;
+  final TextDirection? textDirection;
+  final Locale? locale;
+  final bool? softWrap;
+  final int? maxLines;
+  final String? semanticsLabel;
+  final TextOverflow overflow;
+  final TextHeightBehavior? textHeightBehavior;
+
+  @override
+  Widget build(BuildContext context) {
+    return EasyRichText(
+      text,
+      defaultStyle: style,
+      strutStyle: strutStyle,
+      textAlign: textAlign ?? TextAlign.center,
+      textDirection: textDirection,
+      locale: locale,
+      softWrap: softWrap ?? true,
+      overflow: overflow,
+      maxLines: maxLines,
+      semanticsLabel: semanticsLabel,
+      textHeightBehavior: textHeightBehavior,
+      patternList: [
+        EasyRichTextPattern(
+          targetString: r'\*(.+?)\*',
+          style: secondaryStyle ?? style,
+          matchBuilder: (context, match) => TextSpan(
+            text: match![0]!.replaceAll('*', ''),
+            style: secondaryStyle ?? style,
+          ),
+        ),
+      ],
+    );
   }
 
 }

@@ -26,29 +26,12 @@ class _CreateState extends State<Create> {
 
   late final Widget creator;
 
-  void onProjectUpdate() {
-    setState(() {});
-  }
-
   @override
   void initState() {
     project = widget.project;
     if (project.pages.pages.isEmpty) project.pages.add(silent: true);
-    project.pages.pages.forEach((page) {
-      page.widgets.rebuildListeners();
-    });
-    project.pages.addListener(onProjectUpdate, [PageViewChange.page, PageViewChange.update]);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {});
-    });
     creator = CreatorView(project: project);
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    project.pages.removeListener(onProjectUpdate, [PageViewChange.page, PageViewChange.update]);
-    super.dispose();
   }
 
   @override
@@ -135,24 +118,6 @@ class _CreateState extends State<Create> {
     );
   }
 
-  String? get info {
-    if (project.pages.current.widgets.multiselect) return 'Multiselect (${project.pages.current.widgets.nSelections})';
-    else return null;
-  }
-
-  // Widget spacer([int? flex]) => Expanded(
-  //   flex: flex ?? 1,
-  //   child: GestureDetector(
-  //     behavior: HitTestBehavior.translucent,
-  //     onTap: () {
-  //       project.pages.current.select(project.pages.current.background);
-  //     },
-  //     child: Container(
-  //       color: Colors.transparent
-  //     )
-  //   ),
-  // );
-
   Future<bool> canPagePop() async {
     bool _hasHistory = project.pages.pages.where((page) => page.history.hasHistory).isNotEmpty;
     bool recentlySaved = _lastSaved != null && DateTime.now().difference(_lastSaved!).inMinutes < 1;
@@ -160,24 +125,14 @@ class _CreateState extends State<Create> {
     if (!_hasHistory) return true;
     else if (_hasHistory && recentlySaved) return true;
     
-    bool? discard = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Saved Project?'),
-        content: const Text('Make sure to save your project before leaving. This action cannot be reverted.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel')
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Discard')
-          ),
-        ],
-      ),
+    bool discard = await Alerts.showConfirmationDialog(
+      context,
+      title: 'Saved Project?',
+      message: 'You have unsaved changes. Do you want to discard them? This action cannot be undone.',
+      cancelButtonText: 'Back',
+      confirmButtonText: 'Discard',
     );
-    return discard ?? false;
+    return discard;
   }
 
   Future<void> save({

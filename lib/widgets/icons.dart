@@ -214,4 +214,14 @@ abstract class RenderIcons {
 
   static const IconData multiselectDisabled = PhosphorIcons.selectionInverse;
 
+  static const IconData swap = PhosphorIcons.swap;
+
+  static const IconData progress = PhosphorIcons.hourglassMedium;
+
+  static const IconData dash = PhosphorIcons.circleDashed;
+
+  static const IconData linear = Icons.horizontal_rule;
+
+  static const IconData circular = PhosphorIcons.circleNotch;
+
 }

@@ -86,6 +86,11 @@ dependencies:
   phosphor_flutter: any
   go_router: ^5.2.4
   gesture_x_detector: ^1.1.1
+  zoom_widget: ^2.0.0
+  styled_text: ^6.0.0
+  easy_rich_text: ^1.1.0
+  percent_indicator: ^4.2.2
+  dashed_circular_progress_bar: ^0.0.4
 
 dev_dependencies:
   flutter_test:
