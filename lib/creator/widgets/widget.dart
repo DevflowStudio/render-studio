@@ -718,6 +718,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       case 'progress':
         widget = CreativeProgressWidget(page: page, data: data, buildInfo: buildInfo);
         break;
+      case 'pie-chart':
+        widget = CreativePieChart(page: page, data: data, buildInfo: buildInfo);
+        break;
       default:
         throw WidgetCreationException('Failed to build widget ${data['name']}');
     }
@@ -751,6 +754,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         break;
       case 'progress':
         CreativeProgressWidget.create(context, page: page);
+        break;
+      case 'pie-chart':
+        CreativePieChart.create(context, page: page);
         break;
       default:
         break;

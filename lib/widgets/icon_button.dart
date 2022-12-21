@@ -211,7 +211,9 @@ class ColorSelector extends StatefulWidget {
     required this.tooltip,
     this.size,
     this.borderWidth = 5,
-    this.reverseOrder = false
+    this.reverseOrder = false,
+    this.palette,
+    this.allowOpacity = true
   }) : super(key: key);
 
   final String title;
@@ -219,6 +221,8 @@ class ColorSelector extends StatefulWidget {
   final Color color;
   final String tooltip;
   final bool reverseOrder;
+  final ColorPalette? palette;
+  final bool allowOpacity;
 
   final Size? size;
   final double borderWidth;
@@ -250,61 +254,42 @@ class _ColorSelectorState extends State<ColorSelector> {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: widget.tooltip,
-      child: SizedBox(
+    return GestureDetector(
+      onPanDown: (details) => reduceRadius(),
+      onTapDown: (details) => reduceRadius(),
+      onPanCancel: () => resetRadius(),
+      onTapUp: (details) => resetRadius(),
+      onTapCancel: () => resetRadius(),
+      onTap: () async {
+        reduceRadius();
+        TapFeedback.light();
+        await EditorTab.modal(
+          context,
+          tab: EditorTab.color(
+            context,
+            palette: widget.palette,
+            allowOpacity: widget.allowOpacity,
+            selected: color,
+            onChange: (_color) {
+              color = _color;
+              widget.onColorSelect(_color);
+            },
+          )
+        );
+        setState(() { });
+        Future.delayed(const Duration(milliseconds: 300), () => resetRadius());
+      },
+      child: AnimatedContainer(
+        duration: Constants.animationDuration,
         height: widget.size?.height ?? 60,
-        width: 100,
-        child: Row(
-          children: [
-            GestureDetector(
-              onPanDown: (details) => reduceRadius(),
-              onTapDown: (details) => reduceRadius(),
-              onPanCancel: () => resetRadius(),
-              onTapUp: (details) => resetRadius(),
-              onTapCancel: () => resetRadius(),
-              onTap: () async {
-                reduceRadius();
-                TapFeedback.light();
-                await EditorTab.modal(
-                  context,
-                  tab: EditorTab.color(
-                    context,
-                    onChange: (_color) {
-                      color = _color;
-                      widget.onColorSelect(_color);
-                    },
-                  )
-                );
-                setState(() { });
-                Future.delayed(const Duration(milliseconds: 300), () => resetRadius());
-              },
-              child: AnimatedContainer(
-                duration: Constants.animationDuration,
-                height: widget.size?.height ?? 60,
-                width: widget.size?.width ?? 60,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(radius),
-                  border: Border.all(
-                    color: Palette.of(context).background,
-                    width: widget.borderWidth
-                  )
-                ),
-              ),
-            ),
-            Container(width: 10,),
-            Flexible(
-              flex: 1,
-              child: Text(
-                widget.title,
-                style: Theme.of(context).textTheme.subtitle1!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ].maybeReverse(widget.reverseOrder),
+        width: widget.size?.width ?? 60,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(radius),
+          border: Border.all(
+            color: Palette.of(context).outline,
+            width: 1
+          )
         ),
       ),
     );

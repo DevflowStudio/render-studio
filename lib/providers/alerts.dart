@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../rehmat.dart';
@@ -239,70 +240,122 @@ class Alerts {
     );
   }
 
+  static Future<void> picker(BuildContext context, {
+    required double itemExtent,
+    required List<Widget> children,
+    int initialIndex = 0,
+    required ValueChanged<int> onSelectedItemChanged,
+  }) => showCupertinoModalPopup(
+    context: context,
+    builder: (_) => Container(
+      height: MediaQuery.of(context).size.height / 4,
+      color: Palette.of(context).background,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              IconButton(
+                onPressed: Navigator.of(context).pop,
+                icon: Icon(RenderIcons.done)
+              )
+            ],
+          ),
+          Expanded(
+            child: CupertinoPicker(
+              backgroundColor: Palette.of(context).background,
+              itemExtent: 30,
+              scrollController: FixedExtentScrollController(initialItem: initialIndex),
+              magnification: 1.1,
+              diameterRatio: 1.3,
+              squeeze: 1,
+              children: children,
+              onSelectedItemChanged: onSelectedItemChanged
+            ),
+          ),
+          SizedBox(height: MediaQuery.of(context).padding.bottom,)
+        ],
+      ),
+    )
+  );
+
   static Future<String?> modalInfoBuilder(BuildContext context, {
     required String title,
     required String message,
+  }) async {
+    return await modal(
+      context,
+      title: title,
+      childBuilder: (context, setState) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Text(
+          message,
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
+
+  static Future<String?> modal(BuildContext context, {
+    required String title,
+    required Widget Function(BuildContext context, void Function(void Function()) setState) childBuilder,
   }) async {
     return await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       // barrierColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => ClipRRect(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Palette.of(context).surfaceVariant,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => ClipRRect(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Palette.of(context).surfaceVariant,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
             ),
-          ),
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height * 0.2,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Palette.isDark(context) ? Colors.grey[800] : Colors.grey.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    )
-                  ],
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height * 0.2,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Palette.isDark(context) ? Colors.grey[800] : Colors.grey.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Label(
-                  label: title,
+                SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Label(
+                    label: title,
+                  ),
                 ),
-              ),
-              SizedBox(height: 12,),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  message,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).padding.bottom + 12,
-              )
-            ],
+                SizedBox(height: 12,),
+                childBuilder(context, setState),
+                SizedBox(
+                  height: MediaQuery.of(context).padding.bottom + 12 + MediaQuery.of(context).viewInsets.bottom,
+                )
+              ],
+            ),
           ),
         ),
       ),

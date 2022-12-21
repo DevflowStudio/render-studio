@@ -855,7 +855,7 @@ class CreativeTextStyle {
       if (strikethrough) TextDecoration.lineThrough,
       if (overline) TextDecoration.overline,
     ]),
-    fontStyle: italics ? FontStyle.italic : null,
+    fontStyle: italics ? FontStyle.italic : FontStyle.normal,
     color: stroke == null ? color : null,
     fontSize: fontSize,
     letterSpacing: letterSpacing,

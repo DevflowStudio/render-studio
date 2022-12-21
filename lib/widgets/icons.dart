@@ -218,10 +218,26 @@ abstract class RenderIcons {
 
   static const IconData progress = PhosphorIcons.hourglassMedium;
 
+  static const IconData pieChart = PhosphorIcons.chartPie;
+
+  static const IconData pieChart2 = PhosphorIcons.chartPieSlice;
+
   static const IconData dash = PhosphorIcons.circleDashed;
 
   static const IconData linear = Icons.horizontal_rule;
 
   static const IconData circular = PhosphorIcons.circleNotch;
+
+  static const IconData pieChartLegends = PhosphorIcons.listNumbers;
+
+  static const IconData pieChartLabels = PhosphorIcons.tagSimple;
+
+  static const IconData pieChartPercentLabels = PhosphorIcons.percent;
+
+  static const IconData number_zero = PhosphorIcons.numberZero;
+
+  static const IconData number_one = PhosphorIcons.numberCircleOne;
+
+  static const IconData number_two = PhosphorIcons.numberCircleTwo;
 
 }

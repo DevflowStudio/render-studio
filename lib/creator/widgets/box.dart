@@ -15,6 +15,12 @@ class CreatorBoxWidget extends CreatorWidget {
     page.widgets.add(widget);
   }
 
+  @override
+  void onInitialize() {
+    color = page.palette.secondary;
+    super.onInitialize();
+  }
+
   // Inherited
   final String name = 'Box';
   @override
@@ -29,7 +35,7 @@ class CreatorBoxWidget extends CreatorWidget {
   @override
   Size? minSize = Size(20, 10);
 
-  Color color = Colors.blue;
+  late Color color;
 
   List<Color>? gradient;
   BackgroundGradient gradientType = BackgroundGradient.type2;

@@ -347,6 +347,10 @@ class _AddWidgetModal extends StatelessWidget {
       'title': 'Progress',
       'icon': RenderIcons.progress,
     },
+    'pie-chart': {
+      'title': 'Pie Chart',
+      'icon': RenderIcons.pieChart,
+    },
   };
 
   @override
