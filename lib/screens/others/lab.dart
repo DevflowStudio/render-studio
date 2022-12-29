@@ -26,31 +26,43 @@ class _LabState extends State<Lab> {
           ),
           SliverList(
             delegate: SliverChildListDelegate([
-              divider,
-              ListTile(
-                leading: Icon(RenderIcons.design_system),
-                title: Text(
-                  'Design System',
+              Card(
+                margin: EdgeInsets.symmetric(horizontal: 6),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading: centerListTileIcon(
+                        child: Icon(
+                          RenderIcons.design_kit
+                        )
+                      ),
+                      visualDensity: VisualDensity.compact,
+                      title: Text(
+                        'Design Kit',
+                      ),
+                      subtitle: Text('Create and edit design kits for your brand'),
+                    ),
+                    ListTile(
+                      leading: centerListTileIcon(child: Icon(RenderIcons.palette)),
+                      visualDensity: VisualDensity.compact,
+                      title: Text(
+                        'Color Palettes',
+                      ),
+                      subtitle: Text('View and create color palettes'),
+                      onTap: () => AppRouter.push(context, page: MyPalettes()),
+                    ),
+                    ListTile(
+                      leading: centerListTileIcon(child: Icon(RenderIcons.lab)),
+                      visualDensity: VisualDensity.compact,
+                      title: Text(
+                        'Custom Widgets',
+                      ),
+                      subtitle: Text('View and create color palettes'),
+                      onTap: () => AppRouter.push(context, page: HTMLWidgetCreator()),
+                    ),
+                  ],
                 ),
-                subtitle: Text('Create and edit design systems for your projects'),
-              ),
-              divider,
-              ListTile(
-                leading: Icon(RenderIcons.palette),
-                title: Text(
-                  'Color Palettes',
-                ),
-                subtitle: Text('View and create color palettes'),
-                onTap: () => AppRouter.push(context, page: MyPalettes()),
-              ),
-              divider,
-              ListTile(
-                leading: Icon(RenderIcons.lab),
-                title: Text(
-                  'Custom Widgets',
-                ),
-                subtitle: Text('View and create color palettes'),
-                onTap: () => AppRouter.push(context, page: HTMLWidgetCreator()),
               ),
             ])
           )
@@ -58,6 +70,13 @@ class _LabState extends State<Lab> {
       ),
     );
   }
+
+  Widget centerListTileIcon({
+    required Widget child
+  }) => SizedBox(
+    height: double.maxFinite,
+    child: child
+  );
 
   Widget get divider => Divider(
     height: 0,

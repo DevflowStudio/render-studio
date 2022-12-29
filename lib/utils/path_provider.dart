@@ -22,10 +22,12 @@ class PathProvider {
   Future<File> saveToDocumentsDirectory(String path, {
     required List<int> bytes
   }) async {
-    File file = await new File('$rootPath$path').create(recursive: true);
-    var raf = file.openSync(mode: FileMode.write);
-    raf.writeFromSync(bytes);
-    await raf.close();
+    File file = await new File('$rootPath$path');
+    bool exists = await file.exists();
+    if (!exists) await file.create(recursive: true);
+    // var raf = file.openSync(mode: FileMode.write);
+    // raf.writeFromSync(bytes);
+    // await raf.close();
     return await file.writeAsBytes(bytes);
   }
 

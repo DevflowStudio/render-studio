@@ -19,6 +19,7 @@ class UnsplashImagePicker extends StatefulWidget {
     String? query,
     bool crop = false,
     CropAspectRatio? cropRatio,
+    bool forceCrop = true,
   }) async {
     final File? file = await AppRouter.push(
       context,
@@ -26,7 +27,7 @@ class UnsplashImagePicker extends StatefulWidget {
     );
     if (file == null) return null;
     if (crop) {
-      File? cropped = await FilePicker.crop(context, file: file, ratio: cropRatio);
+      File? cropped = await FilePicker.crop(context, file: file, ratio: cropRatio, forceCrop: forceCrop);
       if (cropped == null) return null;
       return cropped;
     } else return file;

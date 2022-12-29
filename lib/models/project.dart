@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import '../rehmat.dart';
 
@@ -39,6 +38,8 @@ class Project extends ChangeNotifier {
   String? thumbnail;
 
   late AssetManager assetManager;
+
+  Map<String, dynamic>? data;
 
   List<Exception> issues = [];
 
@@ -120,7 +121,7 @@ class Project extends ChangeNotifier {
     return json;
   }
 
-  static Future<Project?> fromJSON(Map data, {
+  static Future<Project?> fromJSON(Map<String, dynamic> data, {
     required BuildContext context
   }) async {
 
@@ -135,6 +136,7 @@ class Project extends ChangeNotifier {
     project.edited = DateTime.fromMillisecondsSinceEpoch(data['meta']['edited']);
     project.assetManager = await AssetManager.initialize(project, data: data);
     project.thumbnail = data['thumbnail'];
+    project.data = data;
 
     for (Map pageDate in data['pages']) {
       CreatorPage? page = await CreatorPage.fromJSON(Map<String, dynamic>.from(pageDate), project: project);
@@ -146,20 +148,6 @@ class Project extends ChangeNotifier {
     return project;
   }
 
-  static Future<Project?> get(String id, {
-    required BuildContext context,
-  }) async {
-    try {
-      Box box = Hive.box('projects');
-      Map json = Map.from(box.get(id));
-      Project? project = await Project.fromJSON(json, context: context);
-      return project;
-    } catch (e, stacktrace) {
-      analytics.logError(e, cause: 'project rendering error', stacktrace: stacktrace);
-      return null;
-    }
-  }
-
   
   /// Create a new empty Project
   /// Requires a BuildContext to get the device size
@@ -167,6 +155,15 @@ class Project extends ChangeNotifier {
     Project project = Project(context);
     project.assetManager = await AssetManager.initialize(project, data: {});
     AppRouter.push(context, page: Information(project: project, isNewPost: true,));
+  }
+
+  Future<void> duplicate(BuildContext context) async {
+    Map<String, dynamic> dataCopy = Map.of(data!);
+    dataCopy['id'] = Constants.generateID();
+    dataCopy['title'] = '$title (copy)';
+    dataCopy['meta']['created'] = DateTime.now().millisecondsSinceEpoch;
+    dataCopy['meta']['edited'] = DateTime.now().millisecondsSinceEpoch;
+    await manager.save(context, data: dataCopy);
   }
 
 }

@@ -261,6 +261,8 @@ class ResizeHandlerBall extends StatefulWidget {
     /// This will provide the feedback of resizing the widget with the opposite end of the widget locked to a position
     this.updatePosition = true,
     this.keepAspectRatio = false,
+    /// Set to `true` to reduce the size of resize handlers
+    this.isMinimized = false
   }) : super(key: key);
 
   final ResizeHandler type;
@@ -274,6 +276,7 @@ class ResizeHandlerBall extends StatefulWidget {
   final Color? color;
   final bool updatePosition;
   final bool keepAspectRatio;
+  final bool isMinimized;
 
   @override
   _ResizeHandlerBallState createState() => _ResizeHandlerBallState();
@@ -282,6 +285,8 @@ class ResizeHandlerBall extends StatefulWidget {
 class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
 
   bool isDragging = false;
+
+  bool get minimizeSize => widget.isResizing || widget.isMinimized;
   
   Widget build(BuildContext context) {
     return widget.type.positioned(
@@ -312,6 +317,10 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
                     color: color,
+                    // border: borderColor != null ? Border.all(
+                    //   color: borderColor!,
+                    //   width: 1
+                    // ) : null,
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
@@ -333,13 +342,22 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
   Color get color {
     if (widget.color != null) return widget.color!;
     if (widget.widget.page.widgets.background.type == BackgroundType.color) {
-      return widget.widget.page.palette.onBackground.withAlpha(180);
+      return widget.widget.page.palette.onBackground;
     } else {
       return Colors.white;
     }
   }
 
-  Size get _size => isDragging ? widget.type.feedbackSize : (widget.isResizing ? widget.type.size/2 : widget.type.size);
+  Color? get borderColor {
+    if (widget.color != null) return null;
+    if (widget.widget.page.widgets.background.type == BackgroundType.color) {
+      return widget.widget.page.palette.background;
+    } else {
+      return null;
+    }
+  }
+
+  Size get _size => isDragging ? widget.type.feedbackSize : (minimizeSize ? widget.type.size/2 : widget.type.size);
 
   void _onDrag(DragUpdateDetails details) {
     Size? size = widget.type.calculateSize(details: details, widget: widget.widget, updatePosition: widget.updatePosition, keepAspectRatio: widget.keepAspectRatio);

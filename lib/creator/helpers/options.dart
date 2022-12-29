@@ -79,6 +79,7 @@ class Option {
     IconData? icon,
     String? tooltip,
     bool allowClear = false,
+    bool allowOpacity = true,
   }) => Option.button(
     title: title ?? 'Color',
     onTap: (context) async {
@@ -89,7 +90,8 @@ class Option {
           context,
           onChange: onChange,
           palette: palette,
-          selected: selected
+          selected: selected,
+          allowOpacity: allowOpacity
         )
       );
       onChangeEnd(null);

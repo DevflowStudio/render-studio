@@ -9,7 +9,7 @@ class Constants {
   Constants(this.context);
   final BuildContext context;
 
-  static BorderRadius get borderRadius => BorderRadius.circular(15);
+  static BorderRadius get borderRadius => BorderRadius.circular(kBorderRadius);
 
   Size get gridSize {
     Size size = Size(MediaQuery.of(context).size.width / 2, MediaQuery.of(context).size.width / 2);

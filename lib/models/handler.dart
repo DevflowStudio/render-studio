@@ -21,16 +21,19 @@ class ProjectManager extends ChangeNotifier {
   }
 
   Future<void> save(BuildContext context, {
-    required Project project,
+    Project? project,
+    Map<String, dynamic>? data,
     bool saveToGallery = false
   }) async {
-    Map<String, dynamic> json = await project.toJSON(context, saveToGallery: saveToGallery);
-    await box.delete(project.id);
-    await box.put(project.id, json);
-    if (projects.indexWhere((element) => element.id == project.id) == -1) {
-      projects.add(ProjectGlance.build(id: project.id!, data: json)!);
+    assert(project != null || data != null);
+    String id = project?.id ?? data!['id'];
+    Map<String, dynamic> json = data ?? await project!.toJSON(context, saveToGallery: saveToGallery);
+    await box.delete(id);
+    await box.put(id, json);
+    if (projects.indexWhere((element) => element.id == id) == -1) {
+      projects.add(ProjectGlance.build(id: id, data: json)!);
     } else {
-      projects[projects.indexWhere((element) => element.id == project.id)] = ProjectGlance.build(id: project.id!, data: json)!;
+      projects[projects.indexWhere((element) => element.id == id)] = ProjectGlance.build(id: id, data: json)!;
     }
     _sortProjects();
     notifyListeners();

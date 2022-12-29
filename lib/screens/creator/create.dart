@@ -1,9 +1,10 @@
 import 'dart:ui';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart';
 import 'package:flutter/services.dart';
+import 'package:octo_image/octo_image.dart';
+import 'package:universal_io/io.dart';
 import '../../../rehmat.dart';
 
 class Create extends StatefulWidget {
@@ -45,14 +46,6 @@ class _CreateState extends State<Create> {
 
   @override
   Widget build(BuildContext context) {
-    if (project.assetManager.canPrecache()) {
-      isLoading = true;
-      project.assetManager.precache(context).then((value) {
-        setState(() {
-          isLoading = false;
-        });
-      });
-    }
     return WillPopScope(
       onWillPop: canPagePop,
       child: Scaffold(
@@ -80,6 +73,17 @@ class _CreateState extends State<Create> {
                 Expanded(
                   child: Stack(
                     children: [
+                      if (project.thumbnail != null) Center(
+                        child: Opacity(
+                          opacity: 0,
+                          child: Hero(
+                            tag: 'project-${project.id}',
+                            child: OctoImage(
+                              image: FileImage(File(pathProvider.generateRelativePath(project.thumbnail!)))
+                            )
+                          ),
+                        ),
+                      ),
                       creator,
                       AnimatedSwitcher(
                         duration: kAnimationDuration,
@@ -138,15 +142,13 @@ class _CreateState extends State<Create> {
   Future<void> save({
     bool export = false
   }) async {
-    setState(() {
-      isLoading = true;
-    });
-    await manager.save(context, project: project, saveToGallery: true);
+    await Spinner.fullscreen(
+      context,
+      task: () async {
+        await manager.save(context, project: project, saveToGallery: true);
+      },
+    );
     _lastSaved = DateTime.now();
-    // await Future.delayed(const Duration(seconds: 3));
-    setState(() {
-      isLoading = false;
-    });
     Alerts.snackbar(
       context,
       text: 'Saved to Gallery',
@@ -372,10 +374,12 @@ class _AppBarState extends State<_AppBar> {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      leading: widget.isLoading ? Container() : IconButton(
-        onPressed: widget.onBackPressed,
-        icon: Icon(CupertinoIcons.arrow_turn_up_left),
-        iconSize: 20,
+      leading: widget.isLoading ? Container() : Padding(
+        padding: const EdgeInsets.all(6),
+        child: FilledTonalIconButton(
+          onPressed: widget.onBackPressed,
+          icon: Icon(RenderIcons.arrow_back),
+        ),
       ),
       elevation: 0,
       systemOverlayStyle: SystemUiOverlayStyle(

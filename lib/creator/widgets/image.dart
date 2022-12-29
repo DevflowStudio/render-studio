@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:colorfilter_generator/addons.dart';
 import 'package:colorfilter_generator/presets.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:on_image_matrix/on_image_matrix.dart';
 import 'package:sprung/sprung.dart';
@@ -90,6 +91,7 @@ class CreativeImageProvider {
     List<Option> options = const [],
   }) => EditorTab(
     tab: name,
+    type: EditorTabType.row,
     options: [
       Option.showSlider(
         icon: RenderIcons.brightness,
@@ -386,6 +388,7 @@ class ImageWidget extends CreatorWidget {
     Asset _asset = await Asset.create(project: page.project, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
     image.provider = CreativeImageProvider.create(image);
     image.asset = _asset;
+    image.size = page.project.contentSize/2;
     await image.resizeByImage();
     page.widgets.add(image);
   }
@@ -421,7 +424,15 @@ class ImageWidget extends CreatorWidget {
         Option.button(
           title: 'Replace',
           onTap: (context) async {
-            File? file = await FilePicker.imagePicker(context, crop: true);
+            File? file = await FilePicker.imagePicker(
+              context,
+              crop: true,
+              forceCrop: false,
+              cropRatio: CropAspectRatio(
+                ratioX: size.width,
+                ratioY: size.height
+              ),
+            );
             if (file == null) return;
             asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
             await resizeByImage();
@@ -446,8 +457,8 @@ class ImageWidget extends CreatorWidget {
         Option.showSlider(
           icon: RenderIcons.border_radius,
           title: 'Radius',
-          max: 0,
-          min: 100,
+          max: 100,
+          min: 0,
           value: borderRadius,
           onChange: (value) {
             borderRadius = value;

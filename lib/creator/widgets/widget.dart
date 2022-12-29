@@ -233,6 +233,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// ### Drag
 
   Offset position = const Offset(0, 0);
+  Offset _previousPosition = const Offset(0, 0);
 
   Rect get area => position.translate(-size.width/2, -size.height/2) & size;
 
@@ -242,16 +243,20 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Defaults to `true`
   final bool isDraggable = true;
 
+  bool isDragging = false;
+
   List<WidgetAlignment> get alignment => WidgetAlignmentExtension.fromPosition(this);
 
   void alignPositioned(WidgetAlignment alignment) {
     if (this.alignment.contains(alignment)) return;
+    _previousPosition = position;
     position = alignment.getPosition(this);
     updateListeners(WidgetChange.update);
   }
 
   void updatePosition(DragUpdateDetails details) {
     if (!isDraggable) return;
+    _previousPosition = position;
     position = position + details.delta;
     bool snap = details.delta.dx.isBetween(-preferences.snapSensitivity, preferences.snapSensitivity);
     if (angle == 0) updateGrids(realtime: true, showGridLines: true, snap: snap);
@@ -265,14 +270,16 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   void _onGestureEnd(DragEndDetails details, BuildContext context) {
     if (!page.widgets.multiselect && this is! WidgetGroup) page.widgets.select(this);
+    isDragging = false;
     onDragFinish(context);
   }
 
-  void onGestureStart() { }
+  void onGestureStart() {
+    isDragging = true;
+  }
 
   void onDragFinish(BuildContext context) {
     // Update the listener to `update` changes. This will tell the parent to reload state and save the change in history
-    updateGrids(showGridLines: true, snap: true, snapSensitivity: 2);
     double dx = position.dx;
     double dy = position.dy;
     double minDX = -(page.project.contentSize.width/2) - size.width/4;
@@ -285,6 +292,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (dy > maxDY) dy = maxDY;
     // Prevent the widget from going out of the safe area
     position = Offset(dx, dy);
+    updateGrids(showGridLines: true, snap: true, snapSensitivity: 5);
     updateListeners(WidgetChange.update, removeGrids: true);
   }
 
@@ -429,6 +437,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
                       onResizeStart: (details) => onResizeStart(details: details, handler: handler),
                       isVisible: _resizeHandlers.contains(handler),
                       updatePosition: angle == 0,
+                      isMinimized: isDragging,
                     ),
                   ],
                 ),
@@ -458,7 +467,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     /// Pass `true` to remove all grids
     bool removeGrids = false
   }) {
-    updateGrids();
+    if (change == WidgetChange.update) updateGrids();
     if (removeGrids) page.gridState.hideAll();
     if (change == WidgetChange.update) notifyListeners(change);
     stateCtrl.update(change);
@@ -485,22 +494,41 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }) {
 
     position ??= this.position;
+    snapSensitivity ??= preferences.snapSensitivity;
+    snap = snap && preferences.snap;
 
-    bool isInSnapSensitiveArea(double x, double target) {
-      double sensitivity = snapSensitivity ?? preferences.snapSensitivity;
-      return x >= target - sensitivity && x <= target + sensitivity;
-    }
+    double dx = position.dx;
+    double dy = position.dy;
 
     double x0 = position.dx - size.width/2;
     double x = position.dx;
     double x1 = position.dx + size.width/2;
 
+    double px0 = _previousPosition.dx - size.width/2;
+    double px = _previousPosition.dx;
+    double px1 = _previousPosition.dx + size.width/2;
+
     double y0 = position.dy - size.height/2;
     double y = position.dy;
     double y1 = position.dy + size.height/2;
 
-    double dx = position.dx;
-    double dy = position.dy;
+    double py0 = _previousPosition.dy - size.height/2;
+    double py = _previousPosition.dy;
+    double py1 = _previousPosition.dy + size.height/2;
+
+    bool isInSnapSensitiveArea(double x, double px, Grid grid) {
+      double target = grid.position.dx;
+      if (grid.layout == GridLayout.horizontal) target = grid.position.dy;
+      double sensitivity = snapSensitivity!;
+
+      double d = (x - target).abs();
+      double pd = (px - target).abs();
+      bool isMovingAway = d > pd;
+
+      if (isMovingAway && realtime) sensitivity = sensitivity / 3;
+
+      return x >= target - sensitivity && x <= target + sensitivity;
+    }
 
     bool isWithinReachableDistance(Grid grid) {
       if (grid.widget == null || grid.length == null) return true;
@@ -510,32 +538,34 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       return d <= md;
     }
 
-    if (snap && showGridLines) {
+    if (showGridLines) {
+      int nSnapGrids = 0;
       for (Grid grid in page.gridState.grids) {
         bool hasSnapped = false;
         
         if (grid.widget == this) continue;
+        else if (nSnapGrids >= 2) continue;
         else if (this is WidgetGroup && (this as WidgetGroup).widgets.contains(grid.widget)) continue;
 
         if (grid.layout == GridLayout.vertical) {
-          if (isInSnapSensitiveArea(x0, grid.position.dx) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerVertical) {
+          if (isInSnapSensitiveArea(x0, px0, grid) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerVertical) {
             dx = grid.position.dx + size.width/2;
             hasSnapped = true;
-          } else if (isInSnapSensitiveArea(x, grid.position.dx) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical) {
+          } else if (isInSnapSensitiveArea(x, px, grid) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical) {
             dx = grid.position.dx;
             hasSnapped = true;
-          } else if (isInSnapSensitiveArea(x1, grid.position.dx) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerVertical) {
+          } else if (isInSnapSensitiveArea(x1, px1, grid) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerVertical) {
             dx = grid.position.dx - size.width/2;
             hasSnapped = true;
           }
         } else if (grid.layout == GridLayout.horizontal) {
-          if (isInSnapSensitiveArea(y0, grid.position.dy) && grid.gridWidgetPlacement != GridWidgetPlacement.centerHorizontal) {
+          if (isInSnapSensitiveArea(y0, py0, grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerHorizontal) {
             dy = grid.position.dy + size.height/2;
             hasSnapped = true;
-          } else if (isInSnapSensitiveArea(y, grid.position.dy) && grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal) {
+          } else if (isInSnapSensitiveArea(y, py, grid) && grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal) {
             dy = grid.position.dy;
             hasSnapped = true;
-          } else if (isInSnapSensitiveArea(y1, grid.position.dy) && grid.gridWidgetPlacement != GridWidgetPlacement.centerHorizontal) {
+          } else if (isInSnapSensitiveArea(y1, py1, grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerHorizontal) {
             dy = grid.position.dy - size.height/2;
             hasSnapped = true;
           }
@@ -543,12 +573,17 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         
         // Create a haptic feedback when the widget snaps to the grid
         // Other conditions in the if statement prevent the feedback from being created multiple times
-        if (hasSnapped && !grid.isVisible && preferences.vibrateOnSnap) TapFeedback.light();
+        if (hasSnapped && !grid.isVisible && preferences.vibrateOnSnap && snap) TapFeedback.light();
 
         if (hasSnapped) grid.isVisible = true;
         else grid.isVisible = false;
+
+        if (hasSnapped) nSnapGrids++;
       }
-      this.position = Offset(dx, dy);
+      if (snap) {
+        _previousPosition = this.position;
+        this.position = Offset(dx, dy);
+      }
       page.gridState.notifyListeners();
     }
 
@@ -566,37 +601,40 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       page: page,
       widget: this,
       dotted: true,
-      length: layout == GridLayout.horizontal ? null : size.height * 3.5,
+      length: layout == GridLayout.horizontal ? null : (size.height < page.project.contentSize.height/3 ? size.height * 3 : page.project.contentSize.height/2),
     );
+
+    bool hasSmallHeight = size.height < 20;
+    bool hasSmallWidth = size.width < 40;
 
     if (createGrids && !realtime) {
       newGrids.addAll([
-        _createGrid(
+        if (page.gridState.grids.indexWhere((grid) => grid.position.dx.isBetween(x0 - snapSensitivity!, x0 + snapSensitivity)) < 0 && !hasSmallWidth) _createGrid(
           position: Offset(x0, y),
           layout: GridLayout.vertical,
           gridWidgetPlacement: GridWidgetPlacement.left
         ),
-        _createGrid(
+        if (page.gridState.grids.indexWhere((grid) => grid.position.dx.isBetween(x - snapSensitivity!, x + snapSensitivity)) < 0) _createGrid(
           position: Offset(x, y),
           layout: GridLayout.vertical,
           gridWidgetPlacement: GridWidgetPlacement.centerVertical
         ),
-        _createGrid(
+        if (page.gridState.grids.indexWhere((grid) => grid.position.dx.isBetween(x1 - snapSensitivity!, x1 + snapSensitivity)) < 0 && !hasSmallWidth) _createGrid(
           position: Offset(x1, y),
           layout: GridLayout.vertical,
           gridWidgetPlacement: GridWidgetPlacement.right
         ),
-        _createGrid(
+        if (page.gridState.grids.indexWhere((grid) => grid.position.dy.isBetween(y0 - snapSensitivity!, y0 + snapSensitivity)) < 0 && !hasSmallHeight) _createGrid(
           position: Offset(0, y0),
           layout: GridLayout.horizontal,
           gridWidgetPlacement: GridWidgetPlacement.top
         ),
-        _createGrid(
+        if (page.gridState.grids.indexWhere((grid) => grid.position.dy.isBetween(y - snapSensitivity!, y + snapSensitivity)) < 0) _createGrid(
           position: Offset(0, y),
           layout: GridLayout.horizontal,
           gridWidgetPlacement: GridWidgetPlacement.centerHorizontal
         ),
-        _createGrid(
+        if (page.gridState.grids.indexWhere((grid) => grid.position.dy.isBetween(y1 - snapSensitivity!, y1 + snapSensitivity)) < 0 && !hasSmallHeight) _createGrid(
           position: Offset(0, y1),
           layout: GridLayout.horizontal,
           gridWidgetPlacement: GridWidgetPlacement.bottom
@@ -721,6 +759,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       case 'pie-chart':
         widget = CreativePieChart(page: page, data: data, buildInfo: buildInfo);
         break;
+      case 'blob':
+        widget = CreativeBlob(page: page, data: data, buildInfo: buildInfo);
+        break;
       default:
         throw WidgetCreationException('Failed to build widget ${data['name']}');
     }
@@ -757,6 +798,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         break;
       case 'pie-chart':
         CreativePieChart.create(context, page: page);
+        break;
+      case 'blob':
+        CreativeBlob.create(context, page: page);
         break;
       default:
         break;

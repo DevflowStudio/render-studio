@@ -53,6 +53,9 @@ class FilePicker {
     /// • svg
     FileType? type,
     bool crop = false,
+    /// If `crop` is `true` and `forceCrop` is `true`, the user will be forced to crop the image.
+    /// If `false`, the provided `cropRatio` will be used the initial crop ratio.
+    bool forceCrop = true,
     CropAspectRatio? cropRatio,
     BuildContext? context,
   }) async {
@@ -88,7 +91,7 @@ class FilePicker {
     file = File(xFile.path);
     if (context != null && crop && type == FileType.image) {
       try {
-        return await FilePicker.crop(context, file: file, ratio: cropRatio);
+        return await FilePicker.crop(context, file: file, ratio: cropRatio, forceCrop: forceCrop);
       } catch (e, stacktrace) {
         analytics.logError(e, cause: 'FilePicker.crop failed', stacktrace: stacktrace);
         return null;
@@ -97,7 +100,7 @@ class FilePicker {
       return file;
     }
     // filepicker.FileType fileType;
-    // List<String>? allowedExtenstions;
+    // List<String>? allowedExtensions;
     // switch (type) {
     //   case FileType.image:
     //     fileType = filepicker.FileType.image;
@@ -107,7 +110,7 @@ class FilePicker {
     //     break;
     //   case FileType.svg:
     //     fileType = filepicker.FileType.custom;
-    //     allowedExtenstions = ['svg'];
+    //     allowedExtensions = ['svg'];
     //     break;
     //   default:
     //     fileType = filepicker.FileType.custom;
@@ -115,7 +118,7 @@ class FilePicker {
     // filepicker.FilePickerResult? result = await filepicker.FilePicker.platform.pickFiles(
     //   allowCompression: false,
     //   type: fileType,
-    //   allowedExtensions: allowedExtenstions
+    //   allowedExtensions: allowedExtensions
     // );
   }
 
@@ -123,6 +126,9 @@ class FilePicker {
   static Future<File?> imagePicker(BuildContext context, {
     bool crop = false,
     CropAspectRatio? cropRatio,
+    /// If `crop` is `true` and `forceCrop` is `true`, the user will be forced to crop the image.
+    /// If `false`, the provided `cropRatio` will be used the initial crop ratio.
+    bool forceCrop = true,
   }) async {
     String? option = await Alerts.optionsBuilder(
       context,
@@ -141,13 +147,14 @@ class FilePicker {
     if (option == null) return null;
     switch (option) {
       case 'unsplash':
-        return await UnsplashImagePicker.getImage(context, crop: crop, cropRatio: cropRatio);
+        return await UnsplashImagePicker.getImage(context, crop: crop, cropRatio: cropRatio, forceCrop: forceCrop);
       case 'gallery':
         return await FilePicker.pick(
           context: context,
           crop: crop,
           cropRatio: cropRatio,
-          type: FileType.image
+          type: FileType.image,
+          forceCrop: forceCrop
         );
       default:
         return null;
@@ -156,8 +163,28 @@ class FilePicker {
 
   static Future<File?> crop(BuildContext context, {
     required File file,
-    CropAspectRatio? ratio
+    CropAspectRatio? ratio,
+    bool forceCrop = true
   }) async {
+    Size? size = await Asset.getDimensions(file);
+    double? _ratio = (ratio != null) ? ratio.ratioX / ratio.ratioY : null;
+    double? rectWidth;
+    double? rectHeight;
+    double? rectX;
+    double? rectY;
+    if (_ratio != null && size != null) {
+      if (size.width > size.height) {
+        rectWidth = size.height * _ratio;
+        rectHeight = size.height;
+        rectX = (size.width - rectWidth) / 2;
+        rectY = 0;
+      } else {
+        rectWidth = size.width;
+        rectHeight = size.width / _ratio;
+        rectX = 0;
+        rectY = (size.height - rectHeight) / 2;
+      }
+    }
     AndroidUiSettings uiSettings = AndroidUiSettings(
       backgroundColor: Theme.of(context).backgroundColor,
       cropFrameColor: Palette.of(context).primary,
@@ -165,13 +192,26 @@ class FilePicker {
       toolbarColor: Theme.of(context).appBarTheme.backgroundColor,
       statusBarColor: Theme.of(context).appBarTheme.backgroundColor,
       toolbarTitle: 'Crop Image',
+      lockAspectRatio: forceCrop
+    );
+    IOSUiSettings iosUiSettings = IOSUiSettings(
+      aspectRatioLockEnabled: forceCrop,
+      // aspectRatioLockDimensionSwapEnabled: !forceCrop,
+      resetAspectRatioEnabled: !forceCrop,
+      rotateButtonsHidden: false,
+      aspectRatioPickerButtonHidden: forceCrop,
+      rectWidth: rectWidth,
+      rectHeight: rectHeight,
+      rectX: rectX,
+      rectY: rectY,
     );
     CroppedFile? _croppedFile = await ImageCropper().cropImage(
       sourcePath: file.path,
       uiSettings: [
-        uiSettings
+        uiSettings,
+        iosUiSettings
       ],
-      aspectRatio: ratio,
+      aspectRatio: forceCrop ? ratio : null,
     );
     if (_croppedFile != null) return File(_croppedFile.path);
     else return null;

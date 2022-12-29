@@ -303,6 +303,14 @@ class WidgetGroup extends CreatorWidget {
   );
 
   @override
+  void onPaletteUpdate() {
+    widgets.forEach((widget) {
+      widget.onPaletteUpdate();
+    });
+    super.onPaletteUpdate();
+  }
+
+  @override
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
   }) => {

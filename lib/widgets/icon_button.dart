@@ -60,7 +60,8 @@ class FilledTonalIconButton extends StatefulWidget {
     required this.icon,
     this.selectedIcon,
     this.tooltip,
-    this.padding = const EdgeInsets.all(8.0)
+    this.padding = const EdgeInsets.all(8.0),
+    this.secondary = false
   });
 
   final bool selected;
@@ -69,6 +70,7 @@ class FilledTonalIconButton extends StatefulWidget {
   final Icon? selectedIcon;
   final String? tooltip;
   final EdgeInsetsGeometry padding;
+  final bool secondary;
 
   @override
   State<FilledTonalIconButton> createState() => _FilledTonalIconButtonState();
@@ -88,11 +90,11 @@ class _FilledTonalIconButtonState extends State<FilledTonalIconButton> {
       tooltip: widget.tooltip,
       padding: widget.padding,
       style: IconButton.styleFrom(
-        foregroundColor: widget.selected ? colors.onSecondaryContainer : colors.onSurfaceVariant,
-        backgroundColor: widget.selected ?  colors.secondaryContainer : colors.surfaceVariant,
-        hoverColor: widget.selected ? colors.onSecondaryContainer.withOpacity(0.08) : colors.onSurfaceVariant.withOpacity(0.08),
-        focusColor: widget.selected ? colors.onSecondaryContainer.withOpacity(0.12) : colors.onSurfaceVariant.withOpacity(0.12),
-        highlightColor: widget.selected ? colors.onSecondaryContainer.withOpacity(0.12) : colors.onSurfaceVariant.withOpacity(0.12),
+        foregroundColor: widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onBackground : colors.onSurfaceVariant),
+        backgroundColor: widget.selected ? colors.primaryContainer : (widget.secondary ? colors.background : colors.surfaceVariant),
+        hoverColor: (widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onBackground : colors.onSurfaceVariant).withOpacity(0.08)).withOpacity(0.08),
+        focusColor: (widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onBackground : colors.onSurfaceVariant).withOpacity(0.08)).withOpacity(0.08),
+        highlightColor: (widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onBackground : colors.onSurfaceVariant).withOpacity(0.08)).withOpacity(0.08),
       ),
     );
   }
@@ -184,10 +186,8 @@ class _NewBackButtonState extends State<NewBackButton> {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
+    return FilledTonalIconButton(
       icon: Icon(widget.icon ?? CupertinoIcons.arrow_turn_up_left),
-      color: Palette.of(context).onBackground,
-      iconSize: widget.size,
       onPressed: onBack,
     );
   }

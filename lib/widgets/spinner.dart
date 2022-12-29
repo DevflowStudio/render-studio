@@ -35,16 +35,17 @@ class Spinner extends StatefulWidget {
         child: Container(
           height: double.infinity,
           width: double.infinity,
-          color: Palette.of(context).background.withOpacity(0.2),
+          color: Palette.of(context).background.withOpacity(0.25),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Center(
-              child: Platform.isIOS ? CupertinoActivityIndicator(
-                color: Constants.getThemedBlackAndWhite(context),
-                radius: 15,
-              ) : SpinKitThreeBounce(
-                color: Constants.getThemedBlackAndWhite(context),
-                size: 20,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Palette.of(context).background,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Spinner()
               ),
             ),
           ),

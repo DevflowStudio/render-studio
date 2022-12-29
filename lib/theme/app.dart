@@ -1,6 +1,5 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
-
 import '../rehmat.dart';
 
 class AppTheme {
@@ -9,14 +8,19 @@ class AppTheme {
     required Brightness brightness,
     Color? seed
   }) {
-    seed ??= Colors.indigo;
+    seed ??= HexColor.fromHex('#1437f6');
     Color contrastTextColor = brightness == Brightness.light ? Colors.black : Colors.white;
     Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[200]!;
-    Color background = brightness == Brightness.light ? HexColor.fromHex('#f8faf9') : HexColor.fromHex('#000000');
-    Color surfaceVariant = brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#111111');
+    Color background = brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#0b0d0f');
+    Color surfaceVariant = brightness == Brightness.light ? HexColor.fromHex('#f6f8fa') : HexColor.fromHex('#161a20');
     ColorScheme colorScheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness).copyWith(
+      primary: seed,
+      primaryContainer: seed,
+      onPrimaryContainer: HexColor.fromHex('#cad2fc'),
       background: background,
-      surfaceVariant: surfaceVariant
+      surfaceVariant: surfaceVariant,
+      outline: surfaceVariant,
+      surface: brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#131417')
     );
     return ThemeData(
       visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -25,6 +29,9 @@ class AppTheme {
       useMaterial3: true,
       backgroundColor: background,
       scaffoldBackgroundColor: background,
+      drawerTheme: DrawerThemeData(
+        backgroundColor: brightness == Brightness.light ? HexColor.fromHex('#f6f8fa') : HexColor.fromHex('#131417')
+      ),
       appBarTheme: AppBarTheme(
         elevation: 0,
         backgroundColor: background,
@@ -76,17 +83,19 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           enableFeedback: true,
+          backgroundColor: surfaceVariant,
           padding: EdgeInsets.symmetric(
             horizontal: 30,
             vertical: 18
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30)
+            borderRadius: BorderRadius.circular(kBorderRadius)
           ),
           textStyle: TextStyle(
             fontSize: 17,
             fontFamily: 'Google Sans',
-            fontWeight: FontWeight.w500
+            fontWeight: FontWeight.w500,
+            color: colorScheme.onSurfaceVariant
           ),
         ),
       ),
@@ -97,7 +106,7 @@ class AppTheme {
           foregroundColor: colorScheme.onPrimary,
           backgroundColor: colorScheme.primary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30)
+            borderRadius: BorderRadius.circular(kBorderRadius)
           ),
           padding: EdgeInsets.symmetric(
             horizontal: 30,
@@ -112,12 +121,16 @@ class AppTheme {
       ),
       buttonTheme: ButtonThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: Constants.borderRadius
+          borderRadius: BorderRadius.circular(kBorderRadius)
         ),
       ),
       listTileTheme: ListTileThemeData(
-        tileColor: surfaceVariant,
-        minLeadingWidth: 12
+        // tileColor: surfaceVariant,
+        horizontalTitleGap: 12,
+        // shape: RoundedRectangleBorder(
+        //   borderRadius: BorderRadius.circular(30),
+        // ),
+        minLeadingWidth: 12,
       ),
       textTheme: TextTheme(
         displayLarge: TextStyle(
@@ -175,10 +188,11 @@ class AppTheme {
         linearTrackColor: contrastTextColorLight.withOpacity(0.05)
       ),
       cardTheme: CardTheme(
-        color: brightness == Brightness.light ? HexColor.fromHex('#e9edf2') : surfaceVariant,
+        color: surfaceVariant,
         elevation: 0,
+        margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20)
+          borderRadius: BorderRadius.circular(kBorderRadius)
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -189,7 +203,8 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         elevation: 0,
-        backgroundColor: background
+        backgroundColor: background,
+        indicatorColor: surfaceVariant,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -206,13 +221,16 @@ class AppTheme {
       dividerTheme: DividerThemeData(
         endIndent: 18,
         indent: 18,
-        color: brightness == Brightness.light ? Colors.grey[300] : Colors.grey[800]!.withOpacity(0.5)
+        color: brightness == Brightness.light ? HexColor.fromHex('#e1e0e3') : HexColor.fromHex('#374049')
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(5)
         ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: surfaceVariant,
       ),
       sliderTheme: SliderThemeData(
         showValueIndicator: ShowValueIndicator.always,

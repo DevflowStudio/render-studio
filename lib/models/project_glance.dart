@@ -9,7 +9,7 @@ class ProjectGlance {
 
   final String id;
 
-  final Map data;
+  final Map<String, dynamic> data;
 
   String get title => data['title'];
 
@@ -30,7 +30,7 @@ class ProjectGlance {
     required Map<String, dynamic> data
   }) {
     try {
-      ProjectGlance glance = ProjectGlance(id, Map.from(data));;
+      ProjectGlance glance = ProjectGlance(id, Map.of(data));;
       return glance;
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'project glance rendering error', stacktrace: stacktrace);

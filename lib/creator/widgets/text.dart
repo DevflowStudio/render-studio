@@ -366,6 +366,30 @@ class CreatorText extends CreatorWidget {
           },
           icon: RenderIcons.splice
         ),
+        Option.button(
+          title: 'Glitch',
+          tooltip: 'Add glitch effect to text',
+          onTap: (context) async {
+            if ((shadows?.length ?? 0) == 2 && shadows!.first.offset == Offset(-2, 0) && shadows![1].offset == Offset(2, 0)) {
+              shadows = null;
+            } else {
+              shadows = [
+                BoxShadow(
+                  color: Colors.redAccent,
+                  blurRadius: 3,
+                  offset: Offset(-2, 0)
+                ),
+                BoxShadow(
+                  color: Colors.blue,
+                  blurRadius: 3,
+                  offset: Offset(2, 0)
+                ),
+              ];
+            }
+            updateListeners(WidgetChange.update);
+          },
+          icon: RenderIcons.textGlitch
+        ),
       ],
     ),
     EditorTab.adjustTab(widget: this),
@@ -446,7 +470,7 @@ class CreatorText extends CreatorWidget {
   double letterSpacing = 0;
 
   Size size = const Size(200, 100);
-  Size? minSize = const Size(100, 20);
+  Size? minSize = const Size(10, 5);
 
   double fontSize = 100;
 

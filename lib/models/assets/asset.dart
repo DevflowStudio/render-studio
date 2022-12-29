@@ -102,8 +102,8 @@ class Asset {
   Future<String> compile() async {
     try {
       await onCompile?.call(file);
-      String _path = '/Render Projects/${project.id}/Assets/${id}.${file.path.split('/').last.split('.').last}';
-      file = await pathProvider.saveToDocumentsDirectory(_path, bytes: file.readAsBytesSync());
+      String _path = '/Render Projects/${project.id}/Assets/asset-${Constants.generateID()}.${file.path.split('/').last.split('.').last}';
+      file = await pathProvider.saveToDocumentsDirectory(_path, bytes: await file.readAsBytes());
       return _path;
     } catch (e, stacktrace) {
       project.issues.add(AssetException('Failed to compile asset', code: 'asset-missing'));

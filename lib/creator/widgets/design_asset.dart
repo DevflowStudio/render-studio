@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/parser.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:universal_io/io.dart';
 
@@ -62,6 +63,7 @@ class CreatorDesignAsset extends CreatorWidget {
         Option.color(
           title: 'Color',
           tooltip: 'Tap to select asset color',
+          palette: page.palette,
           onChange: (_color) async {
             if (_color == null) return;
             color = _color;
@@ -148,6 +150,15 @@ class CreatorDesignAsset extends CreatorWidget {
         file = await AppRouter.push(context, page: IconFinderScreen(project: page.project,));
         break;
       default:
+    }
+    if (file == null) return null;
+    final SvgParser parser = SvgParser();
+    final svgString = await file.readAsString();
+    try {
+      await parser.parse(svgString, warningsAsErrors: true);
+    } catch (e, stacktrace) {
+      Alerts.snackbar(context, text: 'You might want to use a different icon. This one has unsupported features.');
+      analytics.logError(e, cause: 'SVG has unsupported features', stacktrace: stacktrace);
     }
     return file;
   }

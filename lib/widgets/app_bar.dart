@@ -321,7 +321,10 @@ class _RenderAppBarState extends State<RenderAppBar> {
 
     Widget? leading = widget.leading;
     /// Only add a leading button if it has to be a back button
-    if (willHaveLeading && canPop && (parentRoute?.impliesAppBarDismissal ?? false)) leading = NewBackButton();
+    if (willHaveLeading && canPop && (parentRoute?.impliesAppBarDismissal ?? false)) leading = Padding(
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      child: NewBackButton(),
+    );
 
     return SliverAppBar(
       pinned: widget.pinned,
@@ -361,7 +364,7 @@ class _RenderAppBarState extends State<RenderAppBar> {
             bottom: 16
           ),
           end: EdgeInsets.symmetric(
-            horizontal: willHaveLeading ? 55 : 12,
+            horizontal: willHaveLeading ? 60 : 12,
             vertical: 15
           )
         ),

@@ -57,7 +57,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
     Size editorSize = Editor.calculateSize(context);
     return Container(
       decoration: BoxDecoration(
-        color: Palette.of(context).surfaceVariant,
+        color: Palette.of(context).surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -161,13 +161,14 @@ class EditorTab {
     enableDrag: false,
     isScrollControlled: true,
     barrierColor: Colors.transparent,
+    backgroundColor: Colors.transparent,
     builder: (context) => Container(
       width: double.infinity,
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       decoration: BoxDecoration(
-        color: Palette.of(context).surfaceVariant,
+        color: Palette.of(context).surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -201,7 +202,10 @@ class EditorTab {
               ... actions,
             ],
           ),
-          if (builder != null) builder(context, tab.build(context))
+          if (builder != null) SizedBox(
+            height: height,
+            child: builder(context, tab.build(context))
+          )
           else Container(
             constraints: BoxConstraints(
               minHeight: Editor.calculateSize(context).height,
@@ -209,7 +213,10 @@ class EditorTab {
             ),
             child: Padding(
               padding: padding ?? EdgeInsets.only(left: 5, right: 5, top: 20, bottom: 20),
-              child: tab.build(context),
+              child: SizedBox(
+                height: height,
+                child: tab.build(context)
+              ),
             ),
           ),
         ],
@@ -227,7 +234,7 @@ class EditorTab {
             padding: const EdgeInsets.symmetric(horizontal: 5),
             child: options[index].build(context),
           ),
-          physics: const BouncingScrollPhysics(),
+          physics: const RangeMaintainingScrollPhysics(),
           scrollDirection: Axis.horizontal,
         );
       case EditorTabType.column:

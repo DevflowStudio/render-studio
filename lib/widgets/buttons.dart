@@ -34,10 +34,14 @@ class _TextIconButtonState extends State<TextIconButton> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: Constants.borderRadius,
-          color: widget.color ?? Palette.of(context).secondaryContainer
+          color: widget.color ?? Palette.of(context).surfaceVariant,
+          border: Border.all(
+            color: Palette.of(context).onSurfaceVariant.withOpacity(0.2),
+            width: 0
+          )
         ),
         child: Padding(
-          padding: widget.padding ?? EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+          padding: widget.padding ?? EdgeInsets.symmetric(horizontal: 18, vertical: 9),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -50,7 +54,7 @@ class _TextIconButtonState extends State<TextIconButton> {
               Text(
                 widget.text,
                 style: Theme.of(context).textTheme.button?.copyWith(
-                  color: Palette.of(context).onSecondaryContainer
+                  color: Palette.of(context).onSurfaceVariant
                 ),
               )
             ],
@@ -136,12 +140,8 @@ class _SecondaryButtonState extends State<SecondaryButton> {
       feedback: widget.feedback,
       onLongPress: widget.onLongPress,
       onPressed: widget.onPressed,
-      backgroundColor: Palette.of(context).background,
-      textColor: Palette.of(context).onBackground,
-      border: Border.all(
-        color: Palette.of(context).outline,
-        width: 0
-      ),
+      backgroundColor: Palette.of(context).secondaryContainer,
+      textColor: Palette.of(context).onSecondaryContainer,
     );
   }
 
@@ -159,6 +159,7 @@ class _RenderButton extends StatefulWidget {
     this.isLoading = false,
     required this.backgroundColor,
     required this.textColor,
+    // ignore: unused_element
     this.border
   }) : super(key: key);
 

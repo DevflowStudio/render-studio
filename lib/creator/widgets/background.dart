@@ -72,12 +72,14 @@ class BackgroundWidget extends CreatorWidget {
           title: 'Palette',
           tooltip: 'Tap to shuffle palette',
           onTap: (context) async {
+            bool hasChanged = false;
             await EditorTab.modal(
               context,
               tab: EditorTab.palette(
                 page: page,
                 onSelected: (palette) {
                   page.updatePalette(palette);
+                  hasChanged = true;
                   updateListeners(WidgetChange.misc);
                 },
               ),
@@ -88,7 +90,7 @@ class BackgroundWidget extends CreatorWidget {
                 bottom: MediaQuery.of(context).padding.bottom
               )
             );
-            updateListeners(WidgetChange.update);
+            if (hasChanged) updateListeners(WidgetChange.update);
           },
         ),
         Option.button(
@@ -116,6 +118,7 @@ class BackgroundWidget extends CreatorWidget {
           tooltip: 'Adjust Padding'
         ),
         Option.color(
+          palette: page.palette,
           onChange: (color) {
             if (color == null) return;
             this.color = color;
@@ -135,18 +138,55 @@ class BackgroundWidget extends CreatorWidget {
         Option.button(
           icon: RenderIcons.image,
           title: 'Image',
-          tooltip: 'Tap to select an image as background',
+          tooltip: (asset != null && imageProvider != null) ? 'Edit background image' : 'Tap to add an image to the background',
           onTap: (context) async {
-            File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size!.cropRatio);
-            if (file == null) return;
-            if (asset == null) {
-              asset = Asset.create(project: page.project, file: file);
-              imageProvider = CreativeImageProvider.create(this);
-            } else {
-              asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
+            if (asset != null && imageProvider != null) EditorTab.modal(
+              context,
+              height: 90,
+              tab: imageProvider!.editor(
+                asset!,
+                onChange: (change) {
+                  updateListeners(change);
+                },
+                name: 'Image Editor',
+                options: [
+                  Option.button(
+                    icon: RenderIcons.image,
+                    title: 'Replace',
+                    tooltip: 'Tap to replace image',
+                    onTap: (context) async {
+                      File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size!.cropRatio);
+                      if (file == null) return;
+                      asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
+                      updateListeners(WidgetChange.update);
+                    },
+                  ),
+                  Option.button(
+                    icon: RenderIcons.delete,
+                    title: 'Remove Image',
+                    tooltip: 'Tap to remove image',
+                    onTap: (context) async {
+                      asset = null;
+                      imageProvider = null;
+                      changeBackgroundType(BackgroundType.color);
+                      updateListeners(WidgetChange.update);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ]
+              )
+            ); else {
+              File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size!.cropRatio);
+              if (file == null) return;
+              if (asset == null) {
+                asset = Asset.create(project: page.project, file: file);
+                imageProvider = CreativeImageProvider.create(this);
+              } else {
+                asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
+              }
+              changeBackgroundType(BackgroundType.image);
+              updateListeners(WidgetChange.update);
             }
-            changeBackgroundType(BackgroundType.image);
-            updateListeners(WidgetChange.update);
           },
         ),
         if (page.project.pages.length > 1) Option.button(
@@ -178,26 +218,6 @@ class BackgroundWidget extends CreatorWidget {
           },
         ),
       ],
-    ),
-    if (asset != null && imageProvider != null) imageProvider!.editor(
-      asset!,
-      onChange: (change) {
-        updateListeners(change);
-      },
-      name: 'Image Editor',
-      options: [
-        Option.button(
-          icon: RenderIcons.image,
-          title: 'Replace',
-          tooltip: 'Tap to replace image',
-          onTap: (context) async {
-            File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size!.cropRatio);
-            if (file == null) return;
-            asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
-            updateListeners(WidgetChange.update);
-          },
-        ),
-      ]
     )
   ];
 

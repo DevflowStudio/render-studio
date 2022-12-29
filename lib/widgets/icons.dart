@@ -12,7 +12,7 @@ abstract class RenderIcons {
 
   static const IconData design_asset = Iconsax.designtools;
 
-  static const IconData design_system = Iconsax.designtools5;
+  static const IconData design_kit = PhosphorIcons.scribbleLoop;
 
   static const IconData image = CupertinoIcons.photo;
 
@@ -26,11 +26,11 @@ abstract class RenderIcons {
 
   static const IconData create = CupertinoIcons.add;
 
-  static const IconData projects = Iconsax.grid_2;
+  static const IconData projects = PhosphorIcons.gridFour;
 
   static const IconData settings = CupertinoIcons.gear;
 
-  static const IconData templates = Iconsax.discover;
+  static const IconData templates = PhosphorIcons.compass;
 
   static const IconData lab = Iconsax.shapes;
 
@@ -64,13 +64,15 @@ abstract class RenderIcons {
 
   static const IconData arrow_up_down = PhosphorIcons.arrowsOutLineVertical;
 
+  static const IconData arrow_back = CupertinoIcons.arrow_turn_up_left;
+
   static const IconData arrow_link = PhosphorIcons.flowArrow;
 
   static const IconData lock = CupertinoIcons.lock;
 
   static const IconData unlock = CupertinoIcons.lock_open;
 
-  static const IconData edit = Iconsax.edit;
+  static const IconData edit = PhosphorIcons.pencilSimple;
 
   static const IconData edit_image = Iconsax.brush;
 
@@ -79,6 +81,8 @@ abstract class RenderIcons {
   static const IconData border_radius = Icons.rounded_corner;
 
   static const IconData refresh = Iconsax.refresh;
+
+  static const IconData random = PhosphorIcons.shuffle;
 
   static const IconData scale = CupertinoIcons.arrow_up_left_arrow_down_right;
 
@@ -134,7 +138,7 @@ abstract class RenderIcons {
 
   static const IconData warning = CupertinoIcons.exclamationmark_triangle;
 
-  static const IconData error = Icons.error;
+  static const IconData error = PhosphorIcons.circleWavyWarning;
 
   static const IconData undo = CupertinoIcons.arrow_uturn_left;
 
@@ -147,6 +151,8 @@ abstract class RenderIcons {
   static const IconData clear = Icons.clear;
 
   static const IconData open = Icons.open_in_new;
+
+  static const IconData openInBrowser = PhosphorIcons.arrowUpRight;
 
   static const IconData share = Iconsax.export;
 
@@ -176,7 +182,7 @@ abstract class RenderIcons {
 
   static const IconData flip_vertical = CupertinoIcons.arrow_up_down_circle;
 
-  static const IconData duplicate = Iconsax.copy;
+  static const IconData duplicate = PhosphorIcons.copy;
 
   static const IconData expand = Iconsax.arrow_down_1;
 
@@ -239,5 +245,17 @@ abstract class RenderIcons {
   static const IconData number_one = PhosphorIcons.numberCircleOne;
 
   static const IconData number_two = PhosphorIcons.numberCircleTwo;
+
+  static const IconData textGlitch = PhosphorIcons.intersect;
+
+  static const IconData user = PhosphorIcons.user;
+
+  static const IconData signOut = PhosphorIcons.signOut;
+
+  static const IconData signIn = PhosphorIcons.signIn;
+
+  static const IconData calendar = PhosphorIcons.calendar;
+
+  static const IconData help = PhosphorIcons.question;
 
 }

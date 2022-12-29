@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-
 import '../../rehmat.dart';
 import '../state.dart';
 
@@ -318,43 +317,75 @@ class _AddWidgetModal extends StatelessWidget {
 
   _AddWidgetModal({Key? key}) : super(key: key);
 
-  final Map<String, dynamic> widgets = {
-    'text': {
-      'title': 'Text',
-      'icon': RenderIcons.text,
-    },
-    'qr_code': {
-      'title': 'QR Code',
-      'icon': RenderIcons.qr,
-    },
-    'design_asset': {
-      'title': 'Design Asset',
-      'icon': RenderIcons.design_asset,
-    },
-    'box': {
-      'title': 'Box',
-      'icon': RenderIcons.design_asset,
-    },
-    'image': {
-      'title': 'Image',
-      'icon': RenderIcons.image,
-    },
-    'shape': {
-      'title': 'Shape',
-      'icon': RenderIcons.shapes,
-    },
-    'progress': {
-      'title': 'Progress',
-      'icon': RenderIcons.progress,
-    },
-    'pie-chart': {
-      'title': 'Pie Chart',
-      'icon': RenderIcons.pieChart,
-    },
-  };
-
   @override
   Widget build(BuildContext context) {
+    final Map<String, dynamic> widgets = {
+      'text': {
+        'title': 'Text',
+        'icon': Icon(
+          RenderIcons.text,
+          size: 50
+        ),
+      },
+      'qr_code': {
+        'title': 'QR Code',
+        'icon': Icon(
+          RenderIcons.qr,
+          size: 50
+        ),
+      },
+      'design_asset': {
+        'title': 'Design Asset',
+        'icon': Icon(
+          RenderIcons.design_asset,
+          size: 50
+        ),
+      },
+      'box': {
+        'title': 'Box',
+        'icon': Icon(
+          RenderIcons.design_asset,
+          size: 50
+        ),
+      },
+      'image': {
+        'title': 'Image',
+        'icon': Icon(
+          RenderIcons.image,
+          size: 50
+        ),
+      },
+      'shape': {
+        'title': 'Shape',
+        'icon': Icon(
+          RenderIcons.shapes,
+          size: 50
+        ),
+      },
+      'progress': {
+        'title': 'Progress',
+        'icon': Icon(
+          RenderIcons.progress,
+          size: 50
+        ),
+      },
+      'pie-chart': {
+        'title': 'Pie Chart',
+        'icon': Icon(
+          RenderIcons.pieChart,
+          size: 50,
+        ),
+      },
+      'blob': {
+        'title': 'Blob',
+        'icon': Blob.random(
+          size: 70,
+          styles: BlobStyles(
+            color: Palette.of(context).onBackground,
+          ),
+        ),
+      },
+    };
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
@@ -362,7 +393,7 @@ class _AddWidgetModal extends StatelessWidget {
           padding: EdgeInsets.only(
             left: 6,
             right: 6,
-            top: 6,
+            top: AppBar().preferredSize.height,
             bottom: MediaQuery.of(context).padding.bottom
           ),
           shrinkWrap: true,
@@ -388,10 +419,7 @@ class _AddWidgetModal extends StatelessWidget {
                 children: [
                   Spacer(flex: 3,),
                   Center(
-                    child: Icon(
-                      widgets.values.elementAt(index)['icon'],
-                      size: 50,
-                    ),
+                    child: widgets.values.elementAt(index)['icon'],
                   ),
                   Spacer(flex: 1,),
                   Padding(

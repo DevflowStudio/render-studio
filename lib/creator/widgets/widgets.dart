@@ -9,3 +9,4 @@ export 'image.dart';
 export 'shape.dart';
 export 'progress.dart';
 export 'pie_chart.dart';
+export 'blob.dart';

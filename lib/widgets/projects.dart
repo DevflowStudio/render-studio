@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:octo_image/octo_image.dart';
 import 'package:render_studio/rehmat.dart';
-import 'package:universal_io/io.dart';
 
 class ProjectsView extends StatefulWidget {
 
@@ -68,7 +66,10 @@ class _ProjectsViewState extends State<ProjectsView> {
       padding: EdgeInsets.symmetric(horizontal: 6),
       sliver: SliverMasonryGrid(
         delegate: SliverChildBuilderDelegate(
-          (context, index) => ProjectGlanceCard(glance: manager.projects[index]),
+          (context, index) => ProjectGlanceCard(
+            key: ValueKey(manager.projects[index].id),
+            glance: manager.projects[index]
+          ),
           childCount: count,
         ),
         crossAxisSpacing: 6,
@@ -90,116 +91,6 @@ class _ProjectsViewState extends State<ProjectsView> {
 
   void onProjectsUpdate() {
     if (mounted) setState(() {});
-  }
-
-}
-
-class ProjectGlanceCard extends StatefulWidget {
-
-  const ProjectGlanceCard({
-    Key? key,
-    required this.glance
-  }) : super(key: key);
-
-  final ProjectGlance glance;
-
-  @override
-  State<ProjectGlanceCard> createState() => _ProjectGlanceCardState();
-}
-
-class _ProjectGlanceCardState extends State<ProjectGlanceCard> {
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        TapFeedback.light();
-        AppRouter.push(context, page: ProjectAtGlance(glance: widget.glance));
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Constants.borderRadius.topLeft),
-              child: Container(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.width,
-                  maxWidth: MediaQuery.of(context).size.width/2
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    Size parentSize = constraints.biggest;
-                    return SizedBox(
-                      width: parentSize.width,
-                      height: parentSize.width / widget.glance.size.size.aspectRatio,
-                      child: OctoImage(
-                        image: FileImage(File(widget.glance.thumbnail ?? '')),
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(RenderIcons.warning),
-                              SizedBox(height: 3),
-                              const Text('404 - Not Found'),
-                            ],
-                          ),
-                        ),
-                        placeholderBuilder: (context) => Center(
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: Spinner(
-                              strokeWidth: 2,
-                              adaptive: true,
-                            )
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-                ),
-              ),
-            ),
-            Divider(
-              height: 0,
-              endIndent: 0,
-              indent: 0,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 9,
-                bottom: 12,
-                left: 12,
-                right: 12
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.glance.title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w500
-                    ),
-                  ),
-                  Text(
-                    getTimeAgo(widget.glance.edited ?? widget.glance.created!),
-                    style: Theme.of(context).textTheme.caption?.copyWith(
-                      color: Theme.of(context).colorScheme.secondary
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
 }

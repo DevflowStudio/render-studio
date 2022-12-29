@@ -434,8 +434,8 @@ class CreativePieChart extends CreatorWidget {
     super.buildFromJSON(json, buildInfo: buildInfo);
     try {
       data = [];
-      for (Map<String, dynamic> section in json['data']) {
-        data.add(_CreativePieChartSection.fromJSON(section));
+      for (var section in json['data']) {
+        data.add(_CreativePieChartSection.fromJSON(Map.from(section)));
       }
       showLegend = json['show-legend'];
       showChartValues = json['show-chart-values'];
