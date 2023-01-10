@@ -1,6 +1,7 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import '../rehmat.dart';
+import 'dart:math' as math;
 
 class AppTheme {
 
@@ -13,13 +14,14 @@ class AppTheme {
     Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[200]!;
     Color background = brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#0b0d0f');
     Color surfaceVariant = brightness == Brightness.light ? HexColor.fromHex('#f6f8fa') : HexColor.fromHex('#161a20');
+    Color outline = brightness == Brightness.light ? HexColor.fromHex('#edf1f5') : HexColor.fromHex('#29303b');
     ColorScheme colorScheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness).copyWith(
       primary: seed,
       primaryContainer: seed,
       onPrimaryContainer: HexColor.fromHex('#cad2fc'),
       background: background,
       surfaceVariant: surfaceVariant,
-      outline: surfaceVariant,
+      outline: outline,
       surface: brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#131417')
     );
     return ThemeData(
@@ -76,9 +78,14 @@ class AppTheme {
           color: contrastTextColorLight
         )
       ),
-      tooltipTheme: const TooltipThemeData(
+      tooltipTheme: TooltipThemeData(
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         preferBelow: true,
+        enableFeedback: true,
+        decoration: BoxDecoration(
+          color: colorScheme.onBackground,
+          borderRadius: BorderRadius.circular(9),
+        )
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -208,11 +215,26 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-        border: UnderlineInputBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(10),
-          )
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        labelStyle: TextStyle(
+          fontFamily: 'Inter'
+        ),
+        floatingLabelStyle: TextStyle(
+          color: colorScheme.onSurfaceVariant,
+        ),
+        enabledBorder: CustomOutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            width: 1.5,
+            color: brightness == Brightness.dark ? HexColor.fromHex('#636365') : HexColor.fromHex('#c4c4cc')
+          ),
+        ),
+        focusedBorder: CustomOutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            width: 2,
+            color: brightness == Brightness.dark ? HexColor.fromHex('#636365') : HexColor.fromHex('#000000')
+          ),
         ),
         hintStyle: TextStyle(
           fontFamily: 'Google Sans'
@@ -249,4 +271,122 @@ class AppTheme {
     );
   }
 
+}
+
+class CustomOutlineInputBorder extends InputBorder {
+  /// Creates an underline border for an [InputDecorator].
+  ///
+  /// The [borderSide] parameter defaults to [BorderSide.none] (it must not be
+  /// null). Applications typically do not specify a [borderSide] parameter
+  /// because the input decorator substitutes its own, using [copyWith], based
+  /// on the current theme and [InputDecorator.isFocused].
+  ///
+  /// The [borderRadius] parameter defaults to a value where the top left
+  /// and right corners have a circular radius of 4.0. The [borderRadius]
+  /// parameter must not be null.
+  const CustomOutlineInputBorder({
+    BorderSide borderSide = const BorderSide(),
+    this.borderRadius = const BorderRadius.only(
+      topLeft: Radius.circular(4.0),
+      topRight: Radius.circular(4.0),
+      bottomLeft: Radius.circular(4.0),
+      bottomRight: Radius.circular(4.0),
+    ),
+  })  : super(borderSide: borderSide);
+
+  /// The radii of the border's rounded rectangle corners.
+  ///
+  /// When this border is used with a filled input decorator, see
+  /// [InputDecoration.filled], the border radius defines the shape
+  /// of the background fill as well as the bottom left and right
+  /// edges of the underline itself.
+  ///
+  /// By default the top right and top left corners have a circular radius
+  /// of 4.0.
+  final BorderRadius borderRadius;
+
+  @override
+  bool get isOutline => false;
+
+  @override
+  CustomOutlineInputBorder copyWith(
+      {BorderSide? borderSide, BorderRadius? borderRadius}) {
+    return CustomOutlineInputBorder(
+      borderSide: borderSide ?? this.borderSide,
+      borderRadius: borderRadius ?? this.borderRadius,
+    );
+  }
+
+  @override
+  EdgeInsetsGeometry get dimensions {
+    return EdgeInsets.only(bottom: borderSide.width);
+  }
+
+  @override
+  CustomOutlineInputBorder scale(double t) {
+    return CustomOutlineInputBorder(borderSide: borderSide.scale(t));
+  }
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
+    return Path()
+      ..addRect(Rect.fromLTWH(rect.left, rect.top, rect.width,
+          math.max(0.0, rect.height - borderSide.width)));
+  }
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
+    return Path()..addRRect(borderRadius.resolve(textDirection).toRRect(rect));
+  }
+
+  @override
+  ShapeBorder? lerpFrom(ShapeBorder? a, double t) {
+    if (a is CustomOutlineInputBorder) {
+      return CustomOutlineInputBorder(
+        borderSide: BorderSide.lerp(a.borderSide, borderSide, t),
+        borderRadius: BorderRadius.lerp(a.borderRadius, borderRadius, t)!,
+      );
+    }
+    return super.lerpFrom(a, t);
+  }
+
+  @override
+  ShapeBorder? lerpTo(ShapeBorder? b, double t) {
+    if (b is CustomOutlineInputBorder) {
+      return CustomOutlineInputBorder(
+        borderSide: BorderSide.lerp(borderSide, b.borderSide, t),
+        borderRadius: BorderRadius.lerp(borderRadius, b.borderRadius, t)!,
+      );
+    }
+    return super.lerpTo(b, t);
+  }
+
+  /// Draw a horizontal line at the bottom of [rect].
+  ///
+  /// The [borderSide] defines the line's color and weight. The `textDirection`
+  /// `gap` and `textDirection` parameters are ignored.
+  @override
+  void paint(
+    Canvas canvas,
+    Rect rect, {
+    double? gapStart,
+    double gapExtent = 0.0,
+    double gapPercentage = 0.0,
+    TextDirection? textDirection,
+  }) {
+    final Paint paint = borderSide.toPaint();
+    final RRect outer = borderRadius.toRRect(rect);
+    final RRect center = outer.deflate(borderSide.width / 2.0);
+    canvas.drawRRect(center, paint);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other.runtimeType != runtimeType) return false;
+    return other is InputBorder && other.borderSide == borderSide;
+  }
+
+  @override
+  int get hashCode => borderSide.hashCode;
 }

@@ -1,6 +1,7 @@
 import 'package:align_positioned/align_positioned.dart';
 import 'package:dotted_line/dotted_line.dart';
 import 'package:flutter/material.dart';
+import 'package:sprung/sprung.dart';
 
 import '../rehmat.dart';
 
@@ -128,7 +129,7 @@ extension GridLayoutExtension on GridLayout {
       case GridLayout.horizontal:
         return SizedBox(
           height: 3,
-          width: grid.length ?? page.project.size!.size.width,
+          width: grid.length ?? page.project.size.size.width,
           child: Center(
             child: DottedLine(
               direction: Axis.horizontal,
@@ -140,7 +141,7 @@ extension GridLayoutExtension on GridLayout {
       case GridLayout.vertical:
         return SizedBox(
           width: 3,
-          height: grid.length ?? page.project.size!.size.height,
+          height: grid.length ?? page.project.size.size.height,
           child: Center(
             child: DottedLine(
               direction: Axis.vertical,
@@ -190,10 +191,15 @@ class PageGridViewState extends State<PageGridView> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        for (Grid grid in state.grids) if (grid.isVisible) AlignPositioned(
-          dy: grid.position.dy,
-          dx: grid.position.dx,
-          child: grid.build()
+        for (Grid grid in state.grids) AnimatedSwitcher(
+          duration: Duration.zero,
+          switchInCurve: Sprung.overDamped,
+          reverseDuration: Duration(milliseconds: 100),
+          child: (grid.isVisible) ? AlignPositioned(
+            dy: grid.position.dy,
+            dx: grid.position.dx,
+            child: grid.build()
+          ) : null,
         )
       ],
     );

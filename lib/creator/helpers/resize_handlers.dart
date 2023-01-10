@@ -82,21 +82,21 @@ extension ResizeHandlerProperties on ResizeHandler {
   Size get size {
     switch (this) {
       case ResizeHandler.topLeft:
-        return const Size(10, 10);
+        return const Size(15, 15);
       case ResizeHandler.topCenter:
         return const Size(30, 3);
       case ResizeHandler.topRight:
-        return const Size(10, 10);
+        return const Size(15, 15);
       case ResizeHandler.centerLeft:
         return const Size(3, 30);
       case ResizeHandler.centerRight:
         return const Size(3, 30);
       case ResizeHandler.bottomLeft:
-        return const Size(10, 10);
+        return const Size(15, 15);
       case ResizeHandler.bottomCenter:
         return const Size(30, 3);
       case ResizeHandler.bottomRight:
-        return const Size(10, 10);
+        return const Size(15, 15);
       default:
         return const Size(0, 0);
     }
@@ -105,21 +105,21 @@ extension ResizeHandlerProperties on ResizeHandler {
   Size get feedbackSize {
     switch (this) {
       case ResizeHandler.topLeft:
-        return const Size(15, 15);
+        return const Size(20, 20);
       case ResizeHandler.topCenter:
         return const Size(40, 6);
       case ResizeHandler.topRight:
-        return const Size(15, 15);
+        return const Size(20, 20);
       case ResizeHandler.centerLeft:
         return const Size(6, 40);
       case ResizeHandler.centerRight:
         return const Size(6, 40);
       case ResizeHandler.bottomLeft:
-        return const Size(15, 15);
+        return const Size(20, 20);
       case ResizeHandler.bottomCenter:
         return const Size(40, 6);
       case ResizeHandler.bottomRight:
-        return const Size(15, 15);
+        return const Size(20, 20);
       default:
         return const Size(0, 0);
     }
@@ -302,16 +302,14 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
         onTapUp: (details) => setState(() => isDragging = false),
         child: IgnorePointer(
           ignoring: !widget.isVisible,
-          child: AnimatedOpacity(
-            opacity: widget.isVisible ? 1 : 0,
-            duration: Constants.animationDuration,
-            curve: Sprung.overDamped,
+          child: Visibility(
+            visible: widget.isVisible,
             child: Container(
               width: 40,
               height: 40,
               child: Center(
                 child: AnimatedContainer(
-                  duration: Duration(milliseconds: 100),
+                  duration: kAnimationDuration,
                   width: _size.width,
                   height: _size.height,
                   decoration: BoxDecoration(
@@ -323,9 +321,9 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
                     // ) : null,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 1,
-                        spreadRadius: 1.3,
+                        color: Colors.black.withOpacity(0.5),
+                        blurRadius: 5,
+                        spreadRadius: 0,
                         offset: const Offset(0, 0)
                       )
                     ]

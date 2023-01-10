@@ -312,7 +312,7 @@ class ButtonWithIcon extends StatefulWidget {
     this.icon,
     this.tooltip,
     this.borderRadius = 60,
-    this.feedbackBorderRadius = 15,
+    this.feedbackBorderRadius = 5,
     this.size,
     this.greyOut = false
   }) : super(key: key);
@@ -371,10 +371,10 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                 reduceRadius();
                 TapFeedback.tap();
                 widget.onTap(context);
-                Future.delayed(const Duration(milliseconds: 160), () => resetRadius());
+                Future.delayed(const Duration(milliseconds: 300), () => resetRadius());
               },
               child: AnimatedContainer(
-                duration: Duration(milliseconds: 150),
+                duration: Duration(milliseconds: 200),
                 height: widget.size?.height ?? 60,
                 width: widget.size?.width ?? 60,
                 decoration: BoxDecoration(

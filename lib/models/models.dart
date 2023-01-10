@@ -1,9 +1,8 @@
 export 'project.dart';
 export 'project_glance.dart';
 export 'page_manager.dart';
-export 'handler.dart';
+export 'manager.dart';
 export 'saves.dart';
-export 'auth.dart';
 export 'preferences.dart';
 export 'permission_manager.dart';
 export 'file_picker.dart';
@@ -12,3 +11,5 @@ export 'size.dart';
 export 'icon_finder.dart';
 export 'export_quality.dart';
 export 'unsplash.dart';
+export 'auth/auth.dart';
+export 'auth/user.dart';

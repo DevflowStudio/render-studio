@@ -22,9 +22,7 @@ class _LabelState extends State<Label> {
   Widget build(BuildContext context) {
     return Text(
       widget.label,
-      style: (widget.subtitle ? Theme.of(context).textTheme.subtitle1 : Theme.of(context).textTheme.headlineSmall)!.copyWith(
-        color: Palette.of(context).onSurfaceVariant
-      ),
+      style: (widget.subtitle ? Theme.of(context).textTheme.subtitle1 : Theme.of(context).textTheme.headlineSmall)
     );
   }
 }
@@ -34,7 +32,6 @@ class FormGroup extends StatefulWidget {
   const FormGroup({
     Key? key,
     this.margin,
-    this.padding = 12,
     this.title,
     this.description,
     required this.textField
@@ -46,9 +43,6 @@ class FormGroup extends StatefulWidget {
 
   /// Margin around the widget
   final EdgeInsets? margin;
-
-  /// Padding between the children of group
-  final double padding;
 
   final TextFormField textField;
 
@@ -67,9 +61,11 @@ class _FormGroupState extends State<FormGroup> {
           if (widget.title != null) Label(label: widget.title ?? ''),
           if (widget.description != null) Text(
             widget.description ?? '',
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Palette.of(context).onSurfaceVariant
+            ),
           ),
-          Container(height: 10,),
+          Container(height: 6),
           widget.textField
         ],
       ),

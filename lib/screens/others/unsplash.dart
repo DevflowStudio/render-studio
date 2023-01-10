@@ -47,6 +47,7 @@ class _UnsplashImagePickerState extends State<UnsplashImagePicker> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
+        cacheExtent: MediaQuery.of(context).size.height * 3,
         slivers: [
           RenderAppBar(
             title: Text('Unsplash'),

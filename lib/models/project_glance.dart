@@ -25,6 +25,8 @@ class ProjectGlance {
 
   PostSize get size => PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
 
+  int get nPages => data['pages'].length;
+
   static ProjectGlance? build({
     required String id,
     required Map<String, dynamic> data

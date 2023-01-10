@@ -33,7 +33,7 @@ class BackgroundWidget extends CreatorWidget {
   CreativeImageProvider? imageProvider;
 
   @override
-  Size get size => page.project.size!.size;
+  Size get size => page.project.size.size;
 
   EdgeInsets padding = EdgeInsets.symmetric(horizontal: 20, vertical: 20);
   
@@ -155,7 +155,7 @@ class BackgroundWidget extends CreatorWidget {
                     title: 'Replace',
                     tooltip: 'Tap to replace image',
                     onTap: (context) async {
-                      File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size!.cropRatio);
+                      File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
                       if (file == null) return;
                       asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
                       updateListeners(WidgetChange.update);
@@ -176,7 +176,7 @@ class BackgroundWidget extends CreatorWidget {
                 ]
               )
             ); else {
-              File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size!.cropRatio);
+              File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
               if (file == null) return;
               if (asset == null) {
                 asset = Asset.create(project: page.project, file: file);

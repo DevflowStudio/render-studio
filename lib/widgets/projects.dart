@@ -46,12 +46,12 @@ class _ProjectsViewState extends State<ProjectsView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome,',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'Welcome',
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
             Text(
-              'Create your first project',
-              style: Theme.of(context).textTheme.headlineSmall,
+              'You have no projects yet.',
+              style: Theme.of(context).textTheme.subtitle1,
             ),
             Container(height: 10,),
             PrimaryButton(

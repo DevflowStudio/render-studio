@@ -51,19 +51,19 @@ class ProjectManager extends ChangeNotifier {
   }
 
   List<ProjectGlance> _getProjects() {
-    List<ProjectGlance> _projects = [];
+    List<ProjectGlance> _glances = [];
     for (var id in box.keys) {
-      ProjectGlance? project = ProjectGlance.build(id: id, data: Map.from(box.get(id)));
-      if (project != null) _projects.add(project);
+      ProjectGlance? glance = ProjectGlance.build(id: id, data: Map.from(box.get(id)));
+      if (glance != null) _glances.add(glance);
     }
-    _projects.sort((project, _project) {
+    _glances.sort((project, _project) {
       if (project.edited!.isBefore(_project.edited!)) {
         return 1;
       } else {
         return 0;
       }
     });
-    return _projects;
+    return _glances;
   }
   
   void _sortProjects() {

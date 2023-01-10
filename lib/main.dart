@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'rehmat.dart';
 
@@ -16,20 +15,9 @@ Future<void> run(Flavor flavor) async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Hive.initFlutter();
-
   await Firebase.initializeApp();
 
-  environment = await Environment.instance;
-  device = await DeviceInfo.instance;
-  preferences = await Preferences.instance;
-  analytics = await Analytics.instance;
-  manager = await ProjectManager.instance;
-  paletteManager = await PaletteManager.instance;
-  projectSaves = await ProjectSaves.instance;
-  pathProvider = await PathProvider.instance;
-
-  await Crashlytics.init();
+  app = await App.build(flavor);
 
   /// Adds a license for fonts used from fonts.google.com. This prevents copyright problems
   /// when publishing the app
@@ -42,7 +30,7 @@ Future<void> run(Flavor flavor) async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(
-          value: AppState()
+          value: app.auth
         ),
       ],
       child: Render()
@@ -63,7 +51,7 @@ class Render extends StatelessWidget {
       title: 'Render',
       theme: AppTheme.build(brightness: Brightness.light),
       darkTheme: AppTheme.build(brightness: Brightness.dark),
-      home: Home(),
+      home: LandingPage(),
       scrollBehavior: CupertinoScrollBehavior(),
       builder: (context, widget) {
         Widget error = Text(

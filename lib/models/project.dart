@@ -30,7 +30,7 @@ class Project extends ChangeNotifier {
   /// Description of the project
   String? description;
 
-  PostSize? size;
+  late PostSize size;
 
   late Size deviceSize;
   
@@ -46,8 +46,8 @@ class Project extends ChangeNotifier {
   /// This is the actual size of the page
   /// and will be used to export the image
   Size get contentSize {
-    double height = size!.size.height;
-    double width = size!.size.width;
+    double height = size.size.height;
+    double width = size.size.width;
     double ratio = width/height;
 
     double actualWidth = deviceSize.width;
@@ -106,9 +106,9 @@ class Project extends ChangeNotifier {
       'images': images,
       'thumbnail': thumbnail,
       'size': {
-        'type': size!.title,
-        'height': size!.size.height,
-        'width': size!.size.width,
+        'type': size.title,
+        'height': size.size.height,
+        'width': size.size.width,
       },
       'pages': pageData,
       'meta': {
@@ -151,10 +151,13 @@ class Project extends ChangeNotifier {
   
   /// Create a new empty Project
   /// Requires a BuildContext to get the device size
-  static void create(BuildContext context) async {
+  static Future<Project> create(BuildContext context, {
+    PostSize? size
+  }) async {
     Project project = Project(context);
+    project.size = size ?? PostSizePresets.square.toSize();
     project.assetManager = await AssetManager.initialize(project, data: {});
-    AppRouter.push(context, page: Information(project: project, isNewPost: true,));
+    return project;
   }
 
   Future<void> duplicate(BuildContext context) async {

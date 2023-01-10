@@ -333,7 +333,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (!_firstBuildDone) doFirstBuild();
     bool _isSelected = isSelected();
     bool _isOnlySelected = isInteractive && isOnlySelected();
-    bool _allowDrag = isInteractive && isDraggable && group == null;
+    bool _allowDrag = isInteractive && isDraggable && group == null && _isOnlySelected;
     return GestureDetector(
       key: ValueKey<String>(uid),
       behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
@@ -352,8 +352,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
             childWidth: size.width + 40,
             child: rotatedWidget(
               child: GestureDetector(
-                onDoubleTap: _isSelected ? () => onDoubleTap(context) : null,
-                onTap: () => _isSelected ? null : page.widgets.select(this),
+                onDoubleTap: (_isSelected && this is! WidgetGroup) ? () => onDoubleTap(context) : null,
+                onTap: (_isSelected && this is! WidgetGroup) ? null : () => page.widgets.select(this),
                 child: Padding(
                   padding: EdgeInsets.all(20),
                   child: Container(

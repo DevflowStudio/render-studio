@@ -212,6 +212,7 @@ class FilePicker {
         iosUiSettings
       ],
       aspectRatio: forceCrop ? ratio : null,
+      compressFormat: ImageCompressFormat.png
     );
     if (_croppedFile != null) return File(_croppedFile.path);
     else return null;

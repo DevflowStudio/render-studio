@@ -144,9 +144,9 @@ abstract class RenderIcons {
 
   static const IconData redo = CupertinoIcons.arrow_uturn_right;
 
-  static const IconData info = CupertinoIcons.info_circle;
+  static const IconData info = PhosphorIcons.info;
 
-  static const IconData more = CupertinoIcons.ellipsis;
+  static const IconData more = PhosphorIcons.dotsThree;
 
   static const IconData clear = Icons.clear;
 
@@ -154,7 +154,7 @@ abstract class RenderIcons {
 
   static const IconData openInBrowser = PhosphorIcons.arrowUpRight;
 
-  static const IconData share = Iconsax.export;
+  static const IconData share = CupertinoIcons.share;
 
   static const IconData download = Iconsax.import;
 
@@ -257,5 +257,9 @@ abstract class RenderIcons {
   static const IconData calendar = PhosphorIcons.calendar;
 
   static const IconData help = PhosphorIcons.question;
+
+  static const IconData apple = FontAwesomeIcons.apple;
+
+  static const IconData google = FontAwesomeIcons.google;
 
 }

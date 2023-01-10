@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../rehmat.dart';
 
@@ -7,11 +6,11 @@ class Information extends StatefulWidget {
   const Information({
     Key? key,
     required this.project,
-    this.isNewPost = false
+    this.isNewProject = false
   }) : super(key: key);
 
   final Project project;
-  final bool isNewPost;
+  final bool isNewProject;
 
   @override
   _InformationState createState() => _InformationState();
@@ -42,7 +41,9 @@ class _InformationState extends State<Information> {
       body: CustomScrollView(
         slivers: [
           RenderAppBar(
-            title: Text(widget.isNewPost ? 'Project' : 'Metadata')
+            title: Text(
+              widget.isNewProject ? 'New Project' : 'Metadata'
+            )
           ),
           SliverList(
             delegate: SliverChildListDelegate([
@@ -74,114 +75,11 @@ class _InformationState extends State<Information> {
                 ),
               ),
               SizedBox(height: 10,),
-              if (widget.isNewPost) ... [
-                const Divider(),
-                SizedBox(height: 10,),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Wrap(
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    alignment: WrapAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Label(label: 'Size'),
-                          Text(
-                            'Choose a size for your project',
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                        ],
-                      ),
-                      InkWell(
-                        onTap: () {
-                          showCupertinoModalPopup(
-                            context: context,
-                            builder: (_) => Container(
-                              height: MediaQuery.of(context).size.height/4,
-                              color: Palette.of(context).background,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      IconButton(
-                                        onPressed: Navigator.of(context).pop,
-                                        icon: Icon(RenderIcons.done)
-                                      )
-                                    ],
-                                  ),
-                                  Expanded(
-                                    child: CupertinoPicker(
-                                      backgroundColor: Palette.of(context).background,
-                                      itemExtent: 30,
-                                      scrollController: FixedExtentScrollController(initialItem: PostSizePresets.values.indexOf(size)),
-                                      magnification: 1.1,
-                                      diameterRatio: 1.3,
-                                      squeeze: 1,
-                                      children: List.generate(
-                                        PostSizePresets.values.length,
-                                        (index) => Text(
-                                          PostSizePresets.values[index].title
-                                        )
-                                      ),
-                                      onSelectedItemChanged: (value) {
-                                        if (mounted) setState(() {
-                                          size = PostSizePresets.values[value];
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5
-                          ),
-                          decoration: BoxDecoration(
-                            color: Palette.of(context).surfaceVariant,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Palette.of(context).shadow.withOpacity(0.1),
-                                blurRadius: 1,
-                                spreadRadius: 0,
-                                offset: Offset(0, 0)
-                              )
-                            ]
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                size.title,
-                                style: TextStyle(
-                                  color: Palette.of(context).onSurfaceVariant
-                                ),
-                              ),
-                              Icon(
-                                RenderIcons.arrow_down,
-                                color: Palette.of(context).onSurfaceVariant
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
               SizedBox(height: 22,),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: PrimaryButton(
-                  child: widget.isNewPost ? Text('Create') : Text('Done'),
+                  child: Text(widget.isNewProject ? 'Next' : 'Save'),
                   onPressed: next,
                 ),
               )
@@ -205,12 +103,8 @@ class _InformationState extends State<Information> {
       return;
     }
 
-    if (widget.isNewPost) {
-      project.size = size.toSize();
-      AppRouter.replace(context, page: Create(project: project));
-    } else {
-      Navigator.of(context).pop();
-    }
+    if (widget.isNewProject) AppRouter.replace(context, page: Create(project: project));
+    else Navigator.of(context).pop();
   }
 
 }

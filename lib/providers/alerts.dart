@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -53,92 +55,41 @@ class Alerts {
     String cancelButtonText = 'Cancel',
     bool isDestructive = false,
   }) async {
-    bool? confirm = await showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      // barrierColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => ClipRRect(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Palette.of(context).surfaceVariant,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
+    bool? confirm = await modal(
+      context,
+      title: title,
+      childBuilder: (context, setState) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ),
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height * 0.2,
+          SizedBox(height: 20,),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: PrimaryButton(
+                    child: Text(cancelButtonText),
+                    onPressed: () => Navigator.of(context).pop(false),
+                  ),
+                ),
+                SizedBox(width: 6,),
+                Expanded(
+                  child: SecondaryButton(
+                    child: Text(confirmButtonText),
+                    onPressed: () => Navigator.of(context).pop(true),
+                  ),
+                )
+              ].maybeReverse(isDestructive),
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Palette.isDark(context) ? Colors.grey[800] : Colors.grey.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-              ),
-              SizedBox(height: 12,),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  message,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ),
-              SizedBox(
-                height: 24,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: PrimaryButton(
-                        child: Text(cancelButtonText),
-                        onPressed: () => Navigator.of(context).pop(false),
-                      ),
-                    ),
-                    SizedBox(width: 6,),
-                    Expanded(
-                      child: SecondaryButton(
-                        child: Text(confirmButtonText),
-                        onPressed: () => Navigator.of(context).pop(true),
-                      ),
-                    )
-                  ].maybeReverse(isDestructive),
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).padding.bottom + 12,
-              )
-            ],
-          ),
-        ),
+        ],
       ),
     );
     return confirm ?? false;
@@ -296,65 +247,60 @@ class Alerts {
     );
   }
 
-  static Future<String?> modal(BuildContext context, {
+  static Future<T?> modal<T>(BuildContext context, {
     required String title,
     required Widget Function(BuildContext context, void Function(void Function()) setState) childBuilder,
   }) async {
-    return await showModalBottomSheet(
+    return await showModalBottomSheet<T>(
       context: context,
       backgroundColor: Colors.transparent,
-      // barrierColor: Colors.transparent,
+      barrierColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => ClipRRect(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
           child: Container(
             decoration: BoxDecoration(
-              color: Palette.of(context).surfaceVariant,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
+              color: Palette.of(context).surfaceVariant.withOpacity(0.4)
             ),
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height * 0.2,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Palette.isDark(context) ? Colors.grey[800] : Colors.grey.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      )
-                    ],
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: Palette.isDark(context) ? Colors.grey[800] : Colors.grey.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Label(
-                    label: title,
+                  SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Label(
+                      label: title,
+                    ),
                   ),
-                ),
-                SizedBox(height: 12,),
-                childBuilder(context, setState),
-                SizedBox(
-                  height: MediaQuery.of(context).padding.bottom + 12 + MediaQuery.of(context).viewInsets.bottom,
-                )
-              ],
+                  SizedBox(height: 12,),
+                  childBuilder(context, setState),
+                  SizedBox(
+                    height: MediaQuery.of(context).padding.bottom + 12 + MediaQuery.of(context).viewInsets.bottom,
+                  )
+                ],
+              ),
             ),
           ),
         ),

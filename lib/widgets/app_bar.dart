@@ -360,7 +360,7 @@ class _RenderAppBarState extends State<RenderAppBar> {
         title: widget.title,
         titlePaddingTween: EdgeInsetsTween(
           begin: const EdgeInsets.only(
-            left: 12.0,
+            left: 12,
             bottom: 16
           ),
           end: EdgeInsets.symmetric(

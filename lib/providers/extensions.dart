@@ -47,6 +47,7 @@ extension ListsExtension<T> on List<T> {
 }
 
 extension MapExtension<T, V> on Map<T, V> {
+
   Map<T, V> getRange(int start, int end) {
     Map<T, V> updated = Map<T, V>.from(this);
     updated.removeWhere((key, value) {
@@ -58,6 +59,22 @@ extension MapExtension<T, V> on Map<T, V> {
       }
     });
     return updated;
+  }
+
+}
+
+extension MapExtensions<T> on Map<T, num> {
+  T getRandomWithProbabilities() {
+    final total = values.fold(0.0, (sum, value) => (sum as num) + value);
+    final random = Random().nextDouble() * total;
+    double cumulative = 0.0;
+    for (var key in keys) {
+      cumulative += this[key] as num;
+      if (random < cumulative) {
+        return key;
+      }
+    }
+    return keys.first;
   }
 }
 
@@ -201,5 +218,11 @@ extension SizeExtension on Size {
       return false;
     }
   }
+
+}
+
+extension BuildContextHelpers on BuildContext {
+
+  bool get isDarkMode => MediaQuery.of(this).platformBrightness == Brightness.dark;
 
 }

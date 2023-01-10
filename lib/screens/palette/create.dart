@@ -20,8 +20,6 @@ class _CreatePaletteState extends State<CreatePalette> {
 
   late ColorPalette palette;
 
-  bool isLoading = false;
-
   @override
   void initState() {
     super.initState();
@@ -121,16 +119,10 @@ class _CreatePaletteState extends State<CreatePalette> {
                 Expanded(
                   flex: 3,
                   child: PrimaryButton(
-                    isLoading: isLoading,
                     child: Text('Generate'),
+                    autoLoading: true,
                     onPressed: () async {
-                      setState(() {
-                        isLoading = true;
-                      });
                       palette = await ColorPalette.generate();
-                      setState(() {
-                        isLoading = false;
-                      });
                     },
                   ),
                 ),

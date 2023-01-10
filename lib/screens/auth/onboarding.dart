@@ -1,5 +1,5 @@
+import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:octo_image/octo_image.dart';
 import '../../../rehmat.dart';
 
@@ -15,116 +15,134 @@ class _OnboardingState extends State<Onboarding> {
 
   Widget? background;
 
-  bool isGoogleAuthLoading = false;
-  bool isAppleAuthLoading = false;
-  bool isFacebookAuthLoading = false;
-
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      background = SizedBox.fromSize(
-        size: MediaQuery.of(context).size,
-        child: OctoImage(
-          fit: BoxFit.cover,
-          image: AssetImage(
-            [
-              'assets/intro/1.jpg',
-              'assets/intro/2.jpg',
-              'assets/intro/3.jpg',
-              'assets/intro/4.jpg',
-              'assets/intro/5.jpg',
-            ].getRandom()
-          )
-        ),
-      );
-      setState(() { });
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    Size logoSize = Size(MediaQuery.of(context).size.width / 3, MediaQuery.of(context).size.width / 3);
     return Scaffold(
-      body: Stack(
+      body: Column(
         children: [
-          background ?? Container(),
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: Constants.horizontalPadding, vertical: 50),
-                  child: Text(
-                    'Render',
-                    style: Theme.of(context).textTheme.headline1!.copyWith(
-                      fontFamily: Fonts.main,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                height: MediaQuery.of(context).size.height * 0.4,
+                width: double.maxFinite,
+                decoration: BoxDecoration(
+                  color: Palette.of(context).primary,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(MediaQuery.of(context).size.width/4),
+                    bottomRight: Radius.circular(MediaQuery.of(context).size.width/4)
+                  )
+                ),
+              ),
+              SizedBox.fromSize(
+                size: logoSize,
+                child: AlignPositioned(
+                  dy: MediaQuery.of(context).size.height * 0.4 - logoSize.height / 2,
+                  dx: MediaQuery.of(context).size.width / 2 - logoSize.width / 2,
+                  alignment: Alignment.center,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(100),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 6,
+                          offset: Offset(0, 0)
+                        )
+                      ]
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: OctoImage(
+                        image: AssetImage('assets/icon.png'),
+                      ),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: Constants.horizontalPadding, vertical: 20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: TextButton.icon(
-                          label: isGoogleAuthLoading ? Spinner(strokeWidth: 2,) : Text('Google'),
-                          icon: Icon(FontAwesomeIcons.google),
-                          onPressed: () async {
-                            setState(() {
-                              isGoogleAuthLoading = true;
-                            });
-                            // await Auth.signInWithGoogle(context);
-                            setState(() {
-                              isGoogleAuthLoading = false;
-                            });
-                          },
-                          // background: Colors.red,
+              )
+            ],
+          ),
+          SizedBox(height: logoSize.height/2 + 20),
+          Text(
+            'Welcome',
+            style: Theme.of(context).textTheme.displayMedium
+          ),
+          SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              'Sign in and unleash your creativity with Render Studio',
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Spacer(),
+          Padding(
+            padding: EdgeInsets.only(
+              left: Constants.horizontalPadding,
+              right: Constants.horizontalPadding,
+              bottom: MediaQuery.of(context).padding.bottom + 12
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: double.maxFinite,
+                  child: Button(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          RenderIcons.google,
+                          color: Colors.black,
+                          size: 19
                         ),
-                      ),
-                      Container(height: 10,),
-                      SizedBox(
-                        width: double.maxFinite,
-                        child: TextButton.icon(
-                          label: isAppleAuthLoading ? Spinner(strokeWidth: 2,) : Text('Apple'),
-                          icon: Icon(FontAwesomeIcons.apple),
-                          onPressed: () async {
-                            setState(() {
-                              isGoogleAuthLoading = true;
-                            });
-                            // await Auth.signInWithApple(context);
-                            setState(() {
-                              isGoogleAuthLoading = false;
-                            });
-                          },
-                        ),
-                      ),
-                      // Container(height: 10,),
-                      // SizedBox(
-                      //   width: double.maxFinite,
-                      //   child: Button(
-                      //     text: 'Facebook',
-                      //     icon: FontAwesomeIcons.facebook,
-                      //     isLoading: isFacebookAuthLoading,
-                      //     onPressed: () async {
-                      //       setState(() {
-                      //         isGoogleAuthLoading = true;
-                      //       });
-                      //       await Auth.googleSignIn(context);
-                      //       setState(() {
-                      //         isGoogleAuthLoading = false;
-                      //       });
-                      //     },
-                      //     background: Colors.blue,
-                      //   ),
-                      // )
-                    ],
+                        SizedBox(width: 12),
+                        Text('Sign in with Google')
+                      ],
+                    ),
+                    border: Border.all(
+                      color: Palette.of(context).outline,
+                      width: 2
+                    ),
+                    backgroundColor: Colors.white,
+                    textColor: Colors.black,
+                    autoLoading: true,
+                    onPressed: () async {
+                      await AuthState.of(context).signInWithGoogle();
+                    },
                   ),
-                )
+                ),
+                Container(height: 10,),
+                SizedBox(
+                  width: double.maxFinite,
+                  child: Button(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          RenderIcons.apple,
+                          color: Colors.white,
+                          size: 19
+                        ),
+                        SizedBox(width: 12),
+                        Text('Sign in with Apple')
+                      ],
+                    ),
+                    backgroundColor: Colors.black,
+                    textColor: Colors.white,
+                    autoLoading: true,
+                    onPressed: () async {
+                      await AuthState.of(context).signInWithApple();
+                    },
+                  ),
+                ),
               ],
             ),
           )

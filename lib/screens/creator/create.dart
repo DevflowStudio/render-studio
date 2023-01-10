@@ -49,6 +49,7 @@ class _CreateState extends State<Create> {
     return WillPopScope(
       onWillPop: canPagePop,
       child: Scaffold(
+        backgroundColor: context.isDarkMode ? Palette.of(context).background : Palette.of(context).surfaceVariant,
         appBar: _AppBar(
           project: project,
           isLoading: isLoading,
@@ -405,7 +406,7 @@ class _AppBarState extends State<_AppBar> {
           icon: Icon(
             RenderIcons.redo,
           ),
-          tooltip: 'Redo',
+          tooltip: project.pages.current.history.redoTooltip,
         ),
         IconButton(
           onPressed: () => AppRouter.push(context, page: Information(project: project)),
@@ -422,13 +423,13 @@ class _AppBarState extends State<_AppBar> {
                 fontSize: 10,
               ),
             ),
-            showBadge: project.issues.isNotEmpty,
+            showBadge: preferences.debugMode && project.issues.isNotEmpty,
             animationType: BadgeAnimationType.fade,
             position: BadgePosition.topEnd(top: -6, end: -9),
             child: Icon(RenderIcons.more)
           ),
           itemBuilder: (context) => <PopupMenuEntry>[
-            if (project.issues.isNotEmpty) PopupMenuItem(
+            if (preferences.debugMode && project.issues.isNotEmpty) PopupMenuItem(
               value: 'issues',
               child: Badge(
                 badgeContent: Text(
