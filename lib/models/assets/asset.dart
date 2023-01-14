@@ -97,7 +97,10 @@ class Asset {
     }
   }
 
-  Future<void> precache(BuildContext context) => precacheImage(FileImage(file), context);
+  Future<void> precache(BuildContext context) async {
+    String extension = file.path.split('/').last.split('.').last;
+    if (!['svg'].contains(extension)) await precacheImage(FileImage(file), context);
+  }
 
   Future<String> compile() async {
     try {

@@ -11,7 +11,7 @@ class AppTheme {
   }) {
     seed ??= HexColor.fromHex('#1437f6');
     Color contrastTextColor = brightness == Brightness.light ? Colors.black : Colors.white;
-    Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[200]!;
+    Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[400]!;
     Color background = brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#0b0d0f');
     Color surfaceVariant = brightness == Brightness.light ? HexColor.fromHex('#f6f8fa') : HexColor.fromHex('#161a20');
     Color outline = brightness == Brightness.light ? HexColor.fromHex('#edf1f5') : HexColor.fromHex('#29303b');
@@ -64,19 +64,19 @@ class AppTheme {
       ),
       dialogTheme: DialogTheme(
         shape: RoundedRectangleBorder(
-          borderRadius: Constants.borderRadius
+          borderRadius: BorderRadius.circular(20)
         ),
         actionsPadding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
         titleTextStyle: TextStyle(
-          fontFamily: 'Inter',
-          fontSize: 24,
+          fontFamily: 'Helvetica',
+          fontSize: 25,
           color: contrastTextColor
         ),
         contentTextStyle: TextStyle(
-          fontFamily: 'Google Sans',
           fontSize: 16,
           color: contrastTextColorLight
-        )
+        ),
+        backgroundColor: surfaceVariant
       ),
       tooltipTheme: TooltipThemeData(
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -90,13 +90,9 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           enableFeedback: true,
-          backgroundColor: surfaceVariant,
-          padding: EdgeInsets.symmetric(
-            horizontal: 30,
-            vertical: 18
-          ),
+          foregroundColor: colorScheme.onSurfaceVariant,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kBorderRadius)
+            borderRadius: BorderRadius.circular(9)
           ),
           textStyle: TextStyle(
             fontSize: 17,
@@ -215,26 +211,11 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        labelStyle: TextStyle(
-          fontFamily: 'Inter'
-        ),
-        floatingLabelStyle: TextStyle(
-          color: colorScheme.onSurfaceVariant,
-        ),
-        enabledBorder: CustomOutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            width: 1.5,
-            color: brightness == Brightness.dark ? HexColor.fromHex('#636365') : HexColor.fromHex('#c4c4cc')
-          ),
-        ),
-        focusedBorder: CustomOutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            width: 2,
-            color: brightness == Brightness.dark ? HexColor.fromHex('#636365') : HexColor.fromHex('#000000')
-          ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        border: UnderlineInputBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(10),
+          )
         ),
         hintStyle: TextStyle(
           fontFamily: 'Google Sans'

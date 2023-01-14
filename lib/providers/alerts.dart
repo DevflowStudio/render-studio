@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:sprung/sprung.dart';
 
 import '../rehmat.dart';
 
@@ -55,41 +57,49 @@ class Alerts {
     String cancelButtonText = 'Cancel',
     bool isDestructive = false,
   }) async {
-    bool? confirm = await modal(
-      context,
-      title: title,
-      childBuilder: (context, setState) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              message,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+    bool? confirm;
+    if (Platform.isAndroid) confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(cancelButtonText)
           ),
-          SizedBox(height: 20,),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: PrimaryButton(
-                    child: Text(cancelButtonText),
-                    onPressed: () => Navigator.of(context).pop(false),
-                  ),
-                ),
-                SizedBox(width: 6,),
-                Expanded(
-                  child: SecondaryButton(
-                    child: Text(confirmButtonText),
-                    onPressed: () => Navigator.of(context).pop(true),
-                  ),
-                )
-              ].maybeReverse(isDestructive),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(confirmButtonText),
+            style: TextButton.styleFrom(
+              foregroundColor: isDestructive ? Colors.red : null
             ),
+          )
+        ].maybeReverse(isDestructive),
+      ),
+    ); else confirm = await showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        insetAnimationCurve: Sprung(),
+        title: Text(
+          title,
+          style: TextStyle(
+            fontFamily: 'SF Pro'
           ),
-        ],
+        ),
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(cancelButtonText),
+            onPressed: () => Navigator.of(context).pop(false),
+            isDefaultAction: true,
+          ),
+          CupertinoDialogAction(
+            child: Text(confirmButtonText),
+            onPressed: () => Navigator.of(context).pop(true),
+            isDestructiveAction: isDestructive,
+          )
+        ].maybeReverse(isDestructive),
       ),
     );
     return confirm ?? false;
@@ -308,6 +318,15 @@ class Alerts {
     );
   }
 
+  static Future<void> showModal(BuildContext context, {
+    required Widget child
+  }) => Navigator.of(context).push(
+    RenderModalRoute(
+      builder: (context) => child,
+      color: Palette.of(context).background.withOpacity(0.2),
+    )
+  );
+
 }
 
 class AlertOption {
@@ -321,5 +340,45 @@ class AlertOption {
     this.icon,
     required this.id,
   });
+
+}
+
+class RenderModalRoute extends PageRoute<void> {
+
+  RenderModalRoute({
+    required this.builder,
+    RouteSettings? settings,
+    this.color,
+  }) : super(settings: settings);
+
+  final WidgetBuilder builder;
+  final Color? color;
+
+  @override
+  bool get opaque => false;
+
+  @override
+  Color? get barrierColor => color;
+
+  @override
+  String? get barrierLabel => null;
+
+  @override
+  bool get maintainState => true;
+
+  @override
+  Duration get transitionDuration => kAnimationDuration;
+
+  @override
+  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+    final result = builder(context);
+    return Material(
+      color: Colors.transparent,
+      child: FadeTransition(
+        opacity: Tween<double>(begin: 0, end: 1).animate(animation),
+        child: result,
+      ),
+    );
+  }
 
 }

@@ -145,6 +145,8 @@ class Project extends ChangeNotifier {
 
     project.pages.updateListeners();
 
+    await project.assetManager.precache(context);
+
     return project;
   }
 

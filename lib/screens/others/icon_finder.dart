@@ -2,6 +2,8 @@ import 'package:skeletons/skeletons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:octo_image/octo_image.dart';
+import 'package:sliver_tools/sliver_tools.dart';
+import 'package:universal_io/io.dart';
 import '../../rehmat.dart';
 
 class IconFinderScreen extends StatefulWidget {
@@ -19,21 +21,7 @@ class IconFinderScreen extends StatefulWidget {
 
 class _IconFinderScreenState extends State<IconFinderScreen> {
 
-  IconFinder finder = IconFinder();
-
   TextEditingController searchCtrl = TextEditingController();
-
-  @override
-  void initState() {
-    finder.addListener(onUpdate);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    finder.removeListener(onUpdate);
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,68 +35,109 @@ class _IconFinderScreenState extends State<IconFinderScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: TextFormField(
+              child: SearchBar(
                 controller: searchCtrl,
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  prefixIcon: Icon(RenderIcons.search),
-                  suffixIcon: IconButton(
-                    onPressed: () => searchCtrl.clear(),
-                    icon: Icon(RenderIcons.clear)
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: BorderSide.none
-                  ),
-                ),
-                onFieldSubmitted: (value) {
-                  finder.search(value);
-                },
+                onSubmitted: (value) => setState(() {}),
               ),
             ),
           ),
-          if (finder.error != null) SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: ListTile(
-                tileColor: Palette.of(context).errorContainer,
-                title: Text(
-                  finder.error!,
-                  style: TextStyle(
-                    color: Palette.of(context).onErrorContainer
-                  ),
-                ),
-              ),
-            ),
-          ),
-          if (finder.isLoading) SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: SizedBox(
-                width: 50,
-                height: 50,
-                child: Center(child: Spinner(adaptive: true))
-              ),
-            ),
-          ) else SliverPadding(
-            padding: EdgeInsets.symmetric(vertical: 24, horizontal: 12),
-            sliver: SliverMasonryGrid.count(
-              crossAxisCount: 4,
-              itemBuilder: (context, index) => _IconFinderIconWidget(
-                icon: finder.icons[index],
-                project: widget.project
-              ),
-              childCount: finder.icons.length,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 6
-            ),
+          IconFinderResults(
+            query: searchCtrl.text,
+            onSelect: (file) {
+              if (file != null) Navigator.of(context).pop(file);
+            },
           )
         ],
       ),
     );
   }
 
+}
+
+class IconFinderResults extends StatefulWidget {
+  
+  const IconFinderResults({
+    super.key,
+    required this.query,
+    required this.onSelect
+  });
+
+  final String query;
+  final Function(File? file) onSelect;
+
+  @override
+  State<IconFinderResults> createState() => _IconFinderResultsState();
+}
+
+class _IconFinderResultsState extends State<IconFinderResults> {
+
+  late final IconFinder finder;
+
   void onUpdate() => setState(() {});
+
+  String? query;
+
+  @override
+  void initState() {
+    super.initState();
+    query = widget.query;
+    finder = IconFinder(query: query);
+    finder.addListener(onUpdate);
+  }
+
+  @override
+  void dispose() {
+    finder.removeListener(onUpdate);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.query != query) {
+      query = widget.query;
+      finder.search(query!);
+    }
+    return MultiSliver(
+      children: [
+        if (finder.error != null) SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: ListTile(
+              tileColor: Palette.of(context).errorContainer,
+              title: Text(
+                finder.error!,
+                style: TextStyle(
+                  color: Palette.of(context).onErrorContainer
+                ),
+              ),
+            ),
+          ),
+        ),
+        if (finder.isLoading) SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: SizedBox(
+              width: 50,
+              height: 50,
+              child: Center(child: Spinner(adaptive: true))
+            ),
+          ),
+        ) else SliverPadding(
+          padding: EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+          sliver: SliverMasonryGrid.count(
+            crossAxisCount: 4,
+            itemBuilder: (context, index) => _IconFinderIconWidget(
+              icon: finder.icons[index],
+              onSelect: widget.onSelect,
+            ),
+            childCount: finder.icons.length,
+            crossAxisSpacing: 6,
+            mainAxisSpacing: 6
+          ),
+        )
+      ],
+    );
+  }
 
 }
 
@@ -117,11 +146,11 @@ class _IconFinderIconWidget extends StatefulWidget {
   _IconFinderIconWidget({
     Key? key,
     required this.icon,
-    required this.project
+    required this.onSelect
   }) : super(key: key);
 
   final IconFinderIcon icon;
-  final Project project;
+  final Function(File? file) onSelect;
 
   @override
   State<_IconFinderIconWidget> createState() => __IconFinderIconWidgetState();
@@ -130,12 +159,10 @@ class _IconFinderIconWidget extends StatefulWidget {
 class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
 
   late IconFinderIcon icon;
-  late Project project;
 
   @override
   void initState() {
     icon = widget.icon;
-    project = widget.project;
     icon.addListener(onIconUpdate);
     super.initState();
   }
@@ -150,9 +177,12 @@ class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () => icon.toFile(context, project: project, onDownloadComplete: (asset) {
-        if (mounted) Navigator.of(context).pop(asset);
-      }),
+      onTap: () {
+        icon.toFile(
+          context,
+          onDownloadComplete: widget.onSelect
+        );
+      },
       child: Container(
         decoration: BoxDecoration(
           color: Palette.isDark(context) ? Palette.of(context).surfaceVariant : null,

@@ -11,12 +11,13 @@ class CreatorDesignAsset extends CreatorWidget {
   CreatorDesignAsset({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
 
   static Future<void> create(BuildContext context, {
-    required CreatorPage page
+    required CreatorPage page,
+    File? file
   }) async {
     CreatorDesignAsset designAsset = CreatorDesignAsset(page: page);
-    File? _file = await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
-    if (_file == null) return null;
-    designAsset.asset = Asset.create(project: page.project, file: _file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
+    file ??= await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
+    if (file == null) return null;
+    designAsset.asset = Asset.create(project: page.project, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
     page.widgets.add(designAsset);
   }
 

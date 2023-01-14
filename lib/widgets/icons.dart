@@ -52,6 +52,8 @@ abstract class RenderIcons {
 
   static const IconData replace = Icons.change_circle_outlined;
 
+  static const IconData close = PhosphorIcons.x;
+
   static const IconData arrow_up = Icons.expand_less;
 
   static const IconData arrow_down = Icons.expand_more;
@@ -100,7 +102,7 @@ abstract class RenderIcons {
 
   static const IconData text_size = Icons.text_fields;
 
-  static const IconData search = Icons.search;
+  static const IconData search = PhosphorIcons.magnifyingGlass;
 
   static const IconData bold = Icons.format_bold;
 

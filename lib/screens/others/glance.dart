@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:universal_io/io.dart';
@@ -43,12 +44,23 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SafeArea(
+      bottom: false,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Column(
           children: [
-            Spacer(),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: Icon(RenderIcons.close)
+                )
+              ],
+            ),
+            Spacer(
+              flex: 1,
+            ),
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: ConstrainedBox(
@@ -58,8 +70,11 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
                 ),
                 child: Stack(
                   children: [
-                    OctoImage(
-                      image: FileImage(File(glance.thumbnail!))
+                    Hero(
+                      tag: 'project-${glance.id}',
+                      child: OctoImage(
+                        image: FileImage(File(glance.thumbnail!)),
+                      ),
                     ),
                     Positioned(
                       top: 12,
@@ -84,50 +99,68 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
             ),
-            Spacer(),
-            ClipRRect(
-              child: Container(
-                color: Palette.of(context).background.withOpacity(0.7),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).padding.bottom + 12,
-                    ),
-                    child: Row(
-                      children: [
-                        buildIconButton(
-                          icon: RenderIcons.edit,
-                          label: 'Edit',
-                          onPressed: open,
-                          tooltip: 'Edit Project'
-                        ),
-                        if (glance.images.isNotEmpty) buildIconButton(
-                          icon: RenderIcons.share,
-                          label: 'Share',
-                          onPressed: share,
-                          tooltip: 'Share Project'
-                        ),
-                        buildIconButton(
-                          icon: RenderIcons.duplicate,
-                          label: 'Duplicate',
-                          onPressed: duplicate,
-                          tooltip: 'Duplicate this Project'
-                        ),
-                        buildIconButton(
-                          icon: RenderIcons.delete,
-                          label: 'Delete',
-                          onPressed: delete,
-                          tooltip: 'Delete Project'
-                        ),
-                      ],
+            Spacer(
+              flex: 2,
+            ),
+            AnimatedCrossFade(
+              duration: Duration(milliseconds: 300),
+              crossFadeState: isLoading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+              firstChild: ClipRRect(
+                child: Container(
+                  color: Palette.of(context).background.withOpacity(0.7),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).padding.bottom + 12,
+                      ),
+                      child: Row(
+                        children: [
+                          buildIconButton(
+                            icon: RenderIcons.edit,
+                            label: 'Edit',
+                            onPressed: open,
+                            tooltip: 'Edit Project'
+                          ),
+                          if (glance.images.isNotEmpty) buildIconButton(
+                            icon: RenderIcons.share,
+                            label: 'Share',
+                            onPressed: share,
+                            tooltip: 'Share Project'
+                          ),
+                          buildIconButton(
+                            icon: RenderIcons.duplicate,
+                            label: 'Duplicate',
+                            onPressed: duplicate,
+                            tooltip: 'Duplicate this Project'
+                          ),
+                          buildIconButton(
+                            icon: RenderIcons.delete,
+                            label: 'Delete',
+                            onPressed: delete,
+                            tooltip: 'Delete Project'
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                ),
+              ),
+              secondChild: Padding(
+                padding: EdgeInsets.only(
+                  top: 12,
+                  bottom: MediaQuery.of(context).padding.bottom + 12,
+                ),
+                child: Center(
+                  child: SpinKitThreeInOut(
+                    color: MediaQuery.of(context).platformBrightness == Brightness.light ? Colors.grey[800] : Colors.grey[200],
+                    size: 20,
+                  )
                 ),
               ),
             )
@@ -168,13 +201,14 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
   }
 
   Future<void> duplicate() async {
-    await Spinner.fullscreen(
-      context,
-      task: () async {
-        await createOriginalPost();
-        await project!.duplicate(context);
-      }
-    );
+    setState(() {
+      isLoading = true;
+    });
+    await createOriginalPost();
+    await project!.duplicate(context);
+    setState(() {
+      isLoading = false;
+    });
     Navigator.of(context).pop();
   }
 
@@ -206,13 +240,13 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
 
   Future<void> createOriginalPost() async {
     if (project != null) return;
-    await Spinner.fullscreen(
-      context,
-      task: () async {
-        project = await glance.renderFullProject(context);
-      }
-    );
-    setState(() { });
+    setState(() {
+      isLoading = true;
+    });
+    project = await glance.renderFullProject(context);
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Widget buildIconButton({
@@ -473,14 +507,7 @@ class ProjectGlanceCard extends StatelessWidget {
     return InkWell(
       onTap: () async {
         TapFeedback.light();
-        // AppRouter.push(context, page: ProjectAtGlance(glance: glance));
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          barrierColor: Palette.of(context).background.withOpacity(0.25),
-          backgroundColor: Colors.transparent,
-          builder: (context) => ProjectAtGlanceModal(glance: glance),
-        );
+        Alerts.showModal(context, child: ProjectAtGlanceModal(glance: glance));
       },
       borderRadius: BorderRadius.circular(20),
       child: Card(

@@ -12,64 +12,74 @@ class UnsplashAPI extends ChangeNotifier {
 
   final PagingController<int, UnsplashPhoto> controller = PagingController(firstPageKey: 0);
 
-  UnsplashAPI() {
+  UnsplashAPI({
+    String? query
+  }) {
+    this.searchTerm = query;
     controller.addPageRequestListener((pageKey) {
       get(pageKey);
     });
   }
 
-  String? query;
+  String? searchTerm;
 
   Future<void> get(int page) async {
+    List<UnsplashPhoto>? photos = await query(page: page, searchTerm: searchTerm);
+    if (photos == null) {
+      controller.error = 'There seems to be an error.';
+      return;
+    }
+    controller.error = null;
+    if (photos.isEmpty || photos.length < 30) {
+      controller.appendLastPage(photos);
+    } else {
+      controller.appendPage(photos, page + photos.length);
+    }
+  }
+
+  static Future<List<UnsplashPhoto>?> query({String? searchTerm, int? page}) async {
     try {
       Response response = await Dio().get(
-        query != null ? '$baseURL/search/photos' : '$baseURL/photos',
+        searchTerm != null ? '$baseURL/search/photos' : '$baseURL/photos',
         options: Options(
           headers: {
             'Authorization': 'Client-ID ${environment.unsplashAccessKey}'
           }
         ),
         queryParameters: {
-          'page': ((page/30) + 1).toInt(),
-          'query': query,
+          'page': page != null ? ((page/30) + 1).toInt() : null,
+          'query': searchTerm,
           'per_page': 30,
           'order_by': 'popular',
         }
       );
       if (response.statusCode != 200) {
         await analytics.logError('Status code ${response.statusCode} with message: ${response.statusMessage}', cause: 'Failed to fetch Unsplash photo');
-        controller.error = 'There seems to be an error.';
-        return;
       } else {
         try {
-          controller.error = null;
           List<UnsplashPhoto> _photos = [];
-          for (Map photoData in (query != null ? response.data['results'] : response.data)) {
+          for (Map photoData in (searchTerm != null ? response.data['results'] : response.data)) {
             UnsplashPhoto photo = UnsplashPhoto(photoData);
             _photos.add(photo);
           }
-          if (_photos.isEmpty || _photos.length < 30) {
-            controller.appendLastPage(_photos);
-          } else {
-            controller.appendPage(_photos, page + _photos.length);
-          }
+          return _photos;
         } catch (e, stacktrace) {
-          controller.error = 'There seems to be an error.';
           analytics.logError(e, stacktrace: stacktrace, cause: 'Failed to parse Unsplash photos');
         }
       }
+      return null;
     } catch (e, stacktrace) {
       await analytics.logError(e, stacktrace: stacktrace, cause: 'Failed to fetch Unsplash photos');
-      controller.error = 'There seems to be an error.';
+      return null;
     }
   }
 
-  void search(String? query) {
-    if (query != null && query.isNotEmpty) {
-      analytics.logSearch(query: query, origin: 'unsplash_api');
-      this.query = query;
+  void search(String? searchTerm) {
+    if (searchTerm != null && searchTerm.isNotEmpty) {
+      analytics.logSearch(query: searchTerm, origin: 'unsplash_api');
+      this.searchTerm = searchTerm;
     } else {
-      this.query = null;
+      this.searchTerm = null;
     }
     controller.refresh();
   }

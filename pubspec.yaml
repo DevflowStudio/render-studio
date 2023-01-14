@@ -102,6 +102,8 @@ dependencies:
   animated_text_kit: ^4.2.2
   animate_do: ^3.0.2
   animate_gradient: ^0.0.2
+  smooth_page_indicator: ^1.0.0+2
+  auto_size_widget: ^0.0.4
 
 dev_dependencies:
   flutter_test:
@@ -256,3 +258,7 @@ flutter:
         - asset: "assets/fonts/Helvetica/Black-Italic.ttf"
           weight: 900
           style: italic
+    - family: SF Pro
+      fonts:
+        - asset: "assets/fonts/SF Pro/Regular.ttf"
+          weight: 400

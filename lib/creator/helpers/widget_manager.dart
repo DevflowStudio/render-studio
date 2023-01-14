@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -120,16 +118,16 @@ class WidgetManager extends ChangeNotifier {
   T? get<T extends CreatorWidget>(String uid) => _widgets[uid] as T?;
 
   Future<void> showAddWidgetModal(BuildContext context) async {
-    String? id = await showModalBottomSheet(
+    await showModalBottomSheet(
       context: context,
       backgroundColor: Palette.of(context).background.withOpacity(0.5),
       barrierColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => _AddWidgetModal(),
+      builder: (context) => WidgetCatalog(page: page),
       enableDrag: true
     );
-    if (id == null) return;
-    await CreatorWidget.create(context, id: id, page: page);
+    // if (id == null) return;
+    // await CreatorWidget.create(context, id: id, page: page);
   }
 
   /// Adds the given widget to the page
@@ -145,6 +143,7 @@ class WidgetManager extends ChangeNotifier {
     rebuildListeners();
     if (!soft) page.history.log('Add widget');
     page.updateListeners(PageChange.misc);
+    widget.updateResizeHandlers();
   }
 
   void delete(String uid, {
@@ -311,133 +310,6 @@ class WidgetManager extends ChangeNotifier {
   /// Runs a function on every widget in the page.
   void forEach(void Function(CreatorWidget widget) callback) => _widgets.values.forEach(callback);
   
-}
-
-class _AddWidgetModal extends StatelessWidget {
-
-  _AddWidgetModal({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final Map<String, dynamic> widgets = {
-      'text': {
-        'title': 'Text',
-        'icon': Icon(
-          RenderIcons.text,
-          size: 50
-        ),
-      },
-      'qr_code': {
-        'title': 'QR Code',
-        'icon': Icon(
-          RenderIcons.qr,
-          size: 50
-        ),
-      },
-      'design_asset': {
-        'title': 'Design Asset',
-        'icon': Icon(
-          RenderIcons.design_asset,
-          size: 50
-        ),
-      },
-      'box': {
-        'title': 'Box',
-        'icon': Icon(
-          RenderIcons.design_asset,
-          size: 50
-        ),
-      },
-      'image': {
-        'title': 'Image',
-        'icon': Icon(
-          RenderIcons.image,
-          size: 50
-        ),
-      },
-      'shape': {
-        'title': 'Shape',
-        'icon': Icon(
-          RenderIcons.shapes,
-          size: 50
-        ),
-      },
-      'progress': {
-        'title': 'Progress',
-        'icon': Icon(
-          RenderIcons.progress,
-          size: 50
-        ),
-      },
-      'pie-chart': {
-        'title': 'Pie Chart',
-        'icon': Icon(
-          RenderIcons.pieChart,
-          size: 50,
-        ),
-      },
-      'blob': {
-        'title': 'Blob',
-        'icon': Blob.random(
-          size: 70,
-          styles: BlobStyles(
-            color: Palette.of(context).onBackground,
-          ),
-        ),
-      },
-    };
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: GridView.builder(
-          padding: EdgeInsets.only(
-            left: 6,
-            right: 6,
-            top: AppBar().preferredSize.height,
-            bottom: MediaQuery.of(context).padding.bottom
-          ),
-          shrinkWrap: true,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-          itemBuilder: (context, index) => GestureDetector(
-            onTap: () {
-              Navigator.of(context).pop(widgets.keys.toList()[index]);
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: Palette.of(context).surfaceVariant,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: Palette.of(context).shadow.withOpacity(0.25),
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              margin: EdgeInsets.all(6),
-              child: Column(
-                children: [
-                  Spacer(flex: 3,),
-                  Center(
-                    child: widgets.values.elementAt(index)['icon'],
-                  ),
-                  Spacer(flex: 1,),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      widgets.values.elementAt(index)['title'],
-                      style: Theme.of(context).textTheme.headline6,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          itemCount: widgets.length,
-        ),
-      ),
-    );
-  }
 }
 
 class _MultiselectDragOverlay extends StatefulWidget {

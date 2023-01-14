@@ -5,8 +5,10 @@ import '../rehmat.dart';
 
 class IconFinder extends ChangeNotifier {
 
-  IconFinder() {
-    search([
+  IconFinder({
+    String? query
+  }) {
+    search(query ?? [
       'Tech',
       'Social',
       'Weather',
@@ -23,9 +25,23 @@ class IconFinder extends ChangeNotifier {
 
   List<IconFinderIcon> icons = [];
 
-  Future<void> search(String query) async {
+  Future<void> search(String searchTerm) async {
     isLoading = true;
     notifyListeners();
+    analytics.logSearch(query: searchTerm, origin: 'icon_finder_api');
+    List<IconFinderIcon>? _icons = await query(searchTerm);
+    if (_icons == null) {
+      error = 'There seems to be an error.';
+    } else {
+      icons = _icons;
+    }
+    isLoading = false;
+    notifyListeners();
+  }
+
+  static Future<List<IconFinderIcon>?> query(String query, {
+    int limit = 150
+  }) async {
     analytics.logSearch(query: query, origin: 'icon_finder_api');
     Response response = await Dio().get(
       'https://api.iconfinder.com/v4/icons/search',
@@ -37,22 +53,18 @@ class IconFinder extends ChangeNotifier {
       ),
       queryParameters: {
         'query': query,
-        'count': 150,
+        'count': limit,
         'premium': false,
         'vector': true
       }
     );
-    if (response.statusCode != 200) {
-      error = 'There seems to be an error.';
-      return;
-    }
-    icons.clear();
+    if (response.statusCode != 200) return null;
+    List<IconFinderIcon> icons = [];
     for (var icon in response.data['icons']) {
       IconFinderIcon iconFinderIcon = IconFinderIcon(Map.from(icon));
       icons.add(iconFinderIcon);
     }
-    isLoading = false;
-    notifyListeners();
+    return icons;
   }
 
 }
@@ -95,7 +107,6 @@ class IconFinderIcon extends ChangeNotifier {
   bool isLoading = false;
 
   void toFile(BuildContext context, {
-    required Project project,
     required Function(File? file) onDownloadComplete
   }) {
     isLoading = true;

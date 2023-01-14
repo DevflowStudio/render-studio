@@ -39,9 +39,9 @@ class UnsplashImagePicker extends StatefulWidget {
 
 class _UnsplashImagePickerState extends State<UnsplashImagePicker> {
 
-  UnsplashAPI api = UnsplashAPI();
-
   TextEditingController searchCtrl = TextEditingController();
+
+  String? query;
 
   @override
   Widget build(BuildContext context) {
@@ -55,157 +55,197 @@ class _UnsplashImagePickerState extends State<UnsplashImagePicker> {
           ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: TextFormField(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 6,
+                vertical: 3
+              ),
+              child: SearchBar(
                 controller: searchCtrl,
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  prefixIcon: Icon(RenderIcons.search),
-                  suffixIcon: IconButton(
-                    onPressed: () => searchCtrl.clear(),
-                    icon: Icon(RenderIcons.clear)
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(40),
-                    borderSide: BorderSide.none
-                  ),
-                ),
-                onFieldSubmitted: (value) {
-                  api.search(value);
+                placeholder: 'Search',
+                onSubmitted: (value) {
+                  if (value.trim().isEmpty) setState(() {
+                    query = null;
+                  });
+                  else setState(() {
+                    query = value;
+                  });
                 },
               ),
             ),
           ),
-          PagedSliverBuilder<int, UnsplashPhoto>(
-            pagingController: api.controller,
-            builderDelegate: PagedChildBuilderDelegate(
-              itemBuilder: (context, photo, index) {
-                return _UnsplashPhotoBuilder(photo: photo);
-              },
-              firstPageErrorIndicatorBuilder: (context) => Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 24
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Icon(
-                        RenderIcons.warning,
-                        size: 18,
-                      ),
-                    ),
-                    SizedBox(width: 9),
-                    Text(
-                      'There was an error',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    )
-                  ],
-                ),
-              ),
-              firstPageProgressIndicatorBuilder: (context) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Row(
-                  children: [
-                    Center(
-                      child: SizedBox.square(
-                        dimension: 20,
-                        child: Spinner(
-                          adaptive: true,
-                        ),
-                      )
-                    ),
-                  ],
-                ),
-              ),
-              newPageProgressIndicatorBuilder: (context) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Row(
-                  children: [
-                    Center(
-                      child: SizedBox.square(
-                        dimension: 20,
-                        child: Spinner(
-                          adaptive: true,
-                        ),
-                      )
-                    ),
-                  ],
-                ),
-              ),
-              newPageErrorIndicatorBuilder: (context) => Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 24
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: Icon(
-                        RenderIcons.warning,
-                        size: 18,
-                      ),
-                    ),
-                    SizedBox(width: 9),
-                    Text(
-                      'There was an error',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    )
-                  ],
-                ),
-              ),
-              noItemsFoundIndicatorBuilder: (context) => Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 24
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'That\'s all we have',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    )
-                  ],
-                ),
-              )
-            ),
-            completedListingBuilder: (
-              context,
-              itemBuilder,
-              itemCount,
-              noMoreItemsIndicatorBuilder,
-            ) => _gridBuilder(
-              itemBuilder: itemBuilder,
-              itemCount: itemCount,
-            ),
-            loadingListingBuilder: (
-              context,
-              itemBuilder,
-              itemCount,
-              progressIndicatorBuilder,
-            ) => _gridBuilder(
-              itemBuilder: itemBuilder,
-              itemCount: itemCount,
-            ),
-            errorListingBuilder: (
-              context,
-              itemBuilder,
-              itemCount,
-              errorIndicatorBuilder,
-            ) => _gridBuilder(
-              itemBuilder: itemBuilder,
-              itemCount: itemCount,
-            ),
-          )
+          UnsplashResultBuilder(
+            query: query,
+            onSelect: (file) {
+              Navigator.of(context).pop(file);
+            },
+          ),
         ],
+      ),
+    );
+  }
+
+}
+
+class UnsplashResultBuilder extends StatefulWidget {
+
+  const UnsplashResultBuilder({
+    super.key,
+    this.query,
+    required this.onSelect,
+  });
+
+  final String? query;
+  final Function(File? file) onSelect;
+
+  @override
+  State<UnsplashResultBuilder> createState() => _UnsplashResultBuilderState();
+}
+
+class _UnsplashResultBuilderState extends State<UnsplashResultBuilder> {
+
+  late final UnsplashAPI api;
+
+  @override
+  void initState() {
+    super.initState();
+    api = UnsplashAPI(query: widget.query);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.query != api.searchTerm) api.search(widget.query);
+    return PagedSliverBuilder<int, UnsplashPhoto>(
+      pagingController: api.controller,
+      builderDelegate: PagedChildBuilderDelegate(
+        itemBuilder: (context, photo, index) {
+          return _UnsplashPhotoBuilder(
+            photo: photo,
+            onSelect: widget.onSelect,
+          );
+        },
+        firstPageErrorIndicatorBuilder: (context) => Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 24
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  RenderIcons.warning,
+                  size: 18,
+                ),
+              ),
+              SizedBox(width: 9),
+              Text(
+                'There was an error',
+                style: Theme.of(context).textTheme.bodyLarge,
+              )
+            ],
+          ),
+        ),
+        firstPageProgressIndicatorBuilder: (context) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Center(
+                child: SizedBox.square(
+                  dimension: 20,
+                  child: Spinner(
+                    adaptive: true,
+                  ),
+                )
+              ),
+            ],
+          ),
+        ),
+        newPageProgressIndicatorBuilder: (context) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Center(
+                child: SizedBox.square(
+                  dimension: 20,
+                  child: Spinner(
+                    adaptive: true,
+                  ),
+                )
+              ),
+            ],
+          ),
+        ),
+        newPageErrorIndicatorBuilder: (context) => Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 24
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(
+                  RenderIcons.warning,
+                  size: 18,
+                ),
+              ),
+              SizedBox(width: 9),
+              Text(
+                'There was an error',
+                style: Theme.of(context).textTheme.bodyLarge,
+              )
+            ],
+          ),
+        ),
+        noItemsFoundIndicatorBuilder: (context) => Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 24
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Try searching for something',
+                style: Theme.of(context).textTheme.bodyLarge,
+              )
+            ],
+          ),
+        )
+      ),
+      completedListingBuilder: (
+        context,
+        itemBuilder,
+        itemCount,
+        noMoreItemsIndicatorBuilder,
+      ) => _gridBuilder(
+        itemBuilder: itemBuilder,
+        itemCount: itemCount,
+      ),
+      loadingListingBuilder: (
+        context,
+        itemBuilder,
+        itemCount,
+        progressIndicatorBuilder,
+      ) => _gridBuilder(
+        itemBuilder: itemBuilder,
+        itemCount: itemCount,
+      ),
+      errorListingBuilder: (
+        context,
+        itemBuilder,
+        itemCount,
+        errorIndicatorBuilder,
+      ) => _gridBuilder(
+        itemBuilder: itemBuilder,
+        itemCount: itemCount,
       ),
     );
   }
@@ -248,9 +288,11 @@ class _UnsplashPhotoBuilder extends StatefulWidget {
   _UnsplashPhotoBuilder({
     Key? key,
     required this.photo,
+    required this.onSelect
   }) : super(key: key);
 
   final UnsplashPhoto photo;
+  final Function(File? file) onSelect;
 
   @override
   State<_UnsplashPhotoBuilder> createState() => __UnsplashPhotoBuilderState();
@@ -291,7 +333,7 @@ class __UnsplashPhotoBuilderState extends State<_UnsplashPhotoBuilder> {
               photo.download(
                 context,
                 onDownloadComplete: (file) {
-                  if (file != null && mounted) Navigator.of(context).pop(file);
+                  widget.onSelect(file);
                 },
               );
             },

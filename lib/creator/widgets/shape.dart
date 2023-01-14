@@ -7,9 +7,10 @@ class ShapeWidget extends CreatorWidget {
   ShapeWidget({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
 
   static Future<void> create(BuildContext context, {
-    required CreatorPage page
+    required CreatorPage page,
+    String? shape
   }) async {
-    String? shape = await ShapeSelectorScreen.select(context);
+    shape ??= await ShapeSelectorScreen.select(context);
     if (shape == null) return;
     ShapeWidget widget = ShapeWidget(page: page);
     widget.shape = shape;

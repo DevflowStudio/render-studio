@@ -464,7 +464,7 @@ class CreatorText extends CreatorWidget {
 
   bool autoSize = true;
 
-  TextAlign align = TextAlign.center;
+  TextAlign align = TextAlign.left;
 
   double wordSpacing = 0;
   double letterSpacing = 0;
@@ -474,7 +474,7 @@ class CreatorText extends CreatorWidget {
 
   double fontSize = 100;
 
-  String fontFamily = 'Abril Fatface';
+  String fontFamily = 'Inter';
 
   double radius = 10;
 
@@ -658,44 +658,36 @@ class CreatorText extends CreatorWidget {
       textAlign: align,
       maxLines: words.length,
       textDirection: TextDirection.ltr
-    ) ..layout(minWidth: 0, maxWidth: size.width - (padding.left * 2));
+    ) ..layout(minWidth: 0, maxWidth: page.project.contentSize.width - 20);
     Size _newSize = textPainter.size;
     Size __size = size;
     if (((_newSize.width - size.width)).abs() > 5) __size = Size(_newSize.width, __size.height);
     if (((_newSize.height - size.height)).abs() > 5) __size = Size(__size.width, _newSize.height);
     // if (__size < size) size = __size;
-    if (handler != null) _autoPositionAfterResize(handler, oldSize: size, newSize: __size);
+    _autoPositionAfterResize(oldSize: size, newSize: __size);
     size = __size;
   }
   
   /// Auto position after `_removeExtraSpaceFromSize()` has finished
   /// 
   /// Executing this provides a better experience when resizing the widget
-  void _autoPositionAfterResize(ResizeHandler handler, {
+  // ignore: unused_element
+  void _autoPositionAfterResize({
     required Size newSize,
     required Size oldSize
   }) {
     double changeInX = 0;
     double changeInY = 0;
 
-    switch (handler) {
-      case ResizeHandler.bottomRight:
-        changeInX = (oldSize.width - newSize.width)/2;
-        changeInY = (oldSize.height - newSize.height)/2;
-        break;
-      case ResizeHandler.bottomLeft:
-        changeInX = -(oldSize.width - newSize.width)/2;
-        changeInY = (oldSize.height - newSize.height)/2;
-        break;
-      case ResizeHandler.topRight:
-        changeInX = (oldSize.width - newSize.width)/2;
-        changeInY = -(oldSize.height - newSize.height)/2;
-        break;
-      case ResizeHandler.topLeft:
-        changeInX = -(oldSize.width - newSize.width)/2;
-        changeInY = -(oldSize.height - newSize.height)/2;
-        break;
-      default:
+    bool isLeftCornerOutOfBounds = position.dx - newSize.width/2 < (-page.project.contentSize.width/2);
+    bool isRightCornerOutOfBounds = position.dx + newSize.width/2 > (page.project.contentSize.width/2);
+
+    if (isLeftCornerOutOfBounds || align == TextAlign.left) {
+      changeInX = (oldSize.width - newSize.width)/2;
+      changeInY = -(oldSize.height - newSize.height)/2;
+    } else if (isRightCornerOutOfBounds || align == TextAlign.right) {
+      changeInX = -(oldSize.width - newSize.width)/2;
+      changeInY = -(oldSize.height - newSize.height)/2;
     }
 
     position = Offset(position.dx - changeInX, position.dy - changeInY);
@@ -819,6 +811,21 @@ class CreativeTextStyle {
   final CreatorWidget widget;
   CreativeTextStyle({required this.widget}) {
     color = widget.page.palette.onBackground;
+  }
+
+  factory CreativeTextStyle.fromTextStyle(TextStyle style, {
+    required CreatorWidget widget,
+  }) {
+    CreativeTextStyle creativeTextStyle = CreativeTextStyle(
+      widget: widget,
+    );
+    creativeTextStyle.bold = style.fontWeight == FontWeight.bold;
+    creativeTextStyle.italics = style.fontStyle == FontStyle.italic;
+    creativeTextStyle.underline = style.decoration?.contains(TextDecoration.underline) ?? false;
+    creativeTextStyle.strikethrough = style.decoration?.contains(TextDecoration.lineThrough) ?? false;
+    creativeTextStyle.overline = style.decoration?.contains(TextDecoration.overline) ?? false;
+    creativeTextStyle.color = style.color ?? widget.page.palette.onBackground;
+    return creativeTextStyle;
   }
 
   factory CreativeTextStyle.fromJSON(Map data, {

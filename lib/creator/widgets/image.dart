@@ -380,10 +380,11 @@ class ImageWidget extends CreatorWidget {
   ImageWidget({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
 
   static Future<void> create(BuildContext context, {
-    required CreatorPage page
+    required CreatorPage page,
+    File? file
   }) async {
     ImageWidget image = ImageWidget(page: page);
-    File? file = await FilePicker.imagePicker(context, crop: true);
+    file ??= await FilePicker.imagePicker(context, crop: true);
     if (file == null) return;
     Asset _asset = await Asset.create(project: page.project, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
     image.provider = CreativeImageProvider.create(image);

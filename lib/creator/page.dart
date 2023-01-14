@@ -50,20 +50,22 @@ class CreatorPage extends PropertyChangeNotifier {
 
   Widget build(BuildContext context, {
     bool isInteractive = true,
+    bool isDimensionless = false,
   }) {
     return AbsorbPointer(
       absorbing: !isInteractive,
       child: _PageZoomableViewer(
         page: this,
-        child: Center(child: widget(context, isInteractive: isInteractive)),
+        child: Center(child: widget(context, isInteractive: isInteractive, isDimensionless: isDimensionless)),
       ),
     );
   }
 
   Widget widget(BuildContext context, {
     bool isInteractive = true,
+    bool isDimensionless = false,
   }) => SizedBox.fromSize(
-    size: project.contentSize,
+    size: isDimensionless ? null : project.contentSize,
     child: ClipRRect(
       child: Stack(
         clipBehavior: Clip.hardEdge,
