@@ -1,16 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_material_symbols/flutter_material_symbols.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 abstract class RenderIcons {
 
-  static const IconData text = Iconsax.text;
+  static const IconData text = MaterialSymbols.title;
 
-  static const IconData qr = Iconsax.scan_barcode;
+  static const IconData qr = MaterialSymbols.qr_code_2;
 
-  static const IconData design_asset = Iconsax.designtools;
+  static const IconData design_asset = MaterialSymbols.square_foot;
 
   static const IconData design_kit = PhosphorIcons.scribbleLoop;
 
@@ -30,7 +31,7 @@ abstract class RenderIcons {
 
   static const IconData settings = CupertinoIcons.gear;
 
-  static const IconData templates = PhosphorIcons.compass;
+  static const IconData templates = MaterialSymbols.explore;
 
   static const IconData lab = Iconsax.shapes;
 
@@ -80,11 +81,11 @@ abstract class RenderIcons {
 
   static const IconData crop = Iconsax.crop;
 
-  static const IconData border_radius = Icons.rounded_corner;
+  static const IconData border_radius = MaterialSymbols.rounded_corner;
 
   static const IconData refresh = Iconsax.refresh;
 
-  static const IconData random = PhosphorIcons.shuffle;
+  static const IconData random = MaterialSymbols.shuffle_on;
 
   static const IconData scale = CupertinoIcons.arrow_up_left_arrow_down_right;
 
@@ -100,25 +101,25 @@ abstract class RenderIcons {
 
   static const IconData auto_size_off = PhosphorIcons.magicWand;
 
-  static const IconData text_size = Icons.text_fields;
+  static const IconData text_size = MaterialSymbols.text_fields;
 
-  static const IconData search = PhosphorIcons.magnifyingGlass;
+  static const IconData search = MaterialSymbols.search;
 
-  static const IconData bold = Icons.format_bold;
+  static const IconData bold = MaterialSymbols.format_bold;
 
-  static const IconData italic = Icons.format_italic;
+  static const IconData italic = MaterialSymbols.format_italic;
 
-  static const IconData underline = Icons.format_underlined;
+  static const IconData underline = MaterialSymbols.format_underlined;
 
-  static const IconData strike = Icons.format_strikethrough;
+  static const IconData strike = MaterialSymbols.format_strikethrough;
 
-  static const IconData overline = Icons.format_overline;
+  static const IconData overline = MaterialSymbols.format_overline;
 
-  static const IconData remove = Iconsax.card_remove;
+  static const IconData remove = MaterialSymbols.remove;
 
-  static const IconData shadow = Icons.blur_on;
+  static const IconData shadow = MaterialSymbols.ev_shadow;
 
-  static const IconData blur = Icons.blur_on;
+  static const IconData blur = MaterialSymbols.blur_on;
 
   static const IconData text_align_left = Iconsax.align_left;
 
@@ -132,11 +133,11 @@ abstract class RenderIcons {
 
   static const IconData spacing = CupertinoIcons.textformat_abc_dottedunderline;
 
-  static const IconData word_spacing = Icons.space_bar;
+  static const IconData word_spacing = MaterialSymbols.space_bar;
 
-  static const IconData height = Icons.height;
+  static const IconData height = MaterialSymbols.height;
 
-  static const IconData done = CupertinoIcons.checkmark_alt_circle;
+  static const IconData done = MaterialSymbols.done;
 
   static const IconData warning = CupertinoIcons.exclamationmark_triangle;
 
@@ -148,37 +149,37 @@ abstract class RenderIcons {
 
   static const IconData info = PhosphorIcons.info;
 
-  static const IconData more = PhosphorIcons.dotsThree;
+  static const IconData more = MaterialSymbols.more_horiz;
 
-  static const IconData clear = Icons.clear;
+  static const IconData clear = MaterialSymbols.close;
 
-  static const IconData open = Icons.open_in_new;
+  static const IconData open = MaterialSymbols.open_in_new;
 
   static const IconData openInBrowser = PhosphorIcons.arrowUpRight;
 
   static const IconData share = CupertinoIcons.share;
 
-  static const IconData download = Iconsax.import;
+  static const IconData download = MaterialSymbols.download;
 
-  static const IconData drag = Icons.drag_indicator;
+  static const IconData drag = PhosphorIcons.arrowsOutCardinal;
 
   static const IconData keyboard = CupertinoIcons.keyboard;
 
-  static const IconData color_picker = Icons.colorize;
+  static const IconData color_picker = MaterialSymbols.colorize;
 
   static const IconData filter = CupertinoIcons.color_filter;
 
   static const IconData brightness = CupertinoIcons.brightness;
 
-  static const IconData contrast = Icons.contrast_outlined;
+  static const IconData contrast = MaterialSymbols.contrast_outlined;
 
-  static const IconData exposure = Icons.exposure_outlined;
+  static const IconData exposure = MaterialSymbols.exposure_outlined;
 
-  static const IconData saturation = Icons.palette_outlined;
+  static const IconData saturation = MaterialSymbols.palette_outlined;
 
-  static const IconData visibility = Icons.opacity_outlined;
+  static const IconData visibility = MaterialSymbols.opacity_outlined;
 
-  static const IconData hue = Icons.invert_colors;
+  static const IconData hue = MaterialSymbols.invert_colors;
 
   static const IconData flip_horizontal = CupertinoIcons.arrow_left_right_circle;
 
@@ -186,7 +187,7 @@ abstract class RenderIcons {
 
   static const IconData duplicate = PhosphorIcons.copy;
 
-  static const IconData expand = Iconsax.arrow_down_1;
+  static const IconData expand = MaterialSymbols.expand_more;
 
   static const IconData layers = PhosphorIcons.stack;
   
@@ -263,5 +264,7 @@ abstract class RenderIcons {
   static const IconData apple = FontAwesomeIcons.apple;
 
   static const IconData google = FontAwesomeIcons.google;
+
+  static const IconData debugMode = FontAwesomeIcons.terminal;
 
 }
