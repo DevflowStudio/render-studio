@@ -171,7 +171,6 @@ class QRWidget extends CreatorWidget {
                 onChange: (value) {
                   // angle = value;
                   size  = value;
-                  updateResizeHandlers();
                   updateListeners(WidgetChange.misc);
                 },
                 onChangeEnd: (value) {

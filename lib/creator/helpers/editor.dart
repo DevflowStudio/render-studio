@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:sprung/sprung.dart';
 
 import '../../rehmat.dart';
 
@@ -41,14 +42,14 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
   @override
   void initState() {
     creatorWidget = widget.widget;
-    creatorWidget.addListener(onPropertyChange);
+    creatorWidget.addListener(onPropertyChange, [WidgetChange.update, WidgetChange.lock]);
     tabController = TabController(length: creatorWidget.tabs.length, vsync: this);
     super.initState();
   }
 
   @override
   void dispose() {
-    creatorWidget.removeListener(onPropertyChange);
+    creatorWidget.removeListener(onPropertyChange, [WidgetChange.update, WidgetChange.lock]);
     super.dispose();
   }
 
@@ -56,6 +57,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     Size editorSize = Editor.calculateSize(context);
     return Container(
+      clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: Palette.of(context).surface,
         boxShadow: [
@@ -66,62 +68,114 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
           )
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
         children: [
-          TabBar(
-            controller: tabController,
-            enableFeedback: true,
-            indicatorSize: TabBarIndicatorSize.label,
-            indicatorColor: Constants.getThemedBlackAndWhite(context),
-            labelColor: Constants.getThemedBlackAndWhite(context),
-            indicator: creatorWidget.tabs.length > 1 ? null : const BoxDecoration(),
-            unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
-            isScrollable: true,
-            labelStyle: Theme.of(context).textTheme.subtitle2,
-            tabs: List.generate(
-              creatorWidget.tabs.length,
-              (index) => Tab(
-                text: creatorWidget.tabs[index].tab,
-              )
-            ),
-            onTap: (value) {
-              if (!tabController.indexIsChanging) {
-                setState(() {
-                  _isHidden = !_isHidden;
-                });
-              } else {
-                if (_isHidden) setState(() {
-                  _isHidden = false;
-                });
-              }
-            },
-          ),
-          const Divider(
-            indent: 0,
-            height: 0,
-          ),
-          AnimatedSize(
-            duration: kAnimationDuration,
-            curve: Curves.easeInOut,
-            child: SizedBox.fromSize(
-              size: _isHidden ? Size.fromHeight(MediaQuery.of(context).padding.bottom) : editorSize,
-              child: Padding(
-                padding: EdgeInsets.only(
-                  top: 12,
-                  bottom: MediaQuery.of(context).padding.bottom,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TabBar(
+                controller: tabController,
+                enableFeedback: true,
+                indicatorSize: TabBarIndicatorSize.label,
+                indicatorColor: Constants.getThemedBlackAndWhite(context),
+                labelColor: Constants.getThemedBlackAndWhite(context),
+                indicator: creatorWidget.tabs.length > 1 ? null : const BoxDecoration(),
+                unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
+                isScrollable: true,
+                labelStyle: Theme.of(context).textTheme.subtitle2,
+                tabs: List.generate(
+                  creatorWidget.tabs.length,
+                  (index) => Tab(
+                    text: creatorWidget.tabs[index].tab,
+                  )
                 ),
-                child: Center(
-                  child: TabBarView(
-                    controller: tabController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: List.generate(
-                      creatorWidget.tabs.length,
-                      (index) {
-                        return creatorWidget.tabs[index].build(context);
-                      }
-                    )
+                onTap: (value) {
+                  if (!tabController.indexIsChanging) {
+                    setState(() {
+                      _isHidden = !_isHidden;
+                    });
+                  } else {
+                    if (_isHidden) setState(() {
+                      _isHidden = false;
+                    });
+                  }
+                },
+              ),
+              const Divider(
+                indent: 0,
+                endIndent: 0,
+                height: 0,
+              ),
+              AnimatedSize(
+                duration: kAnimationDuration * 2,
+                curve: Sprung.underDamped,
+                child: SizedBox.fromSize(
+                  size: _isHidden ? Size.fromHeight(MediaQuery.of(context).padding.bottom) : editorSize,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      top: 12,
+                      bottom: MediaQuery.of(context).padding.bottom,
+                    ),
+                    child: Center(
+                      child: TabBarView(
+                        controller: tabController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: List.generate(
+                          creatorWidget.tabs.length,
+                          (index) {
+                            return creatorWidget.tabs[index].build(context);
+                          }
+                        )
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
+          if (creatorWidget.isLocked) Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: GestureDetector(
+              onTap: () {
+                TapFeedback.light();
+                creatorWidget.unlock();
+              },
+              child: Container(
+                color: Palette.of(context).background.withOpacity(0.25),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 9
+                      ),
+                      decoration: BoxDecoration(
+                        color: Palette.of(context).onBackground,
+                        borderRadius: BorderRadius.circular(40),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            CupertinoIcons.lock_fill,
+                            size: Theme.of(context).textTheme.titleLarge?.fontSize,
+                            color: Palette.of(context).background
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Locked',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Palette.of(context).background
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -227,13 +281,12 @@ class EditorTab {
   Widget build(BuildContext context) {
     switch (type) {
       case EditorTabType.row:
-        return ListView.builder(
+        return ListView.separated(
           shrinkWrap: true,
           itemCount: options.length,
-          itemBuilder: (context, index) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: options[index].build(context),
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          itemBuilder: (context, index) => options[index].build(context),
+          separatorBuilder: (context, index) => const SizedBox(width: 6),
           physics: const RangeMaintainingScrollPhysics(),
           scrollDirection: Axis.horizontal,
         );

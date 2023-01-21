@@ -23,7 +23,7 @@ abstract class RenderIcons {
 
   static const IconData palette = Iconsax.color_swatch;
 
-  static const IconData delete = CupertinoIcons.delete;
+  static const IconData delete = MaterialSymbols.delete;
 
   static const IconData create = CupertinoIcons.add;
 
@@ -105,9 +105,9 @@ abstract class RenderIcons {
 
   static const IconData search = MaterialSymbols.search;
 
-  static const IconData bold = MaterialSymbols.format_bold;
+  static const IconData bold = Icons.format_bold;
 
-  static const IconData italic = MaterialSymbols.format_italic;
+  static const IconData italic = Icons.format_italic;
 
   static const IconData underline = MaterialSymbols.format_underlined;
 
@@ -160,6 +160,8 @@ abstract class RenderIcons {
   static const IconData share = CupertinoIcons.share;
 
   static const IconData download = MaterialSymbols.download;
+
+  static const IconData upload = MaterialSymbols.upload;
 
   static const IconData drag = PhosphorIcons.arrowsOutCardinal;
 

@@ -79,7 +79,7 @@ class _InformationState extends State<Information> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: PrimaryButton(
-                  child: Text(widget.isNewProject ? 'Next' : 'Save'),
+                  child: Text(widget.isNewProject ? 'Let\'s Go' : 'Save'),
                   onPressed: next,
                 ),
               )
@@ -103,7 +103,7 @@ class _InformationState extends State<Information> {
       return;
     }
 
-    if (widget.isNewProject) AppRouter.replace(context, page: Create(project: project));
+    if (widget.isNewProject) AppRouter.replace(context, page: Studio(project: project));
     else Navigator.of(context).pop();
   }
 

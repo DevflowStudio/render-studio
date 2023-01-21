@@ -291,7 +291,6 @@ class Option {
           maxSize: widget.page.project.contentSize,
           onChange: (value) {
             widget.size  = value;
-            widget.updateResizeHandlers();
             widget.updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
@@ -418,6 +417,8 @@ class _CustomSliderState extends State<CustomSlider> {
   @override
   void initState() {
     value = widget.value;
+    if (value > widget.max) value = widget.max;
+    if (value < widget.min) value = widget.min;
     super.initState();
   }
 

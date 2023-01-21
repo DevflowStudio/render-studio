@@ -20,6 +20,13 @@
       "type": "dart",
       "program": "lib/main_production.dart",
       "flutterMode": "release",
+    },
+    {
+      "name": "Launch Profile Mode",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_production.dart",
+      "flutterMode": "profile"
     }
   ]
 }

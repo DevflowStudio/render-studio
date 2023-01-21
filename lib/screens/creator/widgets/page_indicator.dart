@@ -37,7 +37,7 @@ class _PageIndicatorState extends State<PageIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    if (project.pages.length > 1) return InkWell(
       onTap: () {
         TapFeedback.light();
         // TODO: Create views for seeing all pages and editing them
@@ -49,7 +49,7 @@ class _PageIndicatorState extends State<PageIndicator> {
           controller: widget.project.pages.controller,
           count: widget.project.pages.length,
           effect: SwapEffect(
-            activeDotColor: project.pages.current.palette.onBackground,
+            activeDotColor: Palette.of(context).onBackground,
             dotHeight: 8,
             dotWidth: 8,
             spacing: 4
@@ -57,6 +57,7 @@ class _PageIndicatorState extends State<PageIndicator> {
         ),
       ),
     );
+    else return Container();
   }
 
 }

@@ -64,6 +64,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.3.1"
+  assorted_layout_widgets:
+    dependency: "direct main"
+    description:
+      name: assorted_layout_widgets
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "7.0.0"
   async:
     dependency: transitive
     description:
@@ -288,6 +295,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.0"
+  dynamic_color:
+    dependency: "direct main"
+    description:
+      name: dynamic_color
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.5.4"
   easy_rich_text:
     dependency: "direct main"
     description:
@@ -316,6 +330,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "9.1.1"
+  faded_widget:
+    dependency: "direct main"
+    description:
+      name: faded_widget
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.0"
   fake_async:
     dependency: transitive
     description:
@@ -580,6 +601,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.10.0"
+  flutter_material_symbols:
+    dependency: "direct main"
+    description:
+      name: flutter_material_symbols
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.4"
   flutter_palette:
     dependency: "direct main"
     description:
@@ -1463,6 +1491,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.3.0"
+  touch_ripple_effect:
+    dependency: "direct main"
+    description:
+      name: touch_ripple_effect
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.4"
   typed_data:
     dependency: transitive
     description:
@@ -1604,5 +1639,5 @@ packages:
     source: hosted
     version: "2.0.0"
 sdks:
-  dart: ">=2.18.4 <3.0.0"
+  dart: ">=2.18.6 <3.0.0"
   flutter: ">=3.3.0"

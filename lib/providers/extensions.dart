@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 
 extension ListsExtension<T> on List<T> {
 
+  void tryAdd(T? item) {
+    if (item != null) this.add(item);
+  }
+
   T getRandom() {
     int lth = length;
     int random = Random().nextInt(lth);
@@ -134,6 +138,10 @@ extension ColorExtension on Color {
   Color computeTextColor() => computeLuminance() > 0.5 ? Colors.black : Colors.white;
 
   Color computeThemedTextColor(int alpha) => computeTextColor().withAlpha(alpha);
+
+  bool get isLight => computeLuminance() > 0.5;
+
+  bool get isDark => computeLuminance() <= 0.5;
 
 }
 

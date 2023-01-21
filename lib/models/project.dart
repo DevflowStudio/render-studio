@@ -163,12 +163,16 @@ class Project extends ChangeNotifier {
   }
 
   Future<void> duplicate(BuildContext context) async {
-    Map<String, dynamic> dataCopy = Map.of(data!);
-    dataCopy['id'] = Constants.generateID();
-    dataCopy['title'] = '$title (copy)';
-    dataCopy['meta']['created'] = DateTime.now().millisecondsSinceEpoch;
-    dataCopy['meta']['edited'] = DateTime.now().millisecondsSinceEpoch;
-    await manager.save(context, data: dataCopy);
+    await manager.save(context, data: {
+      ... data!,
+      'id': Constants.generateID(),
+      'title': '$title (copy)',
+      'meta': {
+        ... data!['meta'],
+        'created': DateTime.now().millisecondsSinceEpoch,
+        'edited': DateTime.now().millisecondsSinceEpoch,
+      }
+    });
   }
 
 }

@@ -1,4 +1,5 @@
 import 'package:align_positioned/align_positioned.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_io/io.dart';
 
@@ -42,11 +43,17 @@ class BackgroundWidget extends CreatorWidget {
     EditorTab(
       tab: 'Page',
       options: [
-        Option.button(
-          icon: RenderIcons.add,
-          title: 'Widget',
-          tooltip: 'Add a new widget',
-          onTap: (context) => page.widgets.showAddWidgetModal(context),
+        Option.custom(
+          widget: (context) => ButtonWithIcon(
+            onTap: (context) => page.widgets.showAddWidgetModal(context),
+            icon: RenderIcons.add,
+            title: 'Add',
+            backgroundColor: Palette.of(context).primary.harmonizeWith(page.palette.background),
+            foregroundColor: Palette.of(context).onPrimary,
+            showBorder: false,
+            animateBorderRadius: false,
+            borderRadius: 15,
+          ),
         ),
         Option.button(
           icon: RenderIcons.resize,

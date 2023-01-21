@@ -538,6 +538,12 @@ class ImageWidget extends CreatorWidget {
   }
 
   @override
+  Future<void> onDuplicate() async {
+    asset = await asset!.duplicate(buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
+    updateListeners(WidgetChange.misc);
+  }
+
+  @override
   void buildFromJSON(Map<String, dynamic> json, {
     required BuildInfo buildInfo
   }) {

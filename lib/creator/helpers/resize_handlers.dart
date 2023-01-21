@@ -16,10 +16,10 @@ enum ResizeHandler {
 extension ResizeHandlerProperties on ResizeHandler {
 
   Positioned positioned({
-    /// Size of the widget
-    required Size size,
-    required Widget child
+    required Widget child,
+    required CreatorWidget widget,
   }) {
+    Size size = widget.size;
     switch (this) {
       case ResizeHandler.topLeft:
         return Positioned(
@@ -286,29 +286,33 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
   bool isDragging = false;
 
   bool get minimizeSize => widget.isResizing || widget.isMinimized;
-  
+
+  @override
   Widget build(BuildContext context) {
     return widget.type.positioned(
-      size: widget.widget.size,
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onPanUpdate: _onDrag,
-        onPanEnd: _onDragEnd,
-        onPanStart: _onDragStart,
-        onPanCancel: _onDragCancel,
-        onTapDown: (details) => setState(() => isDragging = true),
-        onTapCancel: _onDragCancel,
-        onTapUp: (details) => setState(() => isDragging = false),
-        child: IgnorePointer(
-          ignoring: !widget.isVisible,
-          child: Visibility(
-            visible: widget.isVisible,
+      widget: widget.widget,
+      child: Visibility(
+        // duration: kAnimationDuration,
+        // curve: Sprung(),
+        // scale: widget.isVisible ? 1 : 0,
+        visible: widget.isVisible,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onPanUpdate: _onDrag,
+          onPanEnd: _onDragEnd,
+          onPanStart: _onDragStart,
+          onPanCancel: _onDragCancel,
+          onTapDown: (details) => setState(() => isDragging = true),
+          onTapCancel: _onDragCancel,
+          onTapUp: (details) => setState(() => isDragging = false),
+          child: IgnorePointer(
+            ignoring: !widget.isVisible,
             child: Container(
               width: 40,
               height: 40,
               child: Center(
                 child: AnimatedContainer(
-                  duration: kAnimationDuration,
+                  duration: Duration(milliseconds: 100),
                   width: _size.width,
                   height: _size.height,
                   decoration: BoxDecoration(

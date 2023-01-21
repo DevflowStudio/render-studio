@@ -59,6 +59,7 @@ class CreatorText extends CreatorWidget {
                 max: 200,
                 onChange: (value) {
                   fontSize = value;
+                  size = calculateSizeForTextStyle(text, style: style, page: page);
                   updateListeners(WidgetChange.misc);
                 }
               )
@@ -467,7 +468,7 @@ class CreatorText extends CreatorWidget {
   TextAlign align = TextAlign.left;
 
   double wordSpacing = 0;
-  double letterSpacing = 0;
+  double letterSpacing = 1;
 
   Size size = const Size(200, 100);
   Size? minSize = const Size(10, 5);
@@ -478,7 +479,7 @@ class CreatorText extends CreatorWidget {
 
   double radius = 10;
 
-  double lineHeight = 0.77; // 0.77 alternative
+  double lineHeight = 1; // 0.77 alternative
 
   EdgeInsets padding = EdgeInsets.zero;
 
@@ -516,6 +517,8 @@ class CreatorText extends CreatorWidget {
     onFontSizeChanged: (fontSize) {
       this.fontSize = fontSize;
     },
+    wrapWords: false,
+    // softWrap: false,
   ) : CreativeTextWidget(
     text,
     textAlign: align,
@@ -533,7 +536,7 @@ class CreatorText extends CreatorWidget {
     shadows: shadows,
     wordSpacing: wordSpacing,
     letterSpacing: letterSpacing,
-    fontSize: fontSize
+    fontSize: fontSize,
   );
 
   TextStyle? get secondaryTextStyle => secondaryStyle?.style(
@@ -658,7 +661,7 @@ class CreatorText extends CreatorWidget {
       textAlign: align,
       maxLines: words.length,
       textDirection: TextDirection.ltr
-    ) ..layout(minWidth: 0, maxWidth: page.project.contentSize.width - 20);
+    ) ..layout(minWidth: 0, maxWidth: size.width);
     Size _newSize = textPainter.size;
     Size __size = size;
     if (((_newSize.width - size.width)).abs() > 5) __size = Size(_newSize.width, __size.height);
@@ -682,13 +685,8 @@ class CreatorText extends CreatorWidget {
     bool isLeftCornerOutOfBounds = position.dx - newSize.width/2 < (-page.project.contentSize.width/2);
     bool isRightCornerOutOfBounds = position.dx + newSize.width/2 > (page.project.contentSize.width/2);
 
-    if (isLeftCornerOutOfBounds || align == TextAlign.left) {
-      changeInX = (oldSize.width - newSize.width)/2;
-      changeInY = -(oldSize.height - newSize.height)/2;
-    } else if (isRightCornerOutOfBounds || align == TextAlign.right) {
-      changeInX = -(oldSize.width - newSize.width)/2;
-      changeInY = -(oldSize.height - newSize.height)/2;
-    }
+    if (isLeftCornerOutOfBounds || align == TextAlign.left) changeInX = (oldSize.width - newSize.width)/2;
+    else if (isRightCornerOutOfBounds || align == TextAlign.right) changeInX = -(oldSize.width - newSize.width)/2;
 
     position = Offset(position.dx - changeInX, position.dy - changeInY);
   }
@@ -1038,4 +1036,25 @@ class CreativeTextWidget extends StatelessWidget {
     );
   }
 
+}
+
+Size calculateSizeForTextStyle(String text, {
+  TextStyle? style,
+  required CreatorPage page,
+}) {
+  final span = TextSpan(
+    style: style,
+    text: text,
+  );
+  final words = span.toPlainText().split(RegExp('\\s+'));
+  final TextPainter textPainter = TextPainter(
+    text: TextSpan(
+      text: text,
+      style: style,
+    ),
+    textAlign: TextAlign.left,
+    maxLines: words.length,
+    textDirection: TextDirection.ltr
+  ) ..layout(minWidth: 0, maxWidth: page.project.contentSize.width - 20);
+  return textPainter.size;
 }

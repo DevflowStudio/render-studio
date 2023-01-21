@@ -128,7 +128,8 @@ class UnsplashPhoto extends ChangeNotifier {
         isLoading = false;
         notifyListeners();
         onDownloadComplete(asset);
-      }
+      },
+      precache: true
     ).listen((event) {
       progress = event;
       notifyListeners();

@@ -110,11 +110,15 @@ class CreateProjectBannerState extends State<CreateProjectBanner> {
 
   void createProject(PostSize size) async {
     Project project = await Project.create(context, size: size);
-    String title = 'Project (${manager.projects.length + 1})';
-    int n = manager.projects.length + 1;
-    while (manager.projects.where((glance) => glance.title == title).isNotEmpty) {
-      n++;
+    String title;
+    if (manager.projects.isEmpty) title = 'My First Project';
+    else {
+      int n = manager.projects.length + 1;
       title = 'Project ($n)';
+      while (manager.projects.where((glance) => glance.title == title).isNotEmpty) {
+        n++;
+        title = 'Project ($n)';
+      }
     }
     project.title = title;
     AppRouter.push(context, page: Information(project: project, isNewProject: true,));

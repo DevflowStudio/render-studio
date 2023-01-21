@@ -1,8 +1,8 @@
 import 'dart:ui';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:skeletons/skeletons.dart';
 import 'package:universal_io/io.dart';
@@ -63,6 +63,10 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
           size: 30,
           color: Palette.of(context).onSurfaceVariant,
         ),
+        'onTap': () async {
+          await QRWidget.create(context, page: widget.page);
+          Navigator.of(context).pop();
+        }
       },
       'progress': {
         'title': 'Progress',
@@ -71,6 +75,10 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
           size: 30,
           color: Palette.of(context).onSurfaceVariant,
         ),
+        'onTap': () async {
+          await CreativeProgressWidget.create(context, page: widget.page);
+          Navigator.of(context).pop();
+        }
       },
       'pie-chart': {
         'title': 'Pie Chart',
@@ -79,6 +87,10 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
           size: 30,
           color: Palette.of(context).onSurfaceVariant,
         ),
+        'onTap': () async {
+          await CreativePieChart.create(context, page: widget.page);
+          Navigator.of(context).pop();
+        }
       },
       'box': {
         'title': 'Box',
@@ -87,6 +99,10 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
           size: 30,
           color: Palette.of(context).onSurfaceVariant,
         ),
+        'onTap': () async {
+          await CreatorBoxWidget.create(context, page: widget.page);
+          Navigator.of(context).pop();
+        }
       },
       'blob': {
         'title': 'Blob',
@@ -96,6 +112,20 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
             color: Palette.of(context).onSurfaceVariant,
           ),
         ),
+        'onTap': () async {
+          await CreativeBlob.create(context, page: widget.page);
+          Navigator.of(context).pop();
+        }
+      },
+      'image': {
+        'title': 'Upload Image',
+        'icon': Icon(RenderIcons.upload),
+        'onTap': () async {
+          File? file = await FilePicker.pick(context: context, type: FileType.image, crop: true,);
+          if (file == null) return;
+          await ImageWidget.create(context, page: widget.page, file: file);
+          Navigator.of(context).pop();
+        }
       },
     };
     return BackdropFilter(
@@ -104,12 +134,8 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
         cacheExtent: MediaQuery.of(context).size.height * 3,
         slivers: [
           SliverPinnedHeader(
-            // padding: const EdgeInsets.only(
-            //   right: 12,
-            //   bottom: 12
-            // ),
             child: Container(
-              color: Palette.of(context).background.withOpacity(0.2),
+              color: Palette.of(context).background,
               child: ClipRRect(
                 child: Padding(
                   padding: EdgeInsets.only(
@@ -117,33 +143,30 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
                     bottom: 6,
                     right: 12
                   ),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(RenderIcons.arrow_back),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                        Expanded(
-                          child: SearchBar(
-                            controller: searchCtrl,
-                            placeholder: 'Search Images and Design Assets',
-                            onSuffixTap: () => setState(() {
-                              searchCtrl.clear();
-                              query = null;
-                            }),
-                            onSubmitted: (value) {
-                              if (value.isEmpty || value.trim().isEmpty) {
-                                setState(() => query = null);
-                              } else {
-                                setState(() => query = value);
-                              }
-                            },
-                          )
-                        ),
-                      ],
-                    ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(RenderIcons.arrow_back),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      Expanded(
+                        child: SearchBar(
+                          controller: searchCtrl,
+                          placeholder: 'Search Images and Design Assets',
+                          onSuffixTap: () => setState(() {
+                            searchCtrl.clear();
+                            query = null;
+                          }),
+                          onSubmitted: (value) {
+                            if (value.isEmpty || value.trim().isEmpty) {
+                              setState(() => query = null);
+                            } else {
+                              setState(() => query = value);
+                            }
+                          },
+                        )
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -199,7 +222,7 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
               visible: tabCtrl.index == 0,
               sliver: UnsplashResultBuilder(
                 query: query!,
-                onSelect: (file) {
+                onSelect: (file, photo) {
                   if (file == null) return;
                   Navigator.of(context).pop();
                   ImageWidget.create(context, page: widget.page, file: file);
@@ -251,8 +274,7 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
               itemBuilder: (context, index) => GestureDetector(
                 onTap: () async {
                   TapFeedback.light();
-                  await CreatorWidget.create(context, id: widgets.keys.elementAt(index), page: widget.page);
-                  Navigator.of(context).pop();
+                  await widgets.values.elementAt(index)['onTap']();
                 },
                 child: Card(
                   shape: RoundedRectangleBorder(
@@ -292,31 +314,6 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
                 ),
               ),
               itemCount: widgets.length,
-            ),
-            spacing,
-            label('Unsplash'),
-            FutureBuilder<List<UnsplashPhoto>?>(
-              future: _unsplashStockImages,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done && snapshot.data == null) return errorBuilder('We are facing issues loading images from Unsplash');
-                else if (snapshot.connectionState == ConnectionState.done && snapshot.data != null) return horizontalListBuilder(
-                  itemBuilder: (context, index) {
-                    UnsplashPhoto photo = snapshot.data![index];
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: OctoImage.fromSet(
-                        image: CachedNetworkImageProvider(photo.url),
-                        octoSet: OctoSet.blurHash(
-                          photo.blurHash
-                        ),
-                        fit: BoxFit.cover,
-                      ),
-                    );
-                  },
-                  itemCount: snapshot.data!.length
-                );
-                else return loadingList();
-              },
             ),
             spacing,
             label('Shapes'),
@@ -368,7 +365,9 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
                           child: OctoImage(
                             image: NetworkImage(icon.previewURLs.reversed.toList()[2]),
                             placeholderBuilder: (context) => Center(
-                              child: Spinner()
+                              child: Spinner(
+                                strokeWidth: 2,
+                              )
                             ),
                             fit: BoxFit.cover,
                           ),
@@ -380,6 +379,47 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
                 );
                 else return loadingList();
               },
+            ),
+            spacing,
+            label('Unsplash'),
+            SliverPadding(
+              padding: const EdgeInsets.only(
+                left: 3,
+                right: 3
+              ),
+              sliver: FutureBuilder<List<UnsplashPhoto>?>(
+                future: _unsplashStockImages,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done || snapshot.data == null) return SliverToBoxAdapter(
+                    child: Center(
+                      child: Spinner()
+                    ),
+                  );
+                  return SliverMasonryGrid(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        UnsplashPhoto photo = snapshot.data![index];
+                        return SizedBox(
+                          height: ((MediaQuery.of(context).size.width / 2) - 4.5) / (photo.size.width / photo.size.height),
+                          width: (MediaQuery.of(context).size.width / 2) - 4.5,
+                          child: UnsplashPhotoBuilder(
+                            photo: photo,
+                            onSelect: (file, photo) {
+                              if (file == null) return;
+                              ImageWidget.create(context, page: widget.page, file: file);
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        );
+                      },
+                      childCount: snapshot.data!.length
+                    ),
+                    gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+                    crossAxisSpacing: 3,
+                    mainAxisSpacing: 3,
+                  );
+                }
+              ),
             )
           ],
         ],
@@ -520,22 +560,7 @@ extension _TextStyleExtension on _TextStyles {
     );
     if (style != null) widget.primaryStyle = CreativeTextStyle.fromTextStyle(style, widget: widget);
     widget.text = text;
-    widget.updateResizeHandlers();
-    final span = TextSpan(
-      style: style,
-      text: text,
-    );
-    final words = span.toPlainText().split(RegExp('\\s+'));
-    final TextPainter textPainter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: style,
-      ),
-      textAlign: TextAlign.left,
-      maxLines: words.length,
-      textDirection: TextDirection.ltr
-    ) ..layout(minWidth: 0, maxWidth: page.project.contentSize.width - 20);
-    Size size = textPainter.size;
+    Size size = calculateSizeForTextStyle(text, style: style, page: page);
     widget.size = size;
     page.widgets.add(widget);
   }
@@ -565,9 +590,7 @@ extension _TextStyleExtension on _TextStyles {
   TextStyle? actualStyle(BuildContext context) {
     switch (this) {
       case _TextStyles.title:
-        return Theme.of(context).textTheme.headlineLarge?.copyWith(
-          fontWeight: FontWeight.bold
-        );
+        return Theme.of(context).textTheme.displayLarge;
       case _TextStyles.subtitle:
         return Theme.of(context).textTheme.headlineSmall;
       case _TextStyles.body:

@@ -23,7 +23,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     BuildInfo buildInfo = BuildInfo.unknown,
   }) {
     uid = Constants.generateID(6);
-    _defaultResizeHandlerSet = _resizeHandlers = resizeHandlers;
     stateCtrl = WidgetStateController(this);
     onInitialize();
     onPaletteUpdate();
@@ -34,7 +33,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (data != null) try {
       uid = data['uid'];
       buildFromJSON(Map.from(data), buildInfo: buildInfo);
-      updateResizeHandlers();
       updateGrids();
       stateCtrl.update();
     } on WidgetCreationException catch (e) {
@@ -44,17 +42,19 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         details: 'Failed to build widget from JSON: $e',
       );
     }
-    updateResizeHandlers();
   }
 
   late WidgetStateController stateCtrl;
 
   late String uid;
+  void regenerateUID() {
+    uid = Constants.generateID(6);
+  }
 
   final CreatorPage page;
 
   /// Bottom Navigation Bar with editing options
-  late Editor editor;
+  late final Editor editor;
 
   Asset? asset;
 
@@ -86,17 +86,29 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         Spinner.fullscreen(
           context,
           task: () async {
-            page.widgets.add(await duplicate());
+            CreatorWidget? duplicateW = await duplicate();
+            if (duplicateW != null) page.widgets.add(duplicateW);
           },
         );
       },
     ),
-    Option.button(
-      icon: RenderIcons.arrow_link,
-      title: 'Arrow Link',
-      tooltip: 'Make an arrow link to another widget',
-      onTap: (context) async {
-        // TODO: Arrow Link
+    // Option.button(
+    //   icon: RenderIcons.arrow_link,
+    //   title: 'Arrow Link',
+    //   tooltip: 'Make an arrow link to another widget',
+    //   onTap: (context) async {
+    //     // TODO: Arrow Link
+    //   },
+    // ),
+    Option.toggle(
+      disabledIcon: RenderIcons.unlock,
+      enabledIcon: RenderIcons.lock,
+      title: isLocked ? 'Unlock' : 'Lock',
+      enabledTooltip: 'Unlock Widget',
+      disabledTooltip: 'Lock Widget',
+      value: isLocked,
+      onChange: (value) {
+        group != null ? group!.lock(this) : lock();
       },
     ),
     Option.button(
@@ -104,8 +116,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       title: 'Delete',
       tooltip: 'Delete Text Widget',
       onTap: (context) async {
-        if (group != null) group!.deleteWidget(this);
-        else page.widgets.delete(this.uid);
+        delete();
       },
     ),
   ];
@@ -119,8 +130,29 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   final bool allowClipboard = true;
 
-  bool _firstBuildDone = false;
+  bool _locked = false;
 
+  bool get isLocked => _locked;
+
+  void lock() {
+    _locked = true;
+    if (group != null) {
+      group!.findGroup(this).lock();
+    } else {
+      updateListeners(WidgetChange.lock);
+    }
+  }
+
+  void unlock() {
+    _locked = false;
+    if (group != null) {
+      group!.findGroup(this).unlock();
+    } else {
+      updateListeners(WidgetChange.lock);
+    }
+  }
+
+  bool _firstBuildDone = false;
   void doFirstBuild() {
     // First build function is run once the rendering is over
     // Only once for the widget lifecycle
@@ -145,10 +177,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     ... ResizeHandler.values
   ];
 
-  late List<ResizeHandler> _resizeHandlers;
-  /// List of resize handlers available;
-  late List<ResizeHandler> _defaultResizeHandlerSet;
   bool isResizing = false;
+  ResizeHandler? _currentResizingHandler;
 
   Size size = const Size(0, 0);
   Size? minSize;
@@ -161,8 +191,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// to not be resizable.
   /// Defaults to `true`
   final bool isResizable = true;
-  
-  bool locked = false;
 
   /// Set to `true` for widgets like background
   /// to make sure that effects like border are not applied
@@ -173,6 +201,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     required ResizeHandler handler
   }) {
     isResizing = true;
+    _currentResizingHandler = handler;
     // _resizeHandlers = [handler];
   }
 
@@ -186,7 +215,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     bool updateNotify = true
   }) {
     isResizing = false;
-    updateResizeHandlers();
+    _currentResizingHandler = null;
     updateListeners(WidgetChange.update);
   }
 
@@ -202,11 +231,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     } else return false;
   }
 
-  void updateResizeHandlers() {
-    _resizeHandlers = resizeHandlers = _getResizeHandlersWRTSize();
-    updateListeners(WidgetChange.misc);
-  }
-
   List<ResizeHandler> _getResizeHandlersWRTSize() {
     List<ResizeHandler> __handlers = [];
     if (size.height.isBetween(0, 50)) {
@@ -214,9 +238,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         ResizeHandler.bottomRight
       ];
     } else if (size.height.isBetween(50, 95)) {
-      __handlers = List.from(_defaultResizeHandlerSet.where((handler) => handler.type == ResizeHandlerType.corner));
+      __handlers = List.from(resizeHandlers.where((handler) => handler.type == ResizeHandlerType.corner));
     } else {
-      __handlers = List.from(_defaultResizeHandlerSet);
+      __handlers = List.from(resizeHandlers);
     }
     return __handlers;
   }
@@ -258,8 +282,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (!isDraggable) return;
     _previousPosition = position;
     position = position + details.delta;
-    bool snap = details.delta.dx.isBetween(-preferences.snapSensitivity, preferences.snapSensitivity);
-    if (angle == 0) updateGrids(realtime: true, showGridLines: true, snap: snap);
+    bool isDraggingFast = !details.delta.dx.isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) || !details.delta.dy.isBetween(-preferences.snapSensitivity, preferences.snapSensitivity);
+    // bool isDraggingSlow = details.delta.dx.abs() < 0.2 || details.delta.dy.abs() < 0.2;
+    if (angle == 0) updateGrids(realtime: true, showGridLines: true, snap: !isDraggingFast);
     updateListeners(WidgetChange.drag);
   }
 
@@ -292,7 +317,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (dy > maxDY) dy = maxDY;
     // Prevent the widget from going out of the safe area
     position = Offset(dx, dy);
-    updateGrids(showGridLines: true, snap: true, snapSensitivity: 5);
+    updateGrids(showGridLines: true, snap: true);
     updateListeners(WidgetChange.update, removeGrids: true);
   }
 
@@ -332,120 +357,47 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }) {
     if (!_firstBuildDone) doFirstBuild();
     bool _isSelected = isSelected();
-    bool _isOnlySelected = isInteractive && isOnlySelected();
-    bool _allowDrag = isInteractive && isDraggable && group == null && _isOnlySelected;
-    return GestureDetector(
+    return AlignPositioned(
       key: ValueKey<String>(uid),
-      behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
-      onPanStart: _allowDrag ? (details) => onGestureStart() : null,
-      onPanUpdate: _allowDrag ? (details) => _onGestureUpdate(details, context) : null,
-      onPanEnd: _allowDrag ? (details) => _onGestureEnd(details, context) : null,
-      dragStartBehavior: DragStartBehavior.down,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-
-          AlignPositioned(
-            dx: position.dx,
-            dy: position.dy,
-            childHeight: size.height + 40,
-            childWidth: size.width + 40,
-            child: rotatedWidget(
-              child: GestureDetector(
-                onDoubleTap: (_isSelected && this is! WidgetGroup) ? () => onDoubleTap(context) : null,
-                onTap: (_isSelected && this is! WidgetGroup) ? null : () => page.widgets.select(this),
-                child: Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Container(
-                    // borderType: BorderType.RRect,
-                    // color: Colors.grey[400]!,
-                    // strokeWidth: 2,
-                    // dashPattern: [3, 0, 3],
-                    // radius: Radius.circular(5),
-                    // padding: EdgeInsets.zero,
-                    decoration: _isSelected ? BoxDecoration(
-                      border: Border.all(
-                        color: page.palette.background.computeThemedTextColor(180),
-                        width: 0
-                      ),
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     blurStyle: BlurStyle.outer,
-                      //     color: Colors.black.withOpacity(0.25),
-                      //     blurRadius: 10,
-                      //     spreadRadius: 0,
-                      //     offset: Offset(0, 0),
-                      //   ),
-                      // ],
-                    ) : null,
-                    child: SizedBox.fromSize(
-                      size: size,
-                      child: Opacity(
-                        opacity: opacity,
-                        child: widget(context)
-                      )
-                    )
-                  ),
-                )
-              ),
-            ),
-          ),
-      
-          if (resizeHandlers.length == 1 && isDraggable && _isOnlySelected) Builder(
-            builder: (_) {
-              double dy = position.dy;
-              double dx = position.dx;
-              double positionY = dy + size.height + 15;
-              double positionX = dx;
-      
-              if ((positionY + 15) > page.project.contentSize.height/2) {
-                positionY = dy - size.height - 15;
-              }
-      
-              return AlignPositioned(
-                dy: positionY,
-                dx: positionX,
-                child: DragHandler(
-                  onPositionUpdate: (details) => _onGestureUpdate(details, context),
-                  onPositionUpdateEnd: (details) => _onGestureEnd(details, context),
-                  backgroundColor: page.palette.background.computeThemedTextColor(180),
-                  iconColor: page.palette.background,
+      dx: position.dx,
+      dy: position.dy,
+      childHeight: size.height + 40,
+      childWidth: size.width + 40,
+      child: rotatedWidget(
+        child: GestureDetector(
+          onDoubleTap: (_isSelected && this is! WidgetGroup) ? () => onDoubleTap(context) : null,
+          onTap: (_isSelected && this is! WidgetGroup) ? null : () => page.widgets.select(this),
+          child: Padding(
+            padding: EdgeInsets.all(20),
+            child: Container(
+              // borderType: BorderType.RRect,
+              // color: Colors.grey[400]!,
+              // strokeWidth: 2,
+              // dashPattern: [3, 0, 3],
+              // radius: Radius.circular(5),
+              // padding: EdgeInsets.zero,
+              decoration: _isSelected ? BoxDecoration(
+                border: Border.all(
+                  color: page.palette.onBackground,
+                  width: 0
                 ),
-              );
-            }
-          ),
-        
-          if (isResizable && !locked && _isOnlySelected) AlignPositioned(
-            dx: position.dx,
-            dy: position.dy,
-            childHeight: size.height + 40,
-            childWidth: size.width + 40,
-            // rotateDegrees: angle,
-            child: SizedBox(
-              width: size.width + 40,
-              height: size.height + 40,
-              child: rotatedWidget(
-                child: Stack(
-                  children: [
-                    for (ResizeHandler handler in resizeHandlers) ResizeHandlerBall(
-                      type: handler,
-                      widget: this,
-                      keepAspectRatio: keepAspectRatio,
-                      onSizeChange: onResize,
-                      onResizeEnd: onResizeFinished,
-                      isResizing: isResizing,
-                      onResizeStart: (details) => onResizeStart(details: details, handler: handler),
-                      isVisible: _resizeHandlers.contains(handler),
-                      updatePosition: angle == 0,
-                      isMinimized: isDragging,
-                    ),
-                  ],
-                ),
-              ),
+                // boxShadow: [
+                //   BoxShadow(
+                //     blurStyle: BlurStyle.outer,
+                //     color: Colors.black.withOpacity(0.25),
+                //     blurRadius: 10,
+                //     spreadRadius: 0,
+                //     offset: Offset(0, 0),
+                //   ),
+                // ],
+              ) : null,
+              child: SizedBox.fromSize(
+                size: size,
+                child: widget(context)
+              )
             ),
           )
-      
-        ],
+        ),
       ),
     );
   }
@@ -469,7 +421,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }) {
     if (change == WidgetChange.update) updateGrids();
     if (removeGrids) page.gridState.hideAll();
-    if (change == WidgetChange.update) notifyListeners(change);
+    notifyListeners(change);
     stateCtrl.update(change);
     if (change == WidgetChange.update && asset != null) {
       asset!.logVersion(version: page.history.nextVersion ?? '', file: asset!.file);
@@ -679,17 +631,26 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Duplicate Widget
   /// 
   /// Returns the widget with same properties but new uid and altered position
-  Future<CreatorWidget> duplicate() async {
+  Future<CreatorWidget?> duplicate() async {
+    if (group != null) {
+      return group!.findGroup(this).duplicate();
+    }
     CreatorWidget widget = CreatorWidget.fromJSON(toJSON(), page: page, buildInfo: BuildInfo(buildType: BuildType.unknown));
     widget.uid = Constants.generateID();
     widget.position = Offset(position.dx + 10, position.dy + 10);
     await widget.onDuplicate();
+    widget._locked = false;
     return widget;
   }
 
   /// This method is called when a widget is duplicated from another
   /// Handle asset duplication here
   Future<void> onDuplicate() async {}
+
+  void delete() {
+    if (group != null) group!.deleteWidget(this);
+    else page.widgets.delete(this.uid);
+  }
 
   /// Convert the state and properties of the widget to JSON
   Map<String, dynamic> toJSON({
@@ -832,7 +793,8 @@ enum WidgetChange {
   resize,
   rotate,
   update,
-  misc
+  misc,
+  lock
 }
 
 /// The types of scale/resize options available to widget
@@ -852,5 +814,145 @@ class WidgetCreationException implements Exception {
   final String? details;
 
   WidgetCreationException(this.message, {this.details, this.code});
+
+}
+
+class WidgetHandlerBuilder extends StatefulWidget {
+
+  const WidgetHandlerBuilder({
+    super.key,
+    required this.widget,
+    this.isInteractive = true
+  });
+
+  final CreatorWidget widget;
+  final bool isInteractive;
+
+  @override
+  State<WidgetHandlerBuilder> createState() => _WidgetHandlerBuilderState();
+}
+
+class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
+
+  late CreatorWidget creatorWidget;
+
+  @override
+  void initState() {
+    super.initState();
+    creatorWidget = widget.widget;
+    creatorWidget.addListener(onWidgetChange);
+  }
+
+  @override
+  void dispose() {
+    creatorWidget.removeListener(onWidgetChange);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (creatorWidget != widget.widget) updateWidget();
+    bool _isOnlySelected = widget.isInteractive && creatorWidget.isOnlySelected();
+    bool _allowDrag = widget.isInteractive && creatorWidget.isDraggable && creatorWidget.group == null && _isOnlySelected && !creatorWidget.isLocked;
+    return GestureDetector(
+      behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
+      onPanStart: _allowDrag ? (details) => creatorWidget.onGestureStart() : null,
+      onPanUpdate: _allowDrag ? (details) => creatorWidget._onGestureUpdate(details, context) : null,
+      onPanEnd: _allowDrag ? (details) => creatorWidget._onGestureEnd(details, context) : null,
+      dragStartBehavior: DragStartBehavior.down,
+      child: Stack(
+        children: [
+          Visibility(
+            visible: (creatorWidget.isResizable && !creatorWidget.isLocked),
+            child: AlignPositioned(
+              dx: creatorWidget.position.dx,
+              dy: creatorWidget.position.dy,
+              childHeight: creatorWidget.size.height + 40,
+              childWidth: creatorWidget.size.width + 40,
+              // rotateDegrees: angle,
+              child: SizedBox(
+                width: creatorWidget.size.width + 40,
+                height: creatorWidget.size.height + 40,
+                child: creatorWidget.rotatedWidget(
+                  child: Stack(
+                    children: [
+                      for (ResizeHandler handler in creatorWidget.resizeHandlers) ResizeHandlerBall(
+                        type: handler,
+                        widget: creatorWidget,
+                        keepAspectRatio: creatorWidget.keepAspectRatio,
+                        onSizeChange: creatorWidget.onResize,
+                        onResizeEnd: creatorWidget.onResizeFinished,
+                        isResizing: creatorWidget.isResizing,
+                        onResizeStart: (details) => creatorWidget.onResizeStart(details: details, handler: handler),
+                        isVisible: creatorWidget._getResizeHandlersWRTSize().contains(handler) || creatorWidget._currentResizingHandler == handler,
+                        updatePosition: creatorWidget.angle == 0,
+                        isMinimized: creatorWidget.isDragging,
+                        // color: creatorWidget.page.palette.isLightBackground ? creatorWidget.page.palette.onBackground : creatorWidget.page.palette.onBackground.harmonizeWith(Colors.white),
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+    
+          if (creatorWidget._getResizeHandlersWRTSize().length == 1 && creatorWidget.isDraggable && !creatorWidget.isLocked) Builder(
+            builder: (_) {
+              double dy = creatorWidget.position.dy;
+              double dx = creatorWidget.position.dx;
+              double positionY = dy + creatorWidget.size.height/2 + 15 + 15;
+              double positionX = dx;
+      
+              if ((positionY + 15) > creatorWidget.page.project.contentSize.height/2) {
+                positionY = dy - creatorWidget.size.height - 15 - 15;
+              }
+      
+              return AlignPositioned(
+                dy: positionY,
+                dx: positionX,
+                child: DragHandler(
+                  onPositionUpdate: (details) => creatorWidget._onGestureUpdate(details, context),
+                  onPositionUpdateEnd: (details) => creatorWidget._onGestureEnd(details, context),
+                ),
+              );
+            }
+          ),
+    
+          Visibility(
+            visible: creatorWidget._getResizeHandlersWRTSize().length > 1 && !creatorWidget.isDragging,
+            child: Builder(
+              builder: (_) {
+                double dy = creatorWidget.position.dy;
+                double dx = creatorWidget.position.dx;
+                double positionY = dy + creatorWidget.size.height/2 + 20 + 15;
+                double positionX = dx;
+                
+                if ((positionY + 15) > creatorWidget.page.project.contentSize.height/2) {
+                  positionY = dy - creatorWidget.size.height/2 - 20 - 15;
+                }
+                
+                return AlignPositioned(
+                  dy: positionY,
+                  dx: positionX,
+                  child: WidgetActionButton(
+                    widget: creatorWidget,
+                  ),
+                );
+              }
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void onWidgetChange() => setState(() {});
+
+  void updateWidget() {
+    creatorWidget.removeListener(onWidgetChange);
+    creatorWidget = widget.widget;
+    creatorWidget.addListener(onWidgetChange);
+  }
 
 }

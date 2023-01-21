@@ -182,7 +182,7 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
 
   Future<void> open() async {
     await createOriginalPost();
-    AppRouter.replace(context, page: Create(project: project!));
+    AppRouter.replace(context, page: Studio(project: project!));
   }
 
   Future<void> share() async {
@@ -220,7 +220,6 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
       isDestructive: true
     );
     if (delete) {
-      if (project == null) await createOriginalPost();
       await manager.delete(context, project: project, id: glance.id);
       Navigator.of(context).pop();
     }
@@ -406,7 +405,7 @@ class _ProjectAtGlanceState extends State<ProjectAtGlance> {
                         icon: RenderIcons.open,
                         onPressed: () async {
                           if (originalPost == null) await createOriginalPost();
-                          if (originalPost != null) AppRouter.replace(context, page: Create(project: originalPost!));
+                          if (originalPost != null) AppRouter.replace(context, page: Studio(project: originalPost!));
                         }
                       ),
                       TextIconButton(

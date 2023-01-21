@@ -1,6 +1,7 @@
 import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/material.dart';
 import 'package:octo_image/octo_image.dart';
+import 'package:universal_io/io.dart';
 import '../../../rehmat.dart';
 
 class Onboarding extends StatefulWidget {
@@ -92,6 +93,22 @@ class _OnboardingState extends State<Onboarding> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (app.flavor == Flavor.dev) Button(
+                  onPressed: () async {
+                    try {
+                      await AuthState.of(context).signInAnonymously();
+                    } catch (e) {
+                      Alerts.snackbar(context, text: 'There was an error signing in anonymously.');
+                    }
+                  },
+                  border: Border.all(
+                    color: Palette.of(context).outline,
+                    width: 2
+                  ),
+                  child: Text('Sign in Anonymously'),
+                  autoLoading: true,
+                ),
+                SizedBox(height: 10,),
                 SizedBox(
                   width: double.maxFinite,
                   child: Button(
@@ -115,12 +132,16 @@ class _OnboardingState extends State<Onboarding> {
                     textColor: Colors.black,
                     autoLoading: true,
                     onPressed: () async {
-                      await AuthState.of(context).signInWithGoogle();
+                      try {
+                        await AuthState.of(context).signInWithGoogle();
+                      } catch (e) {
+                        Alerts.snackbar(context, text: 'There was an error signing in with Google.');
+                      }
                     },
                   ),
                 ),
-                Container(height: 10,),
-                SizedBox(
+                SizedBox(height: 10,),
+                if (Platform.isIOS) SizedBox(
                   width: double.maxFinite,
                   child: Button(
                     child: Row(
@@ -139,7 +160,11 @@ class _OnboardingState extends State<Onboarding> {
                     textColor: Colors.white,
                     autoLoading: true,
                     onPressed: () async {
-                      await AuthState.of(context).signInWithApple();
+                      try {
+                        await AuthState.of(context).signInWithApple();
+                      } catch (e) {
+                        Alerts.snackbar(context, text: 'There was an error signing in with Apple.');
+                      }
                     },
                   ),
                 ),

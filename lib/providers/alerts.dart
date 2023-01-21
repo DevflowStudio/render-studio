@@ -260,6 +260,7 @@ class Alerts {
   static Future<T?> modal<T>(BuildContext context, {
     required String title,
     required Widget Function(BuildContext context, void Function(void Function()) setState) childBuilder,
+    List<Widget>? actionButton
   }) async {
     return await showModalBottomSheet<T>(
       context: context,
@@ -267,16 +268,17 @@ class Alerts {
       barrierColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => ClipRRect(
-          child: Container(
-            decoration: BoxDecoration(
-              color: Palette.of(context).surfaceVariant.withOpacity(0.4)
-            ),
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height * 0.2,
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        builder: (context, setState) => Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: Palette.of(context).surfaceVariant.withOpacity(0.75)
+          ),
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height * 0.2,
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +292,7 @@ class Alerts {
                           width: 50,
                           height: 5,
                           decoration: BoxDecoration(
-                            color: Palette.isDark(context) ? Colors.grey[800] : Colors.grey.withOpacity(0.3),
+                            color: Palette.of(context).onSurfaceVariant.withOpacity(0.45),
                             borderRadius: BorderRadius.circular(5),
                           ),
                         )
@@ -300,8 +302,16 @@ class Alerts {
                   SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Label(
-                      label: title,
+                    child: Row(
+                      children: [
+                        Label(
+                          label: title,
+                        ),
+                        if (actionButton != null) ... [
+                          Spacer(),
+                          ...actionButton
+                        ]
+                      ],
                     ),
                   ),
                   SizedBox(height: 12,),

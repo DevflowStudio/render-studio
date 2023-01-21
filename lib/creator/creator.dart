@@ -30,10 +30,11 @@ class CreatorViewState extends State<CreatorView> {
   void setState(VoidCallback fn) {
     if (mounted) super.setState(fn);
     else {
-      analytics.logError(
-        Exception('Memory leak detected in CreatorView'),
-        cause: 'There were some memory leaks in CreatorView.'
-      );
+      // analytics.logError(
+      //   Exception('Memory leak detected in CreatorView'),
+      //   cause: 'There were some memory leaks in CreatorView.'
+      // );
+      fn();
     }
   }
 
@@ -64,9 +65,7 @@ class CreatorViewState extends State<CreatorView> {
           project.pages.current.widgets.select(widget.project.pages.current.widgets.background);
         },
         child: Center(
-          child: ClipRRect(
-            child: project.pages.pages[index].build(context)
-          ),
+          child: project.pages.pages[index].build(context),
         ),
       ),
       itemCount: project.pages.length,

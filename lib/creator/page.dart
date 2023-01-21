@@ -66,14 +66,12 @@ class CreatorPage extends PropertyChangeNotifier {
     bool isDimensionless = false,
   }) => SizedBox.fromSize(
     size: isDimensionless ? null : project.contentSize,
-    child: ClipRRect(
-      child: Stack(
-        clipBehavior: Clip.hardEdge,
-        children: [
-          ... widgets.build(context, isInteractive: isInteractive),
-          PageGridView(state: gridState)
-        ],
-      ),
+    child: Stack(
+      clipBehavior: Clip.hardEdge,
+      children: [
+        ... widgets.build(context, isInteractive: isInteractive),
+        PageGridView(state: gridState)
+      ],
     ),
   );
 
@@ -220,6 +218,8 @@ class __PageZoomableViewerState extends State<_PageZoomableViewer> {
     return InteractiveViewer(
       panEnabled: enableZoom,
       scaleEnabled: enableZoom,
+      maxScale: 5,
+      clipBehavior: Clip.antiAlias,
       child: widget.child,
     );
   }

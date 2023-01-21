@@ -17,7 +17,7 @@ class _ProfilePhotoState extends State<ProfilePhoto> {
   @override
   Widget build(BuildContext context) {
     AuthState authState = Provider.of<AuthState>(context);
-    if (!authState.isLoggedIn) return OctoImage(
+    if (!authState.isLoggedIn || authState.user?.photoURL == null) return OctoImage(
       image: AssetImage('assets/images/avatar.png'),
     );
     return OctoImage(

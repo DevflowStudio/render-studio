@@ -1,25 +1,22 @@
 import 'dart:ui';
 
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
-import 'package:octo_image/octo_image.dart';
 import 'package:render_studio/screens/creator/widgets/debug_banner.dart';
 import 'package:render_studio/screens/creator/widgets/page_indicator.dart';
 import 'package:render_studio/screens/creator/widgets/project_app_bar.dart';
-import 'package:universal_io/io.dart';
 import '../../../rehmat.dart';
 
-class Create extends StatefulWidget {
+class Studio extends StatefulWidget {
 
-  Create({Key? key, required this.project}) : super(key: key);
+  Studio({Key? key, required this.project}) : super(key: key);
 
   final Project project;
 
   @override
-  _CreateState createState() => _CreateState();
+  _StudioState createState() => _StudioState();
 }
 
-class _CreateState extends State<Create> {
+class _StudioState extends State<Studio> {
 
   late Project project;
 
@@ -76,18 +73,19 @@ class _CreateState extends State<Create> {
                 Expanded(
                   child: Stack(
                     children: [
-                      if (project.thumbnail != null) Center(
-                        child: Opacity(
-                          opacity: 0,
-                          child: Hero(
-                            tag: 'project-${project.id}',
-                            child: OctoImage(
-                              image: FileImage(File(pathProvider.generateRelativePath(project.thumbnail!)))
-                            )
-                          ),
-                        ),
-                      ),
-                      FadeIn(
+                      // if (project.thumbnail != null) Center(
+                      //   child: Opacity(
+                      //     opacity: 0,
+                      //     child: Hero(
+                      //       tag: 'project-${project.id}',
+                      //       child: OctoImage(
+                      //         image: FileImage(File(pathProvider.generateRelativePath(project.thumbnail!)))
+                      //       )
+                      //     ),
+                      //   ),
+                      // ),
+                      Hero(
+                        tag: 'project-${project.id}',
                         child: creator
                       ),
                       AnimatedSwitcher(
@@ -115,8 +113,8 @@ class _CreateState extends State<Create> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: 4
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
                   ),
                   child: PageIndicator(project: project),
                 ),

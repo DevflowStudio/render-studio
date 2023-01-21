@@ -7,18 +7,20 @@ class AppTheme {
 
   static ThemeData build({
     required Brightness brightness,
-    Color? seed
+    Color? seed,
+    ColorScheme? colorScheme
   }) {
     seed ??= HexColor.fromHex('#1437f6');
+    colorScheme ??= ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
     Color contrastTextColor = brightness == Brightness.light ? Colors.black : Colors.white;
     Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[400]!;
     Color background = brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#0b0d0f');
     Color surfaceVariant = brightness == Brightness.light ? HexColor.fromHex('#f6f8fa') : HexColor.fromHex('#161a20');
     Color outline = brightness == Brightness.light ? HexColor.fromHex('#edf1f5') : HexColor.fromHex('#29303b');
-    ColorScheme colorScheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness).copyWith(
-      primary: seed,
-      primaryContainer: seed,
-      onPrimaryContainer: HexColor.fromHex('#cad2fc'),
+    colorScheme = colorScheme.copyWith(
+      // primary: seed,
+      // primaryContainer: seed,
+      // onPrimaryContainer: HexColor.fromHex('#cad2fc'),
       background: background,
       surfaceVariant: surfaceVariant,
       outline: outline,

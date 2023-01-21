@@ -30,6 +30,15 @@ class AuthState extends ChangeNotifier {
 
   Future<void> signOut() => auth.signOut();
 
+  Future<void> signInAnonymously() async {
+    try {
+      await auth.signInAnonymously();
+    } catch (e, stacktrace) {
+      analytics.logError(e, stacktrace: stacktrace, cause: 'signInAnonymously failed');
+      rethrow;
+    }
+  }
+
   Future<void> signInWithGoogle() async {
     try {
       // Trigger the authentication flow

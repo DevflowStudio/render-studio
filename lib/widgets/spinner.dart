@@ -16,8 +16,9 @@ class Spinner extends StatefulWidget {
   final double strokeWidth;
   final double? value;
   final bool adaptive;
+  final double radius;
 
-  const Spinner({Key? key, this.valueColor, this.backgroundColor, this.strokeWidth = 4.0, this.value, this.adaptive = true}) : super(key: key);
+  const Spinner({Key? key, this.valueColor, this.backgroundColor, this.strokeWidth = 4.0, this.value, this.adaptive = true, this.radius = 10}) : super(key: key);
 
   static Future<void> fullscreen(
     BuildContext context, {
@@ -126,13 +127,17 @@ class _SpinnerState extends State<Spinner> {
   Widget build(BuildContext context) {
     Color color;
     color = widget.valueColor ?? Theme.of(context).progressIndicatorTheme.color ?? Palette.of(context).primary;
-    if (!widget.adaptive || (widget.adaptive && Platform.isAndroid)) return CircularProgressIndicator(
-      backgroundColor: widget.backgroundColor,
-      strokeWidth: widget.strokeWidth,
-      value: widget.value,
-      valueColor: AlwaysStoppedAnimation(color),
+    if (!widget.adaptive || (widget.adaptive && Platform.isAndroid)) return SizedBox.square(
+      dimension: widget.radius,
+      child: CircularProgressIndicator(
+        backgroundColor: widget.backgroundColor,
+        strokeWidth: widget.strokeWidth,
+        value: widget.value,
+        valueColor: AlwaysStoppedAnimation(color),
+      ),
     ); else return CupertinoActivityIndicator(
-      color: Constants.getThemedObject(context, light: Colors.grey, dark: Colors.grey[200]),
+      radius: widget.radius,
+      color: widget.valueColor,
     );
   }
   

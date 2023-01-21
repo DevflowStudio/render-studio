@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -118,13 +120,17 @@ class WidgetManager extends ChangeNotifier {
   T? get<T extends CreatorWidget>(String uid) => _widgets[uid] as T?;
 
   Future<void> showAddWidgetModal(BuildContext context) async {
-    await showModalBottomSheet(
-      context: context,
-      backgroundColor: Palette.of(context).background.withOpacity(0.5),
-      barrierColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => WidgetCatalog(page: page),
-      enableDrag: true
+    // await showModalBottomSheet(
+    //   context: context,
+    //   backgroundColor: Palette.of(context).background.withOpacity(0.5),
+    //   barrierColor: Colors.transparent,
+    //   isScrollControlled: true,
+    //   builder: (context) => WidgetCatalog(page: page),
+    //   enableDrag: true
+    // );
+    await Alerts.showModal(
+      context,
+      child: WidgetCatalog(page: page),
     );
     // if (id == null) return;
     // await CreatorWidget.create(context, id: id, page: page);
@@ -143,7 +149,6 @@ class WidgetManager extends ChangeNotifier {
     rebuildListeners();
     if (!soft) page.history.log('Add widget');
     page.updateListeners(PageChange.misc);
-    widget.updateResizeHandlers();
   }
 
   void delete(String uid, {
@@ -275,7 +280,11 @@ class WidgetManager extends ChangeNotifier {
         page: page,
         isInteractive: isInteractive,
       )).toList(),
-      _MultiselectDragOverlay(widgets: this)
+      _MultiselectDragOverlay(widgets: this),
+      _WidgetHandlerBuilder(
+        key: ValueKey('widget-${selections.firstOrNull?.uid}}'),
+        manager: this
+      )
     ];
   }
 
@@ -392,12 +401,15 @@ class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
                 child: SizedBox(
                   width: (_selectorStart!.dx - _selectorEnd!.dx).abs(),
                   height: (_selectorStart!.dy - _selectorEnd!.dy).abs(),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Palette.of(context).background.withOpacity(0.25),
-                      border: Border.all(
-                        color: Palette.of(context).background,
-                        width: 1,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Palette.of(context).background.withOpacity(0.1),
+                        border: Border.all(
+                          color: Palette.of(context).outline,
+                          width: 1,
+                        ),
                       ),
                     ),
                   )
@@ -409,5 +421,52 @@ class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
       ),
     );
   }
+
+}
+
+class _WidgetHandlerBuilder extends StatefulWidget {
+
+  const _WidgetHandlerBuilder({
+    super.key,
+    required this.manager,
+  });
+
+  final WidgetManager manager;
+
+  @override
+  State<_WidgetHandlerBuilder> createState() => __WidgetHandlerBuilderState();
+}
+
+class __WidgetHandlerBuilderState extends State<_WidgetHandlerBuilder> {
+
+  late final WidgetManager manager;
+
+  @override
+  void initState() {
+    super.initState();
+    manager = widget.manager;
+    manager.addListener(onSelectionChange);
+    manager.page.addListener(onSelectionChange);
+  }
+
+  @override
+  void dispose() {
+    manager.removeListener(onSelectionChange);
+    manager.page.removeListener(onSelectionChange);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (manager.selections.length > 1 || manager.selections.firstOrNull is BackgroundWidget || manager.selections.firstOrNull == null) return Container();
+    else if (manager.selections.first.group != null) return WidgetHandlerBuilder(
+      widget: manager.selections.first.group!.findGroup(manager.selections.first)
+    );
+    else return WidgetHandlerBuilder(
+      widget: manager.selections.first
+    );
+  }
+
+  void onSelectionChange() => setState(() { });
 
 }

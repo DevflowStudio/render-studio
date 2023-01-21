@@ -314,7 +314,11 @@ class ButtonWithIcon extends StatefulWidget {
     this.borderRadius = 60,
     this.feedbackBorderRadius = 5,
     this.size,
-    this.greyOut = false
+    this.greyOut = false,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.showBorder = true,
+    this.animateBorderRadius = true
   }) : super(key: key);
 
   final String? title;
@@ -328,6 +332,13 @@ class ButtonWithIcon extends StatefulWidget {
   final double borderRadius;
   final double feedbackBorderRadius;
 
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+
+  final bool showBorder;
+
+  final bool animateBorderRadius;
+
   /// Setting this to `true` will make the icon look grey, showing the button is disabled or the value is turned off
   final bool greyOut;
 
@@ -339,7 +350,13 @@ class ButtonWithIcon extends StatefulWidget {
 
 class _ButtonWithIconState extends State<ButtonWithIcon> {
 
-  double radius = 60;
+  late double radius;
+
+  @override
+  void initState() {
+    super.initState();
+    radius = widget.borderRadius;
+  }
   
   @override
   void setState(VoidCallback fn) {
@@ -379,17 +396,17 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                 width: widget.size?.width ?? 60,
                 decoration: BoxDecoration(
                   // color: Palette.of(context).surface,
-                  color: Constants.getThemedObject(context, light: Colors.grey[100]!.withOpacity(0.5), dark: Colors.grey[900]),
-                  border: Border.all(
+                  color: widget.backgroundColor ?? Constants.getThemedObject(context, light: Colors.grey[100]!.withOpacity(0.5), dark: Colors.grey[900]),
+                  border: widget.showBorder ? Border.all(
                     color: Constants.getThemedObject(context, light: Colors.grey[200]!, dark: Colors.grey[800]!),
                     width: 1,
-                  ),
+                  ) : null,
                   borderRadius: BorderRadius.circular(radius)
                 ),
                 child: Center(
                   child: widget.child ?? Icon(
                     widget.icon,
-                    color: widget.greyOut ? Colors.grey[700] : Palette.of(context).onSurface
+                    color: widget.greyOut ? Colors.grey[700] : (widget.foregroundColor ?? Palette.of(context).onSurface)
                   ),
                 ),
               ),
@@ -431,9 +448,13 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
     }
   }
 
-  void reduceRadius() => setState(() => radius = widget.feedbackBorderRadius);
+  void reduceRadius() {
+    if (widget.animateBorderRadius) setState(() => radius = widget.feedbackBorderRadius);
+  }
 
-  void resetRadius() => setState(() => radius = widget.borderRadius);
+  void resetRadius() {
+    if (widget.animateBorderRadius) setState(() => radius = widget.borderRadius);
+  }
 
   double calculateHeight() {
     if (widget.title != null) {
@@ -543,17 +564,24 @@ class _DragHandlerState extends State<DragHandler> {
       },
       child: AnimatedContainer(
         duration: Constants.animationDuration,
-        height: isHovering ? 40 : 30,
-        width: isHovering ? 40 : 30,
+        height: isHovering ? 35 : 25,
+        width: isHovering ? 35 : 25,
         decoration: BoxDecoration(
-          color: widget.backgroundColor ?? Palette.of(context).secondaryContainer,
-          borderRadius: BorderRadius.circular(40)
+          color: widget.backgroundColor ?? Palette.of(context).background,
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: [
+            BoxShadow(
+              color: (widget.iconColor ?? Palette.of(context).onBackground).withOpacity(0.1),
+              blurRadius: 5,
+              spreadRadius: 1,
+            )
+          ]
         ),
         child: Center(
           child: Icon(
             RenderIcons.drag,
-            size: isHovering ? 30 : 20,
-            color: widget.iconColor ?? Palette.of(context).onSecondaryContainer,
+            size: isHovering ? 30 : 18,
+            color: widget.iconColor ?? Palette.of(context).onBackground,
           ),
         ),
       ),

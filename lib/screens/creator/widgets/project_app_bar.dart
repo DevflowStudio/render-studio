@@ -74,11 +74,28 @@ class _AppBarState extends State<ProjectAppBar> {
         statusBarBrightness: MediaQuery.of(context).platformBrightness,
       ),
       centerTitle: false,
-      title: title != null ? Chip(
-        label: Text(title!)
+      titleSpacing: 0,
+      title: title != null ? Container(
+        decoration: BoxDecoration(
+          color: Palette.of(context).surface,
+          borderRadius: BorderRadius.circular(40),
+          border: Border.all(
+            color: Palette.of(context).outline,
+            width: 2
+          )
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12
+        ),
+        child: Text(
+          title!,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            height: 0.66
+          ),
+        )
       ) : null,
       backgroundColor: Colors.transparent,
-      toolbarHeight: MediaQuery.of(context).size.height * 0.07, // Toolbar can cover a maximum of 5% of the screen area
       actions: (project.pages.pages.isNotEmpty && !widget.isLoading) ? [
         IconButton(
           onPressed: project.pages.current.history.undo,

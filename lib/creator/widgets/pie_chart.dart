@@ -84,102 +84,113 @@ class CreativePieChart extends CreatorWidget {
       options: [
         Option.button(
           title: 'Data',
-          onTap: (context) => Alerts.modal(
-            context,
-            title: 'Pie Chart Data',
-            childBuilder: (context, setState) => Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (_CreativePieChartSection section in data) ListTile(
-                  leading: ColorSelector(
-                    title: 'Color',
-                    size: Size(40, 40),
-                    palette: page.palette,
-                    allowOpacity: true,
-                    onColorSelect: (color) {
-                      section.color = color;
-                      updateListeners(WidgetChange.update);
-                      setState(() {});
-                    },
-                    color: section.color,
-                    tooltip: 'tooltip'
-                  ),
-                  minLeadingWidth: 1,
-                  title: Row(
-                    children: [
-                      Expanded(
-                        flex: 6,
-                        child: TextFormField(
-                          initialValue: section.title,
-                          decoration: InputDecoration(
-                            hintText: 'Title',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide.none
-                            )
-                          ),
-                          onFieldSubmitted: (value) {
-                            section.title = value;
-                            updateListeners(WidgetChange.update);
-                            setState(() {});
-                          },
-                        ),
-                      ),
-                      SizedBox(width: 6),
-                      Expanded(
-                        flex: 4,
-                        child: TextFormField(
-                          initialValue: section.value.toString(),
-                          decoration: InputDecoration(
-                            hintText: 'Value',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide.none
-                            )
-                          ),
-                          textAlign: TextAlign.center,
-                          keyboardType: TextInputType.number,
-                          onChanged: (value) {
-                            try {
-                              section.value = double.parse(value);
-                            } catch (e) {
-                              section.value = 0;
-                            }
-                            updateListeners(WidgetChange.misc);
-                            setState(() {});
-                          },
-                        ),
-                      )
-                    ],
-                  ),
-                  trailing: OutlinedIconButtons(
-                    icon: Icon(RenderIcons.delete),
-                    onPressed: () {
-                      data.remove(section);
-                      updateListeners(WidgetChange.update);
-                      setState(() {});
-                    },
-                  ),
-                ),
-                ListTile(
-                  leading: Icon(RenderIcons.add),
-                  title: Text('Add Section'),
-                  onTap: () async {
-                    data.add(
-                      _CreativePieChartSection(
-                        title: 'Section ${data.length + 1}',
-                        // set the value parameter to the average of all the values in the data list
-                        value: data.length > 0 ? data.map((e) => e.value).reduce((value, element) => value + element) / data.length : 0,
-                        color: page.palette.colors.getRandom()
-                      )
-                    );
-                    updateListeners(WidgetChange.update);
-                    setState(() {});
+          onTap: (context) async {
+            await Alerts.modal(
+              context,
+              title: 'Pie Chart Data',
+              actionButton: [
+                FilledTonalIconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
                   },
-                ),
+                  icon: Icon(RenderIcons.done)
+                )
               ],
-            ),
-          ),
+              childBuilder: (context, setState) => Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (_CreativePieChartSection section in data) ListTile(
+                    leading: ColorSelector(
+                      title: 'Color',
+                      size: Size(40, 40),
+                      palette: page.palette,
+                      allowOpacity: true,
+                      onColorSelect: (color) {
+                        section.color = color;
+                        updateListeners(WidgetChange.misc);
+                        setState(() {});
+                      },
+                      color: section.color,
+                      tooltip: 'tooltip'
+                    ),
+                    minLeadingWidth: 1,
+                    title: Row(
+                      children: [
+                        Expanded(
+                          flex: 6,
+                          child: TextFormField(
+                            initialValue: section.title,
+                            decoration: InputDecoration(
+                              hintText: 'Title',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide.none
+                              )
+                            ),
+                            onFieldSubmitted: (value) {
+                              section.title = value;
+                              updateListeners(WidgetChange.misc);
+                              setState(() {});
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 6),
+                        Expanded(
+                          flex: 4,
+                          child: TextFormField(
+                            initialValue: section.value.toString(),
+                            decoration: InputDecoration(
+                              hintText: 'Value',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide: BorderSide.none
+                              )
+                            ),
+                            textAlign: TextAlign.center,
+                            keyboardType: TextInputType.number,
+                            onChanged: (value) {
+                              try {
+                                section.value = double.parse(value);
+                              } catch (e) {
+                                section.value = 0;
+                              }
+                              updateListeners(WidgetChange.misc);
+                              setState(() {});
+                            },
+                          ),
+                        )
+                      ],
+                    ),
+                    trailing: OutlinedIconButtons(
+                      icon: Icon(RenderIcons.delete),
+                      onPressed: () {
+                        data.remove(section);
+                        updateListeners(WidgetChange.misc);
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    leading: Icon(RenderIcons.add),
+                    title: Text('Add Section'),
+                    onTap: () async {
+                      data.add(
+                        _CreativePieChartSection(
+                          title: 'Section ${data.length + 1}',
+                          // set the value parameter to the average of all the values in the data list
+                          value: data.length > 0 ? data.map((e) => e.value).reduce((value, element) => value + element) / data.length : 0,
+                          color: page.palette.colors.getRandom()
+                        )
+                      );
+                      updateListeners(WidgetChange.misc);
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+            );
+            updateListeners(WidgetChange.update);
+          },
           icon: RenderIcons.edit
         ),
         Option.button(
@@ -394,7 +405,10 @@ class CreativePieChart extends CreatorWidget {
         showChartValuesOutside: showChartValuesOutside,
         showChartValuesInPercentage: showChartValuesInPercentage,
         showChartValueBackground: showChartValueBackground,
-        chartValueBackgroundColor: page.palette.onBackground
+        chartValueBackgroundColor: page.palette.onBackground,
+        chartValueStyle: TextStyle(
+          color: page.palette.background
+        )
       ),
       chartType: chartType,
       degreeOptions: DegreeOptions(

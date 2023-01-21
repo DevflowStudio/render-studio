@@ -190,6 +190,7 @@ class Asset {
     Map<String, dynamic>? headers,
     required Function(File? file) onDownloadComplete,
     String? extension,
+    bool precache = false,
   }) async* {
     try {
       Response response = await Dio().get(
@@ -214,6 +215,11 @@ class Asset {
         var raf = file.openSync(mode: FileMode.write);
         raf.writeFromSync(response.data);
         await raf.close();
+        if (precache) try {
+          await precacheImage(FileImage(file), context);
+        } catch (e, stacktrace) {
+          analytics.logError(e, cause: 'Failed to precache image', stacktrace: stacktrace);
+        }
         onDownloadComplete(file);
       } else {
         yield 0.0;

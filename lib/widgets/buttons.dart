@@ -101,8 +101,8 @@ class _PrimaryButtonState extends State<PrimaryButton> {
       feedback: widget.feedback,
       onLongPress: widget.onLongPress,
       onPressed: widget.onPressed,
-      backgroundColor: Palette.of(context).primaryContainer,
-      textColor: Palette.of(context).onPrimaryContainer
+      backgroundColor: Palette.of(context).primary,
+      textColor: Palette.of(context).onPrimary,
     );
   }
 

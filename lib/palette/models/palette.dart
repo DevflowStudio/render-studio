@@ -17,6 +17,8 @@ class ColorPalette {
   late Color onBackground;
   late Color surface;
 
+  late bool isLightBackground;
+
   ColorPalette({
     required this.id,
     required this.colors
@@ -102,6 +104,7 @@ class ColorPalette {
     _colors.remove(tertiary);
     surface = _colors.getRandom();
     _colors.remove(surface);
+    isLightBackground = background.isLight;
   }
 
   Map toJSON() {

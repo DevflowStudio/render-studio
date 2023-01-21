@@ -51,14 +51,10 @@ class Group {
     }
   }
 
-  // void delete() {
-  //   List<CreatorWidget> widgets = group.widgets;
-  //   for (CreatorWidget widget in widgets) {
-  //     widget.group = null;
-  //     group.page.widgets.add(widget, soft: true);
-  //   }
-  //   group.page.widgets.delete(group.uid);
-  // }
+  void lock(CreatorWidget widget) {
+    WidgetGroup group = findGroup(widget);
+    group.lock();
+  }
   
   @override
   bool operator ==(Object other) {
@@ -74,6 +70,17 @@ class WidgetGroup extends CreatorWidget {
 
   static Future<void> create({
     required CreatorPage page,
+    List<CreatorWidget>? widgets
+  }) async {
+    WidgetGroup? group = await _createGroup(page: page, widgets: widgets);
+    if (group == null) return;
+    page.widgets.add(group);
+    page.widgets.select(group.widgets.first);
+  }
+
+  static Future<WidgetGroup?> _createGroup({
+    required CreatorPage page,
+    List<CreatorWidget>? widgets
   }) async {
     // if (page.widgets.nSelections < 2) {
     //   Alerts.snackbar(context, text: 'Select at least 2 widgets to group');
@@ -85,12 +92,12 @@ class WidgetGroup extends CreatorWidget {
     try {
       WidgetGroup group = WidgetGroup(page: page);
       group._group = Group.create(group.uid);
-      List<CreatorWidget> _widgets = page.widgets.selections;
+      List<CreatorWidget> _widgets = widgets ?? page.widgets.selections;
       // _widgets.removeWhere((element) => element is WidgetGroup);
       if (_widgets.length < 2) {
-        return;
+        return null;
       } else if (_widgets.length > 10) {
-        return;
+        return null;
       }
 
       for (CreatorWidget widget in _widgets) {
@@ -101,15 +108,13 @@ class WidgetGroup extends CreatorWidget {
         group.widgets.add(widget);
       }
 
-      for (CreatorWidget widget in group.widgets) {
+      if (widgets == null) for (CreatorWidget widget in group.widgets) {
         page.widgets.delete(widget.uid, soft: true);
       }
 
       group.resizeGroup();
 
-      page.widgets.add(group);
-
-      page.widgets.select(group.widgets.first);
+      return group;
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'Failed to group widgets', stacktrace: stacktrace);
       return null;
@@ -238,11 +243,17 @@ class WidgetGroup extends CreatorWidget {
   @override
   void onResize(Size size) {
     double scale = size.width / this.size.width;
+    bool resizeAllowed = true;
     for (CreatorWidget widget in widgets) {
-      if (!widget.scale(scale)) {
+      var scaledSize = Size(widget.size.width * scale, widget.size.height * scale);
+      if (!widget.allowResize(scaledSize)) {
         minSize = size;
+        resizeAllowed = false;
         return;
       }
+    }
+    if (resizeAllowed) for (CreatorWidget widget in widgets) {
+      widget.size = Size(widget.size.width * scale, widget.size.height * scale);
       widget.position = Offset(widget.position.dx * scale, widget.position.dy * scale);
     }
     super.onResize(size);
@@ -284,6 +295,23 @@ class WidgetGroup extends CreatorWidget {
       if (!widget.scale(scale)) return false;
     }
     return super.scale(scale);
+  }
+
+  @override
+  bool get isLocked => widgets.any((element) => element.isLocked);
+
+  void lock() {
+    for (CreatorWidget widget in widgets) {
+      if (!widget.isLocked) widget.lock();
+      widget.updateListeners(WidgetChange.lock);
+    }
+  }
+
+  void unlock() {
+    for (CreatorWidget widget in widgets) {
+      if (widget.isLocked) widget.unlock();
+      widget.updateListeners(WidgetChange.lock);
+    }
   }
 
   @override
@@ -361,5 +389,18 @@ class WidgetGroup extends CreatorWidget {
 
   @override
   void onDelete() { }
+  
+  @override
+  Future<CreatorWidget?> duplicate() async {
+    List<CreatorWidget> dWidgets = [];
+    for (CreatorWidget widget in widgets) {
+      Map data = widget.toJSON();
+      data['uid'] = Constants.generateID();
+      data['group'] = null;
+      dWidgets.tryAdd(CreatorWidget.fromJSON(data, page: page, buildInfo: BuildInfo(buildType: BuildType.unknown)));
+    }
+    WidgetGroup? group = await WidgetGroup._createGroup(page: page, widgets: dWidgets);
+    return group;
+  }
 
 }

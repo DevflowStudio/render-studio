@@ -1,5 +1,5 @@
 import 'dart:ui';
-
+import 'package:touch_ripple_effect/touch_ripple_effect.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
@@ -9,6 +9,7 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:universal_io/io.dart';
 import 'package:sliver_tools/sliver_tools.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../rehmat.dart';
 
 class UnsplashImagePicker extends StatefulWidget {
@@ -41,45 +42,224 @@ class _UnsplashImagePickerState extends State<UnsplashImagePicker> {
 
   TextEditingController searchCtrl = TextEditingController();
 
+  UnsplashPhoto? selected;
+
   String? query;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: CustomScrollView(
-        cacheExtent: MediaQuery.of(context).size.height * 3,
-        slivers: [
-          RenderAppBar(
-            title: Text('Unsplash'),
-            isExpandable: false,
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 6,
-                vertical: 3
+      body: Stack(
+        children: [
+          CustomScrollView(
+            cacheExtent: MediaQuery.of(context).size.height * 3,
+            slivers: [
+              RenderAppBar(
+                title: Text('Unsplash'),
+                isExpandable: false,
               ),
-              child: SearchBar(
-                controller: searchCtrl,
-                placeholder: 'Search',
-                onSubmitted: (value) {
-                  if (value.trim().isEmpty) setState(() {
-                    query = null;
-                  });
-                  else setState(() {
-                    query = value;
-                  });
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3
+                  ),
+                  child: SearchBar(
+                    controller: searchCtrl,
+                    placeholder: 'Search',
+                    onSubmitted: (value) {
+                      if (value.trim().isEmpty) setState(() {
+                        query = null;
+                      });
+                      else setState(() {
+                        query = value;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              UnsplashResultBuilder(
+                query: query,
+                downloadOnSelect: false,
+                onSelect: (file, photo) {
+                  selected = photo;
+                  setState(() { });
+                },
+              ),
+            ],
+          ),
+          if (selected != null) Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).padding.bottom,
+                left: 12,
+                right: 12
+              ),
+              child: UnsplashPhotoInfo(
+                photo: selected!,
+                onDownload: (file) {
+                  if (file != null) Navigator.of(context).pop(file);
                 },
               ),
             ),
-          ),
-          UnsplashResultBuilder(
-            query: query,
-            onSelect: (file) {
-              Navigator.of(context).pop(file);
-            },
-          ),
+          )
         ],
+      ),
+    );
+  }
+
+}
+
+class UnsplashPhotoInfo extends StatefulWidget {
+
+  const UnsplashPhotoInfo({
+    Key? key,
+    required this.photo,
+    this.onDownload
+  }) : super(key: key);
+
+  final UnsplashPhoto photo;
+  final Function(File? file)? onDownload;
+
+  @override
+  State<UnsplashPhotoInfo> createState() => _UnsplashPhotoInfoState();
+}
+
+class _UnsplashPhotoInfoState extends State<UnsplashPhotoInfo> {
+
+  bool isLoading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(32),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Palette.of(context).background.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(32),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(
+            right: 12,
+          ),
+          child: Stack(
+            children: [
+              BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: SizedBox(),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Alerts.snackbar(
+                          context,
+                          text: 'Visit @${widget.photo.user.username}\'s portfolio?',
+                          action: SnackBarAction(
+                            label: 'Visit',
+                            onPressed: () {
+                              launchUrl(Uri.parse(widget.photo.user.portfolioURL));
+                            },
+                          ),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 12,
+                          top: 12,
+                          bottom: 12
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              height: 40,
+                              width: 40,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: OctoImage(
+                                  image: NetworkImage(
+                                    widget.photo.user.profileImage
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 6,),
+                            Flexible(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    widget.photo.user.name,
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'Photo by: @${widget.photo.user.username}',
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 40,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        // File? file = await UnsplashAPI.download(selected!);
+                        // if (file == null) return;
+                        // Navigator.of(context).pop(file);
+                        if (isLoading) return;
+                        setState(() {
+                          isLoading = true;
+                        });
+                        if (widget.onDownload != null) widget.photo.download(
+                          context,
+                          onDownloadComplete: (file) {
+                            if (mounted) setState(() {
+                              isLoading = false;
+                            });
+                            widget.onDownload!(file);
+                          }
+                        );
+                      },
+                      child: isLoading ? SizedBox(
+                        width: 13,
+                        height: 13,
+                        child: Spinner(
+                          strokeWidth: 1.5,
+                          valueColor: Palette.of(context).onPrimary,
+                        )
+                      ) : Text(
+                        'Select',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Palette.of(context).onPrimary
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 22,
+                        )
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -92,10 +272,12 @@ class UnsplashResultBuilder extends StatefulWidget {
     super.key,
     this.query,
     required this.onSelect,
+    this.downloadOnSelect = true
   });
 
   final String? query;
-  final Function(File? file) onSelect;
+  final Function(File? file, UnsplashPhoto photo) onSelect;
+  final bool downloadOnSelect;
 
   @override
   State<UnsplashResultBuilder> createState() => _UnsplashResultBuilderState();
@@ -118,9 +300,14 @@ class _UnsplashResultBuilderState extends State<UnsplashResultBuilder> {
       pagingController: api.controller,
       builderDelegate: PagedChildBuilderDelegate(
         itemBuilder: (context, photo, index) {
-          return _UnsplashPhotoBuilder(
-            photo: photo,
-            onSelect: widget.onSelect,
+          return SizedBox(
+            height: ((MediaQuery.of(context).size.width / 2) - 4.5) / (photo.size.width / photo.size.height),
+            width: (MediaQuery.of(context).size.width / 2) - 4.5,
+            child: UnsplashPhotoBuilder(
+              photo: photo,
+              onSelect: widget.onSelect,
+              downloadOnSelect: widget.downloadOnSelect
+            ),
           );
         },
         firstPageErrorIndicatorBuilder: (context) => Padding(
@@ -267,8 +454,8 @@ class _UnsplashResultBuilderState extends State<UnsplashResultBuilder> {
               itemBuilder,
               childCount: itemCount,
             ),
-            crossAxisSpacing: 0,
-            mainAxisSpacing: 0,
+            crossAxisSpacing: 3,
+            mainAxisSpacing: 3,
             gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
             ),
@@ -283,22 +470,24 @@ class _UnsplashResultBuilderState extends State<UnsplashResultBuilder> {
 
 }
 
-class _UnsplashPhotoBuilder extends StatefulWidget {
+class UnsplashPhotoBuilder extends StatefulWidget {
 
-  _UnsplashPhotoBuilder({
+  UnsplashPhotoBuilder({
     Key? key,
     required this.photo,
-    required this.onSelect
+    required this.onSelect,
+    this.downloadOnSelect = true
   }) : super(key: key);
 
   final UnsplashPhoto photo;
-  final Function(File? file) onSelect;
+  final Function(File? file, UnsplashPhoto photo) onSelect;
+  final bool downloadOnSelect;
 
   @override
-  State<_UnsplashPhotoBuilder> createState() => __UnsplashPhotoBuilderState();
+  State<UnsplashPhotoBuilder> createState() => __UnsplashPhotoBuilderState();
 }
 
-class __UnsplashPhotoBuilderState extends State<_UnsplashPhotoBuilder> {
+class __UnsplashPhotoBuilderState extends State<UnsplashPhotoBuilder> {
 
   late UnsplashPhoto photo;
 
@@ -321,102 +510,95 @@ class __UnsplashPhotoBuilderState extends State<_UnsplashPhotoBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(3),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: SizedBox(
-          width: (MediaQuery.of(context).size.width/2 - (6 + 6/3)), // adjusted for padding
-          height: (MediaQuery.of(context).size.width/2 - (6 + 6/3)) * 1/photo.ratio,
-          child: GestureDetector(
-            onTap: () async {
-              photo.download(
-                context,
-                onDownloadComplete: (file) {
-                  widget.onSelect(file);
-                },
-              );
-            },
-            child: AnimatedSwitcher(
-              duration: Constants.animationDuration,
-              child: photo.isLoading ? Stack(
-                children: [
-                  BlurHash(
-                    hash: photo.blurHash,
+    return TouchRippleEffect(
+      rippleColor: Palette.of(context).background,
+      rippleDuration: kAnimationDuration,
+      onTap: () async {
+        if (widget.downloadOnSelect) photo.download(
+          context,
+          onDownloadComplete: (file) {
+            widget.onSelect(file, photo);
+          },
+        );
+        else widget.onSelect(null, photo);
+      },
+      child: AnimatedSwitcher(
+        duration: Constants.animationDuration,
+        child: photo.isLoading ? Stack(
+          children: [
+            BlurHash(
+              hash: photo.blurHash,
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Palette.of(context).background.withOpacity(0.5)
+                    ),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Spinner(
+                          adaptive: false,
+                          valueColor: Palette.of(context).onBackground,
+                          strokeWidth: 2,
+                          value: photo.progress,
+                        ),
+                      ),
+                    ),
                   ),
-                  Align(
-                    alignment: Alignment.center,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Palette.of(context).background.withOpacity(0.5)
-                          ),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: Spinner(
-                                adaptive: false,
-                                valueColor: Palette.of(context).onBackground,
-                                strokeWidth: 2,
-                                value: photo.progress,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              ) : OctoImage(
-                image: CachedNetworkImageProvider(photo.url),
-                placeholderBuilder: (context) => BlurHash(
-                  hash: photo.blurHash,
-                ),
-                errorBuilder: (context, error, stackTrace) => Stack(
-                  children: [
-                    BlurHash(
-                      hash: photo.blurHash,
-                    ),
-                    Align(
-                      alignment: Alignment.center,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Palette.of(context).background.withOpacity(0.5)
-                          ),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6
-                              ),
-                              child: Wrap(
-                                alignment: WrapAlignment.center,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  Icon(RenderIcons.warning),
-                                  SizedBox(width: 6,),
-                                  Text(
-                                    'Unable to load image',
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
                 ),
               ),
-            ),
+            )
+          ],
+        ) : OctoImage(
+          image: CachedNetworkImageProvider(photo.url),
+          placeholderBuilder: (context) => BlurHash(
+            hash: photo.blurHash,
+          ),
+          errorBuilder: (context, error, stackTrace) => Stack(
+            children: [
+              BlurHash(
+                hash: photo.blurHash,
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Palette.of(context).background.withOpacity(0.5)
+                    ),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6
+                        ),
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Icon(RenderIcons.warning),
+                            SizedBox(width: 6,),
+                            Text(
+                              'Unable to load image',
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            ],
           ),
         ),
       ),
