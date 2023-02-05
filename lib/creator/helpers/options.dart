@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../rehmat.dart';
 
 class Option {
@@ -86,12 +85,18 @@ class Option {
       await EditorTab.modal(
         context,
         padding: EdgeInsets.zero,
-        tab: EditorTab.color(
+        actions: [
+          if (allowClear) IconButton(
+            onPressed: () => onChange(null),
+            icon: Icon(RenderIcons.delete)
+          )
+        ],
+        tab: (context, setState) => EditorTab.color(
           context,
           onChange: onChange,
           palette: palette,
           selected: selected,
-          allowOpacity: allowOpacity
+          allowOpacity: allowOpacity,
         )
       );
       onChangeEnd(null);
@@ -133,7 +138,7 @@ class Option {
     onTap: (context) {
       EditorTab.modal(
         context,
-        tab: EditorTab.reorder(
+        tab: (context, setState) => EditorTab.reorder(
           widget: widget,
           onReorder: () {},
           onReorderEnd: () {}
@@ -163,7 +168,7 @@ class Option {
     onTap: (context) => {
       EditorTab.modal(
         context,
-        tab: EditorTab(
+        tab: (context, setState) => EditorTab(
           tab: title,
           type: EditorTabType.single,
           options: [
@@ -239,9 +244,8 @@ class Option {
       child: Text(
         'Aa',
         style: GoogleFonts.getFont(font).copyWith(
-          fontSize: Theme.of(context).textTheme.headline6!.fontSize,
+          fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
           color: Palette.of(context).onSecondaryContainer,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal
         ),
       ),
       tooltip: '$font',
@@ -258,7 +262,7 @@ class Option {
     onTap: (context) {
       EditorTab.modal(
         context,
-        tab: EditorTab.rotate(
+        tab: (context, setState) => EditorTab.rotate(
           angle: widget.angle,
           onChange: (value) {
             widget.angle = value;
@@ -285,10 +289,10 @@ class Option {
     onTap: (context) {
       EditorTab.modal(
         context,
-        tab: EditorTab.scale(
+        tab: (context, setState) => EditorTab.scale(
           size: widget.size,
           minSize: widget.minSize ?? Size(20, 20),
-          maxSize: widget.page.project.contentSize,
+          maxSize: widget.page.project.contentSize * 1.5,
           onChange: (value) {
             widget.size  = value;
             widget.updateListeners(WidgetChange.misc);
@@ -314,7 +318,7 @@ class Option {
     onTap: (context) {
       EditorTab.modal(
         context,
-        tab: EditorTab.opacity(
+        tab: (context, setState) => EditorTab.opacity(
           opacity: widget.opacity,
           onChange: (value) {
             widget.opacity = value;
@@ -341,7 +345,7 @@ class Option {
     onTap: (context) async {
       await EditorTab.modal(
         context,
-        tab: EditorTab.nudge(
+        tab: (context, setState) => EditorTab.nudge(
           onDXchange: (dx) {
             widget.position = Offset(widget.position.dx + dx, widget.position.dy);
             widget.updateListeners(WidgetChange.misc);
@@ -367,7 +371,7 @@ class Option {
     title: title,
     onTap: (context) =>  EditorTab.modal(
       context,
-      tab: EditorTab.position(
+      tab: (context, setState) => EditorTab.position(
         widget: widget
       )
     ),
@@ -392,7 +396,8 @@ class CustomSlider extends StatefulWidget {
     this.onChangeEnd,
     this.label,
     this.snapPoints,
-    this.snapSensitivity
+    this.snapSensitivity,
+    this.actions = const [],
   }) : super(key: key);
 
   final String? label;
@@ -405,6 +410,7 @@ class CustomSlider extends StatefulWidget {
   final Function(double value)? onChangeEnd;
   final List<num>? snapPoints;
   final num? snapSensitivity;
+  final List<Widget> actions;
 
   @override
   _CustomSliderState createState() => _CustomSliderState();
@@ -427,26 +433,42 @@ class _CustomSliderState extends State<CustomSlider> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).padding.bottom
+        if (widget.label != null) ... [
+          Text(
+            widget.label ?? 'Label',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+            ),
           ),
-          child: Slider(
-            value: value,
-            onChangeStart: widget.onChangeStart,
-            onChangeEnd: (value) {
-              onChange(value);
-              widget.onChangeEnd?.call(this.value);
-            },
-            onChanged: (value) {
-              onChange(value);
-              widget.onChange(this.value);
-            },
-            divisions: widget.divisions,
-            min: widget.min,
-            max: widget.max,
-          ),
+          SizedBox(height: 6),
+        ],
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Slider(
+                value: value,
+                onChangeStart: widget.onChangeStart,
+                onChangeEnd: (value) {
+                  onChange(value);
+                  widget.onChangeEnd?.call(this.value);
+                },
+                onChanged: (value) {
+                  onChange(value);
+                  widget.onChange(this.value);
+                },
+                divisions: widget.divisions,
+                min: widget.min,
+                max: widget.max,
+              ),
+            ),
+            if (widget.actions.isNotEmpty) ... [
+              SizedBox(width: 12),
+              ... widget.actions,
+            ],
+          ],
         ),
       ],
     );

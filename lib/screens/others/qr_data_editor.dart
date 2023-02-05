@@ -51,7 +51,7 @@ class _QRCodeDataEditorState extends State<QRCodeDataEditor> {
                           style: TextStyle(
                             color: _QRCodeType.values[index] == type
                               ? Theme.of(context).colorScheme.secondary
-                              : Theme.of(context).textTheme.bodyText1!.color
+                              : Theme.of(context).textTheme.bodyLarge!.color
                           ),
                         ),
                       )

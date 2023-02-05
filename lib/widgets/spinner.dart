@@ -91,7 +91,7 @@ class Spinner extends StatefulWidget {
                   children: [
                     Text(
                       message,
-                      style: Theme.of(context).textTheme.caption,
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                     SizedBox(height: 6,),
                     SizedBox(

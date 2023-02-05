@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:align_positioned/align_positioned.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../rehmat.dart';
@@ -278,13 +277,12 @@ class WidgetManager extends ChangeNotifier {
         controller: _widgets[uid]!.stateCtrl,
         widget: _widgets[uid]!,
         page: page,
-        isInteractive: isInteractive,
       )).toList(),
-      _MultiselectDragOverlay(widgets: this),
       _WidgetHandlerBuilder(
         key: ValueKey('widget-${selections.firstOrNull?.uid}}'),
         manager: this
-      )
+      ),
+      _MultiselectDragOverlay(widgets: this)
     ];
   }
 
@@ -397,23 +395,18 @@ class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
             if (_selectorStart != null && _selectorMiddle != null && _selectorEnd != null) AlignPositioned(
               dx: _selectorMiddle!.dx,
               dy: _selectorMiddle!.dy,
-              child: ClipRRect(
-                child: SizedBox(
-                  width: (_selectorStart!.dx - _selectorEnd!.dx).abs(),
-                  height: (_selectorStart!.dy - _selectorEnd!.dy).abs(),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Palette.of(context).background.withOpacity(0.1),
-                        border: Border.all(
-                          color: Palette.of(context).outline,
-                          width: 1,
-                        ),
-                      ),
+              child: SizedBox(
+                width: (_selectorStart!.dx - _selectorEnd!.dx).abs(),
+                height: (_selectorStart!.dy - _selectorEnd!.dy).abs(),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Palette.of(context).primary.harmonizeWith(widgets.page.palette.background).withOpacity(0.2),
+                    border: Border.all(
+                      color: Palette.of(context).primary,
+                      width: 1,
                     ),
-                  )
-                ),
+                  ),
+                )
               ),
             ),
           ],
@@ -458,12 +451,16 @@ class __WidgetHandlerBuilderState extends State<_WidgetHandlerBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    if (manager.selections.length > 1 || manager.selections.firstOrNull is BackgroundWidget || manager.selections.firstOrNull == null) return Container();
+    if (manager.selections.firstOrNull is BackgroundWidget || manager.selections.firstOrNull == null) return Container();
     else if (manager.selections.first.group != null) return WidgetHandlerBuilder(
       widget: manager.selections.first.group!.findGroup(manager.selections.first)
     );
-    else return WidgetHandlerBuilder(
-      widget: manager.selections.first
+    else return Stack(
+      children: [
+        for (CreatorWidget widget in manager.selections) WidgetHandlerBuilder(
+          widget: widget
+        ),
+      ],
     );
   }
 

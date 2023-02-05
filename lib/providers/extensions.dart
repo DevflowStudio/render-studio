@@ -48,6 +48,17 @@ extension ListsExtension<T> on List<T> {
     return closest;
   }
 
+  int nextIndex(int current) {
+    int lth = this.length;
+    if (lth == 0) throw Exception('List is empty');
+    if (lth == 1) return 0;
+    if (current + 1 >= lth) {
+      return 0;
+    } else {
+      return current + 1;
+    }
+  }
+
 }
 
 extension MapExtension<T, V> on Map<T, V> {
@@ -94,6 +105,8 @@ extension IntExtension on int {
     }
   }
 
+  List<int> upTo(int maxInclusive, {int stepSize = 1}) => [for (int i = this; i <= maxInclusive; i += stepSize) i];
+
 }
 
 extension DoubleExtension on double {
@@ -101,6 +114,8 @@ extension DoubleExtension on double {
   double trimToDecimal([int place = 2]) {
     return double.tryParse(this.toStringAsFixed(place)) ?? 0;
   }
+
+  List<double> upTo(double maxInclusive, {double stepSize = 1}) => [for (double i = this; i <= maxInclusive; i += stepSize) i];
   
 }
 

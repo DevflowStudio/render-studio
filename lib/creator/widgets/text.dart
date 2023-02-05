@@ -1,3 +1,5 @@
+import 'dart:ui';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:easy_rich_text/easy_rich_text.dart';
@@ -17,6 +19,7 @@ class CreatorText extends CreatorWidget {
   void onInitialize() {
     primaryStyle = CreativeTextStyle(widget: this);
     primaryStyle.color = page.palette.onBackground;
+    containerProvider = CreativeContainerProvider.create(this);
     super.onInitialize();
   }
 
@@ -32,6 +35,121 @@ class CreatorText extends CreatorWidget {
             await showEditTextModal(context);
           },
           icon: RenderIcons.keyboard
+        ),
+        Option(
+          widget: (context) => ButtonWithIcon(
+            title: 'Font',
+            onTap: (context) async {
+              await EditorTab.modal(
+                context,
+                height: 170,
+                actions: [
+                  IconButton(
+                    onPressed: () async {
+                      String? _font = await AppRouter.push<String>(context, page: const FontSelector());
+                      if (_font != null) fontFamily = _font;
+                      updateListeners(WidgetChange.misc);
+                      Navigator.of(context).pop();
+                    },
+                    icon: Icon(RenderIcons.search)
+                  )
+                ],
+                tab: (context, setState) {
+                  List<String> fonts = [
+                    'Roboto',
+                    'Inter',
+                    'Poppins',
+                    'Abril Fatface',
+                    'Open Sans',
+                    'Alegreya',
+                    'Montserrat',
+                    'Noto Sans',
+                    'Ubuntu',
+                    'Merriweather',
+                    'Lato',
+                    'Raleway',
+                    'Oswald',
+                    'Lora',
+                    'Nunito',
+                    'Playfair Display',
+                    'PT Sans',
+                    'PT Serif',
+                    'Roboto Slab',
+                    'Source Sans Pro',
+                    'Fira Sans',
+                    'Work Sans',
+                    'Barlow Condensed',
+                  ];
+                  if (!fonts.contains(fontFamily)) fonts.insert(0, fontFamily);
+                  return EditorTab(
+                    tab: 'Fonts',
+                    type: EditorTabType.hGrid,
+                    options: [
+                      for (String font in fonts) Option.custom(
+                        widget: (context) => SizedBox(
+                          height: 80,
+                          width: 80,
+                          child: InkWell(
+                            onTap: () {
+                              fontFamily = font;
+                              updateListeners(WidgetChange.misc);
+                              setState(() { });
+                            },
+                            child: AnimatedContainer(
+                              duration: Duration(milliseconds: 100),
+                              padding: EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                color: font == fontFamily ? Palette.of(context).surfaceVariant : null,
+                                border: font == fontFamily ? Border.all(
+                                  color: Palette.of(context).outline,
+                                  width: 2
+                                ) : null,
+                                borderRadius: BorderRadius.circular(12)
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Aa',
+                                    style: GoogleFonts.getFont(font).copyWith(
+                                      fontSize: 40,
+                                      color: Theme.of(context).textTheme.bodySmall?.color,
+                                    ),
+                                  ),
+                                  AutoSizeText(
+                                    font,
+                                    minFontSize: 12,
+                                    maxFontSize: 16,
+                                    wrapWords: false,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontFamily: 'Google Sans',
+                                      height: 0.77,
+                                      color: Constants.getThemedObject(context, light: Colors.grey, dark: Colors.grey[400])
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              );
+              updateListeners(WidgetChange.update);
+            },
+            child: Text(
+              'Aa',
+              style: GoogleFonts.getFont(fontFamily).copyWith(
+                fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
+                color: Palette.of(context).onSecondaryContainer,
+              ),
+            ),
+            tooltip: 'Select Font',
+          )
         ),
         Option.toggle(
           title: 'Auto Size',
@@ -53,7 +171,7 @@ class CreatorText extends CreatorWidget {
             updateListeners(WidgetChange.misc);
             await EditorTab.modal(
               context,
-              tab: EditorTab.size(
+              tab: (context, setState) => EditorTab.size(
                 current: fontSize,
                 min: 10,
                 max: 200,
@@ -71,40 +189,40 @@ class CreatorText extends CreatorWidget {
         ... defaultOptions,
       ],
     ),
-    EditorTab(
-      tab: 'Font',
-      options: [
-        Option.button(
-          title: 'Search',
-          onTap: (context) async {
-            String? _font = await AppRouter.push<String>(context, page: const FontSelector());
-            if (_font != null) fontFamily = _font;
-            notifyListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.search,
-          tooltip: 'Search Fonts'
-        ),
-        for (String font in [
-          'Roboto',
-          'Poppins',
-          'Abril Fatface',
-          'Open Sans',
-          'Montserrat',
-          'Noto Sans',
-          'Ubuntu',
-          'Merriweather',
-          'Playfair Display',
-          'DM Sans'
-        ]) Option.font(
-          font: font,
-          isSelected: fontFamily == font,
-          onFontSelect: (context, font) {
-            this.fontFamily = font;
-            updateListeners(WidgetChange.update);
-          },
-        ),
-      ],
-    ),
+    // EditorTab(
+    //   tab: 'Font',
+    //   options: [
+    //     Option.button(
+    //       title: 'Search',
+    //       onTap: (context) async {
+    //         String? _font = await AppRouter.push<String>(context, page: const FontSelector());
+    //         if (_font != null) fontFamily = _font;
+    //         notifyListeners(WidgetChange.update);
+    //       },
+    //       icon: RenderIcons.search,
+    //       tooltip: 'Search Fonts'
+    //     ),
+    //     for (String font in [
+    //       'Roboto',
+    //       'Poppins',
+    //       'Abril Fatface',
+    //       'Open Sans',
+    //       'Montserrat',
+    //       'Noto Sans',
+    //       'Ubuntu',
+    //       'Merriweather',
+    //       'Playfair Display',
+    //       'DM Sans'
+    //     ]) Option.font(
+    //       font: font,
+    //       isSelected: fontFamily == font,
+    //       onFontSelect: (context, font) {
+    //         this.fontFamily = font;
+    //         updateListeners(WidgetChange.update);
+    //       },
+    //     ),
+    //   ],
+    // ),
     EditorTab(
       tab: 'Style',
       options: [
@@ -154,64 +272,10 @@ class CreatorText extends CreatorWidget {
         ]
       ],
     ),
-    EditorTab(
-      tab: 'Background',
-      options: [
-        Option.button(
-          icon: RenderIcons.remove,
-          title: 'Remove Text Background',
-          tooltip: '',
-          onTap: (context) async {
-            // page.delete(this);
-          },
-        ),
-        Option.color(
-          icon: RenderIcons.color,
-          title: 'Color',
-          tooltip: 'Tap to select background color',
-          onChange: (color) async {
-            if (color != null) widgetColor = color;
-            updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (color) {
-            updateListeners(WidgetChange.update);
-          },
-        ),
-        Option.showSlider(
-          icon: RenderIcons.border_radius,
-          title: 'Radius',
-          max: 0,
-          min: 100,
-          value: borderRadius,
-          onChange: (value) {
-            radius = value;
-            updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (value) {
-            radius = value;
-            updateListeners(WidgetChange.update);
-          },
-        ),
-        Option.button(
-          title: 'Padding',
-          onTap: (context) async {
-            await EditorTab.modal(
-              context,
-              height: 200,
-              tab: EditorTab.paddingEditor(
-                padding: padding,
-                onChange: (value) {
-                  padding = value;
-                  updateListeners(WidgetChange.misc);
-                },
-              )
-            );
-            updateListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.padding,
-          tooltip: 'Adjust Padding'
-        ),
-      ],
+    containerProvider.editor(
+      onChange: (change) {
+        updateListeners(change);
+      },
     ),
     EditorTab(
       tab: 'Alignment',
@@ -259,21 +323,16 @@ class CreatorText extends CreatorWidget {
       options: [
         Option.button(
           title: 'Shadow',
-          onTap: (context) {
+          onTap: (context) async {
             if (shadows == null) shadows = [Shadow()];
-            EditorTab.modal(
+            await EditorTab.modal(
               context,
-              tab: EditorTab.shadow<Shadow>(
+              tab: (context, setState) => EditorTab.shadow<Shadow>(
                 shadow: shadows!.first,
                 onChange: (value) {
                   if (value == null) shadows = null;
                   else shadows = [value];
                   updateListeners(WidgetChange.misc);
-                },
-                onChangeEnd: (value) {
-                  if (value == null) shadows = null;
-                  else shadows = [value];
-                  updateListeners(WidgetChange.update);
                 },
               ),
               actions: [
@@ -288,6 +347,7 @@ class CreatorText extends CreatorWidget {
                 )
               ]
             );
+            updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.shadow,
           tooltip: 'Customize shadow of text'
@@ -456,6 +516,8 @@ class CreatorText extends CreatorWidget {
 
   bool isResizable = true;
   bool isDraggable = true;
+
+  bool keepAspectRatio = false;
   
   /// BackgroundWidget Color
   Color textBackground = Colors.transparent;
@@ -479,7 +541,7 @@ class CreatorText extends CreatorWidget {
 
   double radius = 10;
 
-  double lineHeight = 1; // 0.77 alternative
+  double lineHeight = 0.77; // 0.77 alternative
 
   EdgeInsets padding = EdgeInsets.zero;
 
@@ -496,12 +558,9 @@ class CreatorText extends CreatorWidget {
 
   BoxShadow? boxShadow;
 
-  Widget widget(BuildContext context) => Container(
-    padding: padding,
-    decoration: BoxDecoration(
-      color: widgetColor,
-      borderRadius: BorderRadius.circular(radius),
-    ),
+  late CreativeContainerProvider containerProvider;
+
+  Widget widget(BuildContext context) => containerProvider.build(
     child: Center(child: textWidget),
   );
 
@@ -512,7 +571,7 @@ class CreatorText extends CreatorWidget {
     secondaryStyle: secondaryTextStyle,
     maxFontSize: 200,
     presetFontSizes: [
-      ... List.generate(500, (index) => index.toDouble()).reversed
+      ... 5.0.upTo(200, stepSize: 0.01).reversed
     ],
     onFontSizeChanged: (fontSize) {
       this.fontSize = fontSize;
@@ -555,97 +614,211 @@ class CreatorText extends CreatorWidget {
   }
 
   Future<void> showEditTextModal(BuildContext context) async {
-    String? text = await showModalBottomSheet(
+    TextEditingController textCtrl = TextEditingController(text: this.text);
+    textCtrl.selection = TextSelection.collapsed(offset: textCtrl.text.length);
+    TextAlign align = this.align;
+    var focusNode = FocusNode();
+    await showModalBottomSheet(
       context: context,
       enableDrag: false,
       isScrollControlled: true,
       barrierColor: Colors.transparent,
+      backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
-          TextEditingController textCtrl = TextEditingController(text: this.text);
-          textCtrl.selection = TextSelection.collapsed(offset: textCtrl.text.length);
-          return Container(
-            width: double.infinity,
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            decoration: BoxDecoration(
-              color: Palette.of(context).surfaceVariant,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 3,
-                  spreadRadius: 0,
-                )
-              ]
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          return SizedBox(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+              child: Container(
+                width: double.infinity,
+                margin: EdgeInsets.only(
+                  left: 6,
+                  right: 6,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Palette.of(context).background,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        NewBackButton(
-                          size: 20,
+                    TextFormField(
+                      autofocus: true,
+                      controller: textCtrl,
+                      focusNode: focusNode,
+                      decoration: InputDecoration(
+                        hintText: 'Type something ...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none
                         ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 6),
-                          child: Text(
-                            'Edit Text',
-                            style: Theme.of(context).textTheme.subtitle1!.copyWith(),
-                          ),
+                        filled: false,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 9
                         ),
-                      ],
-                    ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(textCtrl.text);
+                      ),
+                      minLines: 4,
+                      maxLines: 8,
+                      textAlign: align,
+                      style: TextStyle(
+                        fontFamily: fontFamily,
+                        fontSize: 20
+                      ),
+                      contextMenuBuilder: (BuildContext context, EditableTextState editableTextState) {
+                        return AdaptiveTextSelectionToolbar(
+                          anchors: editableTextState.contextMenuAnchors,
+                          children: [
+                            if (!editableTextState.currentTextEditingValue.selection.isCollapsed) Container(
+                              color: Constants.getThemedBlackAndWhite(context),
+                              child: TextButton(
+                                onPressed: () {
+                                  String text = editableTextState.currentTextEditingValue.selection.textInside(textCtrl.text);
+                                  textCtrl.text = textCtrl.text.replaceFirst(text, '*$text*');
+                                  textCtrl.selection = TextSelection.collapsed(offset: textCtrl.text.indexOf('*$text*') + text.length + 1);
+                                },
+                                child: Text(
+                                  'Style',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Constants.getThemedBlackAndWhite(context).isDark ? Colors.white : Colors.black,
+                                    fontFamily: 'SF Pro',
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            ... editableTextState.contextMenuButtonItems.map((ContextMenuButtonItem buttonItem) {
+                              return Container(
+                                color: Constants.getThemedBlackAndWhite(context),
+                                child: TextButton(
+                                  onPressed: buttonItem.onPressed,
+                                  child: Text(
+                                    CupertinoTextSelectionToolbarButton.getButtonLabel(context, buttonItem),
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Constants.getThemedBlackAndWhite(context).isDark ? Colors.white : Colors.black,
+                                      fontFamily: 'SF Pro',
+                                      fontWeight: FontWeight.w300,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList()
+                          ],
+                        );
                       },
-                      icon: Icon(RenderIcons.done)
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          InkWell(
+                            borderRadius: BorderRadius.circular(6),
+                            onTap: () {
+                              List<TextAlign> alignments = [
+                                TextAlign.left,
+                                TextAlign.center,
+                                TextAlign.right,
+                                TextAlign.justify,
+                              ];
+                              int index = alignments.indexOf(align);
+                              setState(() {
+                                align = alignments[alignments.nextIndex(index)];
+                              });
+                              updateListeners(WidgetChange.misc);
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Palette.of(context).outline,
+                                  width: 1
+                                ),
+                                borderRadius: BorderRadius.circular(6)
+                              ),
+                              child: Text(
+                                'Align: ${align.toString().split('.').last.toTitleCase()}',
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    Divider(
+                      height: 0,
+                      endIndent: 0,
+                      indent: 0,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Palette.of(context).surfaceVariant,
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(20),
+                          bottomRight: Radius.circular(20),
+                        ),
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              focusNode.hasFocus ? RenderIcons.close_keyboard : RenderIcons.keyboard,
+                            ),
+                            onPressed: () {
+                              if (MediaQuery.of(context).viewInsets.bottom > 0) {
+                                focusNode.unfocus();
+                              } else {
+                                focusNode.requestFocus();
+                              }
+                            },
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('Done')
+                          )
+                        ],
+                      ),
                     )
                   ],
-                ),
-                Padding(
-                  padding: EdgeInsets.only(left: 12, right: 12, bottom: 24),
-                  child: TextFormField(
-                    autofocus: true,
-                    controller: textCtrl,
-                    decoration: InputDecoration(
-                      hintText: 'Type something ...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none
-                      )
-                    ),
-                    minLines: 6,
-                    maxLines: 7,
-                  ),
                 )
-              ],
-            )
+              ),
+            ),
           );
         },
       ),
     );
-    if (text != null && text.trim() != '') this.text = text;
-    if (autoSize) _removeExtraSpaceFromSize();
-    // lineHeight = 1.0;
-    updateListeners(WidgetChange.update);
+    bool logHistory = this.text != textCtrl.text || align != this.align;
+    this.align = align;
+    String text = textCtrl.text;
+    if (text.trim() != '') this.text = text;
+    if (autoSize) _removeExtraSpaceFromSize(limitSize: true);
+    if (logHistory) updateListeners(WidgetChange.update);
+    else updateListeners(WidgetChange.misc);
+    if (_containsSecondaryStyle(text) && secondaryStyle == null) Alerts.snackbar(
+      context,
+      text: 'Please add a secondary style to apply new style to the selected text'
+    );
   }
 
   @override
-  void onResizeFinished(details, handler, {
+  void onResizeFinished({
+    DragEndDetails? details,
+    ResizeHandler? handler,
     bool updateNotify = true
   }) {
-    _removeExtraSpaceFromSize(handler);
-    super.onResizeFinished(details, handler);
+    _removeExtraSpaceFromSize(handler: handler);
+    super.onResizeFinished(details: details, handler: handler, updateNotify: updateNotify);
   }
 
-  void _removeExtraSpaceFromSize([ResizeHandler? handler]) {
+  void _removeExtraSpaceFromSize({
+    ResizeHandler? handler,
+    bool limitSize = false
+  }) {
     if (textWidget is CreativeTextWidget) return;
     String _text = text.replaceAll('*', '');
     final span = TextSpan(
@@ -662,19 +835,29 @@ class CreatorText extends CreatorWidget {
       maxLines: words.length,
       textDirection: TextDirection.ltr
     ) ..layout(minWidth: 0, maxWidth: size.width);
-    Size _newSize = textPainter.size;
-    Size __size = size;
-    if (((_newSize.width - size.width)).abs() > 5) __size = Size(_newSize.width, __size.height);
-    if (((_newSize.height - size.height)).abs() > 5) __size = Size(__size.width, _newSize.height);
-    // if (__size < size) size = __size;
-    _autoPositionAfterResize(oldSize: size, newSize: __size);
-    size = __size;
+    List lines = textPainter.computeLineMetrics();
+    if (lines.length > 1) {
+      double _lineHeight = 1.0;
+      for (int i = 0; i < lines.length; i++) {
+        if (i == 0) continue;
+        _lineHeight += lines[i].height / lines[i - 1].height;
+      }
+      _lineHeight /= lines.length;
+      lineHeight = _lineHeight;
+    }
+    Size wantedSize = textPainter.size + Offset(containerProvider.padding.horizontal, containerProvider.padding.vertical);
+    Size adjustedSize = size;
+    if (((wantedSize.width - size.width)).abs() > 5) adjustedSize = Size(wantedSize.width, adjustedSize.height);
+    if (((wantedSize.height - size.height)).abs() > 5) adjustedSize = Size(adjustedSize.width, wantedSize.height);
+    if (limitSize && adjustedSize.height >= page.project.contentSize.height * 0.75) adjustedSize = Size(adjustedSize.width, page.project.contentSize.height * 0.75);
+    if (limitSize && adjustedSize.width >= page.project.contentSize.width * 0.75) adjustedSize = Size(page.project.contentSize.width * 0.75, adjustedSize.height);
+    _autoPositionAfterResize(oldSize: size, newSize: adjustedSize);
+    size = adjustedSize;
   }
   
   /// Auto position after `_removeExtraSpaceFromSize()` has finished
   /// 
   /// Executing this provides a better experience when resizing the widget
-  // ignore: unused_element
   void _autoPositionAfterResize({
     required Size newSize,
     required Size oldSize
@@ -685,15 +868,18 @@ class CreatorText extends CreatorWidget {
     bool isLeftCornerOutOfBounds = position.dx - newSize.width/2 < (-page.project.contentSize.width/2);
     bool isRightCornerOutOfBounds = position.dx + newSize.width/2 > (page.project.contentSize.width/2);
 
-    if (isLeftCornerOutOfBounds || align == TextAlign.left) changeInX = (oldSize.width - newSize.width)/2;
+    int nWords = text.split(' ').length;
+
+    if (align == TextAlign.center || align == TextAlign.justify || nWords < 2);
+    else if (isLeftCornerOutOfBounds || align == TextAlign.left) changeInX = (oldSize.width - newSize.width)/2;
     else if (isRightCornerOutOfBounds || align == TextAlign.right) changeInX = -(oldSize.width - newSize.width)/2;
 
     position = Offset(position.dx - changeInX, position.dy - changeInY);
   }
 
-  @override
-  void updateListeners(WidgetChange change, {bool removeGrids = false}) {
-    super.updateListeners(change, removeGrids: removeGrids);
+  bool _containsSecondaryStyle(String text) {
+    // return true if the string contains words enclosed in asterisks
+    return text.contains(RegExp(r'\*.*\*'));
   }
 
   void onPaletteUpdate() {
@@ -727,6 +913,7 @@ class CreatorText extends CreatorWidget {
       'color': widgetColor?.toHex(),
       'radius': radius,
     },
+    'container-provider': containerProvider.toJSON(),
     'alignment': align.index,
     'shadows': shadows != null ? [
       for (Shadow shadow in shadows!) {
@@ -782,6 +969,10 @@ class CreatorText extends CreatorWidget {
 
       letterSpacing = json['spacing']['letter'];
       wordSpacing = json['spacing']['word'];
+
+      if (json['container-provider'] != null) {
+        containerProvider = CreativeContainerProvider.fromJSON(json['container-provider'], widget: this);
+      }
 
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'failed to render text', stacktrace: stacktrace);

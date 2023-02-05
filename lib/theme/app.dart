@@ -31,7 +31,6 @@ class AppTheme {
       fontFamily: 'Google Sans',
       colorScheme: colorScheme,
       useMaterial3: true,
-      backgroundColor: background,
       scaffoldBackgroundColor: background,
       drawerTheme: DrawerThemeData(
         backgroundColor: brightness == Brightness.light ? HexColor.fromHex('#f6f8fa') : HexColor.fromHex('#131417')
@@ -49,20 +48,18 @@ class AppTheme {
       ),
       popupMenuTheme: PopupMenuThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(15)),
+          borderRadius: BorderRadius.all(Radius.circular(12)),
           side: BorderSide(
             color: colorScheme.onSurfaceVariant.withOpacity(0.2),
             width: 0
           )
         ),
         textStyle: TextStyle(
-          fontFamily: 'Google Sans',
-          letterSpacing: 1,
+          fontFamily: 'Inter',
           color: colorScheme.onSurfaceVariant
         ),
-        color: colorScheme.surfaceVariant,
         enableFeedback: true,
-        elevation: 1
+        elevation: 0
       ),
       dialogTheme: DialogTheme(
         shape: RoundedRectangleBorder(
@@ -226,6 +223,7 @@ class AppTheme {
       dividerTheme: DividerThemeData(
         endIndent: 18,
         indent: 18,
+        thickness: 0.5,
         color: brightness == Brightness.light ? HexColor.fromHex('#e1e0e3') : HexColor.fromHex('#374049')
       ),
       snackBarTheme: SnackBarThemeData(

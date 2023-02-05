@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
@@ -83,7 +84,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                 indicator: creatorWidget.tabs.length > 1 ? null : const BoxDecoration(),
                 unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
                 isScrollable: true,
-                labelStyle: Theme.of(context).textTheme.subtitle2,
+                labelStyle: Theme.of(context).textTheme.titleSmall,
                 tabs: List.generate(
                   creatorWidget.tabs.length,
                   (index) => Tab(
@@ -205,7 +206,7 @@ class EditorTab {
   final List<Widget> actions;
 
   static Future<T?> modal<T>(BuildContext context, {
-    required EditorTab tab,
+    required EditorTab Function(BuildContext context, void Function(void Function()) setState) tab,
     double? height,
     Widget Function(BuildContext context, Widget child)? builder,
     List<Widget> actions = const [],
@@ -216,65 +217,82 @@ class EditorTab {
     isScrollControlled: true,
     barrierColor: Colors.transparent,
     backgroundColor: Colors.transparent,
-    builder: (context) => Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      decoration: BoxDecoration(
-        color: Palette.of(context).surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 3,
-            spreadRadius: 0,
-          )
-        ]
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    builder: (context) => StatefulBuilder(
+      builder: (context, setState) {
+        EditorTab _tab = tab(context, setState);
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          decoration: BoxDecoration(
+            color: Palette.of(context).surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 3,
+                spreadRadius: 0,
+              )
+            ]
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  NewBackButton(
-                    size: 20,
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 6),
-                    child: Text(
-                      tab.tab,
-                      style: Theme.of(context).textTheme.subtitle1!.copyWith(),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 3,
+                  vertical: 3
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        NewBackButton(
+                          size: 20,
+                          secondary: true,
+                        ),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 6),
+                          child: Text(
+                            _tab.tab,
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    ... actions,
+                  ],
+                ),
               ),
-              ... actions,
-            ],
-          ),
-          if (builder != null) SizedBox(
-            height: height,
-            child: builder(context, tab.build(context))
-          )
-          else Container(
-            constraints: BoxConstraints(
-              minHeight: Editor.calculateSize(context).height,
-              maxHeight: MediaQuery.of(context).size.height/2.7,
-            ),
-            child: Padding(
-              padding: padding ?? EdgeInsets.only(left: 5, right: 5, top: 20, bottom: 20),
-              child: SizedBox(
+              if (builder != null) SizedBox(
                 height: height,
-                child: tab.build(context)
+                child: builder(context, _tab.build(context))
+              )
+              else Container(
+                constraints: BoxConstraints(
+                  minHeight: Editor.calculateSize(context).height,
+                  maxHeight: MediaQuery.of(context).size.height/2.7,
+                ),
+                child: Padding(
+                  padding: padding ?? EdgeInsets.only(
+                    left: 5,
+                    right: 5,
+                    // top: 20,
+                    bottom: MediaQuery.of(context).padding.bottom + 12
+                  ),
+                  child: SizedBox(
+                    height: height,
+                    child: _tab.build(context)
+                  ),
+                ),
               ),
-            ),
-          ),
-        ],
-      )
+            ],
+          )
+        );
+      }
     ),
   );
 
@@ -310,9 +328,19 @@ class EditorTab {
             (index) => options[index].build(context)
           ),
         );
-      default:
+      case EditorTabType.hGrid:
+        return GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 6,
+            mainAxisSpacing: 6,
+          ),
+          padding: EdgeInsets.symmetric(horizontal: 6),
+          scrollDirection: Axis.horizontal,
+          itemCount: options.length,
+          itemBuilder: (context, index) => options[index].build(context),
+        );
     }
-    return Container();
   }
 
   static EditorTab opacity({
@@ -629,7 +657,6 @@ class EditorTab {
   static EditorTab shadow<T>({
     required Shadow shadow,
     required void Function(T? value) onChange,
-    void Function(T? value)? onChangeEnd,
   }) {
     return EditorTab(
       type: EditorTabType.single,
@@ -638,7 +665,6 @@ class EditorTab {
           widget: (context) => _ShadowEditor<T>(
             shadow: shadow,
             onChange: onChange,
-            onChangeEnd: onChangeEnd,
           ),
         )
       ],
@@ -827,23 +853,10 @@ enum EditorTabType {
   column,
   /// Arrange the options in a grid
   grid,
+  /// Arrange the options in a horizontal scrollable grid
+  hGrid,
   /// Center align the single widget
   single
-}
-
-extension EditorTabTypeExtension on EditorTabType {
-
-  // Size get size {
-  //   switch (this) {
-  //     case EditorTabType.row:
-  //       return const Size(double.maxFinite, 90);
-  //     case EditorTabType.column:
-  //       return const Size(double.maxFinite, 90);
-  //     default:
-  //       return const Size(double.maxFinite, 90);
-  //   }
-  // }
-
 }
 
 class _PaddingEditor extends StatefulWidget {
@@ -990,12 +1003,10 @@ class _ShadowEditor<T> extends StatefulWidget {
     Key? key,
     required this.shadow,
     required this.onChange,
-    this.onChangeEnd,
   });
 
   final Shadow shadow;
   final void Function(T value) onChange;
-  final void Function(T value)? onChangeEnd;
 
   @override
   State<_ShadowEditor<T>> createState() => __ShadowEditorState<T>();
@@ -1015,8 +1026,8 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
 
   Color color = Colors.black;
   double opacity = 0.3;
-  double x = 0;
-  double y = 0;
+  double distance = 0;
+  double direction = 0;
   double blur = 0;
   double spread = 0;
 
@@ -1024,12 +1035,9 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
   void initState() {
     shadow = (widget.shadow as T);
     color = _shadow.color;
-    x = _shadow.offset.dx;
-    y = _shadow.offset.dy;
+    getDirectionAndDistance();
     blur = _shadow.blurRadius;
     opacity = _shadow.color.opacity.trimToDecimal(1);
-    xController = TextEditingController.fromValue(TextEditingValue(text: x.toString()));
-    yController = TextEditingController.fromValue(TextEditingValue(text: y.toString()));
     blurController = TextEditingController.fromValue(TextEditingValue(text: blur.toString()));
     opacityController = TextEditingController.fromValue(TextEditingValue(text: opacity.toString()));
     super.initState();
@@ -1039,73 +1047,147 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12,),
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.start,
-        alignment: WrapAlignment.start,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ShadowEditorGroupValueEditor(
-            label: 'X',
-            textEditingController: xController,
-            signed: true,
+          // Wrap(
+          //   crossAxisAlignment: WrapCrossAlignment.start,
+          //   alignment: WrapAlignment.start,
+          //   children: [
+          //     // _ShadowEditorGroupValueEditor(
+          //     //   label: 'X',
+          //     //   textEditingController: xController,
+          //     //   signed: true,
+          //     //   onChange: (value) {
+          //     //     x = value;
+          //     //     onChange();
+          //     //   },
+          //     // ),
+          //     _ShadowEditorGroupValueEditor(
+          //       label: 'Blur',
+          //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //       textEditingController: blurController,
+          //       onChange: (value) {
+          //         blur = value;
+          //         onChange();
+          //       },
+          //     ),
+          //     // _ShadowEditorGroupValueEditor(
+          //     //   label: 'Y',
+          //     //   signed: true,
+          //     //   textEditingController: yController,
+          //     //   onChange: (value) {
+          //     //     y = value;
+          //     //     onChange();
+          //     //   },
+          //     // ),
+          //     // if (shadow.runtimeType != BoxShadow) _ShadowEditorGroupValueEditor(
+          //     //   label: 'Spread',
+          //     //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //     //   textEditingController: spreadController,
+          //     //   onChange: (value) {
+          //     //     spread = value;
+          //     //     onChange();
+          //     //   },
+          //     // ),
+          //   ],
+          // ),
+          Row(
+            children: [
+              Row(
+                children: [
+                  Text(
+                    'Color',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  ColorSelector(
+                    title: 'Color',
+                    onColorSelect: (color) {
+                      this.color = color;
+                      onChange();
+                    },
+                    reverseOrder: true,
+                    size: const Size(30, 30),
+                    color: color,
+                    tooltip: 'Shadow Color',
+                  ),
+                ],
+              ),
+              Spacer(),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Blur',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  SizedBox.fromSize(
+                    size: const Size(100, 50),
+                    child: TextFormField(
+                      controller: blurController,
+                      decoration: InputDecoration(
+                        hintText: '0 - 20',
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d{0,2}\.?\d{0,1}'))
+                      ],
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onChanged: (value) {
+                        if (value.isEmpty) return;
+                        try {
+                          double _value = double.parse(value);
+                          if (_value > 20) {
+                            blurController.text = '20';
+                            blur = 20;
+                          } else {
+                            blur = _value;
+                          }
+                        } catch (e, stacktrace) {
+                          analytics.logError(e, cause: 'ShadowEditorGroup', stacktrace: stacktrace);
+                        }
+                      },
+                    )
+                  )
+                ],
+              ),
+            ],
+          ),
+          CustomSlider(
+            value: distance,
+            min: 0,
+            max: 20,
+            label: 'Distance',
             onChange: (value) {
-              x = value;
+              distance = value;
               onChange();
             },
           ),
-          _ShadowEditorGroupValueEditor(
-            label: 'Blur',
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            textEditingController: blurController,
+          SizedBox(height: 12),
+          CustomSlider(
+            value: direction,
+            min: 0.0174533,
+            max: 6.28319,
+            label: 'Direction',
             onChange: (value) {
-              blur = value;
+              direction = value;
               onChange();
             },
           ),
-          _ShadowEditorGroupValueEditor(
-            label: 'Y',
-            signed: true,
-            textEditingController: yController,
-            onChange: (value) {
-              y = value;
-              onChange();
-            },
-          ),
-          if (shadow.runtimeType != BoxShadow) _ShadowEditorGroupValueEditor(
-            label: 'Spread',
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            textEditingController: spreadController,
-            onChange: (value) {
-              spread = value;
-              onChange();
-            },
-          ),
-          ... [
-            _ShadowEditorGroupValueEditor(
-              label: 'Opacity',
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              textEditingController: opacityController,
-              onChange: (value) {
-                opacity = value;
-                onChange();
-              },
-            ),
-            _ShadowEditorGroupWidget(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: ColorSelector(
-                  title: 'Color',
-                  onColorSelect: (color) {
-                    this.color = color;
-                    onChange();
-                  },
-                  reverseOrder: true,
-                  size: const Size(40, 40),
-                  color: color,
-                  tooltip: 'Shadow Color',
-                ),
-              )
-            ),
-          ].maybeReverse(shadow.runtimeType != BoxShadow)
         ],
       ),
     );
@@ -1115,105 +1197,32 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
     if (shadow.runtimeType == BoxShadow) {
       shadow = BoxShadow(
         color: color.withOpacity(opacity),
-        offset: Offset(x, y),
+        offset: getOffset(),
         blurRadius: blur,
         spreadRadius: spread,
       ) as T;
     } else if (shadow.runtimeType == Shadow) {
       shadow = Shadow(
         color: color.withOpacity(opacity),
-        offset: Offset(x, y),
+        offset: getOffset(),
         blurRadius: blur,
       ) as T;
     }
     widget.onChange(shadow);
   }
 
-}
-
-class _ShadowEditorGroupWidget extends StatelessWidget {
-
-  const _ShadowEditorGroupWidget({
-    Key? key,
-    required this.child
-  }) : super(key: key);
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width/2 - 24,
-      child: child,
-    );
+  Offset getOffset() {
+    final double x = distance * cos(direction);
+    final double y = distance * sin(direction);
+    return Offset(x, y);
   }
-}
 
-class _ShadowEditorGroupValueEditor extends StatelessWidget {
-
-  const _ShadowEditorGroupValueEditor({
-    Key? key,
-    required this.label,
-    required this.onChange,
-    this.mainAxisAlignment,
-    this.textEditingController,
-    this.signed = false
-  }) : super(key: key);
-
-  final TextEditingController? textEditingController;
-  final MainAxisAlignment? mainAxisAlignment;
-  final String label;
-  final Function(double value) onChange;
-  final bool signed;
-
-  @override
-  Widget build(BuildContext context) {
-    return _ShadowEditorGroupWidget(
-      child: Row(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: mainAxisAlignment ?? MainAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.subtitle1?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
-            ),
-          ),
-          Spacer(),
-          SizedBox.fromSize(
-            size: const Size(100, 50),
-            child: TextFormField(
-              controller: textEditingController,
-              decoration: InputDecoration(
-                filled: false,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d{0,2}\.?\d{0,1}'))
-              ],
-              keyboardType: TextInputType.numberWithOptions(
-                decimal: true,
-                signed: signed
-              ),
-              onChanged: (value) {
-                if (value.isEmpty) return;
-                try {
-                  double _value = double.parse(value);
-                  onChange(_value);
-                } catch (e, stacktrace) {
-                  onChange(0);
-                  analytics.logError(e, cause: 'ShadowEditorGroup', stacktrace: stacktrace);
-                }
-              },
-            )
-          )
-        ],
-      ),
-    );
+  void getDirectionAndDistance() {
+    final Offset offset = _shadow.offset;
+    distance = sqrt(pow(offset.dx, 2) + pow(offset.dy, 2));
+    direction = atan(offset.dy / offset.dx);
   }
+
 }
 
 class _PaletteViewModal extends StatefulWidget {
@@ -1352,7 +1361,7 @@ class __PaletteListViewState extends State<_PaletteListView> {
             padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 4),
             child: Text(
               widget.title,
-              style: Theme.of(context).textTheme.subtitle1
+              style: Theme.of(context).textTheme.titleMedium
             ),
           ),
           SizedBox(

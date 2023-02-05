@@ -23,155 +23,116 @@ class _SettingsState extends State<Settings> {
           ),
           SliverList(
             delegate: SliverChildListDelegate([
-              
-              Container(height: 10,),
-              label('Preferences'),
 
-              Card(
-                margin: EdgeInsets.symmetric(horizontal: 6,),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 6
+              ListTile(
+                title: const Text('Export Quality'),
+                trailing: PopupMenuButton<ExportQuality>(
+                  itemBuilder: (context) => List.generate(
+                    ExportQuality.values.length,
+                    (index) => PopupMenuItem(
+                      value: ExportQuality.values[index],
+                      child: Text(ExportQuality.values[index].name.toTitleCase()),
+                    ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ListTile(
-                        title: const Text('Export Quality'),
-                        visualDensity: VisualDensity.compact,
-                        trailing: PopupMenuButton<ExportQuality>(
-                          itemBuilder: (context) => List.generate(
-                            ExportQuality.values.length,
-                            (index) => PopupMenuItem(
-                              value: ExportQuality.values[index],
-                              child: Text(ExportQuality.values[index].name.toTitleCase()),
-                            ),
-                          ),
-                          onSelected: (value) async {
-                            preferences.exportQuality = value;
-                            setState(() { });
-                          },
-                          child: Chip(
-                            label: Text(preferences.exportQuality.name.toTitleCase()),
-                            backgroundColor: Palette.of(context).background,
-                          ),
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('Snap'),
-                        visualDensity: VisualDensity.compact,
-                        subtitle: const Text('Automatically snap widgets to with reference to others'),
-                        trailing: Switch.adaptive(
-                          value: preferences.snap,
-                          onChanged: (value) async {
-                            preferences.snap = value;
-                            setState(() { });
-                          },
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('Vibrate on Snap'),
-                        subtitle: const Text('Make a vibration when snapping widgets'),
-                        visualDensity: VisualDensity.compact,
-                        trailing: Switch.adaptive(
-                          value: preferences.vibrateOnSnap,
-                          onChanged: (value) async {
-                            preferences.vibrateOnSnap = value;
-                            setState(() { });
-                          },
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('Collect Usage Data'),
-                        visualDensity: VisualDensity.compact,
-                        trailing: Switch.adaptive(
-                          value: preferences.allowAnalytics,
-                          onChanged: (value) async {
-                            preferences.allowAnalytics = value;
-                            setState(() { });
-                          },
-                        ),
-                      ),
-                    ],
+                  onSelected: (value) async {
+                    preferences.exportQuality = value;
+                    setState(() { });
+                  },
+                  child: Chip(
+                    label: Text(preferences.exportQuality.name.toTitleCase()),
                   ),
                 ),
               ),
-
-              SizedBox(height: 12,),
-
-              label('About'),
-              Card(
-                margin: EdgeInsets.symmetric(horizontal: 6,),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ListTile(
-                        title: const Text('About Us'),
-                        visualDensity: VisualDensity.compact,
-                        contentPadding: EdgeInsets.only(
-                          left: 18,
-                          right: 6
-                        ),
-                        trailing: FilledTonalIconButton(
-                          secondary: true,
-                          onPressed: () async {
-                            if (await canLaunchUrl(Uri.parse('https://devflow.studio/about'))) {
-                              await launchUrl(Uri.parse('https://devflow.studio/about'));
-                            } else {
-                              Alerts.snackbar(context, text: 'Failed to launch url');
-                            }
-                          },
-                          icon: const Icon(RenderIcons.openInBrowser)
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('Devflow Studios'),
-                        visualDensity: VisualDensity.compact,
-                        contentPadding: EdgeInsets.only(
-                          left: 18,
-                          right: 6
-                        ),
-                        trailing: FilledTonalIconButton(
-                          secondary: true,
-                          onPressed: () async {
-                            if (await canLaunchUrl(Uri.parse('https://devflow.studio'))) {
-                              await launchUrl(Uri.parse('https://devflow.studio'));
-                            } else {
-                              Alerts.snackbar(context, text: 'Failed to launch url');
-                            }
-                          },
-                          icon: const Icon(RenderIcons.openInBrowser)
-                        ),
-                      ),
-                      ListTile(
-                        title: const Text('Terms of Use'),
-                        visualDensity: VisualDensity.compact,
-                        contentPadding: EdgeInsets.only(
-                          left: 18,
-                          right: 6
-                        ),
-                        trailing: FilledTonalIconButton(
-                          secondary: true,
-                          onPressed: () async {
-                            if (await canLaunchUrl(Uri.parse('https://devflow.studio/terms-of-use'))) {
-                              await launchUrl(Uri.parse('https://devflow.studio/terms-of-use'));
-                            } else {
-                              Alerts.snackbar(context, text: 'Failed to launch url');
-                            }
-                          },
-                          icon: const Icon(RenderIcons.openInBrowser)
-                        ),
-                      ),
-                      const ListTile(
-                        title: Text('Made with ❤️ in India'),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ],
-                  ),
+              ListTile(
+                title: const Text('Snap'),
+                subtitle: const Text('Automatically snap widgets to with reference to others'),
+                trailing: Switch.adaptive(
+                  value: preferences.snap,
+                  onChanged: (value) async {
+                    preferences.snap = value;
+                    setState(() { });
+                  },
                 ),
+              ),
+              ListTile(
+                title: const Text('Vibrate on Snap'),
+                subtitle: const Text('Make a vibration when snapping widgets'),
+                trailing: Switch.adaptive(
+                  value: preferences.vibrateOnSnap,
+                  onChanged: (value) async {
+                    preferences.vibrateOnSnap = value;
+                    setState(() { });
+                  },
+                ),
+              ),
+              ListTile(
+                title: const Text('Collect Usage Data'),
+                trailing: Switch.adaptive(
+                  value: preferences.allowAnalytics,
+                  onChanged: (value) async {
+                    preferences.allowAnalytics = value;
+                    setState(() { });
+                  },
+                ),
+              ),
+
+              Divider(),
+              ListTile(
+                title: const Text('About Us'),
+                contentPadding: EdgeInsets.only(
+                  left: 18,
+                  right: 6
+                ),
+                trailing: FilledTonalIconButton(
+                  secondary: true,
+                  onPressed: () async {
+                    if (await canLaunchUrl(Uri.parse('https://devflow.studio/about'))) {
+                      await launchUrl(Uri.parse('https://devflow.studio/about'));
+                    } else {
+                      Alerts.snackbar(context, text: 'Failed to launch url');
+                    }
+                  },
+                  icon: const Icon(RenderIcons.openInBrowser)
+                ),
+              ),
+              ListTile(
+                title: const Text('Devflow Studios'),
+                contentPadding: EdgeInsets.only(
+                  left: 18,
+                  right: 6
+                ),
+                trailing: FilledTonalIconButton(
+                  secondary: true,
+                  onPressed: () async {
+                    if (await canLaunchUrl(Uri.parse('https://devflow.studio'))) {
+                      await launchUrl(Uri.parse('https://devflow.studio'));
+                    } else {
+                      Alerts.snackbar(context, text: 'Failed to launch url');
+                    }
+                  },
+                  icon: const Icon(RenderIcons.openInBrowser)
+                ),
+              ),
+              ListTile(
+                title: const Text('Terms of Use'),
+                contentPadding: EdgeInsets.only(
+                  left: 18,
+                  right: 6
+                ),
+                trailing: FilledTonalIconButton(
+                  secondary: true,
+                  onPressed: () async {
+                    if (await canLaunchUrl(Uri.parse('https://devflow.studio/terms-of-use'))) {
+                      await launchUrl(Uri.parse('https://devflow.studio/terms-of-use'));
+                    } else {
+                      Alerts.snackbar(context, text: 'Failed to launch url');
+                    }
+                  },
+                  icon: const Icon(RenderIcons.openInBrowser)
+                ),
+              ),
+              const ListTile(
+                title: Text('Made with ❤️ in India'),
               ),
             ])
           )
@@ -188,7 +149,7 @@ class _SettingsState extends State<Settings> {
 
   Widget label(String title) => Padding(
     padding: const EdgeInsets.only(
-      left: 18,
+      left: 15,
       bottom: 6
     ),
     child: Text(

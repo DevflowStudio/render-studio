@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
-import 'package:animate_do/animate_do.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../rehmat.dart';
 
 class Home extends StatefulWidget {
@@ -16,6 +13,24 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   final AdvancedDrawerController drawerCtrl = AdvancedDrawerController();
+
+  late final String title;
+  
+  @override
+  void initState() {
+    super.initState();
+    title = {
+      'Render': 0.9,
+      'Studio': 0.9,
+      'Render Studio': 0.2,
+      'Wow! This title is rare': 0.01,
+      'Hey!': 0.1,
+      'Let\'s design': 0.2,
+      'Studio Render': 0.05,
+      'Not Canva': 0.01,
+      'Better than Canva?': 0.01,
+    }.getRandomWithProbabilities();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,27 +49,16 @@ class _HomeState extends State<Home> {
           cacheExtent: MediaQuery.of(context).size.height * 3,
           slivers: [
             RenderAppBar(
-              // leading: Padding(
-              //   padding: const EdgeInsets.all(12),
-              //   child: GestureDetector(
-              //     onTap: () => drawerCtrl.toggleDrawer(),
-              //     child: CircleAvatar(
-              //       child: ClipRRect(
-              //         borderRadius: BorderRadius.circular(20),
-              //         child: ProfilePhoto()
-              //       )
-              //     ),
-              //   ),
-              // ),
-              title: AppTitle(),
-              // title: Text(
-              //   'render',
-              //   // [rye, henny penny, libre barcode]
-              //   style: GoogleFonts.racingSansOne(
-              //     fontSize: 30
-              //   ),
-              // ),
-              // centerTitle: true,
+              title: Hero(
+                tag: 'app-title',
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontFamily: 'Helvetica',
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
               titleSpacing: 12,
               actions: [
                 GestureDetector(
@@ -75,12 +79,6 @@ class _HomeState extends State<Home> {
               isExpandable: false,
               pinned: false,
               floating: false,
-              // backgroundColor: Palette.of(context).surfaceVariant,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(kBorderRadius)
-                )
-              ),
             ),
             SliverPadding(
               padding: const EdgeInsets.only(
@@ -199,7 +197,7 @@ class __DrawerState extends State<_Drawer> {
                     children: [
                       Text(
                         AuthState.of(context).user!.displayName ?? 'Me',
-                        style: Theme.of(context).textTheme.subtitle1,
+                        style: Theme.of(context).textTheme.titleMedium,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (AuthState.of(context).user!.email != null) Text(
@@ -222,28 +220,27 @@ class __DrawerState extends State<_Drawer> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _DrawerItemBuilder(
-                  controller: controller,
-                  leadingIcon: RenderIcons.user,
-                  title: 'Profile'
-                ),
-                SizedBox(height: 6,),
-                _DrawerItemBuilder(
-                  controller: controller,
                   leadingIcon: RenderIcons.templates,
-                  title: 'Templates'
+                  title: 'Templates',
+                  subtitle: 'Coming Soon',
                 ),
                 SizedBox(height: 6,),
                 _DrawerItemBuilder(
-                  controller: controller,
                   leadingIcon: RenderIcons.palette,
                   title: 'Palettes',
                   onTap: () => AppRouter.push(context, page: MyPalettes()),
                 ),
                 SizedBox(height: 6,),
                 _DrawerItemBuilder(
-                  controller: controller,
                   leadingIcon: RenderIcons.calendar,
-                  title: 'Planner'
+                  title: 'Planner',
+                  subtitle: 'Coming Soon',
+                ),
+                SizedBox(height: 6,),
+                _DrawerItemBuilder(
+                  leadingIcon: RenderIcons.settings,
+                  title: 'Settings',
+                  onTap: () => AppRouter.push(context, page: Settings())
                 ),
               ],
             ),
@@ -263,30 +260,20 @@ class __DrawerState extends State<_Drawer> {
               children: [
                 SizedBox(height: 6,),
                 _SecondaryDrawerItemBuilder(
-                  controller: controller,
                   leadingIcon: RenderIcons.help,
                   title: 'Help Center'
                 ),
                 SizedBox(height: 6,),
                 _SecondaryDrawerItemBuilder(
-                  controller: controller,
                   leadingIcon: RenderIcons.error,
                   title: 'Report Issue'
                 ),
                 SizedBox(height: 6,),
                 _SecondaryDrawerItemBuilder(
-                  controller: controller,
                   leadingIcon: RenderIcons.signOut,
                   title: 'Sign Out',
                   onTap: () => AuthState.of(context).signOut(),
                 ),
-                SizedBox(height: 6,),
-                _SecondaryDrawerItemBuilder(
-                  controller: controller,
-                  leadingIcon: RenderIcons.settings,
-                  title: 'Settings',
-                  onTap: () => AppRouter.push(context, page: Settings())
-                )
               ],
             ),
           ),
@@ -301,13 +288,13 @@ class _DrawerItemBuilder extends StatefulWidget {
 
   const _DrawerItemBuilder({
     required this.title,
-    required this.controller,
+    this.subtitle,
     this.leadingIcon,
     this.onTap
   });
 
-  final AdvancedDrawerController controller;
   final String title;
+  final String? subtitle;
   final IconData? leadingIcon;
   final void Function()? onTap;
 
@@ -333,9 +320,18 @@ class __DrawerItemBuilderState extends State<_DrawerItemBuilder> {
                 Icon(widget.leadingIcon),
                 SizedBox(width: 12,),
               ],
-              Text(
-                widget.title,
-                style: Theme.of(context).textTheme.subtitle1
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
+                    style: Theme.of(context).textTheme.titleMedium
+                  ),
+                  if (widget.subtitle != null) Text(
+                    widget.subtitle!.toUpperCase(),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
               ),
               Spacer(),
               Icon(RenderIcons.arrow_right)
@@ -351,12 +347,10 @@ class _SecondaryDrawerItemBuilder extends StatefulWidget {
 
   const _SecondaryDrawerItemBuilder({
     required this.title,
-    required this.controller,
     this.leadingIcon,
     this.onTap
   });
 
-  final AdvancedDrawerController controller;
   final String title;
   final IconData? leadingIcon;
   final void Function()? onTap;
@@ -386,101 +380,11 @@ class __SecondaryDrawerItemBuilderState extends State<_SecondaryDrawerItemBuilde
             ],
             Text(
               widget.title,
-              style: Theme.of(context).textTheme.subtitle2
+              style: Theme.of(context).textTheme.titleSmall
             ),
           ],
         ),
       ),
     );
   }
-}
-
-class AppTitle extends StatefulWidget {
-  AppTitle({Key? key}) : super(key: key);
-
-  @override
-  State<AppTitle> createState() => _AppTitleState();
-}
-
-class _AppTitleState extends State<AppTitle> {
-
-  bool isAnimating = false;
-
-  late final String title;
-
-  @override
-  void initState() {
-    showAnimation();
-    title = {
-      'Render': 0.9,
-      'Studio': 0.9,
-      'Render Studio': 0.2,
-      'Wow! This title is rare': 0.01,
-      'Hey!': 0.1,
-      'Let\'s design': 0.2,
-      'Studio Render': 0.05,
-      'Not Canva': 0.01,
-      'Better than Canva?': 0.01,
-    }.getRandomWithProbabilities();
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AnimatedSwitcher(
-          duration: Constants.animationDuration,
-          child: isAnimating ? AnimatedTextKit(
-            animatedTexts: [
-              RotateAnimatedText(
-                'render',
-                textStyle: textStyle('Racing Sans One'),
-                duration: Duration(milliseconds: 500)
-              ),
-              RotateAnimatedText(
-                'render',
-                textStyle: textStyle('Rye'),
-                duration: Duration(milliseconds: 500)
-              ),
-              RotateAnimatedText(
-                'render',
-                textStyle: textStyle('Henny Penny'),
-                duration: Duration(milliseconds: 500)
-              ),
-              RotateAnimatedText(
-                'render',
-                textStyle: textStyle('Libre Barcode 39'),
-                duration: Duration(milliseconds: 500)
-              ),
-            ],
-            totalRepeatCount: 1,
-            pause: const Duration(seconds: 0),
-            displayFullTextOnTap: false,
-            onFinished: () => setState(() => isAnimating = false),
-          ) : FadeInDown(
-            duration: Duration(milliseconds: 400),
-            child: Text(
-              title,
-              style: TextStyle(
-                fontFamily: 'Helvetica',
-                fontWeight: FontWeight.w800,
-                fontSize: 25
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void showAnimation() {
-    isAnimating = true;
-  }
-
-  TextStyle textStyle(String font) => GoogleFonts.getFont(font).copyWith(
-    fontSize: 25
-  );
-
 }

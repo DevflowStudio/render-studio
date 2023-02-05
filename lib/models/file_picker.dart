@@ -186,7 +186,7 @@ class FilePicker {
       }
     }
     AndroidUiSettings uiSettings = AndroidUiSettings(
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       cropFrameColor: Palette.of(context).primary,
       activeControlsWidgetColor: Palette.of(context).primary,
       toolbarColor: Theme.of(context).appBarTheme.backgroundColor,

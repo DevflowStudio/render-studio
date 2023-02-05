@@ -27,6 +27,15 @@ class DeviceInfo {
         version: iosInfo.systemVersion ?? 'Unknown iOS Version',
         os: 'ios'
       );
+    } else if (Platform.isMacOS) {
+      return DeviceInfo(
+        model: 'Mac',
+        isEmulator: false,
+        brand: 'Apple',
+        device: 'Mac',
+        version: 'Unknown macOS Version',
+        os: 'macos'
+      );
     }
     throw Exception('You are using an unsupported platform to run this app');
   }

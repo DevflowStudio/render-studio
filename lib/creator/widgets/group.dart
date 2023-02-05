@@ -324,7 +324,6 @@ class WidgetGroup extends CreatorWidget {
           controller: widgets[index].stateCtrl,
           widget: widgets[index],
           page: page,
-          isInteractive: false,
         )
       ),
     ],

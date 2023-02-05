@@ -16,32 +16,11 @@ class GridState extends ChangeNotifier {
 
   void clear() {
     grids.clear();
-    _addBackgroundGrids(
-      page.widgets.background.type == BackgroundType.color
-        ? page.palette.onBackground
-        : Colors.white
-    );
-  }
-
-  void _addBackgroundGrids([Color? color]) {
-    grids.addAll([
-      Grid(
-        position: const Offset(0, 0),
-        color: color ?? page.palette.onBackground,
-        layout: GridLayout.vertical,
-        page: page,
-        gridWidgetPlacement: GridWidgetPlacement.centerVertical,
-        dotted: false
-      ),
-      Grid(
-        position: const Offset(0, 0),
-        color: color ?? page.palette.onBackground,
-        layout: GridLayout.horizontal,
-        page: page,
-        gridWidgetPlacement: GridWidgetPlacement.centerHorizontal,
-        dotted: false
-      )
-    ]);
+    // _addBackgroundGrids(
+    //   page.widgets.background.type == BackgroundType.color
+    //     ? page.palette.onBackground
+    //     : Colors.white
+    // );
   }
 
   void hideAll() {
@@ -64,7 +43,11 @@ class Grid {
     required this.page,
     this.dotted = true,
     this.length
-  });
+  }) {
+    key = UniqueKey();
+  }
+
+  late Key key;
 
   /// Position for the grid line
   /// Provide dx if it's a horizontal grid
@@ -192,10 +175,12 @@ class PageGridViewState extends State<PageGridView> {
     return Stack(
       children: [
         for (Grid grid in state.grids) AnimatedSwitcher(
+          key: grid.key,
           duration: Duration.zero,
           switchInCurve: Sprung.overDamped,
           reverseDuration: Duration(milliseconds: 100),
           child: (grid.isVisible) ? AlignPositioned(
+            key: UniqueKey(),
             dy: grid.position.dy,
             dx: grid.position.dx,
             child: grid.build()

@@ -356,7 +356,7 @@ class CreativePieChart extends CreatorWidget {
           title: 'Decimal Places',
           onTap: (context) => EditorTab.modal(
             context,
-            tab: EditorTab.picker(
+            tab: (context, setState) => EditorTab.picker(
               title: 'Decimal Places',
               children: [
                 Text('0'),

@@ -54,7 +54,7 @@ class _TextIconButtonState extends State<TextIconButton> {
               Container(width: 5,),
               Text(
                 widget.text,
-                style: Theme.of(context).textTheme.button?.copyWith(
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
                   color: Palette.of(context).onSurfaceVariant
                 ),
               )
@@ -280,7 +280,7 @@ class _RenderButtonState extends State<_RenderButton> {
             ]
           ),
           child: DefaultTextStyle(
-            style: Theme.of(context).textTheme.subtitle1!.copyWith(
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
               color: widget.textColor,
               fontWeight: FontWeight.w500,
               fontSize: 17

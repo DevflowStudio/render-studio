@@ -4,6 +4,315 @@ import 'package:flutter/material.dart';
 
 import '../../rehmat.dart';
 
+class CreativeContainerProvider {
+
+  CreativeContainerProvider._(this.widget);
+  final CreatorWidget widget;
+
+  factory CreativeContainerProvider.create(CreatorWidget widget) {
+    return CreativeContainerProvider._(widget);
+  }
+
+  Color? color;
+
+  List<Color>? gradient;
+  BackgroundGradient gradientType = BackgroundGradient.type2;
+
+  BackgroundType type = BackgroundType.color;
+
+  Color? borderColor;
+  double? borderWidth;
+
+  double borderRadius = 0;
+
+  BoxShadow? shadow;
+
+  double blur = 0;
+
+  EdgeInsets padding = EdgeInsets.zero;
+
+  EditorTab editor({
+    required void Function(WidgetChange change) onChange,
+    String name = 'Background',
+    List<Option> options = const [],
+  }) => EditorTab(
+    tab: name,
+    options: [
+      Option.color(
+        selected: color,
+        palette: widget.page.palette,
+        allowClear: true,
+        onChange: (color) {
+          this.color = color;
+          onChange(WidgetChange.misc);
+        },
+        onChangeEnd: (color) {
+          onChange(WidgetChange.update);
+        },
+      ),
+      Option.button(
+        title: 'Shadow',
+        onTap: (context) {
+          if (shadow == null) {
+            shadow = BoxShadow(
+              color: Colors.black.withOpacity(0.5),
+              blurRadius: 5,
+              offset: Offset(0, 5)
+            );
+          }
+          EditorTab.modal(
+            context,
+            actions: [
+              IconButton(
+                onPressed: () {
+                  shadow = null;
+                  onChange(WidgetChange.update);
+                },
+                icon: Icon(RenderIcons.delete)
+              )
+            ],
+            tab: (context, setState) => EditorTab.shadow<BoxShadow>(
+              shadow: shadow!,
+              onChange: (value) {
+                shadow = value;
+                onChange(WidgetChange.update);
+              },
+            )
+          );
+        },
+        icon: Icons.text_fields,
+        tooltip: 'Customize shadow of box'
+      ),
+      Option.button(
+        title: 'Border',
+        onTap: (context) async {
+          Size originalWidgetSize = widget.size;
+          await EditorTab.modal(
+            context,
+            actions: [
+              IconButton(
+                onPressed: () {
+                  borderColor = borderWidth = null;
+                  onChange(WidgetChange.update);
+                  Navigator.of(context).pop();
+                },
+                icon: Icon(RenderIcons.delete)
+              )
+            ],
+            tab: (context, setState) => EditorTab(
+              type: EditorTabType.column,
+              options: [
+                Option.custom(
+                  widget: (context) => Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomSlider(
+                          value: borderWidth ?? 0,
+                          min: 0,
+                          max: 10,
+                          label: 'Width',
+                          onChangeEnd: (value) {
+                            onChange(WidgetChange.update);
+                          },
+                          onChange: (value) {
+                            widget.size = Size(originalWidgetSize.width + value * 2, originalWidgetSize.height + value * 2);
+                            if (borderColor == null) borderColor = color?.computeTextColor();
+                            borderWidth = value;
+                            onChange(WidgetChange.misc);
+                          },
+                          actions: [
+                            ColorSelector(
+                              title: 'Color',
+                              palette: widget.page.palette,
+                              onColorSelect: (color) {
+                                if (borderWidth == null) borderWidth = 2;
+                                borderColor = color;
+                                onChange(WidgetChange.update);
+                              },
+                              size: const Size(30, 30),
+                              color: borderColor ?? color?.computeTextColor() ?? widget.page.palette.primary,
+                              tooltip: 'Border Color'
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+                        CustomSlider(
+                          value: borderRadius,
+                          min: 0,
+                          max: widget.size.width / 2,
+                          label: 'Radius',
+                          onChangeEnd: (value) {
+                            onChange(WidgetChange.update);
+                          },
+                          onChange: (value) {
+                            borderRadius = value;
+                            onChange(WidgetChange.misc);
+                          }
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              tab: 'Border'
+            )
+          );
+          if ((borderWidth ?? 0) > 0 && borderColor == null) {
+            borderColor = color?.computeTextColor() ?? widget.page.palette.primary;
+          }
+          onChange(WidgetChange.update);
+        },
+        icon: Icons.border_all,
+        tooltip: 'Customize the border',
+      ),
+      Option.button(
+        title: 'Padding',
+        icon: RenderIcons.padding,
+        tooltip: 'Add padding to the widget',
+        onTap: (context) async {
+          await EditorTab.modal(
+            context,
+            tab: (context, setState) => EditorTab.paddingEditor(
+              padding: padding,
+              onChange: (value) {
+                padding = value;
+                onChange(WidgetChange.misc);
+              },
+              min: 0,
+              max: 20,
+            )
+          );
+        },
+      ),
+      Option.showSlider(
+        title: 'Blur',
+        icon: RenderIcons.blur,
+        value: blur,
+        min: 0,
+        max: 20,
+        onChange: (value) {
+          blur = value;
+          onChange(WidgetChange.misc);
+        },
+        onChangeEnd: (value) {
+          blur = value;
+          onChange(WidgetChange.update);
+        },
+      ),
+      ... options
+    ]
+  );
+
+  Widget build({
+    required Widget child
+  }) => Container(
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(borderRadius),
+      boxShadow: [
+        if (shadow != null) shadow!
+      ],
+    ),
+    child: Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(borderRadius),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+            child: Container(
+              padding: padding,
+              decoration: BoxDecoration(
+                color: type == BackgroundType.color ? color : Colors.white,
+                gradient: (type == BackgroundType.gradient && gradient != null) ? LinearGradient(
+                  colors: gradient!,
+                  begin: gradientType.begin,
+                  end: gradientType.end,
+                ) : null,
+                border: (borderWidth != null) ? Border.all(
+                  color: borderColor ?? color?.computeTextColor() ?? widget.page.palette.primary,
+                  width: borderWidth!
+                ) : null,
+                borderRadius: BorderRadius.circular(borderRadius),
+              ),
+            ),
+          ),
+        ),
+        child
+      ],
+    ),
+  );
+
+  List<String>? _generateGradientsHex() {
+    List<String> _generated = [];
+    if (gradient == null) return null;
+    for (Color color in gradient!) {
+      _generated.add(color.toHex());
+    }
+    return _generated;
+  }
+
+  List<Color> _generateGradientsColor(List<String> hex) {
+    List<Color> _generated = [];
+    for (String h in hex) {
+      _generated.add(HexColor.fromHex(h));
+    }
+    return _generated;
+  }
+
+  Map<String, dynamic> toJSON() => {
+    'color': color?.toHex(),
+    'gradient': _generateGradientsHex(),
+    'border-color': borderColor?.toHex(),
+    'border-width': borderWidth,
+    'border-radius': borderRadius,
+    'blur': blur,
+    'shadow': shadow == null ? null : {
+      'color': shadow?.color.toHex(),
+      'blur-radius': shadow?.blurRadius,
+      'spread-radius': shadow?.spreadRadius,
+      'offset-x': shadow?.offset.dx,
+      'offset-y': shadow?.offset.dy,
+    },
+  };
+
+  factory CreativeContainerProvider.fromJSON(Map data, {
+    required CreatorWidget widget
+  }) {
+    CreativeContainerProvider provider = CreativeContainerProvider._(widget);
+    try {
+      if (data['color'] != null) provider.color = HexColor.fromHex(data['color']);
+      if (data['gradient'] != null) {
+        provider.gradient = provider._generateGradientsColor(data['gradient']);
+        provider.type = BackgroundType.gradient;
+      }
+
+      if (data['border-color'] != null) provider.borderColor = HexColor.fromHex(data['border-color']);
+
+      provider.borderWidth = data['border-width'];
+
+      if (data['border-radius'] != null) provider.borderRadius = data['border-radius'];
+
+      if (data['shadow'] != null) {
+        provider.shadow = BoxShadow(
+          color: HexColor.fromHex(data['shadow']['color']),
+          blurRadius: data['shadow']['blur-radius'],
+          spreadRadius: data['shadow']['spread-radius'],
+          offset: Offset(
+            data['shadow']['offset-x'],
+            data['shadow']['offset-y'],
+          )
+        );
+      }
+      provider.blur = data['blur'] ?? 0;
+    } catch (e) { }
+    return provider;
+  }
+
+}
+
 class CreatorBoxWidget extends CreatorWidget {
 
   CreatorBoxWidget({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
@@ -96,7 +405,7 @@ class CreatorBoxWidget extends CreatorWidget {
                   icon: Icon(RenderIcons.delete)
                 )
               ],
-              tab: EditorTab.shadow<BoxShadow>(
+              tab: (context, setState) => EditorTab.shadow<BoxShadow>(
                 shadow: shadow!,
                 onChange: (value) {
                   shadow = value;
@@ -121,7 +430,7 @@ class CreatorBoxWidget extends CreatorWidget {
             EditorTab.modal(
               context,
               height: 150,
-              tab: EditorTab(
+              tab: (context, setState) => EditorTab(
                 type: EditorTabType.column,
                 options: [
                   Option.custom(

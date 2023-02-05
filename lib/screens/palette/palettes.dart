@@ -90,7 +90,7 @@ class _MyPalettesState extends State<MyPalettes> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 'No palettes yet. Create one by clicking the button above.',
-                style: Theme.of(context).textTheme.subtitle2,
+                style: Theme.of(context).textTheme.titleSmall,
               ),
             ),
           ),

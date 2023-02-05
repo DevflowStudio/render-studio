@@ -52,7 +52,10 @@ class _ColorToolState extends State<ColorTool> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: NewBackButton(),
+        leading: Padding(
+          padding: const EdgeInsets.all(6.0),
+          child: NewBackButton(),
+        ),
         title: Text('Color Tool'),
         backgroundColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle(
@@ -102,7 +105,7 @@ class _ColorToolState extends State<ColorTool> {
         ],
       ),
       body: ListView(
-        padding: EdgeInsets.symmetric(horizontal: 12),
+        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         children: [
           Row(
             children: [

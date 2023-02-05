@@ -1,3 +1,4 @@
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:align_positioned/align_positioned.dart';
@@ -128,6 +129,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Must be in lowercase letters
   final String id = 'widget';
 
+  // ignore: unused_field
+  late final Color _identificationColor;
+
   final bool allowClipboard = true;
 
   bool _locked = false;
@@ -162,7 +166,15 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   void onFirstBuild() {}
 
-  void onInitialize() {}
+  void onInitialize() {
+    _identificationColor = [
+      Colors.pink,
+      Colors.amber,
+      Colors.cyan,
+      Colors.green,
+      Colors.teal
+    ].getRandom();
+  }
 
   /// ### Rotate
 
@@ -174,7 +186,10 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// ### Resize
   
   List<ResizeHandler> resizeHandlers = [
-    ... ResizeHandler.values
+    ResizeHandler.topLeft,
+    ResizeHandler.topRight,
+    ResizeHandler.bottomLeft,
+    ResizeHandler.bottomRight,
   ];
 
   bool isResizing = false;
@@ -197,8 +212,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   final bool isBackgroundWidget = false;
 
   void onResizeStart({
-    required DragStartDetails details,
-    required ResizeHandler handler
+    DragStartDetails? details,
+    ResizeHandler? handler
   }) {
     isResizing = true;
     _currentResizingHandler = handler;
@@ -211,7 +226,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }
 
   /// This method is called when the resizing of the widget is finished
-  void onResizeFinished(DragEndDetails details, ResizeHandler type, {
+  void onResizeFinished({
+    DragEndDetails? details,
+    ResizeHandler? handler,
     bool updateNotify = true
   }) {
     isResizing = false;
@@ -294,7 +311,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }
 
   void _onGestureEnd(DragEndDetails details, BuildContext context) {
-    if (!page.widgets.multiselect && this is! WidgetGroup) page.widgets.select(this);
+    // if (!page.widgets.multiselect && this is! WidgetGroup) page.widgets.select(this);
     isDragging = false;
     onDragFinish(context);
   }
@@ -352,50 +369,24 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Build function of the widget
   /// All of the resizing, drag, tap and double tap related code is written here
   /// @override this method to disable drag, resizing, tapping and others
-  Widget build(BuildContext context, {
-    bool isInteractive = true,
-  }) {
+  Widget build(BuildContext context) {
     if (!_firstBuildDone) doFirstBuild();
     bool _isSelected = isSelected();
     return AlignPositioned(
       key: ValueKey<String>(uid),
       dx: position.dx,
       dy: position.dy,
-      childHeight: size.height + 40,
-      childWidth: size.width + 40,
+      childHeight: size.height,
+      childWidth: size.width,
       child: rotatedWidget(
         child: GestureDetector(
-          onDoubleTap: (_isSelected && this is! WidgetGroup) ? () => onDoubleTap(context) : null,
-          onTap: (_isSelected && this is! WidgetGroup) ? null : () => page.widgets.select(this),
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Container(
-              // borderType: BorderType.RRect,
-              // color: Colors.grey[400]!,
-              // strokeWidth: 2,
-              // dashPattern: [3, 0, 3],
-              // radius: Radius.circular(5),
-              // padding: EdgeInsets.zero,
-              decoration: _isSelected ? BoxDecoration(
-                border: Border.all(
-                  color: page.palette.onBackground,
-                  width: 0
-                ),
-                // boxShadow: [
-                //   BoxShadow(
-                //     blurStyle: BlurStyle.outer,
-                //     color: Colors.black.withOpacity(0.25),
-                //     blurRadius: 10,
-                //     spreadRadius: 0,
-                //     offset: Offset(0, 0),
-                //   ),
-                // ],
-              ) : null,
-              child: SizedBox.fromSize(
-                size: size,
-                child: widget(context)
-              )
-            ),
+          onDoubleTap: (_isSelected && this is! WidgetGroup && !isLocked) ? () => onDoubleTap(context) : null,
+          onTap: (this is WidgetGroup || _isSelected) ? null : () {
+            page.widgets.select(this);
+          },
+          child: SizedBox.fromSize(
+            size: size,
+            child: widget(context)
           )
         ),
       ),
@@ -492,10 +483,12 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
     if (showGridLines) {
       int nSnapGrids = 0;
+      GridLayout? snappedGridLayout;
       for (Grid grid in page.gridState.grids) {
         bool hasSnapped = false;
         
         if (grid.widget == this) continue;
+        else if (snappedGridLayout == grid.layout) continue;
         else if (nSnapGrids >= 2) continue;
         else if (this is WidgetGroup && (this as WidgetGroup).widgets.contains(grid.widget)) continue;
 
@@ -530,6 +523,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         if (hasSnapped) grid.isVisible = true;
         else grid.isVisible = false;
 
+        if (hasSnapped) snappedGridLayout = grid.layout;
+
         if (hasSnapped) nSnapGrids++;
       }
       if (snap) {
@@ -548,6 +543,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     }) => Grid(
       position: position,
       color: page.palette.onBackground,
+      // color: _identificationColor,
       layout: layout,
       gridWidgetPlacement: gridWidgetPlacement,
       page: page,
@@ -862,7 +858,18 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
       dragStartBehavior: DragStartBehavior.down,
       child: Stack(
         children: [
-          Visibility(
+
+          _SelectedWidgetHighlighter(widget: creatorWidget),
+
+          if (creatorWidget is WidgetGroup) ...[
+            for (CreatorWidget child in (creatorWidget as WidgetGroup).widgets) if (child.isSelected()) _SelectedWidgetHighlighter(
+              widget: child,
+              position: child.position + creatorWidget.position,
+              highlight: true,
+            )
+          ],
+
+          if (_isOnlySelected) Visibility(
             visible: (creatorWidget.isResizable && !creatorWidget.isLocked),
             child: AlignPositioned(
               dx: creatorWidget.position.dx,
@@ -883,7 +890,7 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
                         onSizeChange: creatorWidget.onResize,
                         onResizeEnd: creatorWidget.onResizeFinished,
                         isResizing: creatorWidget.isResizing,
-                        onResizeStart: (details) => creatorWidget.onResizeStart(details: details, handler: handler),
+                        onResizeStart: creatorWidget.onResizeStart,
                         isVisible: creatorWidget._getResizeHandlersWRTSize().contains(handler) || creatorWidget._currentResizingHandler == handler,
                         updatePosition: creatorWidget.angle == 0,
                         isMinimized: creatorWidget.isDragging,
@@ -897,7 +904,7 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
             ),
           ),
     
-          if (creatorWidget._getResizeHandlersWRTSize().length == 1 && creatorWidget.isDraggable && !creatorWidget.isLocked) Builder(
+          if (creatorWidget._getResizeHandlersWRTSize().length == 1 && creatorWidget.isDraggable && !creatorWidget.isLocked && _isOnlySelected) Builder(
             builder: (_) {
               double dy = creatorWidget.position.dy;
               double dx = creatorWidget.position.dx;
@@ -905,7 +912,7 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
               double positionX = dx;
       
               if ((positionY + 15) > creatorWidget.page.project.contentSize.height/2) {
-                positionY = dy - creatorWidget.size.height - 15 - 15;
+                positionY = dy - creatorWidget.size.height - 15;
               }
       
               return AlignPositioned(
@@ -919,7 +926,7 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
             }
           ),
     
-          Visibility(
+          if (_isOnlySelected) Visibility(
             visible: creatorWidget._getResizeHandlersWRTSize().length > 1 && !creatorWidget.isDragging,
             child: Builder(
               builder: (_) {
@@ -955,4 +962,51 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
     creatorWidget.addListener(onWidgetChange);
   }
 
+}
+
+class _SelectedWidgetHighlighter extends StatelessWidget {
+
+  const _SelectedWidgetHighlighter({
+    required this.widget,
+    this.position,
+    this.highlight = false,
+  });
+
+  final CreatorWidget widget;
+  final Offset? position;
+  final bool highlight;
+
+  bool get isLightBackground => widget.page.palette.isLightBackground && widget.page.widgets.background.type != BackgroundType.image;
+
+  Offset get _position => position ?? widget.position;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlignPositioned(
+      dx: _position.dx,
+      dy: _position.dy,
+      childHeight: widget.size.height + 2,
+      childWidth: widget.size.width + 2,
+      child: IgnorePointer(
+        child: widget.rotatedWidget(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: highlight ? Palette.of(context).primary.harmonizeWith(widget.page.palette.background) : (isLightBackground ? Colors.grey[300]! : Colors.white),
+                width: 1,
+              ),
+              boxShadow: [
+                if (!isLightBackground) BoxShadow(
+                  blurStyle: BlurStyle.outer,
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 5,
+                  spreadRadius: 0,
+                )
+              ]
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

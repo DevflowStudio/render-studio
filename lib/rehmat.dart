@@ -8,5 +8,4 @@ export 'palette/palette.dart';
 export 'app.dart';
 export 'screens/screens.dart';
 export 'utils/utils.dart';
-export 'html/html.dart';
 export 'blob/blob.dart';

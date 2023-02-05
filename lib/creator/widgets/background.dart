@@ -62,7 +62,7 @@ class BackgroundWidget extends CreatorWidget {
           onTap: (context) async {
             EditorTab.modal(
               context,
-              tab: EditorTab.pickerBuilder(
+              tab: (context, setState) => EditorTab.pickerBuilder(
                 title: 'Resize Project',
                 itemBuilder: (context, index) => Text('${PostSizePresets.values[index].title}'),
                 childCount: PostSizePresets.values.length,
@@ -82,7 +82,7 @@ class BackgroundWidget extends CreatorWidget {
             bool hasChanged = false;
             await EditorTab.modal(
               context,
-              tab: EditorTab.palette(
+              tab: (context, setState) => EditorTab.palette(
                 page: page,
                 onSelected: (palette) {
                   page.updatePalette(palette);
@@ -107,7 +107,7 @@ class BackgroundWidget extends CreatorWidget {
             await EditorTab.modal(
               context,
               height: 200,
-              tab: EditorTab.paddingEditor(
+              tab: (context, setState) => EditorTab.paddingEditor(
                 padding: padding,
                 max: page.project.contentSize.width/8,
                 min: 5,
@@ -150,7 +150,7 @@ class BackgroundWidget extends CreatorWidget {
             if (asset != null && imageProvider != null) EditorTab.modal(
               context,
               height: 90,
-              tab: imageProvider!.editor(
+              tab: (context, setState) => imageProvider!.editor(
                 asset!,
                 onChange: (change) {
                   updateListeners(change);
@@ -241,7 +241,8 @@ class BackgroundWidget extends CreatorWidget {
   @override
   Widget widget(BuildContext context) {
     if (asset == null) type = BackgroundType.color;
-    return Center(
+    return GestureDetector(
+      onTap: () => page.widgets.select(this),
       child: Container(
         decoration: BoxDecoration(
           color: type == BackgroundType.color ? color : Colors.white,
@@ -291,6 +292,7 @@ class BackgroundWidget extends CreatorWidget {
     } else {
       gridColor = Colors.white;
     }
+    // Color gridColor = Colors.deepPurple;
     List<Grid> grids = [
       Grid(
         position: Offset(
@@ -338,6 +340,22 @@ class BackgroundWidget extends CreatorWidget {
         gridWidgetPlacement: GridWidgetPlacement.top,
         widget: this,
         page: page,
+        dotted: false
+      ),
+      Grid(
+        position: const Offset(0, 0),
+        color: gridColor,
+        layout: GridLayout.vertical,
+        page: page,
+        gridWidgetPlacement: GridWidgetPlacement.centerVertical,
+        dotted: false
+      ),
+      Grid(
+        position: const Offset(0, 0),
+        color: gridColor,
+        layout: GridLayout.horizontal,
+        page: page,
+        gridWidgetPlacement: GridWidgetPlacement.centerHorizontal,
         dotted: false
       )
     ];

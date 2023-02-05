@@ -92,7 +92,6 @@ class Alerts {
           CupertinoDialogAction(
             child: Text(cancelButtonText),
             onPressed: () => Navigator.of(context).pop(false),
-            isDefaultAction: true,
           ),
           CupertinoDialogAction(
             child: Text(confirmButtonText),

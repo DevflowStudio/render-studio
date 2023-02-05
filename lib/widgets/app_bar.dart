@@ -321,10 +321,7 @@ class _RenderAppBarState extends State<RenderAppBar> {
 
     Widget? leading = widget.leading;
     /// Only add a leading button if it has to be a back button
-    if (willHaveLeading && canPop && (parentRoute?.impliesAppBarDismissal ?? false)) leading = Padding(
-      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-      child: NewBackButton(),
-    );
+    if (willHaveLeading && canPop && (parentRoute?.impliesAppBarDismissal ?? false)) leading = NewBackButton();
 
     return SliverAppBar(
       pinned: widget.pinned,
@@ -682,7 +679,7 @@ class _RenderFlexibleSpaceBarState extends State<RenderFlexibleSpaceBar> {
 
           final double opacity = settings.toolbarOpacity;
           if (opacity > 0.0) {
-            TextStyle titleStyle = theme.textTheme.headline6!;
+            TextStyle titleStyle = theme.textTheme.titleLarge!;
             titleStyle = titleStyle.copyWith(
               color: titleStyle.color!.withOpacity(opacity)
             );

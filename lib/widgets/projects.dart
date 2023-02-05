@@ -51,7 +51,7 @@ class _ProjectsViewState extends State<ProjectsView> {
             ),
             Text(
               'You have no projects yet.',
-              style: Theme.of(context).textTheme.subtitle1,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             Container(height: 10,),
             PrimaryButton(

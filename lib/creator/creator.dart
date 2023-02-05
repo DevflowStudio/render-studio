@@ -62,8 +62,9 @@ class CreatorViewState extends State<CreatorView> {
       },
       itemBuilder: (context, index) => GestureDetector(
         onTap: () {
-          project.pages.current.widgets.select(widget.project.pages.current.widgets.background);
+          project.pages.current.widgets.select();
         },
+        behavior: HitTestBehavior.translucent,
         child: Center(
           child: project.pages.pages[index].build(context),
         ),

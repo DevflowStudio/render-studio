@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_svg/parser.dart';
+// import 'package:flutter_svg/parser.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:universal_io/io.dart';
 
@@ -86,7 +86,7 @@ class CreatorDesignAsset extends CreatorWidget {
     onChange: (size) { },
     child: SvgPicture.file(
       asset!.file,
-      color: color,
+      colorFilter: color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
     )
   );
 
@@ -153,14 +153,15 @@ class CreatorDesignAsset extends CreatorWidget {
       default:
     }
     if (file == null) return null;
-    final SvgParser parser = SvgParser();
-    final svgString = await file.readAsString();
-    try {
-      await parser.parse(svgString, warningsAsErrors: true);
-    } catch (e, stacktrace) {
-      Alerts.snackbar(context, text: 'You might want to use a different icon. This one has unsupported features.');
-      analytics.logError(e, cause: 'SVG has unsupported features', stacktrace: stacktrace);
-    }
+    // TODO: Add SVG parser to check for unsupported features
+    // final SvgParser parser = SvgParser();
+    // final svgString = await file.readAsString();
+    // try {
+    //   await parser.parse(svgString, warningsAsErrors: true);
+    // } catch (e, stacktrace) {
+    //   Alerts.snackbar(context, text: 'You might want to use a different icon. This one has unsupported features.');
+    //   analytics.logError(e, cause: 'SVG has unsupported features', stacktrace: stacktrace);
+    // }
     return file;
   }
 

@@ -1,33 +1,10 @@
+import 'package:animate_do/animate_do.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import '../../rehmat.dart';
-
-// import 'package:firebase_auth/firebase_auth.dart';
-// 
-// class LandingPage extends StatelessWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return StreamBuilder<FirebaseUser>(
-//       stream: FirebaseAuth.instance.onAuthStateChanged,
-//       builder: (context, snapshot) {
-//         if (snapshot.connectionState == ConnectionState.active) {
-//           FirebaseUser user = snapshot.data;
-//           if (user == null) {
-//             return SignInPage();
-//           }
-//           return HomePage();
-//         } else {
-//           return Scaffold(
-//             body: Center(
-//               child: CircularProgressIndicator(),
-//             ),
-//           );
-//         }
-//       },
-//     );
-//   }
-// }
 
 class LandingPage extends StatefulWidget {
 
@@ -40,6 +17,8 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage> {
 
   Future<void> initialize() async {
+
+    DateTime start = DateTime.now();
 
     await Hive.initFlutter();
 
@@ -54,6 +33,14 @@ class _LandingPageState extends State<LandingPage> {
 
     await Crashlytics.init();
 
+    DateTime end = DateTime.now();
+
+    Duration animationDuration = Duration(seconds: 1, milliseconds: 800);
+
+    if (end.difference(start).inMilliseconds < animationDuration.inMilliseconds) {
+      await Future.delayed(animationDuration - end.difference(start));
+    }
+
     setState(() {
       isLoading = false;
     });
@@ -61,6 +48,8 @@ class _LandingPageState extends State<LandingPage> {
   }
 
   bool isLoading = true;
+
+  bool isAnimating = true;
 
   @override
   void initState() {
@@ -73,8 +62,55 @@ class _LandingPageState extends State<LandingPage> {
     AuthState auth = Provider.of<AuthState>(context);
     if (isLoading) {
       return Scaffold(
-        body: Center(
-          child: Spinner(),
+        body: AnimatedSwitcher(
+          duration: Constants.animationDuration,
+          child: Center(
+            child: isAnimating ? AnimatedTextKit(
+              animatedTexts: [
+                RotateAnimatedText(
+                  'Render',
+                  textStyle: textStyle('Racing Sans One'),
+                  duration: Duration(milliseconds: 300)
+                ),
+                RotateAnimatedText(
+                  'Render',
+                  textStyle: textStyle('Rye'),
+                  duration: Duration(milliseconds: 300)
+                ),
+                RotateAnimatedText(
+                  'Render',
+                  textStyle: textStyle('Henny Penny'),
+                  duration: Duration(milliseconds: 300)
+                ),
+                RotateAnimatedText(
+                  'Render',
+                  textStyle: textStyle('Libre Barcode 39'),
+                  duration: Duration(milliseconds: 300)
+                ),
+              ],
+              totalRepeatCount: 1,
+              pause: const Duration(seconds: 0),
+              displayFullTextOnTap: false,
+              onFinished: () {
+                setState(() {
+                  isAnimating = false;
+                });
+              },
+            ) : FadeInDown(
+              duration: Duration(milliseconds: 300),
+              from: 50,
+              child: Hero(
+                tag: 'app-title',
+                child: Text(
+                  'Render',
+                  style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    fontFamily: 'Helvetica',
+                    fontWeight: FontWeight.w800,
+                  ),
+                )
+              ),
+            ),
+          )
         ),
       );
     } else if (auth.isLoggedIn) {
@@ -83,5 +119,9 @@ class _LandingPageState extends State<LandingPage> {
       return Onboarding();
     }
   }
+
+  TextStyle textStyle(String font) => GoogleFonts.getFont(font).copyWith(
+    fontSize: Theme.of(context).textTheme.displayMedium!.fontSize,
+  );
   
 }

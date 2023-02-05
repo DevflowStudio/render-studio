@@ -96,7 +96,7 @@ class QRWidget extends CreatorWidget {
           onTap: (context) async {
             await EditorTab.modal(
               context,
-              tab: EditorTab.paddingEditor(
+              tab: (context, setState) => EditorTab.paddingEditor(
                 padding: padding,
                 onChange: (value) {
                   padding = value;
@@ -143,7 +143,7 @@ class QRWidget extends CreatorWidget {
           onTap: (context) {
             EditorTab.modal(
               context,
-              tab: EditorTab.rotate(
+              tab: (context, setState) => EditorTab.rotate(
                 angle: angle,
                 onChange: (value) {
                   angle = value;
@@ -164,7 +164,7 @@ class QRWidget extends CreatorWidget {
           onTap: (context) {
             EditorTab.modal(
               context,
-              tab: EditorTab.scale(
+              tab: (context, setState) => EditorTab.scale(
                 size: size,
                 minSize: minSize ?? Size(20, 20),
                 maxSize: page.project.contentSize,
@@ -189,7 +189,7 @@ class QRWidget extends CreatorWidget {
           onTap: (context) {
             EditorTab.modal(
               context,
-              tab: EditorTab.opacity(
+              tab: (context, setState) => EditorTab.opacity(
                 opacity: opacity,
                 onChange: (value) {
                   opacity = value;
@@ -210,7 +210,7 @@ class QRWidget extends CreatorWidget {
           onTap: (context) {
             EditorTab.modal(
               context,
-              tab: EditorTab.nudge(
+              tab: (context, setState) => EditorTab.nudge(
                 onDXchange: (dx) {
                   position = Offset(position.dx + dx, position.dy);
                   updateListeners(WidgetChange.update);

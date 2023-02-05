@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:sprung/sprung.dart';
 
 import '../rehmat.dart';
 
@@ -343,8 +342,8 @@ class _AutoSizeTextState extends State<AutoSizeText> {
       } else {
         return AnimatedDefaultTextStyle(
           style: style.copyWith(fontSize: __fontSize),
-          duration: const Duration(milliseconds: 200),
-          curve: Sprung.overDamped,
+          duration: const Duration(milliseconds: 0),
+          curve: Curves.easeOut,
           child: CreativeTextWidget(
             widget.data!,
             key: widget.textKey,

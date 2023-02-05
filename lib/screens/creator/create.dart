@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:render_studio/screens/creator/widgets/debug_banner.dart';
 import 'package:render_studio/screens/creator/widgets/page_indicator.dart';
 import 'package:render_studio/screens/creator/widgets/project_app_bar.dart';
+import 'package:sprung/sprung.dart';
 import '../../../rehmat.dart';
 
 class Studio extends StatefulWidget {
@@ -49,6 +50,7 @@ class _StudioState extends State<Studio> {
       onWillPop: canPagePop,
       child: Scaffold(
         backgroundColor: context.isDarkMode ? Palette.of(context).background : Palette.of(context).surfaceVariant,
+        resizeToAvoidBottomInset: false,
         appBar: ProjectAppBar(
           project: project,
           isLoading: isLoading,
@@ -59,72 +61,59 @@ class _StudioState extends State<Studio> {
             await save();
           },
         ),
-        body: GestureDetector(
-          onTap: () => project.pages.current.widgets.select(project.pages.current.widgets.background),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (preferences.debugMode) Align(
-                  alignment: Alignment.topLeft,
-                  child: ProjectDebugBanner(project: project),
-                ),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      // if (project.thumbnail != null) Center(
-                      //   child: Opacity(
-                      //     opacity: 0,
-                      //     child: Hero(
-                      //       tag: 'project-${project.id}',
-                      //       child: OctoImage(
-                      //         image: FileImage(File(pathProvider.generateRelativePath(project.thumbnail!)))
-                      //       )
-                      //     ),
-                      //   ),
-                      // ),
-                      Hero(
-                        tag: 'project-${project.id}',
-                        child: creator
-                      ),
-                      AnimatedSwitcher(
-                        duration: kAnimationDuration,
-                        child: isLoading ? BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: SizedBox.expand(
-                            child: Container(
-                              color: Palette.of(context).background.withOpacity(0.25),
-                              child: Center(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Palette.of(context).background,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  padding: const EdgeInsets.all(20),
-                                  child: Spinner()
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (preferences.debugMode) Align(
+                alignment: Alignment.topLeft,
+                child: ProjectDebugBanner(project: project),
+              ),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Hero(
+                      tag: 'project-${project.id}',
+                      child: creator
+                    ),
+                    AnimatedSwitcher(
+                      duration: kAnimationDuration,
+                      child: isLoading ? BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: SizedBox.expand(
+                          child: Container(
+                            color: Palette.of(context).background.withOpacity(0.25),
+                            child: Center(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Palette.of(context).background,
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
+                                padding: const EdgeInsets.all(20),
+                                child: Spinner()
                               ),
                             ),
                           ),
-                        ) : const SizedBox.shrink(),
-                      )
-                    ],
-                  ),
+                        ),
+                      ) : const SizedBox.shrink(),
+                    )
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 4,
-                  ),
-                  child: PageIndicator(project: project),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 4,
                 ),
-                // spacer(project.editorVisible ? 1 : 2),
-              ],
-            ),
+                child: PageIndicator(project: project),
+              ),
+              // spacer(project.editorVisible ? 1 : 2),
+            ],
           ),
         ),
         bottomNavigationBar: AnimatedSize(
-          duration: const Duration(milliseconds: 200),
+          duration: kAnimationDuration * 2,
+          curve: Sprung.underDamped,
           child: _BottomNavBuilder(project: project)
         ),
       ),

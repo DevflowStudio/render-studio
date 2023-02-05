@@ -37,7 +37,7 @@ abstract class RenderIcons {
 
   static const IconData sharing = Iconsax.share;
 
-  static const IconData export = Iconsax.export;
+  static const IconData export = MaterialSymbols.download;
 
   static const IconData import = Iconsax.import;
 
@@ -121,13 +121,13 @@ abstract class RenderIcons {
 
   static const IconData blur = MaterialSymbols.blur_on;
 
-  static const IconData text_align_left = Iconsax.align_left;
+  static const IconData text_align_left = CupertinoIcons.text_alignleft;
 
-  static const IconData text_align_center = Iconsax.align_horizontally;
+  static const IconData text_align_center = CupertinoIcons.text_aligncenter;
 
-  static const IconData text_align_right = Iconsax.align_right;
+  static const IconData text_align_right = CupertinoIcons.text_alignright;
 
-  static const IconData text_align_justify = Iconsax.textalign_justifycenter;
+  static const IconData text_align_justify = CupertinoIcons.text_justify;
 
   static const IconData outline = FontAwesomeIcons.borderAll;
 
@@ -166,6 +166,8 @@ abstract class RenderIcons {
   static const IconData drag = PhosphorIcons.arrowsOutCardinal;
 
   static const IconData keyboard = CupertinoIcons.keyboard;
+
+  static const IconData close_keyboard = CupertinoIcons.keyboard_chevron_compact_down;
 
   static const IconData color_picker = MaterialSymbols.colorize;
 

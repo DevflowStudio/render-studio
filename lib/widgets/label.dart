@@ -22,7 +22,7 @@ class _LabelState extends State<Label> {
   Widget build(BuildContext context) {
     return Text(
       widget.label,
-      style: (widget.subtitle ? Theme.of(context).textTheme.subtitle1 : Theme.of(context).textTheme.headlineSmall)
+      style: (widget.subtitle ? Theme.of(context).textTheme.titleMedium : Theme.of(context).textTheme.headlineSmall)
     );
   }
 }

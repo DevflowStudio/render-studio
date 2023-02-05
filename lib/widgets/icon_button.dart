@@ -168,7 +168,8 @@ class NewBackButton extends StatefulWidget {
     this.confirmTitle,
     this.size,
     this.data,
-    this.icon
+    this.icon,
+    this.secondary = false
   }) : super(key: key);
 
   final bool confirm;
@@ -177,6 +178,7 @@ class NewBackButton extends StatefulWidget {
   final double? size;
   final dynamic data;
   final IconData? icon;
+  final bool secondary;
 
   @override
   State<NewBackButton> createState() => _NewBackButtonState();
@@ -186,9 +188,10 @@ class _NewBackButtonState extends State<NewBackButton> {
 
   @override
   Widget build(BuildContext context) {
-    return FilledTonalIconButton(
+    return IconButton(
       icon: Icon(widget.icon ?? CupertinoIcons.arrow_turn_up_left),
       onPressed: onBack,
+      // secondary: widget.secondary,
     );
   }
 
@@ -233,8 +236,6 @@ class ColorSelector extends StatefulWidget {
 
 class _ColorSelectorState extends State<ColorSelector> {
 
-  double radius = 60;
-
   late Color color;
 
   @override
@@ -254,50 +255,48 @@ class _ColorSelectorState extends State<ColorSelector> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onPanDown: (details) => reduceRadius(),
-      onTapDown: (details) => reduceRadius(),
-      onPanCancel: () => resetRadius(),
-      onTapUp: (details) => resetRadius(),
-      onTapCancel: () => resetRadius(),
-      onTap: () async {
-        reduceRadius();
-        TapFeedback.light();
-        await EditorTab.modal(
-          context,
-          tab: EditorTab.color(
+    return Tooltip(
+      message: '${widget.title} (${color.toHex()})',
+      child: GestureDetector(
+        onTap: () async {
+          TapFeedback.light();
+          await EditorTab.modal(
             context,
-            palette: widget.palette,
-            allowOpacity: widget.allowOpacity,
-            selected: color,
-            onChange: (_color) {
-              color = _color;
-              widget.onColorSelect(_color);
-            },
-          )
-        );
-        setState(() { });
-        Future.delayed(const Duration(milliseconds: 300), () => resetRadius());
-      },
-      child: AnimatedContainer(
-        duration: Constants.animationDuration,
-        height: widget.size?.height ?? 60,
-        width: widget.size?.width ?? 60,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(radius),
-          border: Border.all(
-            color: Palette.of(context).outline,
-            width: 1
-          )
+            tab: (context, setState) => EditorTab.color(
+              context,
+              palette: widget.palette,
+              allowOpacity: widget.allowOpacity,
+              selected: color,
+              onChange: (_color) {
+                color = _color;
+                widget.onColorSelect(_color);
+              },
+            )
+          );
+          setState(() { });
+        },
+        child: Container(
+          height: widget.size?.height ?? 60,
+          width: widget.size?.width ?? 60,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(widget.size?.width ?? 60),
+            border: Border.all(
+              color: Palette.of(context).outline,
+              width: 1
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: Offset(0, 0)
+              )
+            ]
+          ),
         ),
       ),
     );
   }
-
-  void reduceRadius() => setState(() => radius = 20);
-
-  void resetRadius() => setState(() => radius = 60);
 
 }
 
@@ -420,7 +419,7 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                   child: Center(
                     child: Text(
                       widget.title!,
-                      style: Theme.of(context).textTheme.caption!.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         fontFamily: 'Google Sans'
                       ),
                       overflow: TextOverflow.visible,
@@ -458,7 +457,7 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
 
   double calculateHeight() {
     if (widget.title != null) {
-      return Theme.of(context).textTheme.subtitle1!.fontSize! + 10 + 60;
+      return Theme.of(context).textTheme.titleMedium!.fontSize! + 10 + 60;
     } else {
       return 60;
     }

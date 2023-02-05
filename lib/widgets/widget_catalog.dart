@@ -92,18 +92,18 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
           Navigator.of(context).pop();
         }
       },
-      'box': {
-        'title': 'Box',
-        'icon': Icon(
-          RenderIcons.design_asset,
-          size: 30,
-          color: Palette.of(context).onSurfaceVariant,
-        ),
-        'onTap': () async {
-          await CreatorBoxWidget.create(context, page: widget.page);
-          Navigator.of(context).pop();
-        }
-      },
+      // 'box': {
+      //   'title': 'Box',
+      //   'icon': Icon(
+      //     RenderIcons.design_asset,
+      //     size: 30,
+      //     color: Palette.of(context).onSurfaceVariant,
+      //   ),
+      //   'onTap': () async {
+      //     await CreatorBoxWidget.create(context, page: widget.page);
+      //     Navigator.of(context).pop();
+      //   }
+      // },
       'blob': {
         'title': 'Blob',
         'icon': Blob.random(
@@ -124,6 +124,16 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
           File? file = await FilePicker.pick(context: context, type: FileType.image, crop: true,);
           if (file == null) return;
           await ImageWidget.create(context, page: widget.page, file: file);
+          Navigator.of(context).pop();
+        }
+      },
+      'svg': {
+        'title': 'Upload SVG',
+        'icon': Icon(RenderIcons.upload),
+        'onTap': () async {
+          File? file = await FilePicker.pick(context: context, type: FileType.svg, crop: false);
+          if (file == null) return;
+          await CreatorDesignAsset.create(context, page: widget.page, file: file);
           Navigator.of(context).pop();
         }
       },
@@ -199,7 +209,7 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
                       indicatorColor: Constants.getThemedBlackAndWhite(context),
                       labelColor: Constants.getThemedBlackAndWhite(context),
                       unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
-                      labelStyle: Theme.of(context).textTheme.subtitle2,
+                      labelStyle: Theme.of(context).textTheme.titleSmall,
                       tabs: [
                         Tab(
                           text: 'Unsplash',
@@ -439,7 +449,7 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
     sliver: SliverToBoxAdapter(
       child: Text(
         text,
-        style: Theme.of(context).textTheme.subtitle1?.copyWith(
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
           color: Palette.of(context).onSurfaceVariant
         ),
       ),
@@ -598,4 +608,142 @@ extension _TextStyleExtension on _TextStyles {
     }
   }
 
+}
+
+class CreativeWidgetsShowcase extends StatefulWidget {
+
+  const CreativeWidgetsShowcase({
+    super.key,
+    required this.page
+  });
+
+  final CreatorPage page;
+
+  @override
+  State<CreativeWidgetsShowcase> createState() => CreativeWidgetsShowcaseState();
+}
+
+class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
+
+  BlurredEdgesController _blurredEdgesController = BlurredEdgesController();
+
+  @override
+  Widget build(BuildContext context) {
+    final Map<String, dynamic> widgets = {
+      'text': {
+        'title': 'Text',
+        'icon': RenderIcons.text,
+        'onTap': () => _TextStyles.values.forEach((style) => style.create(context, page: widget.page))
+      },
+      'qr_code': {
+        'title': 'QR Code',
+        'icon': RenderIcons.qr
+      },
+      'progress': {
+        'title': 'Progress',
+        'icon': RenderIcons.progress,
+      },
+      'pie-chart': {
+        'title': 'Pie Chart',
+        'icon': RenderIcons.pieChart
+      },
+      'box': {
+        'title': 'Box',
+        'icon': RenderIcons.design_asset
+      },
+      'blob': {
+        'title': 'Blob',
+        'widget': Blob.random(
+          size: 30,
+          styles: BlobStyles(
+            color: Palette.of(context).onSurfaceVariant,
+          ),
+        )
+      },
+      'image': {
+        'title': 'Image',
+        'icon': RenderIcons.upload,
+        'onTap': () async {
+          File? file = await FilePicker.pick(context: context, type: FileType.image, crop: true,);
+          if (file == null) return;
+          await ImageWidget.create(context, page: widget.page, file: file);
+          Navigator.of(context).pop();
+        }
+      },
+      'design_asset': {
+        'title': 'Design Asset',
+        'icon': RenderIcons.design_asset,
+        'onTap': () async {
+          File? file = await FilePicker.pick(context: context, type: FileType.image, crop: true,);
+          if (file == null) return;
+          await ImageWidget.create(context, page: widget.page, file: file);
+          Navigator.of(context).pop();
+        }
+      },
+    };
+    return SizedBox(
+      height: MediaQuery.of(context).padding.bottom + 24 + 80,
+      child: Container(
+        decoration: BoxDecoration(
+          // color: Palette.of(context).background
+        ),
+        child: BlurredEdgesView(
+          controller: _blurredEdgesController,
+          child: ListView.separated(
+            controller: _blurredEdgesController.scrollCtrl,
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 12,
+              bottom: MediaQuery.of(context).padding.bottom + 12,
+            ),
+            scrollDirection: Axis.horizontal,
+            separatorBuilder: (context, index) => SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              String key = widgets.keys.elementAt(index);
+              Map<String, dynamic> widget = widgets[key]!;
+              return SizedBox(
+                width: 80,
+                height: 80,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Palette.of(context).background,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Palette.of(context).onBackground.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: Offset(0, 0),
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (widget['icon'] != null) Icon(
+                        widget['icon'],
+                        color: Palette.of(context).onBackground,
+                        size: 30,
+                      ) else if (widget['widget'] != null) widget['widget'],
+                      Spacer(),
+                      AutoSizeText(
+                        widget['title'],
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Palette.of(context).onBackground,
+                        ),
+                        maxLines: 1,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+            itemCount: widgets.length,
+          ),
+        ),
+      ),
+    );
+  }
+  
 }

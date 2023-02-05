@@ -56,7 +56,13 @@ class CreatorPage extends PropertyChangeNotifier {
       absorbing: !isInteractive,
       child: _PageZoomableViewer(
         page: this,
-        child: Center(child: widget(context, isInteractive: isInteractive, isDimensionless: isDimensionless)),
+        child: Center(
+          child: widget(
+            context,
+            isInteractive: isInteractive,
+            isDimensionless: isDimensionless
+          ),
+        ),
       ),
     );
   }
@@ -67,7 +73,6 @@ class CreatorPage extends PropertyChangeNotifier {
   }) => SizedBox.fromSize(
     size: isDimensionless ? null : project.contentSize,
     child: Stack(
-      clipBehavior: Clip.hardEdge,
       children: [
         ... widgets.build(context, isInteractive: isInteractive),
         PageGridView(state: gridState)

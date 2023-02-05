@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
-import 'package:universal_io/io.dart';
-import 'package:device_info/device_info.dart';
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../rehmat.dart';
@@ -44,34 +42,16 @@ class Constants {
   static double get appBarExpandedHeight => 150;
 
   static Future<Map> get device async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    Map<String, dynamic> info = {
-      'os': Platform.operatingSystem,
-      // 'token': tokenManager.token,
-      'timestamp': DateTime.now().millisecondsSinceEpoch
+    DeviceInfo deviceInfo = await DeviceInfo.instance;
+    return {
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+      'brand': deviceInfo.brand,
+      'model': deviceInfo.model,
+      'version': deviceInfo.version,
+      'device': deviceInfo.device,
+      'emulator': deviceInfo.isEmulator,
+      'os': deviceInfo.os,
     };
-    if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      info.addAll({
-        'version': androidInfo.version.baseOS,
-        'model': androidInfo.model,
-        'device': androidInfo.device,
-        'emulator': !androidInfo.isPhysicalDevice,
-        'manufacturer': androidInfo.manufacturer,
-        'identifier': androidInfo.androidId
-      });
-    } else if (Platform.isIOS) {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      info.addAll({
-        'version': iosInfo.systemVersion,
-        'device': iosInfo.utsname.machine,
-        'model': iosInfo.localizedModel,
-        'emulator': !iosInfo.isPhysicalDevice,
-        'manufacturer': 'Apple',
-        'identifier': iosInfo.identifierForVendor
-      });
-    }
-    return info;
   }
 
   static T getThemedObject<T>(BuildContext context, {
@@ -101,49 +81,6 @@ class Constants {
     } else {
       return number.toString();
     }
-  }
-
-  static Future<Map> getDeviceInfo() async {
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-
-    String _model;
-    String _version;
-    String _brand;
-    String _device;
-    bool _isEmulator;
-    String _id;
-    String _manufacturer;
-    
-    if (Platform.isAndroid) {
-      AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      _id = androidInfo.androidId;
-      _model = androidInfo.model;
-      _device = androidInfo.device;
-      _version = androidInfo.version.release;
-      _brand = androidInfo.brand;
-      _manufacturer = androidInfo.manufacturer;
-      _isEmulator = !androidInfo.isPhysicalDevice;
-    } else {
-      IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-      _id = iosInfo.identifierForVendor;
-      _model = iosInfo.model;
-      _device = iosInfo.utsname.machine;
-      _version = iosInfo.systemVersion;
-      _brand = 'Apple';
-      _manufacturer = 'Apple';
-      _isEmulator = !iosInfo.isPhysicalDevice;
-    }
-
-    return {
-      'model': _model,
-      'version': _version,
-      'brand': _brand,
-      'device': _device,
-      'isEmulator': _isEmulator,
-      'id': _id,
-      'manufacturer': _manufacturer,
-    };
-
   }
 
   static String generateID([int length = 6]) {

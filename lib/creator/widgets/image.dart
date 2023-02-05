@@ -189,7 +189,7 @@ class CreativeImageProvider {
           EditorTab.modal(
             context,
             padding: EdgeInsets.zero,
-            tab: EditorTab(
+            tab: (context, setState) => EditorTab(
               tab: 'Filters',
               type: EditorTabType.single,
               options: [

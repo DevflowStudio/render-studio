@@ -6,7 +6,6 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:universal_io/io.dart';
-import 'package:skeletons/skeletons.dart';
 import '../../../rehmat.dart';
 
 class ProjectAtGlanceModal extends StatefulWidget {
@@ -58,54 +57,64 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
                 )
               ],
             ),
-            Spacer(
+            Expanded(
               flex: 1,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                behavior: HitTestBehavior.translucent,
+                child: SizedBox.expand(),
+              ),
             ),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.75,
-                  maxWidth: MediaQuery.of(context).size.width - 24
-                ),
-                child: Stack(
-                  children: [
-                    Hero(
-                      tag: 'project-${glance.id}',
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.75,
+                maxWidth: MediaQuery.of(context).size.width - 24
+              ),
+              child: Stack(
+                children: [
+                  Hero(
+                    tag: 'project-${glance.id}',
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
                       child: OctoImage(
                         image: FileImage(File(glance.thumbnail!)),
                       ),
                     ),
-                    Positioned(
-                      top: 12,
-                      right: 12,
-                      child: FadeOut(
-                        delay: Duration(seconds: 3),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Palette.of(context).background.withOpacity(0.2)
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${glance.nPages} Page${glance.nPages > 1 ? 's' : ''}',
-                                )
-                              ),
+                  ),
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: FadeOut(
+                      delay: Duration(seconds: 3),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Palette.of(context).background.withOpacity(0.2)
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${glance.nPages} Page${glance.nPages > 1 ? 's' : ''}',
+                              )
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            Spacer(
+            Expanded(
               flex: 2,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                behavior: HitTestBehavior.translucent,
+                child: SizedBox.expand(),
+              ),
             ),
             AnimatedCrossFade(
               duration: Duration(milliseconds: 300),
@@ -286,212 +295,6 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
 
 }
 
-class ProjectAtGlance extends StatefulWidget {
-
-  ProjectAtGlance({
-    Key? key,
-    required this.glance,
-  }) : super(key: key);
-
-  final ProjectGlance glance;
-
-  @override
-  State<ProjectAtGlance> createState() => _ProjectAtGlanceState();
-}
-
-class _ProjectAtGlanceState extends State<ProjectAtGlance> {
-
-  late ProjectGlance glance;
-
-  Project? originalPost;
-
-  List<String>? files;
-
-  late Future<bool> fileExists;
-
-  bool isLoading = true;
-
-  bool savedToGallery = false;
-
-  @override
-  void initState() {
-    super.initState();
-    glance = widget.glance;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          RenderAppBar(
-            title: Text('Project'),
-            isExpandable: false,
-          ),
-          SliverList(
-            delegate: SliverChildListDelegate([
-              Center(
-                child: Container(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width,
-                    maxHeight: MediaQuery.of(context).size.height * 0.6,
-                    minWidth: MediaQuery.of(context).size.width,
-                  ),
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: 0,
-                        blurRadius: 1,
-                        // offset: const Offset(0, 0),
-                      ),
-                    ],
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: ClipRRect(
-                    child: Hero(
-                      tag: 'project-${glance.id}',
-                      child: OctoImage(
-                        image: FileImage(File(glance.thumbnail ?? '')),
-                        errorBuilder: (context, error, stackTrace) => SizedBox(
-                          height: MediaQuery.of(context).size.width - 24,
-                          child: Container(
-                            color: Palette.of(context).surfaceVariant,
-                            child: Icon(
-                              RenderIcons.warning,
-                              color: Colors.yellow,
-                              size: 50,
-                            )
-                          ),
-                        ),
-                        placeholderBuilder: (context) => SkeletonAvatar(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 18,
-                  right: 18,
-                  top: 24,
-                  bottom: 6,
-                ),
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 18,
-                  right: 18,
-                ),
-                child: Text(
-                  description ?? 'This project does not have any description.',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-              ),
-              Container(
-                width: double.maxFinite,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-                  child: Wrap(
-                    runSpacing: 5,
-                    spacing: 5,
-                    children: [
-                      TextIconButton(
-                        text: 'Open',
-                        icon: RenderIcons.open,
-                        onPressed: () async {
-                          if (originalPost == null) await createOriginalPost();
-                          if (originalPost != null) AppRouter.replace(context, page: Studio(project: originalPost!));
-                        }
-                      ),
-                      TextIconButton(
-                        text: 'Delete',
-                        icon: RenderIcons.delete,
-                        onPressed: () async {
-                          bool delete = await Alerts.showConfirmationDialog(
-                            context,
-                            title: 'Delete Project',
-                            message: 'Are you sure you want to delete this project?',
-                            isDestructive: true
-                          );
-                          if (delete) {
-                            if (originalPost == null) await createOriginalPost();
-                            await manager.delete(context, project: originalPost, id: glance.id);
-                            Navigator.of(context).pop();
-                          }
-                        }
-                      ),
-                      TextIconButton(
-                        text: 'Share',
-                        icon: RenderIcons.share,
-                        onPressed: share
-                      ),
-                      TextIconButton(
-                        text: savedToGallery ? 'Saved' : 'Save to Gallery',
-                        icon: savedToGallery ? RenderIcons.done : RenderIcons.download,
-                        onPressed: savedToGallery ? () { } : () async => await saveToGallery()
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ]),
-          )
-        ],
-      ),
-    );
-  }
-
-  String get title => glance.title;
-
-  String? get description {
-    if (glance.description == null || glance.description!.trim().isEmpty) {
-      return null;
-    } else {
-      return glance.description!;
-    }
-  }
-
-  Future<void> share() async {
-    // if (files == null) await saveToGallery();
-    // await Share.shareFiles(
-    //   files!,
-    //   text: glance.title,
-    //   subject: glance.description,
-    // );
-  }
-
-  Future<void> saveToGallery() async {
-    files = [];
-    if (originalPost == null) {
-      await createOriginalPost();
-      if (originalPost == null) return;
-    }
-    await Spinner.fullscreen(
-      context,
-      task: () async {
-        savedToGallery = await originalPost!.saveToGallery(context);
-      }
-    );
-    setState(() { });
-  }
-
-  Future<void> createOriginalPost() async {
-    await Spinner.fullscreen(
-      context,
-      task: () async {
-        originalPost = await glance.renderFullProject(context);
-      }
-    );
-    setState(() { });
-  }
-
-}
-
 class ProjectGlanceCard extends StatelessWidget {
 
   const ProjectGlanceCard({
@@ -573,7 +376,7 @@ class ProjectGlanceCard extends StatelessWidget {
                   ),
                   Text(
                     getTimeAgo(glance.edited ?? glance.created!),
-                    style: Theme.of(context).textTheme.caption?.copyWith(
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.secondary
                     ),
                   )

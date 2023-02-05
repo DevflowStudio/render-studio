@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../../rehmat.dart';
@@ -81,21 +82,21 @@ extension ResizeHandlerProperties on ResizeHandler {
   Size get size {
     switch (this) {
       case ResizeHandler.topLeft:
-        return const Size(15, 15);
+        return const Size(17, 17);
       case ResizeHandler.topCenter:
         return const Size(30, 3);
       case ResizeHandler.topRight:
-        return const Size(15, 15);
+        return const Size(17, 17);
       case ResizeHandler.centerLeft:
         return const Size(3, 30);
       case ResizeHandler.centerRight:
         return const Size(3, 30);
       case ResizeHandler.bottomLeft:
-        return const Size(15, 15);
+        return const Size(17, 17);
       case ResizeHandler.bottomCenter:
         return const Size(30, 3);
       case ResizeHandler.bottomRight:
-        return const Size(15, 15);
+        return const Size(17, 17);
       default:
         return const Size(0, 0);
     }
@@ -104,21 +105,21 @@ extension ResizeHandlerProperties on ResizeHandler {
   Size get feedbackSize {
     switch (this) {
       case ResizeHandler.topLeft:
-        return const Size(20, 20);
+        return const Size(30, 30);
       case ResizeHandler.topCenter:
         return const Size(40, 6);
       case ResizeHandler.topRight:
-        return const Size(20, 20);
+        return const Size(30, 30);
       case ResizeHandler.centerLeft:
         return const Size(6, 40);
       case ResizeHandler.centerRight:
         return const Size(6, 40);
       case ResizeHandler.bottomLeft:
-        return const Size(20, 20);
+        return const Size(30, 30);
       case ResizeHandler.bottomCenter:
         return const Size(40, 6);
       case ResizeHandler.bottomRight:
-        return const Size(20, 20);
+        return const Size(30, 30);
       default:
         return const Size(0, 0);
     }
@@ -237,6 +238,29 @@ extension ResizeHandlerProperties on ResizeHandler {
     }
   }
 
+  MouseCursor get cursor {
+    switch (this) {
+      case ResizeHandler.topLeft:
+        return SystemMouseCursors.resizeUpLeft;
+      case ResizeHandler.topCenter:
+        return SystemMouseCursors.resizeUp;
+      case ResizeHandler.topRight:
+        return SystemMouseCursors.resizeUpRight;
+      case ResizeHandler.centerLeft:
+        return SystemMouseCursors.resizeLeft;
+      case ResizeHandler.centerRight:
+        return SystemMouseCursors.resizeRight;
+      case ResizeHandler.bottomLeft:
+        return SystemMouseCursors.resizeDownLeft;
+      case ResizeHandler.bottomCenter:
+        return SystemMouseCursors.resizeDown;
+      case ResizeHandler.bottomRight:
+        return SystemMouseCursors.resizeDownRight;
+      default:
+        return SystemMouseCursors.basic;
+    }
+  }
+
 }
 
 enum ResizeHandlerType {
@@ -266,9 +290,9 @@ class ResizeHandlerBall extends StatefulWidget {
 
   final ResizeHandler type;
   final CreatorWidget widget;
-  final Function(Size size) onSizeChange;
-  final Function(DragStartDetails details)? onResizeStart;
-  final Function(DragEndDetails details, ResizeHandler type)? onResizeEnd;
+  final void Function(Size size) onSizeChange;
+  final void Function({DragStartDetails? details, ResizeHandler? handler})? onResizeStart;
+  final void Function({DragEndDetails? details, ResizeHandler? handler})? onResizeEnd;
   final bool isVisible;
   /// Set to `true` if the widget is currently being resized
   final bool isResizing;
@@ -296,40 +320,52 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
         // curve: Sprung(),
         // scale: widget.isVisible ? 1 : 0,
         visible: widget.isVisible,
-        child: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onPanUpdate: _onDrag,
-          onPanEnd: _onDragEnd,
-          onPanStart: _onDragStart,
-          onPanCancel: _onDragCancel,
-          onTapDown: (details) => setState(() => isDragging = true),
-          onTapCancel: _onDragCancel,
-          onTapUp: (details) => setState(() => isDragging = false),
-          child: IgnorePointer(
-            ignoring: !widget.isVisible,
-            child: Container(
-              width: 40,
-              height: 40,
-              child: Center(
-                child: AnimatedContainer(
-                  duration: Duration(milliseconds: 100),
-                  width: _size.width,
-                  height: _size.height,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: color,
-                    // border: borderColor != null ? Border.all(
-                    //   color: borderColor!,
-                    //   width: 1
-                    // ) : null,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 5,
-                        spreadRadius: 0,
-                        offset: const Offset(0, 0)
-                      )
-                    ]
+        child: MouseRegion(
+          cursor: widget.type.cursor,
+          onHover: (event) => setState(() => isDragging = true),
+          onExit: (event) => setState(() => isDragging = false),
+          child: GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            dragStartBehavior: DragStartBehavior.down,
+            onPanUpdate: _onDrag,
+            onPanEnd: _onDragEnd,
+            onPanStart: _onDragStart,
+            onPanCancel: _onDragCancel,
+            onTapDown: (details) => _onDragStart(),
+            onTapCancel: _onDragCancel,
+            onTapUp: (details) => _onDragCancel(),
+            child: IgnorePointer(
+              ignoring: !widget.isVisible,
+              child: Container(
+                width: 40,
+                height: 40,
+                child: Center(
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 100),
+                    width: _size.width,
+                    height: _size.height,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: color,
+                      border: borderColor != null ? Border.all(
+                        color: borderColor!,
+                        width: 1
+                      ) : null,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 5,
+                          spreadRadius: 0,
+                          offset: const Offset(0, 0)
+                        )
+                      ]
+                      // border: Border.all(
+                      //   color: Colors.blue,
+                      //   width: isDragging ? 2 : 1
+                      // ),
+                      // borderRadius: BorderRadius.circular(1),
+                      // color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -365,18 +401,18 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
     if (size != null) widget.onSizeChange(size);
   }
 
-  void _onDragStart(DragStartDetails details) {
+  void _onDragStart([DragStartDetails? details]) {
     setState(() {
       isDragging = true;
     });
-    if (widget.onResizeStart != null) widget.onResizeStart!(details);
+    widget.onResizeStart?.call(details: details, handler: widget.type);
   }
 
-  void _onDragEnd(DragEndDetails details) {
+  void _onDragEnd([DragEndDetails? details]) {
     setState(() {
       isDragging = false;
     });
-    if (widget.onResizeEnd != null) widget.onResizeEnd!(details, widget.type);
+    widget.onResizeEnd?.call(details: details, handler: widget.type);
   }
 
   void _onDragCancel() => setState(() {

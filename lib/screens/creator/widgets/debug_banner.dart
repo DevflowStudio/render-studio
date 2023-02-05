@@ -58,31 +58,17 @@ class __DebugModeWidgetState extends State<ProjectDebugBanner> {
             ),
             if (page.widgets.nSelections == 1) ... [
               Text(
-                'Selection: ${creatorWidget.id} #${creatorWidget.uid}',
+                '${creatorWidget.id}#${creatorWidget.uid}',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: Colors.red,
                   fontWeight: FontWeight.w500
                 ),
               ),
               Text(
-                'Position: (${creatorWidget.position.dx.toStringAsFixed(2)}, ${creatorWidget.position.dy.toStringAsFixed(2)})',
+                'OFF(${creatorWidget.position.dx.toStringAsFixed(2)}, ${creatorWidget.position.dy.toStringAsFixed(2)}), ${creatorWidget.size.width.toStringAsFixed(2)} x ${creatorWidget.size.height.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: Colors.red,
                   fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                'Size: ${creatorWidget.size.width.toStringAsFixed(2)} x ${creatorWidget.size.height.toStringAsFixed(2)}',
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: Colors.red,
-                  fontWeight: FontWeight.w500
-                ),
-              ),
-              Text(
-                'Area: ${creatorWidget.area}',
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: Colors.red,
-                  fontWeight: FontWeight.w500
                 ),
               ),
             ] else if (page.widgets.nSelections == 0) Text(

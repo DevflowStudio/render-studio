@@ -121,7 +121,7 @@ class CreativeProgressWidget extends CreatorWidget {
           title: type == _ProgressType.linear ? 'Linear' : 'Circular',
           onTap: (context) => EditorTab.modal(
             context,
-            tab: EditorTab.picker(
+            tab: (context, setState) => EditorTab.picker(
               title: 'Type',
               children: [
                 Text('Linear'),
@@ -179,7 +179,7 @@ class CreativeProgressWidget extends CreatorWidget {
           title: 'Corners',
           onTap: (context) => EditorTab.modal(
             context,
-            tab: EditorTab.picker(
+            tab: (context, setState) => EditorTab.picker(
               title: 'Corners',
               children: [
                 Text('Round'),

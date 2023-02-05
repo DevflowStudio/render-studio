@@ -52,15 +52,6 @@ class _LabState extends State<Lab> {
                       subtitle: Text('View and create color palettes'),
                       onTap: () => AppRouter.push(context, page: MyPalettes()),
                     ),
-                    ListTile(
-                      leading: centerListTileIcon(child: Icon(RenderIcons.lab)),
-                      visualDensity: VisualDensity.compact,
-                      title: Text(
-                        'Custom Widgets',
-                      ),
-                      subtitle: Text('View and create color palettes'),
-                      onTap: () => AppRouter.push(context, page: HTMLWidgetCreator()),
-                    ),
                   ],
                 ),
               ),
