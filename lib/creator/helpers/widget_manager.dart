@@ -23,7 +23,6 @@ class WidgetManager extends ChangeNotifier {
       }
     );
     updateSortedUIDs();
-    _selections.add(background);
   }
 
   /// Creates a new instance of [WidgetManager] when a new page is created.
@@ -92,7 +91,12 @@ class WidgetManager extends ChangeNotifier {
   /// 
   /// Incase the widget is a [BackgroundWidget], then the selection will be cleared and the widget will be the only selected widget.
   void select([CreatorWidget? widget]) {
-    if (widget == null) widget = background;
+    if (widget == null) {
+      _selections.clear();
+      updateGrids();
+      page.updateListeners(PageChange.selection);
+      return;
+    }
     if (widget.uid == background.uid || widget is BackgroundWidget || widget is WidgetGroup) {
       multiselect = false;
       _selections.clear();
@@ -310,7 +314,6 @@ class WidgetManager extends ChangeNotifier {
       page.project.issues.add(Exception('${widgetData['name']} failed to rebuild'));
     }
     _selections = [];
-    _selections.add(background);
     page.updateListeners(PageChange.misc);
   }
 

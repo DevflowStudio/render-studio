@@ -74,7 +74,8 @@ class WidgetGroup extends CreatorWidget {
   }) async {
     WidgetGroup? group = await _createGroup(page: page, widgets: widgets);
     if (group == null) return;
-    page.widgets.add(group);
+    page.widgets.add(group, soft: true);
+    page.history.log('Group Widgets');
     page.widgets.select(group.widgets.first);
   }
 

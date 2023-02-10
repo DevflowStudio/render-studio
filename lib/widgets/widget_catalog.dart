@@ -633,7 +633,51 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
       'text': {
         'title': 'Text',
         'icon': RenderIcons.text,
-        'onTap': () => _TextStyles.values.forEach((style) => style.create(context, page: widget.page))
+      },
+      'shape': {
+        'title': 'Shapes',
+        'icon': RenderIcons.shapes
+      },
+      'image': {
+        'title': 'Image',
+        'icon': RenderIcons.upload,
+        'onTap': () async {
+          File? file = await FilePicker.imagePicker(context, crop: true, forceCrop: false);
+          if (file == null) return;
+          await ImageWidget.create(context, page: widget.page, file: file);
+        }
+      },
+      'design_asset': {
+        'title': 'Design Asset',
+        'icon': RenderIcons.design_asset,
+        'onTap': () async {
+          String? option = await Alerts.optionsBuilder(
+            context,
+            title: 'Design Asset',
+            options: [
+              AlertOption(
+                title: 'Upload SVG',
+                id: 'svg'
+              ),
+              AlertOption(
+                title: 'Browse Design Assets',
+                id: 'browse'
+              ),
+            ]
+          );
+          File? file;
+          switch (option) {
+            case 'svg':
+              file = await FilePicker.pick(context: context, type: FileType.svg);
+              break;
+            case 'browse':
+              file = await AppRouter.push(context, page: IconFinderScreen(project: widget.page.project));
+              break;
+            default:
+          }
+          if (file == null) return;
+          await CreatorDesignAsset.create(context, page: widget.page, file: file);
+        }
       },
       'qr_code': {
         'title': 'QR Code',
@@ -649,100 +693,98 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
       },
       'box': {
         'title': 'Box',
-        'icon': RenderIcons.design_asset
+        'icon': RenderIcons.box
       },
       'blob': {
         'title': 'Blob',
         'widget': Blob.random(
-          size: 30,
+          size: 40,
           styles: BlobStyles(
             color: Palette.of(context).onSurfaceVariant,
           ),
-        )
-      },
-      'image': {
-        'title': 'Image',
-        'icon': RenderIcons.upload,
-        'onTap': () async {
-          File? file = await FilePicker.pick(context: context, type: FileType.image, crop: true,);
-          if (file == null) return;
-          await ImageWidget.create(context, page: widget.page, file: file);
-          Navigator.of(context).pop();
-        }
-      },
-      'design_asset': {
-        'title': 'Design Asset',
-        'icon': RenderIcons.design_asset,
-        'onTap': () async {
-          File? file = await FilePicker.pick(context: context, type: FileType.image, crop: true,);
-          if (file == null) return;
-          await ImageWidget.create(context, page: widget.page, file: file);
-          Navigator.of(context).pop();
-        }
+        ),
       },
     };
-    return SizedBox(
-      height: MediaQuery.of(context).padding.bottom + 24 + 80,
-      child: Container(
-        decoration: BoxDecoration(
-          // color: Palette.of(context).background
-        ),
-        child: BlurredEdgesView(
-          controller: _blurredEdgesController,
-          child: ListView.separated(
-            controller: _blurredEdgesController.scrollCtrl,
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 12,
-              bottom: MediaQuery.of(context).padding.bottom + 12,
+    return SizedBox.fromSize(
+      size: Editor.isHidden ? Size.fromHeight(MediaQuery.of(context).padding.bottom + 48.0) : Editor.calculateSize(context) + Offset(0, 48.0), // 48.0 (46.0 + 2) is the height calculated to match the size of editor (calculated from _kTabHeight in flutter/material/tabs.dart)
+      child: Editor.isHidden ? Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom,
+          ),
+          child: Center(
+            child: FilledTonalIconButton(
+              onPressed: () {
+                Editor.isHidden = false;
+                setState(() { });
+              },
+              icon: Icon(
+                RenderIcons.arrow_up,
+                color: Palette.of(context).onSurfaceVariant,
+              )
             ),
-            scrollDirection: Axis.horizontal,
-            separatorBuilder: (context, index) => SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              String key = widgets.keys.elementAt(index);
-              Map<String, dynamic> widget = widgets[key]!;
-              return SizedBox(
-                width: 80,
-                height: 80,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Palette.of(context).background,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Palette.of(context).onBackground.withOpacity(0.2),
-                        blurRadius: 4,
-                        offset: Offset(0, 0),
-                      ),
-                    ],
-                  ),
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      if (widget['icon'] != null) Icon(
-                        widget['icon'],
-                        color: Palette.of(context).onBackground,
-                        size: 30,
-                      ) else if (widget['widget'] != null) widget['widget'],
-                      Spacer(),
-                      AutoSizeText(
-                        widget['title'],
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Palette.of(context).onBackground,
+          ),
+        ) : Container(
+          margin: EdgeInsets.only(top: 48.0),
+          decoration: BoxDecoration(
+            color: Palette.of(context).surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 3,
+                spreadRadius: 0,
+              )
+            ],
+          ),
+          child: BlurredEdgesView(
+            controller: _blurredEdgesController,
+            child: ListView.separated(
+              controller: _blurredEdgesController.scrollCtrl,
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 12,
+                bottom: MediaQuery.of(context).padding.bottom + 12,
+              ),
+              scrollDirection: Axis.horizontal,
+              separatorBuilder: (context, index) => SizedBox(width: 1),
+              itemBuilder: (context, index) {
+                String key = widgets.keys.elementAt(index);
+                Map<String, dynamic> cWidget = widgets[key]!;
+                return Tooltip(
+                  message: cWidget['title'],
+                  child: SizedBox(
+                    width: 80,
+                    child: Material(
+                      color: Palette.of(context).surface,
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          color: Colors.transparent
                         ),
-                        maxLines: 1,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () {
+                            TapFeedback.light();
+                            if (cWidget['onTap'] != null) cWidget['onTap']!();
+                            else CreatorWidget.create(context, page: widget.page, id: key,);
+                          },
+                          // splashColor: Colors.red,
+                          child: (cWidget['icon'] != null) ? Icon(
+                            cWidget['icon'],
+                            color: Palette.of(context).onSurfaceVariant,
+                            size: 30,
+                          ) : Center(
+                            child: cWidget['widget']
+                          ),
+                        ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            },
-            itemCount: widgets.length,
+                );
+              },
+              itemCount: widgets.length,
+            ),
           ),
         ),
-      ),
     );
   }
   

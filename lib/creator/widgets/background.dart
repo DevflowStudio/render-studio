@@ -1,5 +1,4 @@
 import 'package:align_positioned/align_positioned.dart';
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_io/io.dart';
 
@@ -43,35 +42,34 @@ class BackgroundWidget extends CreatorWidget {
     EditorTab(
       tab: 'Page',
       options: [
-        Option.custom(
-          widget: (context) => ButtonWithIcon(
-            onTap: (context) => page.widgets.showAddWidgetModal(context),
-            icon: RenderIcons.add,
-            title: 'Add',
-            backgroundColor: Palette.of(context).primary.harmonizeWith(page.palette.background),
-            foregroundColor: Palette.of(context).onPrimary,
-            showBorder: false,
-            animateBorderRadius: false,
-            borderRadius: 15,
-          ),
-        ),
-        Option.button(
-          icon: RenderIcons.resize,
-          title: 'Resize',
-          tooltip: 'Tap to resize the project',
-          onTap: (context) async {
-            EditorTab.modal(
-              context,
-              tab: (context, setState) => EditorTab.pickerBuilder(
-                title: 'Resize Project',
-                itemBuilder: (context, index) => Text('${PostSizePresets.values[index].title}'),
-                childCount: PostSizePresets.values.length,
-                onSelectedItemChanged: (index) {
-                  page.project.size = PostSizePresets.values[index].toSize();
-                  page.notifyListeners(PageChange.misc);
-                },
-              )
-            );
+        // Option.custom(
+        //   widget: (context) => ButtonWithIcon(
+        //     onTap: (context) => page.widgets.showAddWidgetModal(context),
+        //     icon: RenderIcons.add,
+        //     title: 'Add',
+        //     backgroundColor: Palette.of(context).primary.harmonizeWith(page.palette.background),
+        //     foregroundColor: Palette.of(context).onPrimary,
+        //     showBorder: false,
+        //     animateBorderRadius: false,
+        //     borderRadius: 15,
+        //   ),
+        // ),
+        Option.color(
+          palette: page.palette,
+          onChange: (color) {
+            if (color == null) return;
+            this.color = color;
+            if (type != BackgroundType.color) {
+              changeBackgroundType(BackgroundType.color);
+            }
+            updateListeners(WidgetChange.misc);
+          },
+          onChangeEnd: (color) {
+            if (color != null) this.color = color;
+            if (type != BackgroundType.color) {
+              changeBackgroundType(BackgroundType.color);
+            }
+            updateListeners(WidgetChange.update);
           },
         ),
         Option.button(
@@ -101,9 +99,28 @@ class BackgroundWidget extends CreatorWidget {
           },
         ),
         Option.button(
+          icon: RenderIcons.resize,
+          title: 'Resize',
+          tooltip: 'Tap to resize the project',
+          onTap: (context) async {
+            EditorTab.modal(
+              context,
+              tab: (context, setState) => EditorTab.pickerBuilder(
+                title: 'Resize Project',
+                itemBuilder: (context, index) => Text('${PostSizePresets.values[index].title}'),
+                childCount: PostSizePresets.values.length,
+                onSelectedItemChanged: (index) {
+                  page.project.size = PostSizePresets.values[index].toSize();
+                  page.notifyListeners(PageChange.misc);
+                },
+              )
+            );
+          },
+        ),
+        Option.button(
           title: 'Padding',
           onTap: (context) async {
-            updateGrids(showGridLines: true);
+            updateGrids(showGridLines: true, hideCenterGrids: true);
             await EditorTab.modal(
               context,
               height: 200,
@@ -113,7 +130,7 @@ class BackgroundWidget extends CreatorWidget {
                 min: 5,
                 onChange: (value) {
                   padding = value;
-                  updateGrids(showGridLines: true);
+                  updateGrids(showGridLines: true, hideCenterGrids: true);
                   updateListeners(WidgetChange.misc);
                 },
               )
@@ -123,24 +140,6 @@ class BackgroundWidget extends CreatorWidget {
           },
           icon: RenderIcons.padding,
           tooltip: 'Adjust Padding'
-        ),
-        Option.color(
-          palette: page.palette,
-          onChange: (color) {
-            if (color == null) return;
-            this.color = color;
-            if (type != BackgroundType.color) {
-              changeBackgroundType(BackgroundType.color);
-            }
-            updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (color) {
-            if (color != null) this.color = color;
-            if (type != BackgroundType.color) {
-              changeBackgroundType(BackgroundType.color);
-            }
-            updateListeners(WidgetChange.update);
-          },
         ),
         Option.button(
           icon: RenderIcons.image,
@@ -283,7 +282,8 @@ class BackgroundWidget extends CreatorWidget {
     bool createGrids = true,
     bool snap = true,
     double? snapSensitivity,
-    Offset? position
+    Offset? position,
+    bool hideCenterGrids = false
   }) {
     page.gridState.grids.removeWhere((grid) => grid.widget == this);
     Color gridColor;
@@ -342,18 +342,20 @@ class BackgroundWidget extends CreatorWidget {
         page: page,
         dotted: false
       ),
-      Grid(
+      if (!hideCenterGrids) Grid(
         position: const Offset(0, 0),
         color: gridColor,
         layout: GridLayout.vertical,
+        widget: this,
         page: page,
         gridWidgetPlacement: GridWidgetPlacement.centerVertical,
         dotted: false
       ),
-      Grid(
+      if (!hideCenterGrids) Grid(
         position: const Offset(0, 0),
         color: gridColor,
         layout: GridLayout.horizontal,
+        widget: this,
         page: page,
         gridWidgetPlacement: GridWidgetPlacement.centerHorizontal,
         dotted: false

@@ -20,6 +20,8 @@ class Editor extends StatefulWidget {
 
   Widget get build => this;
 
+  static bool isHidden = false;
+
   static Size calculateSize(BuildContext context) {
     double verticalPadding = MediaQuery.of(context).padding.bottom + 12 + 10;
     Size editorSize = Size(double.infinity, MediaQuery.of(context).size.height * 0.1); // The editor can only be allowed to cover 10% of the screen area.
@@ -37,8 +39,6 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
   late CreatorWidget creatorWidget;
 
   late TabController tabController;
-
-  static bool _isHidden = false;
 
   @override
   void initState() {
@@ -75,33 +75,60 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TabBar(
-                controller: tabController,
-                enableFeedback: true,
-                indicatorSize: TabBarIndicatorSize.label,
-                indicatorColor: Constants.getThemedBlackAndWhite(context),
-                labelColor: Constants.getThemedBlackAndWhite(context),
-                indicator: creatorWidget.tabs.length > 1 ? null : const BoxDecoration(),
-                unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
-                isScrollable: true,
-                labelStyle: Theme.of(context).textTheme.titleSmall,
-                tabs: List.generate(
-                  creatorWidget.tabs.length,
-                  (index) => Tab(
-                    text: creatorWidget.tabs[index].tab,
+              Stack(
+                children: [
+                  TabBar(
+                    controller: tabController,
+                    enableFeedback: true,
+                    padding: EdgeInsets.only(
+                      right: 50
+                    ),
+                    indicatorSize: TabBarIndicatorSize.label,
+                    indicatorColor: Constants.getThemedBlackAndWhite(context),
+                    labelColor: Constants.getThemedBlackAndWhite(context),
+                    indicator: creatorWidget.tabs.length > 1 ? null : const BoxDecoration(),
+                    unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
+                    isScrollable: true,
+                    labelStyle: Theme.of(context).textTheme.titleSmall,
+                    tabs: List.generate(
+                      creatorWidget.tabs.length,
+                      (index) => Tab(
+                        text: creatorWidget.tabs[index].tab,
+                      )
+                    ),
+                    onTap: (value) {
+                      if (!tabController.indexIsChanging) {
+                        setState(() {
+                          Editor.isHidden = !Editor.isHidden;
+                        });
+                      } else {
+                        if (Editor.isHidden) setState(() {
+                          Editor.isHidden = false;
+                        });
+                      }
+                    },
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: Palette.of(context).surface.withOpacity(1),
+                            blurRadius: 10,
+                            spreadRadius: 10,
+                          )
+                        ],
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          creatorWidget.page.widgets.select();
+                        },
+                        icon: Icon(RenderIcons.arrow_down)
+                      ),
+                    ),
                   )
-                ),
-                onTap: (value) {
-                  if (!tabController.indexIsChanging) {
-                    setState(() {
-                      _isHidden = !_isHidden;
-                    });
-                  } else {
-                    if (_isHidden) setState(() {
-                      _isHidden = false;
-                    });
-                  }
-                },
+                ],
               ),
               const Divider(
                 indent: 0,
@@ -112,7 +139,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                 duration: kAnimationDuration * 2,
                 curve: Sprung.underDamped,
                 child: SizedBox.fromSize(
-                  size: _isHidden ? Size.fromHeight(MediaQuery.of(context).padding.bottom) : editorSize,
+                  size: Editor.isHidden ? Size.fromHeight(MediaQuery.of(context).padding.bottom) : editorSize,
                   child: Padding(
                     padding: EdgeInsets.only(
                       top: 12,
@@ -1220,7 +1247,8 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
   void getDirectionAndDistance() {
     final Offset offset = _shadow.offset;
     distance = sqrt(pow(offset.dx, 2) + pow(offset.dy, 2));
-    direction = atan(offset.dy / offset.dx);
+    direction = atan2(offset.dy, offset.dx);
+    print(direction);
   }
 
 }

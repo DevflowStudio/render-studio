@@ -46,7 +46,7 @@ class _SettingsState extends State<Settings> {
               ListTile(
                 title: const Text('Snap'),
                 subtitle: const Text('Automatically snap widgets to with reference to others'),
-                trailing: Switch.adaptive(
+                trailing: Switch(
                   value: preferences.snap,
                   onChanged: (value) async {
                     preferences.snap = value;
@@ -57,7 +57,7 @@ class _SettingsState extends State<Settings> {
               ListTile(
                 title: const Text('Vibrate on Snap'),
                 subtitle: const Text('Make a vibration when snapping widgets'),
-                trailing: Switch.adaptive(
+                trailing: Switch(
                   value: preferences.vibrateOnSnap,
                   onChanged: (value) async {
                     preferences.vibrateOnSnap = value;
@@ -67,7 +67,7 @@ class _SettingsState extends State<Settings> {
               ),
               ListTile(
                 title: const Text('Collect Usage Data'),
-                trailing: Switch.adaptive(
+                trailing: Switch(
                   value: preferences.allowAnalytics,
                   onChanged: (value) async {
                     preferences.allowAnalytics = value;

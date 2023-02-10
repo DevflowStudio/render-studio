@@ -104,7 +104,7 @@ class ColorPalette {
     _colors.remove(tertiary);
     surface = _colors.getRandom();
     _colors.remove(surface);
-    isLightBackground = background.isLight;
+    isLightBackground = background.computeLuminance() > 0.8;
   }
 
   Map toJSON() {

@@ -20,6 +20,7 @@ class CreatorText extends CreatorWidget {
     primaryStyle = CreativeTextStyle(widget: this);
     primaryStyle.color = page.palette.onBackground;
     containerProvider = CreativeContainerProvider.create(this);
+    fitSize = size;
     super.onInitialize();
   }
 
@@ -163,7 +164,7 @@ class CreatorText extends CreatorWidget {
           enabledTooltip: 'Disabled auto-size text',
           disabledTooltip: 'Enable auto-size text',
         ),
-        Option.button(
+        if (group == null) Option.button(
           title: 'Size',
           tooltip: 'Text size',
           onTap: (context) async {
@@ -182,7 +183,7 @@ class CreatorText extends CreatorWidget {
                 }
               )
             );
-            updateListeners(WidgetChange.resize);
+            updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.text_size
         ),
@@ -279,42 +280,43 @@ class CreatorText extends CreatorWidget {
     ),
     EditorTab(
       tab: 'Alignment',
+      type: EditorTabType.single,
       options: [
-        Option.button(
-          title: 'Left',
-          tooltip: 'Align Text To Left',
-          onTap: (context) async {
-            align = TextAlign.left;
-            updateListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.text_align_left
-        ),
-        Option.button(
-          title: 'Center',
-          tooltip: 'Align Text To Center',
-          onTap: (context) async {
-            align = TextAlign.center;
-            updateListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.text_align_center
-        ),
-        Option.button(
-          title: 'Right',
-          tooltip: 'Align Text To Right',
-          onTap: (context) async {
-            align = TextAlign.right;
-            updateListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.text_align_right
-        ),
-        Option.button(
-          title: 'Justify',
-          tooltip: 'Justify Text Alignment',
-          onTap: (context) async {
-            align = TextAlign.justify;
-            updateListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.text_align_justify
+        Option.custom(
+          widget: (context) => Center(
+            child: SegmentedButton<TextAlign>(
+              emptySelectionAllowed: false,
+              segments: [
+                ButtonSegment(
+                  value: TextAlign.left,
+                  icon: Icon(RenderIcons.text_align_left),
+                  label: Text('Left'),
+                ),
+                ButtonSegment(
+                  value: TextAlign.center,
+                  icon: Icon(RenderIcons.text_align_right),
+                  label: Text('Center'),
+                ),
+                ButtonSegment(
+                  value: TextAlign.right,
+                  icon: Icon(RenderIcons.text_align_center),
+                  label: Text('Right'),
+                ),
+                ButtonSegment(
+                  value: TextAlign.justify,
+                  icon: Icon(RenderIcons.text_align_justify),
+                  label: Text('Justify'),
+                ),
+              ],
+              showSelectedIcon: false,
+              multiSelectionEnabled: false,
+              onSelectionChanged: (align) {
+                this.align = align.first;
+                updateListeners(WidgetChange.update);
+              },
+              selected: {align}
+            ),
+          ),
         ),
       ],
     ),
@@ -514,6 +516,8 @@ class CreatorText extends CreatorWidget {
   final String name = 'Text';
   final String id = 'text';
 
+  late Size fitSize;
+
   bool isResizable = true;
   bool isDraggable = true;
 
@@ -561,7 +565,9 @@ class CreatorText extends CreatorWidget {
   late CreativeContainerProvider containerProvider;
 
   Widget widget(BuildContext context) => containerProvider.build(
-    child: Center(child: textWidget),
+    child: Center(
+      child: textWidget
+    ),
   );
 
   Widget get textWidget => autoSize ? AutoSizeText(
@@ -573,8 +579,9 @@ class CreatorText extends CreatorWidget {
     presetFontSizes: [
       ... 5.0.upTo(200, stepSize: 0.01).reversed
     ],
-    onFontSizeChanged: (fontSize) {
+    onFontSizeChanged: (fontSize, fitSize) {
       this.fontSize = fontSize;
+      this.fitSize = fitSize;
     },
     wrapWords: false,
     // softWrap: false,
@@ -812,6 +819,8 @@ class CreatorText extends CreatorWidget {
     bool updateNotify = true
   }) {
     _removeExtraSpaceFromSize(handler: handler);
+    // if (autoSize && fitSize.width < size.width) size = Size(fitSize.width, size.height);
+    // if (autoSize && fitSize.height < size.height) size = Size(size.width, fitSize.height);
     super.onResizeFinished(details: details, handler: handler, updateNotify: updateNotify);
   }
 

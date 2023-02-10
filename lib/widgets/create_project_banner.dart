@@ -14,6 +14,22 @@ class CreateProjectBannerState extends State<CreateProjectBanner> {
 
   final BlurredEdgesController blurredEdgesCtrl = BlurredEdgesController();
 
+  late final String newProjectTitle;
+
+  @override
+  void initState() {
+    super.initState();
+    newProjectTitle = [
+      'Create a Project',
+      'New Project',
+      'Get Started',
+      'Start a Project',
+      'Start a New Project',
+      'Start Creating',
+      'Unleash Your Creativity',
+    ].getRandom();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -27,11 +43,7 @@ class CreateProjectBannerState extends State<CreateProjectBanner> {
             bottom: 9
           ),
           child: Text(
-            [
-              'Create New Project',
-              'New Project',
-              'Get Started'
-            ].getRandom(),
+            newProjectTitle,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               height: 1,
               color: Palette.of(context).onSurfaceVariant

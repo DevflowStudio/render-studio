@@ -13,6 +13,8 @@ abstract class RenderIcons {
 
   static const IconData design_asset = MaterialSymbols.square_foot;
 
+  static const IconData box = MaterialSymbols.square_filled;
+
   static const IconData design_kit = PhosphorIcons.scribbleLoop;
 
   static const IconData image = CupertinoIcons.photo;

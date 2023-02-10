@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:render_studio/screens/creator/widgets/debug_banner.dart';
 import 'package:render_studio/screens/creator/widgets/page_indicator.dart';
@@ -138,20 +139,9 @@ class _StudioState extends State<Studio> {
     return discard;
   }
 
-  Future<void> save({
-    bool export = false
-  }) async {
-    await Spinner.fullscreen(
-      context,
-      task: () async {
-        await manager.save(context, project: project, saveToGallery: true);
-      },
-    );
+  Future<void> save() async {
+    await manager.save(context, project: project, saveToGallery: true);
     _lastSaved = DateTime.now();
-    Alerts.snackbar(
-      context,
-      text: 'Saved to Gallery',
-    );
   }
 
 }
@@ -173,12 +163,18 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
 
   late Project project;
 
-  void onUpdate() => setState(() { });
+  void onUpdate() => setState(() {
+    getEditor();
+  });
+
+  late Editor editor;
+  bool _showEditor = false;
 
   @override
   void initState() {
     project = widget.project;
     project.pages.addListener(onUpdate);
+    getEditor();
     super.initState();
   }
 
@@ -190,9 +186,46 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    return project.pages.current.widgets.nSelections > 1
-      ? project.pages.current.widgets.background.editor
-      : (project.pages.current.widgets.selections.firstOrNull ?? project.pages.current.widgets.background).editor;
+    return Stack(
+      children: [
+        AnimatedOpacity(
+          duration: kAnimationDuration,
+          opacity: _showEditor ? 0 : 1,
+          child: _showEditor ? SizedBox.shrink() : CreativeWidgetsShowcase(
+            page: project.pages.current,
+          ),
+        ),
+        IgnorePointer(
+          ignoring: !_showEditor,
+          child: buildAnimatedParent(
+            child: editor
+          ),
+        ),
+      ],
+    );
+  }
+
+  void getEditor() {
+    if (project.pages.current.widgets.nSelections == 1) {
+      editor = project.pages.current.widgets.selections.first.editor;
+      _showEditor = true;
+    } else {
+      editor = project.pages.current.widgets.background.editor;
+      if (project.pages.current.widgets.nSelections == 0) _showEditor = false;
+    }
+  }
+
+  Widget buildAnimatedParent({
+    required Widget child
+  }) {
+    if (_showEditor) return FadeInUp(
+      child: child,
+      duration: Duration(milliseconds: 200),
+    );
+    else return FadeOutDown(
+      child: child,
+      duration: Duration(milliseconds: 200),
+    );
   }
 
 }

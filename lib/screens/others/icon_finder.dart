@@ -119,7 +119,12 @@ class _IconFinderResultsState extends State<IconFinderResults> {
             child: SizedBox(
               width: 50,
               height: 50,
-              child: Center(child: Spinner(adaptive: true))
+              child: Center(
+                child: Spinner(
+                  adaptive: true,
+                  strokeWidth: 2,
+                )
+              )
             ),
           ),
         ) else SliverPadding(
@@ -194,6 +199,7 @@ class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
             child: Spinner(
               adaptive: true,
               value: icon.progress,
+              strokeWidth: 2,
             ),
           ) : OctoImage(
             image: NetworkImage(icon.previewURLs.reversed.toList()[2]),

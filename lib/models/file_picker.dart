@@ -62,6 +62,7 @@ class FilePicker {
     final ImagePicker _picker = ImagePicker();
     XFile? xFile;
     File file;
+    print(type);
     switch (type) {
       case FileType.image:
         xFile = await _picker.pickImage(
@@ -186,13 +187,18 @@ class FilePicker {
       }
     }
     AndroidUiSettings uiSettings = AndroidUiSettings(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Palette.of(context).background,
       cropFrameColor: Palette.of(context).primary,
+      cropGridColor: Palette.of(context).onPrimaryContainer,
+      dimmedLayerColor: Palette.of(context).surfaceVariant.withOpacity(0.5),
+      showCropGrid: true,
       activeControlsWidgetColor: Palette.of(context).primary,
       toolbarColor: Theme.of(context).appBarTheme.backgroundColor,
-      statusBarColor: Theme.of(context).appBarTheme.backgroundColor,
+      toolbarWidgetColor: Theme.of(context).appBarTheme.foregroundColor,
+      cropFrameStrokeWidth: 3,
+      cropGridStrokeWidth: 2,
       toolbarTitle: 'Crop Image',
-      lockAspectRatio: forceCrop
+      lockAspectRatio: forceCrop,
     );
     IOSUiSettings iosUiSettings = IOSUiSettings(
       aspectRatioLockEnabled: forceCrop,

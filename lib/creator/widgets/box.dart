@@ -52,7 +52,7 @@ class CreativeContainerProvider {
       ),
       Option.button(
         title: 'Shadow',
-        onTap: (context) {
+        onTap: (context) async {
           if (shadow == null) {
             shadow = BoxShadow(
               color: Colors.black.withOpacity(0.5),
@@ -60,7 +60,7 @@ class CreativeContainerProvider {
               offset: Offset(0, 5)
             );
           }
-          EditorTab.modal(
+          await EditorTab.modal(
             context,
             actions: [
               IconButton(
@@ -75,10 +75,11 @@ class CreativeContainerProvider {
               shadow: shadow!,
               onChange: (value) {
                 shadow = value;
-                onChange(WidgetChange.update);
+                onChange(WidgetChange.misc);
               },
             )
           );
+          onChange(WidgetChange.update);
         },
         icon: Icons.text_fields,
         tooltip: 'Customize shadow of box'
@@ -115,9 +116,6 @@ class CreativeContainerProvider {
                           min: 0,
                           max: 10,
                           label: 'Width',
-                          onChangeEnd: (value) {
-                            onChange(WidgetChange.update);
-                          },
                           onChange: (value) {
                             widget.size = Size(originalWidgetSize.width + value * 2, originalWidgetSize.height + value * 2);
                             if (borderColor == null) borderColor = color?.computeTextColor();
@@ -145,9 +143,6 @@ class CreativeContainerProvider {
                           min: 0,
                           max: widget.size.width / 2,
                           label: 'Radius',
-                          onChangeEnd: (value) {
-                            onChange(WidgetChange.update);
-                          },
                           onChange: (value) {
                             borderRadius = value;
                             onChange(WidgetChange.misc);
@@ -174,11 +169,13 @@ class CreativeContainerProvider {
         icon: RenderIcons.padding,
         tooltip: 'Add padding to the widget',
         onTap: (context) async {
+          Size originalWidgetSize = widget.size;
           await EditorTab.modal(
             context,
             tab: (context, setState) => EditorTab.paddingEditor(
               padding: padding,
               onChange: (value) {
+                widget.size = Size(originalWidgetSize.width + value.horizontal, originalWidgetSize.height + value.vertical);
                 padding = value;
                 onChange(WidgetChange.misc);
               },
@@ -216,32 +213,29 @@ class CreativeContainerProvider {
         if (shadow != null) shadow!
       ],
     ),
-    child: Stack(
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(borderRadius),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-            child: Container(
-              padding: padding,
-              decoration: BoxDecoration(
-                color: type == BackgroundType.color ? color : Colors.white,
-                gradient: (type == BackgroundType.gradient && gradient != null) ? LinearGradient(
-                  colors: gradient!,
-                  begin: gradientType.begin,
-                  end: gradientType.end,
-                ) : null,
-                border: (borderWidth != null) ? Border.all(
-                  color: borderColor ?? color?.computeTextColor() ?? widget.page.palette.primary,
-                  width: borderWidth!
-                ) : null,
-                borderRadius: BorderRadius.circular(borderRadius),
-              ),
-            ),
+    child: ClipRRect(
+      clipBehavior: (shadow != null || blur > 0) ? Clip.hardEdge : Clip.none,
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: type == BackgroundType.color ? color : Colors.white,
+            gradient: (type == BackgroundType.gradient && gradient != null) ? LinearGradient(
+              colors: gradient!,
+              begin: gradientType.begin,
+              end: gradientType.end,
+            ) : null,
+            border: (borderWidth != null) ? Border.all(
+              color: borderColor ?? color?.computeTextColor() ?? widget.page.palette.primary,
+              width: borderWidth!
+            ) : null,
+            borderRadius: BorderRadius.circular(borderRadius),
           ),
+          child: child,
         ),
-        child
-      ],
+      ),
     ),
   );
 

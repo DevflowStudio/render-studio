@@ -101,6 +101,37 @@ class AppTheme {
           ),
         ),
       ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return colorScheme!.surfaceVariant;
+            }
+            if (states.contains(MaterialState.disabled)) {
+              return colorScheme!.onSurfaceVariant.withOpacity(0.2);
+            }
+            return colorScheme!.surface;
+          }),
+          foregroundColor: MaterialStateProperty.resolveWith((states) {
+            if (states.contains(MaterialState.selected)) {
+              return colorScheme!.onSurfaceVariant;
+            }
+            if (states.contains(MaterialState.disabled)) {
+              return colorScheme!.onSurfaceVariant.withOpacity(0.2);
+            }
+            return colorScheme!.onBackground;
+          }),
+          shape: MaterialStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30)
+            )
+          ),
+          padding: MaterialStateProperty.all(
+            EdgeInsets.symmetric(horizontal: 12, vertical: 3)
+          ),
+          elevation: MaterialStateProperty.all(0),
+        )
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           elevation: 0,

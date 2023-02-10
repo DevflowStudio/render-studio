@@ -281,7 +281,7 @@ class AutoSizeText extends StatefulWidget {
   /// ```
   final String? semanticsLabel;
 
-  final Function(double fontSize)? onFontSizeChanged;
+  final Function(double fontSize, Size fitSize)? onFontSizeChanged;
 
   @override
   _AutoSizeTextState createState() => _AutoSizeTextState();
@@ -323,10 +323,11 @@ class _AutoSizeTextState extends State<AutoSizeText> {
       _validateProperties(style, maxLines);
 
       final result = _calculateFontSize(size, style, maxLines);
-      final fontSize = result[0] as double;
-      final textFits = result[1] as bool;
+      final fontSize = result[0];
+      final textFits = result[1];
+      final fitSize = result[2];
 
-      if (widget.onFontSizeChanged != null) widget.onFontSizeChanged!(fontSize);
+      if (widget.onFontSizeChanged != null) widget.onFontSizeChanged!(fontSize, fitSize);
 
       double __fontSize;
 
@@ -397,8 +398,13 @@ class _AutoSizeTextState extends State<AutoSizeText> {
     if (presetFontSizes == null) {
       final num defaultFontSize = style!.fontSize!.clamp(widget.minFontSize, widget.maxFontSize);
       final defaultScale = defaultFontSize * userScale / style.fontSize!;
-      if (_checkTextFits(span, defaultScale, maxLines, size)) {
-        return <Object>[defaultFontSize * userScale, true];
+
+      var val = _checkTextFits(span, defaultScale, maxLines, size);
+      var fits = val[0];
+      var fitSize = val[1];
+      
+      if (fits) {
+        return [defaultFontSize * userScale, true, fitSize];
       }
 
       left = (widget.minFontSize / widget.stepGranularity).floor();
@@ -409,6 +415,7 @@ class _AutoSizeTextState extends State<AutoSizeText> {
     }
 
     var lastValueFits = false;
+    var fitSize = Size.zero;
     while (left <= right) {
       final mid = (left + (right - left) / 2).floor();
       double scale;
@@ -417,7 +424,10 @@ class _AutoSizeTextState extends State<AutoSizeText> {
       } else {
         scale = presetFontSizes[mid] * userScale / style!.fontSize!;
       }
-      if (_checkTextFits(span, scale, maxLines, size)) {
+      var val = _checkTextFits(span, scale, maxLines, size);
+      var fits = val[0];
+      fitSize = val[1];
+      if (fits) {
         left = mid + 1;
         lastValueFits = true;
       } else {
@@ -436,10 +446,10 @@ class _AutoSizeTextState extends State<AutoSizeText> {
       fontSize = presetFontSizes[right] * userScale;
     }
 
-    return <Object>[fontSize, lastValueFits];
+    return [fontSize, lastValueFits, fitSize];
   }
 
-  bool _checkTextFits(TextSpan text, double scale, int? maxLines, BoxConstraints constraints) {
+  List _checkTextFits(TextSpan text, double scale, int? maxLines, BoxConstraints constraints) {
     if (!widget.wrapWords) {
       final words = text.toPlainText().replaceAll('*', '').split(RegExp('\\s+'));
 
@@ -458,7 +468,7 @@ class _AutoSizeTextState extends State<AutoSizeText> {
 
       wordWrapTextPainter.layout(maxWidth: constraints.maxWidth);
 
-      if (wordWrapTextPainter.didExceedMaxLines || wordWrapTextPainter.width > constraints.maxWidth) return false;
+      if (wordWrapTextPainter.didExceedMaxLines || wordWrapTextPainter.width > constraints.maxWidth) return [false, wordWrapTextPainter.size];
     }
 
     final textPainter = TextPainter(
@@ -473,7 +483,7 @@ class _AutoSizeTextState extends State<AutoSizeText> {
 
     textPainter.layout(maxWidth: constraints.maxWidth);
 
-    return !(textPainter.didExceedMaxLines || textPainter.height > constraints.maxHeight || textPainter.width > constraints.maxWidth);
+    return [!(textPainter.didExceedMaxLines || textPainter.height > constraints.maxHeight || textPainter.width > constraints.maxWidth), textPainter.size];
   }
 
   // Widget _buildText(double fontSize, TextStyle style, int? maxLines) {

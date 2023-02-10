@@ -72,11 +72,13 @@ class CreatorPage extends PropertyChangeNotifier {
     bool isDimensionless = false,
   }) => SizedBox.fromSize(
     size: isDimensionless ? null : project.contentSize,
-    child: Stack(
-      children: [
-        ... widgets.build(context, isInteractive: isInteractive),
-        PageGridView(state: gridState)
-      ],
+    child: ClipRRect(
+      child: Stack(
+        children: [
+          ... widgets.build(context, isInteractive: isInteractive),
+          PageGridView(state: gridState)
+        ],
+      ),
     ),
   );
 
@@ -203,7 +205,7 @@ class __PageZoomableViewerState extends State<_PageZoomableViewer> {
 
   void onMultiSelectChange() => setState(() { });
 
-  bool get enableZoom => page.widgets.nSelections == 1 && page.widgets.selections.firstOrNull is BackgroundWidget;
+  bool get enableZoom => page.widgets.nSelections <= 1 && (page.widgets.selections.firstOrNull is BackgroundWidget || page.widgets.selections.isEmpty);
 
   @override
   void initState() {

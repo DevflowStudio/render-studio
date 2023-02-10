@@ -80,7 +80,7 @@ extension MapExtension<T, V> on Map<T, V> {
 
 extension MapExtensions<T> on Map<T, num> {
   T getRandomWithProbabilities() {
-    final total = values.fold(0.0, (sum, value) => (sum as num) + value);
+    final total = values.fold(0.0, (sum, value) => sum + value);
     final random = Random().nextDouble() * total;
     double cumulative = 0.0;
     for (var key in keys) {
