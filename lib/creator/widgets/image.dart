@@ -107,6 +107,7 @@ class CreativeImageProvider {
           brightness = value;
           onChange(WidgetChange.update);
         },
+        showValueEditor: true
       ),
       Option.showSlider(
         icon: RenderIcons.contrast,
@@ -122,6 +123,7 @@ class CreativeImageProvider {
           contrast = value;
           onChange(WidgetChange.update);
         },
+        showValueEditor: true
       ),
       Option.showSlider(
         icon: RenderIcons.exposure,
@@ -137,6 +139,7 @@ class CreativeImageProvider {
           exposure = value;
           onChange(WidgetChange.update);
         },
+        showValueEditor: true
       ),
       Option.showSlider(
         icon: RenderIcons.saturation,
@@ -152,6 +155,7 @@ class CreativeImageProvider {
           saturation = value;
           onChange(WidgetChange.update);
         },
+        showValueEditor: true
       ),
       // Option.showSlider(
       //   icon: RenderIcons.visibility,
@@ -182,6 +186,7 @@ class CreativeImageProvider {
           hue = value;
           onChange(WidgetChange.update);
         },
+        showValueEditor: true
       ),
       Option.button(
         title: 'Filters',
@@ -243,12 +248,12 @@ class CreativeImageProvider {
                     ];
                     return Padding(
                       padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).padding.bottom
+                        bottom: Constants.of(context).bottomPadding
                       ),
                       child: SizedBox(
                         height: 150,
                         child: ListView.separated(
-                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          padding: EdgeInsets.symmetric(horizontal: 12),
                           scrollDirection: Axis.horizontal,
                           separatorBuilder: (context, index) => SizedBox(width: 4),
                           itemBuilder: (context, index) => GestureDetector(

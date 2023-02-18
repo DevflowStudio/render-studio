@@ -88,7 +88,7 @@ class _OnboardingState extends State<Onboarding> {
             padding: EdgeInsets.only(
               left: Constants.horizontalPadding,
               right: Constants.horizontalPadding,
-              bottom: MediaQuery.of(context).padding.bottom + 12
+              bottom: Constants.of(context).bottomPadding
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,

@@ -1,10 +1,13 @@
 import 'dart:ui';
 
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:skeletons/skeletons.dart';
+import 'package:sprung/sprung.dart';
 import 'package:universal_io/io.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import '../rehmat.dart';
@@ -614,10 +617,13 @@ class CreativeWidgetsShowcase extends StatefulWidget {
 
   const CreativeWidgetsShowcase({
     super.key,
-    required this.page
+    required this.page,
+    this.ad
   });
 
   final CreatorPage page;
+
+  final BannerAd? ad;
 
   @override
   State<CreativeWidgetsShowcase> createState() => CreativeWidgetsShowcaseState();
@@ -634,13 +640,9 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
         'title': 'Text',
         'icon': RenderIcons.text,
       },
-      'shape': {
-        'title': 'Shapes',
-        'icon': RenderIcons.shapes
-      },
       'image': {
         'title': 'Image',
-        'icon': RenderIcons.upload,
+        'icon': RenderIcons.image,
         'onTap': () async {
           File? file = await FilePicker.imagePicker(context, crop: true, forceCrop: false);
           if (file == null) return;
@@ -659,7 +661,7 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
                 title: 'Upload SVG',
                 id: 'svg'
               ),
-              AlertOption(
+              if (app.remoteConfig.enableIconFinder) AlertOption(
                 title: 'Browse Design Assets',
                 id: 'browse'
               ),
@@ -679,6 +681,14 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
           await CreatorDesignAsset.create(context, page: widget.page, file: file);
         }
       },
+      'pie-chart': {
+        'title': 'Pie Chart',
+        'icon': RenderIcons.pieChart
+      },
+      'shape': {
+        'title': 'Shapes',
+        'icon': RenderIcons.shapes
+      },
       'qr_code': {
         'title': 'QR Code',
         'icon': RenderIcons.qr
@@ -686,10 +696,6 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
       'progress': {
         'title': 'Progress',
         'icon': RenderIcons.progress,
-      },
-      'pie-chart': {
-        'title': 'Pie Chart',
-        'icon': RenderIcons.pieChart
       },
       'box': {
         'title': 'Box',
@@ -705,86 +711,103 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
         ),
       },
     };
-    return SizedBox.fromSize(
-      size: Editor.isHidden ? Size.fromHeight(MediaQuery.of(context).padding.bottom + 48.0) : Editor.calculateSize(context) + Offset(0, 48.0), // 48.0 (46.0 + 2) is the height calculated to match the size of editor (calculated from _kTabHeight in flutter/material/tabs.dart)
-      child: Editor.isHidden ? Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).padding.bottom,
-          ),
-          child: Center(
-            child: FilledTonalIconButton(
-              onPressed: () {
-                Editor.isHidden = false;
-                setState(() { });
-              },
-              icon: Icon(
-                RenderIcons.arrow_up,
-                color: Palette.of(context).onSurfaceVariant,
-              )
+    return AnimatedSize(
+      duration: kAnimationDuration * 2,
+      curve: Sprung.underDamped,
+      child: SizedBox.fromSize(
+        size: Editor.isHidden ? Size.fromHeight(Constants.of(context).bottomPadding + 48.0) : Editor.calculateSize(context) + Offset(0, 48.0), // 48.0 (46.0 + 2) is the height calculated to match the size of editor (calculated from _kTabHeight in flutter/material/tabs.dart)
+        child: Editor.isHidden ? Padding(
+            padding: EdgeInsets.only(
+              bottom: Constants.of(context).bottomPadding,
             ),
-          ),
-        ) : Container(
-          margin: EdgeInsets.only(top: 48.0),
-          decoration: BoxDecoration(
-            color: Palette.of(context).surface,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 3,
-                spreadRadius: 0,
-              )
-            ],
-          ),
-          child: BlurredEdgesView(
-            controller: _blurredEdgesController,
-            child: ListView.separated(
-              controller: _blurredEdgesController.scrollCtrl,
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 12,
-                bottom: MediaQuery.of(context).padding.bottom + 12,
+            child: Center(
+              child: FilledTonalIconButton(
+                onPressed: () {
+                  Editor.isHidden = false;
+                  setState(() { });
+                },
+                secondary: true,
+                icon: Icon(
+                  RenderIcons.arrow_up,
+                  color: Palette.of(context).onSurfaceVariant,
+                )
               ),
-              scrollDirection: Axis.horizontal,
-              separatorBuilder: (context, index) => SizedBox(width: 1),
-              itemBuilder: (context, index) {
-                String key = widgets.keys.elementAt(index);
-                Map<String, dynamic> cWidget = widgets[key]!;
-                return Tooltip(
-                  message: cWidget['title'],
-                  child: SizedBox(
-                    width: 80,
-                    child: Material(
-                      color: Palette.of(context).surface,
-                      child: Ink(
-                        decoration: BoxDecoration(
-                          color: Colors.transparent
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(10),
-                          onTap: () {
-                            TapFeedback.light();
-                            if (cWidget['onTap'] != null) cWidget['onTap']!();
-                            else CreatorWidget.create(context, page: widget.page, id: key,);
-                          },
-                          // splashColor: Colors.red,
-                          child: (cWidget['icon'] != null) ? Icon(
-                            cWidget['icon'],
-                            color: Palette.of(context).onSurfaceVariant,
-                            size: 30,
-                          ) : Center(
-                            child: cWidget['widget']
-                          ),
-                        ),
+            ),
+          ) : Container(
+            margin: EdgeInsets.only(
+              top: widget.ad != null ? 0 : 48.0
+            ),
+            decoration: BoxDecoration(
+              color: Palette.of(context).surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 3,
+                  spreadRadius: 0,
+                )
+              ],
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: BlurredEdgesView(
+                    controller: _blurredEdgesController,
+                    child: ListView.separated(
+                      controller: _blurredEdgesController.scrollCtrl,
+                      padding: EdgeInsets.only(
+                        left: 20,
+                        right: 20,
+                        top: 12,
+                        bottom: 12 + (widget.ad != null ? 0 : Constants.of(context).bottomPadding),
                       ),
+                      scrollDirection: Axis.horizontal,
+                      separatorBuilder: (context, index) => SizedBox(width: 1),
+                      itemBuilder: (context, index) {
+                        String key = widgets.keys.elementAt(index);
+                        Map<String, dynamic> cWidget = widgets[key]!;
+                        return Tooltip(
+                          message: cWidget['title'],
+                          child: SizedBox(
+                            width: 80,
+                            child: InkWellButton(
+                              radius: BorderRadius.circular(10),
+                              onTap: () {
+                                TapFeedback.light();
+                                if (cWidget['onTap'] != null) cWidget['onTap']!();
+                                else CreatorWidget.create(context, page: widget.page, id: key,);
+                              },
+                              child: (cWidget['icon'] != null) ? Icon(
+                                cWidget['icon'],
+                                color: Palette.of(context).onSurfaceVariant,
+                                size: 30,
+                              ) : Center(
+                                child: cWidget['widget']
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      itemCount: widgets.length,
                     ),
                   ),
-                );
-              },
-              itemCount: widgets.length,
+                ),
+                if (widget.ad != null) Expanded(
+                  child: FadeInUp(
+                    duration: Duration(milliseconds: 300),
+                    child: Container(
+                      width: double.maxFinite,
+                      padding: EdgeInsets.only(
+                        bottom: Constants.of(context).bottomPadding,
+                      ),
+                      alignment: Alignment.center,
+                      child: AdWidget(ad: widget.ad!),
+                    ),
+                  ),
+                )
+              ],
             ),
           ),
-        ),
+      ),
     );
   }
   

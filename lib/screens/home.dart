@@ -13,23 +13,10 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   final AdvancedDrawerController drawerCtrl = AdvancedDrawerController();
-
-  late final String title;
   
   @override
   void initState() {
     super.initState();
-    title = {
-      'Render': 0.9,
-      'Studio': 0.9,
-      'Render Studio': 0.2,
-      'Wow! This title is rare': 0.01,
-      'Hey!': 0.1,
-      'Let\'s design': 0.2,
-      'Studio Render': 0.05,
-      'Not Canva': 0.01,
-      'Better than Canva?': 0.01,
-    }.getRandomWithProbabilities();
   }
 
   @override
@@ -49,14 +36,11 @@ class _HomeState extends State<Home> {
           cacheExtent: MediaQuery.of(context).size.height * 3,
           slivers: [
             RenderAppBar(
-              title: Hero(
-                tag: 'app-title',
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontFamily: 'Helvetica',
-                    fontWeight: FontWeight.w800,
-                  ),
+              title: Text(
+                app.remoteConfig.appTitle,
+                style: TextStyle(
+                  fontFamily: 'Helvetica',
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               titleSpacing: 12,
@@ -80,7 +64,7 @@ class _HomeState extends State<Home> {
               pinned: false,
               floating: false,
             ),
-            SliverPadding(
+            if (app.remoteConfig.allowCreateProject) SliverPadding(
               padding: const EdgeInsets.only(
                 top: 12,
                 left: 6,
@@ -109,7 +93,7 @@ class _HomeState extends State<Home> {
             SliverPadding(
               padding: EdgeInsets.only(
                 top: 12,
-                bottom: MediaQuery.of(context).padding.bottom + 12,
+                bottom: Constants.of(context).bottomPadding,
                 left: 6,
                 right: 6,
               ),
@@ -277,7 +261,7 @@ class __DrawerState extends State<_Drawer> {
               ],
             ),
           ),
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 12,)
+          SizedBox(height: Constants.of(context).bottomPadding)
         ],
       ),
     );

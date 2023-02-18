@@ -23,7 +23,7 @@ class Editor extends StatefulWidget {
   static bool isHidden = false;
 
   static Size calculateSize(BuildContext context) {
-    double verticalPadding = MediaQuery.of(context).padding.bottom + 12 + 10;
+    double verticalPadding = Constants.of(context).bottomPadding + 10;
     Size editorSize = Size(double.infinity, MediaQuery.of(context).size.height * 0.1); // The editor can only be allowed to cover 10% of the screen area.
     if (editorSize.height > 180) editorSize = Size(editorSize.width, 180);
     else if (editorSize.height < 90) editorSize = Size(editorSize.width, 90);
@@ -122,9 +122,15 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                       ),
                       child: IconButton(
                         onPressed: () {
-                          creatorWidget.page.widgets.select();
+                          if (Editor.isHidden) {
+                            setState(() {
+                              Editor.isHidden = false;
+                            });
+                          } else {
+                            creatorWidget.page.widgets.select();
+                          }
                         },
-                        icon: Icon(RenderIcons.arrow_down)
+                        icon: Icon(Editor.isHidden ? RenderIcons.arrow_up : RenderIcons.arrow_down),
                       ),
                     ),
                   )
@@ -139,11 +145,11 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                 duration: kAnimationDuration * 2,
                 curve: Sprung.underDamped,
                 child: SizedBox.fromSize(
-                  size: Editor.isHidden ? Size.fromHeight(MediaQuery.of(context).padding.bottom) : editorSize,
+                  size: Editor.isHidden ? Size.fromHeight(Constants.of(context).bottomPadding) : editorSize,
                   child: Padding(
                     padding: EdgeInsets.only(
                       top: 12,
-                      bottom: MediaQuery.of(context).padding.bottom,
+                      bottom: Constants.of(context).bottomPadding,
                     ),
                     child: Center(
                       child: TabBarView(
@@ -308,7 +314,7 @@ class EditorTab {
                     left: 5,
                     right: 5,
                     // top: 20,
-                    bottom: MediaQuery.of(context).padding.bottom + 12
+                    bottom: Constants.of(context).bottomPadding
                   ),
                   child: SizedBox(
                     height: height,
@@ -479,6 +485,7 @@ class EditorTab {
         onChangeStart: onChangeStart,
         onChange: onChange,
         onChangeEnd: onChangeEnd,
+        showValueEditor: true
       )
     ],
     tab: 'Size'
@@ -711,7 +718,7 @@ class EditorTab {
           scrollDirection: Axis.horizontal,
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               _PaletteListView(
@@ -722,22 +729,28 @@ class EditorTab {
                 onSelected: onSelected,
                 page: page,
               ),
-              SizedBox(
-                height: 150,
-                child: VerticalDivider(),
-              ),
-              if (paletteManager.palettes.isNotEmpty) _PaletteListView(
-                title: 'Saved',
-                palettes: [
-                  ... paletteManager.palettes
-                ],
-                onSelected: onSelected,
-                page: page,
-              ),
+              if (paletteManager.palettes.isNotEmpty) ... [
+                SizedBox(
+                  height: 150,
+                  child: VerticalDivider(
+                    endIndent: 10,
+                  ),
+                ),
+                _PaletteListView(
+                  title: 'Saved',
+                  palettes: [
+                    ... paletteManager.palettes
+                  ],
+                  onSelected: onSelected,
+                  page: page,
+                ),
+              ],
               for (String collectionName in ColorPalette.collections.keys) ... [
                 SizedBox(
                   height: 150,
-                  child: Center(child: VerticalDivider()),
+                  child: VerticalDivider(
+                    endIndent: 10,
+                  ),
                 ),
                 _PaletteListView(
                   title: collectionName,
@@ -767,6 +780,7 @@ class EditorTab {
           onChange: onChange,
           palette: palette,
           color: selected,
+          allowOpacity: allowOpacity,
         ),
       )
     ]

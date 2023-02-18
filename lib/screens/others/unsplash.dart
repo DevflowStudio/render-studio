@@ -92,7 +92,7 @@ class _UnsplashImagePickerState extends State<UnsplashImagePicker> {
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom,
+                bottom: Constants.of(context).bottomPadding,
                 left: 12,
                 right: 12
               ),

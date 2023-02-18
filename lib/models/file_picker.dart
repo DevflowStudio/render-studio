@@ -135,7 +135,7 @@ class FilePicker {
       context,
       title: 'Image',
       options: [
-        AlertOption(
+        if (app.remoteConfig.enableUnsplash) AlertOption(
           title: 'Unsplash',
           id: 'unsplash'
         ),

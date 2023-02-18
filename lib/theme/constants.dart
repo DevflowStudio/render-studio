@@ -105,6 +105,8 @@ class Constants {
     return digest.toString();
   }
 
+  double get bottomPadding => MediaQuery.of(context).padding.bottom < 12 ? 12 : MediaQuery.of(context).padding.bottom;
+
 }
 
 final List<String> months = [

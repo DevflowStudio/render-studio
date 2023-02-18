@@ -12,19 +12,28 @@ class CreatorPage extends PropertyChangeNotifier {
 
   CreatorPage({
     required this.project,
-    Map<String, dynamic>? data
+    Map<String, dynamic>? data,
+    bool isFirstPage = false
   }) {
 
     gridState = GridState(
       page: this
     );
 
+    void buildWidgets() {
+      if (!isFirstPage) return;
+      if (app.remoteConfig.showWatermark) RenderStudioWatermark.create(page: this);
+      CreatorText.createDefaultWidget(page: this);
+    }
+
     if (data == null) {
       widgets = WidgetManager.create(this, data: data);
+      buildWidgets();
       history = History.build(this, data: data);
     } else {
       history = History.build(this, data: data);
       widgets = WidgetManager.create(this, data: data);
+      buildWidgets();
     }
     
   }
@@ -152,8 +161,7 @@ class CreatorPage extends PropertyChangeNotifier {
   /// Builds a page from scratch using the JSON data provided
   /// Returns a new `CreatorPage`
   /// Return `null` if the build fails. In this case, warn the user that this project has been corrupted
-  static Future<CreatorPage?> fromJSON(
-    Map<String, dynamic> data, {
+  static Future<CreatorPage?> fromJSON(Map<String, dynamic> data, {
     required Project project,
   }) async {
     try {

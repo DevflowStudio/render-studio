@@ -429,7 +429,7 @@ class _ColorEditorTabState extends State<ColorEditorTab> {
           ),
         ),
         SizedBox(
-          height: MediaQuery.of(context).padding.bottom,
+          height: Constants.of(context).bottomPadding,
         )
       ],
     );

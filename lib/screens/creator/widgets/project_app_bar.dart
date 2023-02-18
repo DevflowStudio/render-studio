@@ -198,7 +198,7 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                   child: Text('Issues')
                 ),
               ),
-              const PopupMenuItem(
+              if (project.pages.length < PageManager.maxPages) const PopupMenuItem(
                 child: Text('Add Page'),
                 value: 'page-add',
               ),
@@ -299,9 +299,13 @@ class __SaveButtonState extends State<_SaveButton> {
         ),
         child: FlipCard(
           controller: flipCtrl,
+          direction: FlipDirection.VERTICAL,
+          flipOnTouch: false,
           front: Row(
             children: [
-              Spinner(),
+              Spinner(
+                strokeWidth: 2,
+              ),
               SizedBox(width: 9),
               Text(
                 'Saving',

@@ -12,15 +12,45 @@ class QRWidget extends CreatorWidget {
     required CreatorPage page
   }) async {
     QRWidget qr = QRWidget(page: page);
-    String? _data = await showModalBottomSheet(
-      context: context,
-      backgroundColor: Palette.of(context).background.withOpacity(0.6),
-      barrierColor: Colors.transparent,
-      builder: (context) => QRCodeDataEditor(),
-    );
+    String? _data = await openQRDataEditor(context);
     if (_data == null) return;
     qr.data = _data;
     page.widgets.add(qr);
+  }
+
+  static Future<String?> openQRDataEditor(BuildContext context) async {
+    TextEditingController _controller = TextEditingController();
+    await Alerts.modal(
+      context,
+      title: 'QR Code',
+      actionButton: [
+        FilledTonalIconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: Icon(RenderIcons.done),
+        )
+      ],
+      childBuilder: (context, setState) => Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12
+        ),
+        child: TextFormField(
+          controller: _controller,
+          autofocus: true,
+          minLines: 3,
+          maxLines: 5,
+          decoration: InputDecoration(
+            hintText: 'Enter data',
+            filled: true,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            )
+          ),
+        ),
+      )
+    );
+    if (_controller.text.isEmpty) return null;
+    return _controller.text;
   }
 
   // Inherited
@@ -56,7 +86,12 @@ class QRWidget extends CreatorWidget {
         Option.button(
           title: 'Data',
           tooltip: 'Edit the data of QR Code',
-          onTap: (context) async { },
+          onTap: (context) async {
+            String? _data = await openQRDataEditor(context);
+            if (_data == null) return;
+            data = _data;
+            updateListeners(WidgetChange.update);
+          },
           icon: RenderIcons.edit
         ),
         Option.color(

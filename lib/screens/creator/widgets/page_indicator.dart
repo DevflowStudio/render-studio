@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:render_studio/screens/creator/widgets/page_view.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../../rehmat.dart';
@@ -40,7 +41,7 @@ class _PageIndicatorState extends State<PageIndicator> {
     if (project.pages.length > 1) return InkWell(
       onTap: () {
         TapFeedback.light();
-        // TODO: Create views for seeing all pages and editing them
+        Alerts.showModal(context, child: ProjectPageView(project: project));
       },
       borderRadius: BorderRadius.circular(20),
       child: Padding(

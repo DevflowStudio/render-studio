@@ -19,19 +19,35 @@ class PageManager extends PropertyChangeNotifier {
 
   int get length => pages.length;
 
+  static int maxPages = 10;
+
   void add({
     bool silent = false
   }) {
-    pages.add(CreatorPage(project: project));
+    if (pages.length >= maxPages) return;
+    pages.add(CreatorPage(project: project, isFirstPage: pages.isEmpty));
     if (pages.length > 1) controller.animateToPage(pages.length - 1, duration: Constants.animationDuration, curve: Sprung.overDamped);
     updateListeners();
     if (!silent) notifyListeners(PageViewChange.page);
   }
 
-  void delete() {
-    pages.removeAt(currentPage);
-    if (currentPage >= pages.length) currentPage -= 1;
+  void delete([List<int>? indices]) {
+    if (indices == null) indices = [currentPage];
+    pages.removeWhere((element) => indices!.contains(pages.indexOf(element)));
+    if (pages.isEmpty) add();
+    currentPage = 0;
     controller.animateToPage(currentPage, duration: Constants.animationDuration, curve: Sprung.overDamped);
+    updateListeners();
+    notifyListeners(PageViewChange.page);
+  }
+
+  Future<void> duplicate([int? index]) async {
+    index ??= currentPage;
+    if (pages.length >= maxPages) return;
+    Map<String, dynamic> data = pages[index].toJSON();
+    CreatorPage? duplicate = await CreatorPage.fromJSON(data, project: project);
+    if (duplicate == null) return;
+    pages.insert(index + 1, duplicate);
     updateListeners();
     notifyListeners(PageViewChange.page);
   }

@@ -56,7 +56,7 @@ class CreatorViewState extends State<CreatorView> {
   Widget build(BuildContext context) {
     return PageView.builder(
       controller: project.pages.controller,
-      physics: (project.pages.current.widgets.nSelections == 1 && project.pages.current.widgets.selections.single is BackgroundWidget) ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
+      physics: (!project.pages.current.widgets.multiselect && (project.pages.current.widgets.nSelections == 0 || (project.pages.current.widgets.nSelections == 1 && project.pages.current.widgets.selections.single is BackgroundWidget))) ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
       onPageChanged: (value) {
         project.pages.changePage(value);
       },

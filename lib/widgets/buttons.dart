@@ -282,8 +282,9 @@ class _RenderButtonState extends State<_RenderButton> {
           child: DefaultTextStyle(
             style: Theme.of(context).textTheme.titleMedium!.copyWith(
               color: widget.textColor,
-              fontWeight: FontWeight.w500,
-              fontSize: 17
+              fontWeight: FontWeight.w600,
+              fontSize: 17,
+              fontFamily: 'Helvetica Neue',
             ),
             child: Center(
               child: Padding(
@@ -313,6 +314,40 @@ class _RenderButtonState extends State<_RenderButton> {
     if (widget.autoLoading) setState(() => isLoading = true);
     await widget.onPressed!();
     if (widget.autoLoading) setState(() => isLoading = false);
+  }
+
+}
+
+class InkWellButton extends StatelessWidget {
+
+  const InkWellButton({
+    super.key,
+    required this.child,
+    this.radius,
+    this.backgroundColor,
+    this.onTap
+  });
+
+  final Widget child;
+  final BorderRadius? radius;
+  final Color? backgroundColor;
+  final Function()? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: backgroundColor ?? Colors.transparent,
+      child: Ink(
+        decoration: BoxDecoration(
+          color: Colors.transparent
+        ),
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: child
+        ),
+      ),
+    );
   }
 
 }

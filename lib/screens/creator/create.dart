@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:render_studio/screens/creator/widgets/debug_banner.dart';
 import 'package:render_studio/screens/creator/widgets/page_indicator.dart';
 import 'package:render_studio/screens/creator/widgets/project_app_bar.dart';
@@ -163,6 +164,8 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
 
   late Project project;
 
+  BannerAd? _ad;
+
   void onUpdate() => setState(() {
     getEditor();
   });
@@ -175,6 +178,23 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
     project = widget.project;
     project.pages.addListener(onUpdate);
     getEditor();
+    if (app.remoteConfig.showStudioScreenAds) BannerAd(
+      adUnitId: AdHelper.bannerAdUnitId,
+      size: AdSize.banner,
+      request: AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _ad = ad as BannerAd;
+          });
+          analytics.logAdvertisement(adFormat: 'banner', unit: ad.adUnitId);
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          analytics.logError(error, cause: error.message);
+        },
+      ),
+    ).load();
     super.initState();
   }
 
@@ -193,7 +213,8 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
           opacity: _showEditor ? 0 : 1,
           child: _showEditor ? SizedBox.shrink() : CreativeWidgetsShowcase(
             page: project.pages.current,
-          ),
+            ad: _ad,
+          )
         ),
         IgnorePointer(
           ignoring: !_showEditor,

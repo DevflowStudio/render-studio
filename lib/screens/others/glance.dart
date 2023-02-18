@@ -126,7 +126,7 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
                     filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                     child: Padding(
                       padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).padding.bottom + 12,
+                        bottom: Constants.of(context).bottomPadding,
                       ),
                       child: Row(
                         children: [
@@ -163,7 +163,7 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
               secondChild: Padding(
                 padding: EdgeInsets.only(
                   top: 12,
-                  bottom: MediaQuery.of(context).padding.bottom + 12,
+                  bottom: Constants.of(context).bottomPadding,
                 ),
                 child: Center(
                   child: SpinKitThreeInOut(

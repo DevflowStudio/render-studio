@@ -1,9 +1,7 @@
-import 'dart:io';
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sprung/sprung.dart';
+import 'package:universal_io/io.dart';
 
 import '../rehmat.dart';
 
@@ -233,7 +231,7 @@ class Alerts {
               onSelectedItemChanged: onSelectedItemChanged
             ),
           ),
-          SizedBox(height: MediaQuery.of(context).padding.bottom,)
+          SizedBox(height: Constants.of(context).bottomPadding,)
         ],
       ),
     )
@@ -261,23 +259,29 @@ class Alerts {
     required Widget Function(BuildContext context, void Function(void Function()) setState) childBuilder,
     List<Widget>? actionButton
   }) async {
-    return await showModalBottomSheet<T>(
+    return await showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.transparent,
+      // barrierColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Container(
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: Palette.of(context).surfaceVariant.withOpacity(0.75)
-          ),
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height * 0.2,
-          ),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: SingleChildScrollView(
+        builder: (context, setState) {
+          return ClipRRect(
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Palette.of(context).background,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height * 0.2,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,7 +295,7 @@ class Alerts {
                           width: 50,
                           height: 5,
                           decoration: BoxDecoration(
-                            color: Palette.of(context).onSurfaceVariant.withOpacity(0.45),
+                            color: Palette.of(context).outline,
                             borderRadius: BorderRadius.circular(5),
                           ),
                         )
@@ -316,13 +320,13 @@ class Alerts {
                   SizedBox(height: 12,),
                   childBuilder(context, setState),
                   SizedBox(
-                    height: MediaQuery.of(context).padding.bottom + 12 + MediaQuery.of(context).viewInsets.bottom,
+                    height: Constants.of(context).bottomPadding + MediaQuery.of(context).viewInsets.bottom,
                   )
                 ],
               ),
             ),
-          ),
-        ),
+          );
+        }
       ),
     );
   }

@@ -11,7 +11,7 @@ abstract class RenderIcons {
 
   static const IconData qr = MaterialSymbols.qr_code_2;
 
-  static const IconData design_asset = MaterialSymbols.square_foot;
+  static const IconData design_asset = Iconsax.shapes;
 
   static const IconData box = MaterialSymbols.square_filled;
 
@@ -141,6 +141,8 @@ abstract class RenderIcons {
 
   static const IconData done = MaterialSymbols.done;
 
+  static const IconData check = MaterialSymbols.done;
+
   static const IconData warning = CupertinoIcons.exclamationmark_triangle;
 
   static const IconData error = PhosphorIcons.circleWavyWarning;
@@ -203,7 +205,7 @@ abstract class RenderIcons {
 
   static const IconData lifted = CupertinoIcons.square_split_1x2;
 
-  static const IconData shapes = Iconsax.shapes;
+  static const IconData shapes = MaterialSymbols.shape_line;
 
   static const IconData position = PhosphorIcons.dotsNine;
 

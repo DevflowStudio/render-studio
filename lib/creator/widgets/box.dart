@@ -199,6 +199,7 @@ class CreativeContainerProvider {
           blur = value;
           onChange(WidgetChange.update);
         },
+        showValueEditor: true
       ),
       ... options
     ]
@@ -527,6 +528,7 @@ class CreatorBoxWidget extends CreatorWidget {
             blur = value;
             updateListeners(WidgetChange.update);
           },
+          showValueEditor: true
         )
       ]
     ),

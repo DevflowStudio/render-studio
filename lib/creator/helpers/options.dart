@@ -116,6 +116,7 @@ class Option {
     Function(double value)? onChangeEnd,
     List<num>? snapPoints,
     num? snapSensitivity,
+    bool showValueEditor = false
   }) => Option(
     widget: (context) => CustomSlider(
       label: label,
@@ -128,6 +129,7 @@ class Option {
       onChangeStart: onChangeStart,
       snapPoints: snapPoints,
       snapSensitivity: snapSensitivity,
+      showValueEditor: showValueEditor,
     ),
   );
 
@@ -161,7 +163,8 @@ class Option {
     Function(double value)? onChangeEnd,
     String? tooltip,
     num? snapSensitivity,
-    List<num>? snapPoints
+    List<num>? snapPoints,
+    bool showValueEditor = false
   }) => Option.button(
     title: title,
     tooltip: tooltip,
@@ -181,6 +184,7 @@ class Option {
               onChangeStart: onChangeStart,
               snapPoints: snapPoints,
               snapSensitivity: snapSensitivity,
+              showValueEditor: showValueEditor,
             )
           ]
         )
@@ -234,21 +238,126 @@ class Option {
   );
 
   static Option font({
-    required String font,
-    required Function(BuildContext context, String font) onFontSelect,
+    required String fontFamily,
+    required onChange(WidgetChange change, String? font),
     bool isSelected = false
   }) => Option(
-    widget: (context) => ButtonWithIcon(
-      title: font,
-      onTap: (context) => onFontSelect(context, font),
-      child: Text(
-        'Aa',
-        style: GoogleFonts.getFont(font).copyWith(
-          fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
-          color: Palette.of(context).onSecondaryContainer,
-        ),
-      ),
-      tooltip: '$font',
+    widget: (context) => StatefulBuilder(
+      builder: (context, setState) {
+        return ButtonWithIcon(
+          title: 'Font',
+          onTap: (context) async {
+            await EditorTab.modal(
+              context,
+              height: 170,
+              actions: [
+                IconButton(
+                  onPressed: () async {
+                    String? _font = await AppRouter.push<String>(context, page: const FontSelector());
+                    if (_font != null) fontFamily = _font;
+                    onChange(WidgetChange.misc, _font);
+                    Navigator.of(context).pop();
+                  },
+                  icon: Icon(RenderIcons.search)
+                )
+              ],
+              tab: (context, setState) {
+                List<String> fonts = [
+                  'Roboto',
+                  'Inter',
+                  'Poppins',
+                  'Abril Fatface',
+                  'Open Sans',
+                  'Alegreya',
+                  'Montserrat',
+                  'Noto Sans',
+                  'Ubuntu',
+                  'Merriweather',
+                  'Lato',
+                  'Raleway',
+                  'Oswald',
+                  'Lora',
+                  'Nunito',
+                  'Playfair Display',
+                  'PT Sans',
+                  'PT Serif',
+                  'Roboto Slab',
+                  'Source Sans Pro',
+                  'Fira Sans',
+                  'Work Sans',
+                  'Barlow Condensed',
+                ];
+                if (!fonts.contains(fontFamily)) fonts.insert(0, fontFamily);
+                return EditorTab(
+                  tab: 'Fonts',
+                  type: EditorTabType.hGrid,
+                  options: [
+                    for (String font in fonts) Option.custom(
+                      widget: (context) => SizedBox(
+                        height: 80,
+                        width: 80,
+                        child: InkWell(
+                          onTap: () {
+                            fontFamily = font;
+                            onChange(WidgetChange.misc, font);
+                            setState(() { });
+                          },
+                          child: AnimatedContainer(
+                            duration: Duration(milliseconds: 100),
+                            padding: EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: font == fontFamily ? Palette.of(context).surfaceVariant : null,
+                              border: font == fontFamily ? Border.all(
+                                color: Palette.of(context).outline,
+                                width: 2
+                              ) : null,
+                              borderRadius: BorderRadius.circular(12)
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Aa',
+                                  style: GoogleFonts.getFont(font).copyWith(
+                                    fontSize: 40,
+                                    color: Theme.of(context).textTheme.bodySmall?.color,
+                                  ),
+                                ),
+                                AutoSizeText(
+                                  font,
+                                  minFontSize: 12,
+                                  maxFontSize: 16,
+                                  wrapWords: false,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontFamily: 'Google Sans',
+                                    height: 0.77,
+                                    color: Constants.getThemedObject(context, light: Colors.grey, dark: Colors.grey[400])
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    )
+                  ],
+                );
+              }
+            );
+            onChange(WidgetChange.update, null);
+          },
+          child: Text(
+            'Aa',
+            style: GoogleFonts.getFont(fontFamily).copyWith(
+              fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
+              color: Palette.of(context).onSecondaryContainer,
+            ),
+          ),
+          tooltip: 'Select Font',
+        );
+      }
     )
   );
 
@@ -398,6 +507,8 @@ class CustomSlider extends StatefulWidget {
     this.snapPoints,
     this.snapSensitivity,
     this.actions = const [],
+    /// Whether to show the value editor of the slider along with the slider
+    this.showValueEditor = false,
   }) : super(key: key);
 
   final String? label;
@@ -411,6 +522,7 @@ class CustomSlider extends StatefulWidget {
   final List<num>? snapPoints;
   final num? snapSensitivity;
   final List<Widget> actions;
+  final bool showValueEditor;
 
   @override
   _CustomSliderState createState() => _CustomSliderState();
@@ -420,11 +532,14 @@ class _CustomSliderState extends State<CustomSlider> {
 
   late double value;
 
+  TextEditingController _controller = TextEditingController();
+
   @override
   void initState() {
     value = widget.value;
     if (value > widget.max) value = widget.max;
     if (value < widget.min) value = widget.min;
+    _controller.text = value.toString();
     super.initState();
   }
 
@@ -468,6 +583,48 @@ class _CustomSliderState extends State<CustomSlider> {
               SizedBox(width: 12),
               ... widget.actions,
             ],
+            if (widget.showValueEditor) ... [
+              SizedBox(width: 12,),
+              SizedBox(
+                width: 60,
+                child: TextFormField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  textInputAction: TextInputAction.done,
+                  onTapOutside: (event) {
+                    if (_controller.text.isNotEmpty) {
+                      double? val = double.tryParse(_controller.text);
+                      if (val != null) {
+                        if (val > widget.max) val = widget.max;
+                        if (val < widget.min) val = widget.min;
+                        onChange(val);
+                        widget.onChange(this.value);
+                      }
+                    }
+                    FocusScope.of(context).requestFocus(FocusNode());
+                  },
+                  textAlign: TextAlign.center,
+                  onFieldSubmitted: (value) {
+                    if (value.isNotEmpty) {
+                      double? val = double.tryParse(value);
+                      if (val != null) {
+                        if (val > widget.max) val = widget.max;
+                        if (val < widget.min) val = widget.min;
+                        onChange(val);
+                        widget.onChange(this.value);
+                      }
+                    }
+                  },
+                ),
+              ),
+              SizedBox(width: 12)
+            ]
           ],
         ),
       ],
@@ -480,6 +637,7 @@ class _CustomSliderState extends State<CustomSlider> {
       num closest = widget.snapPoints!.findClosestNumber(value);
       if ((closest - value).abs() < 2 * (widget.snapSensitivity ?? preferences.snapSensitivity)) this.value = closest.toDouble();
     }
+    _controller.text = this.value.toStringAsFixed(2);
     setState(() { });
   }
 

@@ -371,7 +371,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// @override this method to disable drag, resizing, tapping and others
   Widget build(BuildContext context) {
     if (!_firstBuildDone) doFirstBuild();
-    bool _isSelected = isSelected();
     return AlignPositioned(
       key: ValueKey<String>(uid),
       dx: position.dx,
@@ -379,9 +378,10 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       childHeight: size.height,
       childWidth: size.width,
       child: rotatedWidget(
-        child: GestureDetector(
-          onDoubleTap: (_isSelected && this is! WidgetGroup && !isLocked) ? () => onDoubleTap(context) : null,
-          onTap: (this is WidgetGroup || _isSelected) ? null : () {
+        child: _CustomGestureDetector(
+          uid: uid,
+          onDoubleTap: (this is WidgetGroup || isLocked) ? null : () => onDoubleTap(context),
+          onTap: (this is WidgetGroup) ? null : () {
             page.widgets.select(this);
           },
           child: SizedBox.fromSize(
@@ -719,6 +719,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       case 'blob':
         widget = CreativeBlob(page: page, data: data, buildInfo: buildInfo);
         break;
+      case 'watermark':
+        widget = RenderStudioWatermark(page: page, data: data, buildInfo: buildInfo);
+        break;
       default:
         throw WidgetCreationException('Failed to build widget ${data['name']}');
     }
@@ -758,6 +761,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         break;
       case 'blob':
         CreativeBlob.create(context, page: page);
+        break;
+      case 'watermark':
+        RenderStudioWatermark.create(page: page);
         break;
       default:
         break;
@@ -1007,6 +1013,46 @@ class _SelectedWidgetHighlighter extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Customized GestureDetector that detects double tap events for selecting widgets
+class _CustomGestureDetector extends StatefulWidget {
+
+  const _CustomGestureDetector({
+    this.onDoubleTap,
+    this.onTap,
+    required this.child,
+    required this.uid,
+  });
+
+  final void Function()? onDoubleTap;
+  final void Function()? onTap;
+  final String uid;
+  final Widget child;
+
+  @override
+  State<_CustomGestureDetector> createState() => _CustomGestureDetectorState();
+}
+
+class _CustomGestureDetectorState extends State<_CustomGestureDetector> {
+
+  DateTime _lastTap = DateTime.now() - Duration(minutes: 1);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      key: ValueKey('gesture-${widget.uid}'),
+      onTap: () {
+        if (DateTime.now().difference(_lastTap).inMilliseconds < 200) {
+          widget.onDoubleTap?.call();
+        } else {
+          widget.onTap?.call();
+        }
+        _lastTap = DateTime.now();
+      },
+      child: widget.child,
     );
   }
 }

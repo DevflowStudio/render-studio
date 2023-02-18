@@ -92,7 +92,7 @@ class BackgroundWidget extends CreatorWidget {
                 left: 6,
                 right: 6,
                 top: 6,
-                bottom: MediaQuery.of(context).padding.bottom
+                bottom: Constants.of(context).bottomPadding
               )
             );
             if (hasChanged) updateListeners(WidgetChange.update);
@@ -123,7 +123,6 @@ class BackgroundWidget extends CreatorWidget {
             updateGrids(showGridLines: true, hideCenterGrids: true);
             await EditorTab.modal(
               context,
-              height: 200,
               tab: (context, setState) => EditorTab.paddingEditor(
                 padding: padding,
                 max: page.project.contentSize.width/8,
@@ -143,7 +142,7 @@ class BackgroundWidget extends CreatorWidget {
         ),
         Option.button(
           icon: RenderIcons.image,
-          title: 'Image',
+          title: (asset != null && imageProvider != null) ? 'Edit Image' : 'Add Image',
           tooltip: (asset != null && imageProvider != null) ? 'Edit background image' : 'Tap to add an image to the background',
           onTap: (context) async {
             if (asset != null && imageProvider != null) EditorTab.modal(
@@ -200,22 +199,12 @@ class BackgroundWidget extends CreatorWidget {
           title: 'Delete Page',
           tooltip: 'Tap to delete this page',
           onTap: (context) async {
-            bool delete = await showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Delete Page?'),
-                content: const Text('Are you sure you want to delete this page and all of it\'s content? This cannot be reverted.'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('Cancel')
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text('Delete')
-                  ),
-                ],
-              ),
+            bool delete = await Alerts.showConfirmationDialog(
+              context,
+              title: 'Delete Page?',
+              message: 'Are you sure you want to delete this page and all of it\'s content? This cannot be reverted.',
+              isDestructive: true,
+              confirmButtonText: 'Delete'
             );
             if (delete) {
               page.project.pages.delete();

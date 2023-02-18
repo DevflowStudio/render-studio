@@ -454,7 +454,7 @@ class __WidgetHandlerBuilderState extends State<_WidgetHandlerBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    if (manager.selections.firstOrNull is BackgroundWidget || manager.selections.firstOrNull == null) return Container();
+    if (manager.selections.firstOrNull is BackgroundWidget || manager.selections.firstOrNull == null || manager.selections.firstOrNull is RenderStudioWatermark) return Container();
     else if (manager.selections.first.group != null) return WidgetHandlerBuilder(
       widget: manager.selections.first.group!.findGroup(manager.selections.first)
     );

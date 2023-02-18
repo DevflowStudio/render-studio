@@ -14,6 +14,27 @@ class CreatorText extends CreatorWidget {
   }) async {
     page.widgets.add(CreatorText(page: page));
   }
+
+  static Future<void> createDefaultWidget({
+    required CreatorPage page,
+  }) async {
+    String text = 'Double tap to edit text';
+    TextStyle style = GoogleFonts.inter(
+      fontSize: 40,
+    );
+    Size size = calculateSizeForTextStyle(
+      text,
+      page: page,
+      style: style,
+      maxWidth: page.project.contentSize.width * 2/3,
+    );
+    CreatorText widget = CreatorText(page: page);
+    widget.text = text;
+    widget.primaryStyle = CreativeTextStyle.fromTextStyle(style, widget: widget);
+    widget.size = size;
+    widget.align = TextAlign.center;
+    page.widgets.add(widget, soft: true);
+  }
   
   @override
   void onInitialize() {
@@ -37,120 +58,12 @@ class CreatorText extends CreatorWidget {
           },
           icon: RenderIcons.keyboard
         ),
-        Option(
-          widget: (context) => ButtonWithIcon(
-            title: 'Font',
-            onTap: (context) async {
-              await EditorTab.modal(
-                context,
-                height: 170,
-                actions: [
-                  IconButton(
-                    onPressed: () async {
-                      String? _font = await AppRouter.push<String>(context, page: const FontSelector());
-                      if (_font != null) fontFamily = _font;
-                      updateListeners(WidgetChange.misc);
-                      Navigator.of(context).pop();
-                    },
-                    icon: Icon(RenderIcons.search)
-                  )
-                ],
-                tab: (context, setState) {
-                  List<String> fonts = [
-                    'Roboto',
-                    'Inter',
-                    'Poppins',
-                    'Abril Fatface',
-                    'Open Sans',
-                    'Alegreya',
-                    'Montserrat',
-                    'Noto Sans',
-                    'Ubuntu',
-                    'Merriweather',
-                    'Lato',
-                    'Raleway',
-                    'Oswald',
-                    'Lora',
-                    'Nunito',
-                    'Playfair Display',
-                    'PT Sans',
-                    'PT Serif',
-                    'Roboto Slab',
-                    'Source Sans Pro',
-                    'Fira Sans',
-                    'Work Sans',
-                    'Barlow Condensed',
-                  ];
-                  if (!fonts.contains(fontFamily)) fonts.insert(0, fontFamily);
-                  return EditorTab(
-                    tab: 'Fonts',
-                    type: EditorTabType.hGrid,
-                    options: [
-                      for (String font in fonts) Option.custom(
-                        widget: (context) => SizedBox(
-                          height: 80,
-                          width: 80,
-                          child: InkWell(
-                            onTap: () {
-                              fontFamily = font;
-                              updateListeners(WidgetChange.misc);
-                              setState(() { });
-                            },
-                            child: AnimatedContainer(
-                              duration: Duration(milliseconds: 100),
-                              padding: EdgeInsets.all(3),
-                              decoration: BoxDecoration(
-                                color: font == fontFamily ? Palette.of(context).surfaceVariant : null,
-                                border: font == fontFamily ? Border.all(
-                                  color: Palette.of(context).outline,
-                                  width: 2
-                                ) : null,
-                                borderRadius: BorderRadius.circular(12)
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Aa',
-                                    style: GoogleFonts.getFont(font).copyWith(
-                                      fontSize: 40,
-                                      color: Theme.of(context).textTheme.bodySmall?.color,
-                                    ),
-                                  ),
-                                  AutoSizeText(
-                                    font,
-                                    minFontSize: 12,
-                                    maxFontSize: 16,
-                                    wrapWords: false,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontFamily: 'Google Sans',
-                                      height: 0.77,
-                                      color: Constants.getThemedObject(context, light: Colors.grey, dark: Colors.grey[400])
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }
-              );
-              updateListeners(WidgetChange.update);
-            },
-            child: Text(
-              'Aa',
-              style: GoogleFonts.getFont(fontFamily).copyWith(
-                fontSize: Theme.of(context).textTheme.titleLarge!.fontSize,
-                color: Palette.of(context).onSecondaryContainer,
-              ),
-            ),
-            tooltip: 'Select Font',
-          )
+        Option.font(
+          fontFamily: fontFamily,
+          onChange: (change, font) {
+            if (font != null) fontFamily = font;
+            updateListeners(change);
+          },
         ),
         Option.toggle(
           title: 'Auto Size',
@@ -227,7 +140,7 @@ class CreatorText extends CreatorWidget {
     EditorTab(
       tab: 'Style',
       options: [
-        ... primaryStyle.options
+        ... primaryStyle.getOptions()
       ],
     ),
     EditorTab(
@@ -260,7 +173,7 @@ class CreatorText extends CreatorWidget {
             },
             icon: RenderIcons.swap
           ),
-          ... secondaryStyle!.options,
+          ... secondaryStyle!.getOptions(),
           Option.button(
             title: 'Remove Secondary Style',
             tooltip: 'Remove secondary style',
@@ -1099,11 +1012,21 @@ class CreativeTextStyle {
     height: lineHeight,
   );
 
-  List<Option> get options => [
-    Option.color(
+  List<Option> getOptions({
+    bool showColor = true,
+    bool allowColorOpacity = true,
+    bool showBold = true,
+    bool showItalics = true,
+    bool showUnderline = true,
+    bool showStrikethrough = true,
+    bool showOverline = true,
+  }) => [
+    if (showColor) Option.color(
       tooltip: 'Tap to select text color',
       palette: widget.page.palette,
       selected: color,
+      allowOpacity: allowColorOpacity,
+      allowClear: false,
       onChange: (_color) {
         if (_color == null) return;
         this.color = _color;
@@ -1114,7 +1037,7 @@ class CreativeTextStyle {
         widget.updateListeners(WidgetChange.update);
       },
     ),
-    Option.toggle(
+    if (showBold) Option.toggle(
       title: 'Bold',
       value: bold,
       onChange: (value) {
@@ -1127,7 +1050,7 @@ class CreativeTextStyle {
       disabledTooltip: 'Add bold formatting',
       enabledTooltip: 'Remove bold formatting',
     ),
-    Option.toggle(
+    if (showItalics) Option.toggle(
       title: 'Italics',
       value: italics,
       onChange: (value) {
@@ -1139,7 +1062,7 @@ class CreativeTextStyle {
       disabledTooltip: 'Add italics formatting',
       enabledTooltip: 'Remove italics formatting',
     ),
-    Option.toggle(
+    if (showUnderline) Option.toggle(
       title: 'Underline',
       value: underline,
       onChange: (value) {
@@ -1151,7 +1074,7 @@ class CreativeTextStyle {
       disabledTooltip: 'Add underline formatting',
       enabledTooltip: 'Remove underline formatting',
     ),
-    Option.toggle(
+    if (showStrikethrough) Option.toggle(
       title: 'Strikethrough',
       value: strikethrough,
       onChange: (value) {
@@ -1163,7 +1086,7 @@ class CreativeTextStyle {
       disabledTooltip: 'Add strikethrough formatting',
       enabledTooltip: 'Remove strikethrough formatting',
     ),
-    Option.toggle(
+    if (showOverline) Option.toggle(
       title: 'Overline',
       value: overline,
       onChange: (value) {
@@ -1241,6 +1164,7 @@ class CreativeTextWidget extends StatelessWidget {
 Size calculateSizeForTextStyle(String text, {
   TextStyle? style,
   required CreatorPage page,
+  double? maxWidth,
 }) {
   final span = TextSpan(
     style: style,
@@ -1255,6 +1179,6 @@ Size calculateSizeForTextStyle(String text, {
     textAlign: TextAlign.left,
     maxLines: words.length,
     textDirection: TextDirection.ltr
-  ) ..layout(minWidth: 0, maxWidth: page.project.contentSize.width - 20);
+  ) ..layout(minWidth: 0, maxWidth: maxWidth ?? page.project.contentSize.width - 20);
   return textPainter.size;
 }

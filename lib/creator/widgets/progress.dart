@@ -81,6 +81,7 @@ class CreativeProgressWidget extends CreatorWidget {
             this.progress = value;
             updateListeners(WidgetChange.update);
           },
+          showValueEditor: true
         ),
         Option.color(
           title: 'Ring Color',
@@ -232,6 +233,7 @@ class CreativeProgressWidget extends CreatorWidget {
               this.startAngle = value;
               updateListeners(WidgetChange.misc);
             },
+            showValueEditor: true
           ),
           Option.showSlider(
             title: 'Dash',

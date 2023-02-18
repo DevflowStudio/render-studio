@@ -1,6 +1,7 @@
 import 'package:flip_card/flip_card_controller.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:sprung/sprung.dart';
 import 'package:universal_io/io.dart';
 
 import 'package:flutter/material.dart';
@@ -110,7 +111,7 @@ class _CreatePaletteState extends State<CreatePalette> {
           Spacer(),
           Padding(
             padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).padding.bottom,
+              bottom: Constants.of(context).bottomPadding,
               left: 12,
               right: 12
             ),
@@ -171,46 +172,52 @@ class _PaletteViewModal extends StatelessWidget {
         borderRadius: BorderRadius.circular(30),
         child: AnimatedSize(
           duration: kAnimationDuration,
-          child: Column(
-            children: List.generate(
-              palette.colors.length,
-              (index) => Flexible(
-                child: AnimatedSize(
-                  duration: kAnimationDuration,
-                  child: Slidable(
-                    key: UniqueKey(),
-                    endActionPane: ActionPane(
-                      motion: const ScrollMotion(),
-                      dismissible: DismissiblePane(
-                        onDismissed: () async {
-                          onDelete(palette.colors[index]);
-                        }
-                      ),
-                      children: [
-                        SlidableAction(
-                          onPressed: (context) async {
-                            onDelete(palette.colors[index]);
-                          },
-                          backgroundColor: Palette.of(context).errorContainer,
-                          foregroundColor: Palette.of(context).onErrorContainer,
-                          icon: RenderIcons.delete,
-                          label: 'Delete',
+          child: Scrollable(
+            viewportBuilder: (context, offset) {
+              return Column(
+                children: List.generate(
+                  palette.colors.length,
+                  (index) => Flexible(
+                    child: AnimatedSize(
+                      duration: kAnimationDuration,
+                      curve: Sprung.overDamped,
+                      child: Slidable(
+                        key: UniqueKey(),
+                        groupTag: 'palette',
+                        endActionPane: ActionPane(
+                          motion: const ScrollMotion(),
+                          dismissible: DismissiblePane(
+                            onDismissed: () async {
+                              onDelete(palette.colors[index]);
+                            }
+                          ),
+                          children: [
+                            SlidableAction(
+                              onPressed: (context) async {
+                                onDelete(palette.colors[index]);
+                              },
+                              backgroundColor: Palette.of(context).errorContainer,
+                              foregroundColor: Palette.of(context).onErrorContainer,
+                              icon: RenderIcons.delete,
+                              label: 'Delete',
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: palette.colors[index],
-                        border: Border.all(
-                          color: palette.colors[index],
-                          width: 0
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: palette.colors[index],
+                            border: Border.all(
+                              color: palette.colors[index],
+                              width: 0
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  )
                 ),
-              )
-            ),
+              );
+            }
           ),
         ),
       ),

@@ -332,6 +332,7 @@ class CreativePieChart extends CreatorWidget {
             initialAngle = value;
             updateListeners(WidgetChange.update);
           },
+          showValueEditor: true
         ),
         Option.showSlider(
           title: 'Legend Spacing',

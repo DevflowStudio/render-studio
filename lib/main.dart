@@ -51,12 +51,15 @@ class Render extends StatelessWidget {
     return DynamicColorBuilder(
       builder: (light, dark) {
         return MaterialApp(
-          title: 'Render',
+          title: app.remoteConfig.appTitle,
           theme: AppTheme.build(brightness: Brightness.light, colorScheme: light),
           darkTheme: AppTheme.build(brightness: Brightness.dark, colorScheme: dark),
           home: LandingPage(),
           scrollBehavior: CupertinoScrollBehavior(),
           builder: (context, widget) {
+            if (!app.remoteConfig.isAppAvailable) return AppUnavailableScreen();
+            if (app.remoteConfig.isAppOutdated) return AppUpdateScreen();
+            // TODO: Add a better error widget
             Widget error = Text(
               'oops! something went wrong',
               style: Theme.of(context).textTheme.headlineMedium,

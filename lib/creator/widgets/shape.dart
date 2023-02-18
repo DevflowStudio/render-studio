@@ -10,12 +10,44 @@ class ShapeWidget extends CreatorWidget {
     required CreatorPage page,
     String? shape
   }) async {
-    shape ??= await ShapeSelectorScreen.select(context);
+    shape ??= await _openShapeSelector(context);
     if (shape == null) return;
     ShapeWidget widget = ShapeWidget(page: page);
     widget.shape = shape;
     page.widgets.add(widget);
   }
+
+  static Future<String?> _openShapeSelector(BuildContext context) => Alerts.modal(
+    context,
+    title: 'Shape',
+    childBuilder: (context, setState) => SizedBox(
+      height: 80,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) => InkWellButton(
+          onTap: () => Navigator.of(context).pop(RenderShapeAbstract.names[index]),
+          radius: BorderRadius.circular(10),
+          child: SizedBox(
+            width: 80,
+            height: 80,
+            child: Center(
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: CustomPaint(
+                  painter: CreativeShape(
+                    name: RenderShapeAbstract.names[index],
+                    color: Palette.of(context).onSurfaceVariant
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        itemCount: RenderShapeAbstract.names.length,
+      ),
+    ),
+  );
 
   @override
   void onInitialize() {
@@ -55,7 +87,7 @@ class ShapeWidget extends CreatorWidget {
         Option.button(
           title: 'Replace',
           onTap: (context) async {
-            String? _shape = await ShapeSelectorScreen.select(context);
+            String? _shape = await _openShapeSelector(context);
             if (_shape == null) return;
             shape = _shape;
             updateListeners(WidgetChange.update);
