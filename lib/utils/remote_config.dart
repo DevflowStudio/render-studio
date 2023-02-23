@@ -11,7 +11,7 @@ class RemoteConfig {
     await firebaseConfig.setConfigSettings(
       RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: const Duration(hours: 3),
+        minimumFetchInterval: app.flavor == Flavor.dev ? const Duration(minutes: 15) : const Duration(hours: 3),
       )
     );
     _setDefaults(firebaseConfig);

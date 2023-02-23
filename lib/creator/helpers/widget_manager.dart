@@ -276,18 +276,33 @@ class WidgetManager extends ChangeNotifier {
     bool isInteractive = true,
   }) {
     return [
-      ... sortedUIDs.map((uid) => WidgetState(
-        key: UniqueKey(),
-        controller: _widgets[uid]!.stateCtrl,
-        widget: _widgets[uid]!,
-        page: page,
-      )).toList(),
       _WidgetHandlerBuilder(
         key: ValueKey('widget-${selections.firstOrNull?.uid}}'),
         manager: this
       ),
       _MultiselectDragOverlay(widgets: this)
     ];
+  }
+
+  Widget buildWidgets(BuildContext context, {
+    Size? size
+  }) {
+    return ClipRRect(
+      child: SizedBox.fromSize(
+        size: size,
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            ... sortedUIDs.map((uid) => WidgetState(
+              key: UniqueKey(),
+              controller: _widgets[uid]!.stateCtrl,
+              widget: _widgets[uid]!,
+              page: page,
+            )).toList(),
+          ]
+        ),
+      ),
+    );
   }
 
   /// This method rebuild all the widgets in the page from a previous state in the history.

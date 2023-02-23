@@ -79,16 +79,19 @@ class CreatorPage extends PropertyChangeNotifier {
   Widget widget(BuildContext context, {
     bool isInteractive = true,
     bool isDimensionless = false,
-  }) => SizedBox.fromSize(
-    size: isDimensionless ? null : project.contentSize,
-    child: ClipRRect(
-      child: Stack(
-        children: [
-          ... widgets.build(context, isInteractive: isInteractive),
-          PageGridView(state: gridState)
-        ],
+  }) => Stack(
+    children: [
+      Center(
+        child: widgets.buildWidgets(context, size: project.contentSize)
       ),
-    ),
+      ... widgets.build(context, isInteractive: isInteractive),
+      Center(
+        child: SizedBox.fromSize(
+          size: project.contentSize,
+          child: PageGridView(state: gridState)
+        ),
+      )
+    ],
   );
 
   void updateListeners(PageChange change) {

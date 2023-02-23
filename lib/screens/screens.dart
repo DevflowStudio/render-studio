@@ -2,7 +2,7 @@ export 'home.dart';
 export 'auth/onboarding.dart';
 export 'auth/profile.dart';
 export 'creator/meta.dart';
-export 'creator/create.dart';
+export 'creator/studio.dart';
 export 'creator/font_selector.dart';
 export 'creator/gradient_picker.dart';
 export 'others/settings.dart';
