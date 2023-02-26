@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:render_studio/rehmat.dart';
+import 'package:sliver_tools/sliver_tools.dart';
 
 class ProjectsView extends StatefulWidget {
 
@@ -41,43 +42,83 @@ class _ProjectsViewState extends State<ProjectsView> {
   Widget build(BuildContext context) {
     if (manager.projects.isEmpty && widget.showWelcomeMessage) return SliverToBoxAdapter(
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 6),
+        padding: EdgeInsets.symmetric(
+          horizontal: 6,
+          vertical: 24
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome',
-              style: Theme.of(context).textTheme.headlineSmall,
+              'Welcome,',
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                fontFamily: 'Helvetica Neue',
+                fontWeight: FontWeight.w500
+              ),
             ),
+            SizedBox(height: 6),
             Text(
-              'You have no projects yet.',
-              style: Theme.of(context).textTheme.titleMedium,
+              'Your design journey starts here.',
+              style: Theme.of(context).textTheme.bodyLarge,
             ),
-            Container(height: 10,),
-            PrimaryButton(
-              child: Text('Create Project'),
-              onPressed: () => Project.create(context),
+            TextButton.icon(
+              onPressed: () async {
+                PostSizePresets preset = PostSizePresets.square;
+                await Alerts.picker(
+                  context,
+                  children: [
+                    for (PostSizePresets preset in PostSizePresets.values) Text(preset.title)
+                  ],
+                  onSelectedItemChanged: (value) {
+                    preset = PostSizePresets.values[value];
+                  },
+                );
+                Project.createNewProject(context, preset.toSize());
+              },
+              icon: Icon(RenderIcons.arrow_right_2),
+              label: Text('Get Started')
             )
           ],
         ),
       ),
     );
-    return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: 6),
-      sliver: SliverMasonryGrid(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) => ProjectGlanceCard(
-            key: ValueKey(manager.projects[index].id),
-            glance: manager.projects[index]
+    return MultiSliver(
+      children: [
+        SliverPadding(
+          padding: const EdgeInsets.only(
+            top: 24,
+            left: 6,
+            right: 6,
+            bottom: 9
           ),
-          childCount: count,
+          sliver: SliverToBoxAdapter(
+            child: Text(
+              'Projects',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                height: 1,
+                color: Palette.of(context).onSurfaceVariant
+              )
+            )
+          ),
         ),
-        crossAxisSpacing: 6,
-        mainAxisSpacing: 6,
-        gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: Constants.of(context).crossAxisCount,
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: 6),
+          sliver: SliverMasonryGrid(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) => ProjectGlanceCard(
+                key: ValueKey(manager.projects[index].id),
+                glance: manager.projects[index]
+              ),
+              childCount: count,
+            ),
+            crossAxisSpacing: 6,
+            mainAxisSpacing: 6,
+            gridDelegate: SliverSimpleGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: Constants.of(context).crossAxisCount,
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 

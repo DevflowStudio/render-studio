@@ -59,15 +59,24 @@ class Render extends StatelessWidget {
           builder: (context, widget) {
             if (!app.remoteConfig.isAppAvailable) return AppUnavailableScreen();
             if (app.remoteConfig.isAppOutdated) return AppUpdateScreen();
-            // TODO: Add a better error widget
-            Widget error = Text(
-              'oops! something went wrong',
-              style: Theme.of(context).textTheme.headlineMedium,
-            );
-            if (widget is Scaffold || widget is Navigator) {
-              error = Scaffold(body: Center(child: error));
-            }
-            ErrorWidget.builder = (errorDetails) => error;
+            ErrorWidget.builder = (errorDetails) {
+              if (widget is Scaffold || widget is Navigator) {
+                return ErrorScreen(
+                  errorDetails: errorDetails
+                );
+              } else return SizedBox.square(
+                dimension: 50,
+                child: Container(
+                  color: Palette.of(context).errorContainer,
+                  child: Center(
+                    child: Icon(
+                      RenderIcons.error,
+                      color: Palette.of(context).onErrorContainer,
+                    ),
+                  ),
+                ),
+              );
+            };
             if (widget != null) return widget;
             else return Container();
           },

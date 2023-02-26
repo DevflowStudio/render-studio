@@ -161,7 +161,7 @@ class QRWidget extends CreatorWidget {
           tooltip: 'Tap to add embed an image',
           onTap: (context) async {
             embeddedImage = await Asset.pick(
-              page.project,
+              page,
               cropRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
               context: context
             );

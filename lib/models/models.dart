@@ -13,3 +13,4 @@ export 'export_quality.dart';
 export 'unsplash.dart';
 export 'auth/auth.dart';
 export 'auth/user.dart';
+export 'project_metadata.dart';

@@ -6,12 +6,14 @@ class RemoteConfig {
   RemoteConfig._(this._firebaseConfig);
   final FirebaseRemoteConfig _firebaseConfig;
 
-  static Future<RemoteConfig> get instance async {
+  static Future<RemoteConfig> initialize({
+    required Flavor flavor
+  }) async {
     final firebaseConfig = FirebaseRemoteConfig.instance;
     await firebaseConfig.setConfigSettings(
       RemoteConfigSettings(
         fetchTimeout: const Duration(minutes: 1),
-        minimumFetchInterval: app.flavor == Flavor.dev ? const Duration(minutes: 15) : const Duration(hours: 3),
+        minimumFetchInterval: flavor == Flavor.dev ? const Duration(minutes: 15) : const Duration(hours: 3),
       )
     );
     _setDefaults(firebaseConfig);
@@ -57,16 +59,11 @@ class RemoteConfig {
 
   bool get isAppOutdated {
     final minimumVersion = _firebaseConfig.getString('minimum_version');
-    if (minimumVersion == 'unavailable') return true;
     final currentVersion = app.info.version;
-    final minimumVersionParts = minimumVersion.split('.');
-    final currentVersionParts = currentVersion.split('.');
-    for (int i = 0; i < minimumVersionParts.length; i++) {
-      if (int.parse(currentVersionParts[i]) < int.parse(minimumVersionParts[i])) {
-        return true;
-      }
-    }
-    return false;
+    return !checkVersionCompatibility(
+      minimumVersion: minimumVersion,
+      currentVersion: currentVersion,
+    );
   }
 
   /// Gets the app title from the remote config
@@ -100,4 +97,20 @@ class RemoteConfig {
   /// Returns false if the watermark should be hidden
   bool get allowDeleteWatermark => _firebaseConfig.getBool('allow_delete_watermark');
 
+}
+
+/// Returns true if the `currentVersion` is greater than or equal to the `minimumVersion`
+bool checkVersionCompatibility({
+  String? minimumVersion,
+  required String currentVersion,
+}) {
+  if (minimumVersion == null || minimumVersion == 'unavailable') return true;
+  final minimumVersionParts = minimumVersion.split('.');
+  final currentVersionParts = currentVersion.split('.');
+  for (int i = 0; i < minimumVersionParts.length; i++) {
+    if (int.parse(currentVersionParts[i]) < int.parse(minimumVersionParts[i])) {
+      return false;
+    }
+  }
+  return true;
 }

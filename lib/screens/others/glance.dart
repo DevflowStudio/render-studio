@@ -78,6 +78,24 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
                       borderRadius: BorderRadius.circular(6),
                       child: OctoImage(
                         image: FileImage(File(glance.thumbnail!)),
+                        errorBuilder: (context, error, stackTrace) => Material(
+                          color: Colors.transparent,
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            height: MediaQuery.of(context).size.width,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Palette.of(context).background.withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                RenderIcons.error,
+                                color: Palette.of(context).onBackground,
+                                size: 48,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -309,7 +327,17 @@ class ProjectGlanceCard extends StatelessWidget {
     return InkWell(
       onTap: () async {
         TapFeedback.light();
-        Alerts.showModal(context, child: ProjectAtGlanceModal(glance: glance));
+        if (glance.metadata.isCompatible) Alerts.showModal(context, child: ProjectAtGlanceModal(glance: glance));
+        else {
+          bool delete = await Alerts.showConfirmationDialog(
+            context,
+            title: 'Incompatible Project',
+            message: 'This project was created with an older version of Render and is no longer compatible. Do you want to delete it?',
+            isDestructive: true,
+            confirmButtonText: 'Delete'
+          );
+          if (delete) await manager.delete(context, id: glance.id);
+        }
       },
       borderRadius: BorderRadius.circular(20),
       child: Card(
@@ -328,14 +356,22 @@ class ProjectGlanceCard extends StatelessWidget {
                 child: OctoImage(
                   image: FileImage(File(glance.thumbnail ?? '')),
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(RenderIcons.warning),
-                        SizedBox(height: 3),
-                        const Text('404 - Not Found'),
-                      ],
+                  errorBuilder: (context, error, stackTrace) => Material(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                        horizontal: 20
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(RenderIcons.warning),
+                            SizedBox(height: 3),
+                            const Text('Preview Unavailable'),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                   placeholderBuilder: (context) => LayoutBuilder(
@@ -371,7 +407,8 @@ class ProjectGlanceCard extends StatelessWidget {
                   Text(
                     glance.title,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w500
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Helvetica Neue'
                     ),
                   ),
                   Text(
@@ -379,7 +416,28 @@ class ProjectGlanceCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.secondary
                     ),
-                  )
+                  ),
+                  if (!glance.metadata.isCompatible) ...[
+                    SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(
+                          RenderIcons.warning,
+                          size: Theme.of(context).textTheme.bodySmall?.fontSize,
+                          color: Palette.of(context).error
+                        ),
+                        SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Project No Longer Compatible',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Palette.of(context).error
+                            )
+                          ),
+                        ),
+                      ],
+                    ),
+                  ]
                 ],
               ),
             ),

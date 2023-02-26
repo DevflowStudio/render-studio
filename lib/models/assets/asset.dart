@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:supercharged/supercharged.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -10,7 +11,7 @@ class Asset {
 
   late String id;
 
-  late Project project;
+  late CreatorPage page;
 
   late File file;
 
@@ -51,7 +52,7 @@ class Asset {
   }
 
   static Asset create({
-    required Project project,
+    required CreatorPage page,
     required File file,
     FileType type = FileType.image,
     BuildInfo buildInfo = BuildInfo.unknown
@@ -59,18 +60,18 @@ class Asset {
     Asset asset = Asset();
     asset.id = Constants.generateID(4);
     asset.file = file;
-    asset.project = project;
+    asset.page = page;
     asset.createdAt = DateTime.now();
     asset.extension = file.path.split('/').last.split('.').last;
     asset.type = type;
     if (buildInfo.version != null) asset.history = {
       buildInfo.version!: file
     };
-    project.assetManager.add(asset);
+    page.assetManager.add(asset);
     return asset;
   }
 
-  static Future<Asset?> pick(Project project, {
+  static Future<Asset?> pick(CreatorPage page, {
     required BuildContext context,
     FileType type = FileType.image,
     bool crop = false,
@@ -79,7 +80,7 @@ class Asset {
   }) async {
     File? _file = await FilePicker.pick(type: type, crop: crop, cropRatio: cropRatio, context: context);
     if (_file == null) return null;
-    Asset? asset = Asset.create(project: project, file: _file, buildInfo: buildInfo);
+    Asset? asset = Asset.create(page: page, file: _file, buildInfo: buildInfo);
     return asset;
   }
 
@@ -102,31 +103,28 @@ class Asset {
     if (!['svg'].contains(extension)) await precacheImage(FileImage(file), context);
   }
 
-  Future<String> compile() async {
+  Future<void> compile() async {
     try {
       await onCompile?.call(file);
-      String _path = '/Render Projects/${project.id}/Assets/asset-${Constants.generateID()}.${file.path.split('/').last.split('.').last}';
+      String _path = '/Render Projects/${page.project.id}/Assets/asset-${Constants.generateID()}.${file.path.split('/').last.split('.').last}';
       file = await pathProvider.saveToDocumentsDirectory(_path, bytes: await file.readAsBytes());
-      return _path;
     } catch (e, stacktrace) {
-      project.issues.add(AssetException('Failed to compile asset', code: 'asset-missing'));
+      page.project.issues.add(AssetException('Failed to compile asset', code: 'asset-missing'));
       analytics.logError(e, cause: 'Failed to compile asset', stacktrace: stacktrace);
       throw Exception('Failed to compile asset');
     }
   }
 
-  Future<Map<String, dynamic>> toJSON() async {
-    return {
-      'id': id,
-      'path': await compile(),
-      'created-at': createdAt.millisecondsSinceEpoch,
-      'extension': extension,
-      'type': type.type,
-    };
-  }
+  Map<String, dynamic> toJSON() => {
+    'id': id,
+    'path': file.path.allAfter('/Documents'),
+    'created-at': createdAt.millisecondsSinceEpoch,
+    'extension': extension,
+    'type': type.type,
+  };
 
   static Asset fromJSON(Map data, {
-    required Project project
+    required CreatorPage page
   }) {
     try {
       Asset asset = Asset();
@@ -135,7 +133,7 @@ class Asset {
       asset.createdAt = DateTime.fromMillisecondsSinceEpoch(data['created-at']);
       asset.extension = data['extension'];
       asset.type = FileType.dynamic.fromString(data['type']);
-      asset.project = project;
+      asset.page = page;
       return asset;
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'Failed to parse asset from JSON', stacktrace: stacktrace);
@@ -147,12 +145,12 @@ class Asset {
     BuildInfo buildInfo = BuildInfo.unknown
   }) async {
     File _file = await file.copy('${file.path.split('/').sublist(0, file.path.split('/').length - 1).join('/')}/${Constants.generateID()}.${file.path.split('/').last.split('.').last}');
-    Asset asset = Asset.create(project: project, file: _file, buildInfo: buildInfo);
+    Asset asset = Asset.create(page: page, file: _file, buildInfo: buildInfo);
     return asset;
   }
 
   static Stream<double> downloadAndCreateAsset(BuildContext context, {
-    required Project project,
+    required CreatorPage page,
     required String url,
     Map<String, dynamic>? headers,
     required Function(Asset? asset) onDownloadComplete,
@@ -174,7 +172,7 @@ class Asset {
         String savePath = '${tempFilePath.path}/${Constants.generateID()}.$extension';
         File file = await new File(savePath).create(recursive: true);
         File _newFile = await file.writeAsString(response.data);
-        Asset? asset = await Asset.create(project: project, file: _newFile);
+        Asset? asset = await Asset.create(page: page, file: _newFile);
         onDownloadComplete(asset);
       } else {
         yield 0.0;

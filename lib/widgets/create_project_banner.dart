@@ -27,8 +27,8 @@ class CreateProjectBannerState extends State<CreateProjectBanner> {
       children: [
         Padding(
           padding: const EdgeInsets.only(
-            left: 6,
-            right: 6,
+            left: 12,
+            right: 12,
             bottom: 9
           ),
           child: Text(
@@ -47,28 +47,28 @@ class CreateProjectBannerState extends State<CreateProjectBanner> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(kBorderRadius),
             child: SizedBox(
-              height: ((Theme.of(context).textTheme.labelMedium?.fontSize ?? 20) * 2 * 1.2) + 12 + 76 + 3 + 12,
+              height: ((Theme.of(context).textTheme.labelMedium?.fontSize ?? 20) * 2 * 1.2) + 12 + 70 + 3 + 12,
               child: BlurredEdgesView(
                 controller: blurredEdgesCtrl,
                 child: ListView.separated(
                   controller: blurredEdgesCtrl.scrollCtrl,
                   scrollDirection: Axis.horizontal,
-                  separatorBuilder: (context, index) => SizedBox(width: 2),
+                  separatorBuilder: (context, index) => SizedBox(width: 3),
                   padding: EdgeInsets.symmetric(
-                    horizontal: 9,
+                    horizontal: 12,
                     vertical: 12
                   ),
                   itemBuilder: (context, index) => GestureDetector(
                     onTap: () {
                       TapFeedback.light();
-                      createProject(PostSizePresets.values[index].toSize());
+                      Project.createNewProject(context, PostSizePresets.values[index].toSize());
                     },
                     child: SizedBox(
-                      width: 76,
+                      width: 70,
                       child: Column(
                         children: [
                           SizedBox(
-                            height: 76,
+                            height: 70,
                             width: 70,
                             child: Container(
                               decoration: BoxDecoration(
@@ -107,22 +107,6 @@ class CreateProjectBannerState extends State<CreateProjectBanner> {
         ),
       ],
     );
-  }
-
-  void createProject(PostSize size) async {
-    Project project = await Project.create(context, size: size);
-    String title;
-    if (manager.projects.isEmpty) title = 'My First Project';
-    else {
-      int n = manager.projects.length + 1;
-      title = 'Project ($n)';
-      while (manager.projects.where((glance) => glance.title == title).isNotEmpty) {
-        n++;
-        title = 'Project ($n)';
-      }
-    }
-    project.title = title;
-    AppRouter.push(context, page: Information(project: project, isNewProject: true,));
   }
 
 }

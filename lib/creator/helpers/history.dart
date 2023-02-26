@@ -10,7 +10,7 @@ class History {
 
   String? nextVersion;
 
-  static History build(CreatorPage page, {
+  static History create(CreatorPage page, {
     Map? data
   }) {
     History history = History();
@@ -97,6 +97,12 @@ class HistoryDate {
     HistoryDate event = HistoryDate(data ?? _getJSON(page, version), page: page, version: version, title: title);
     return event;
   }
+
+  factory HistoryDate.fromData(CreatorPage page, {
+    required Map data,
+    String? title,
+    String? version,
+  }) => HistoryDate(data, page: page, version: version, title: title);
 
   void restore() {
     page.widgets.restoreHistory(List<Map>.from(data['widgets']), version: version);

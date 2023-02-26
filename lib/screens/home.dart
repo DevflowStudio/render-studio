@@ -65,34 +65,13 @@ class _HomeState extends State<Home> {
               floating: false,
             ),
             if (app.remoteConfig.allowCreateProject) SliverPadding(
-              padding: const EdgeInsets.only(
-                top: 12,
-                left: 6,
-                right: 6
-              ),
+              padding: const EdgeInsets.only(top: 12),
               sliver: SliverToBoxAdapter(
                 child: CreateProjectBanner(),
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.only(
-                top: 24,
-                left: 12,
-                right: 12,
-              ),
-              sliver: SliverToBoxAdapter(
-                child: Text(
-                  'Projects',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    height: 1,
-                    color: Palette.of(context).onSurfaceVariant
-                  )
-                )
-              ),
-            ),
-            SliverPadding(
               padding: EdgeInsets.only(
-                top: 12,
                 bottom: Constants.of(context).bottomPadding,
                 left: 6,
                 right: 6,

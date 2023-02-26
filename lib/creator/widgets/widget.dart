@@ -36,8 +36,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       buildFromJSON(Map.from(data), buildInfo: buildInfo);
       updateGrids();
       stateCtrl.update();
-    } on WidgetCreationException catch (e) {
-      analytics.logError(e, cause: 'could not build widget from JSON');
+    } on WidgetCreationException catch (e, stacktrace) {
+      analytics.logError(e, cause: 'could not build widget from JSON', stacktrace: stacktrace);
       throw WidgetCreationException(
         'The widget could not be rebuilt due to some issues',
         details: 'Failed to build widget from JSON: $e',
@@ -382,7 +382,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           uid: uid,
           onDoubleTap: (this is WidgetGroup || isLocked) ? null : () => onDoubleTap(context),
           onTap: (this is WidgetGroup) ? null : () {
-            page.widgets.select(this);
+            if (!isSelected()) page.widgets.select(this);
           },
           child: SizedBox.fromSize(
             size: size,
@@ -778,7 +778,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     opacity = data['properties']['opacity'];
     size = Size(data['properties']['size']['width'], data['properties']['size']['height']);
     if (data['group'] != null) group = Group(data['group']);
-    if (data['asset'] != null) asset = page.project.assetManager.get(data['asset']);
+    if (data['asset'] != null) asset = page.assetManager.get(data['asset']);
     if (asset?.history.isEmpty ?? false) {
       asset!.history[page.history.dates.first.version ?? ''] = asset!.file;
     }

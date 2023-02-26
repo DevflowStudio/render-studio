@@ -65,6 +65,8 @@ abstract class RenderIcons {
 
   static const IconData arrow_right = Icons.chevron_right;
 
+  static const IconData arrow_right_2 = CupertinoIcons.arrow_right;
+
   static const IconData arrow_left_right = PhosphorIcons.arrowsOutLineHorizontal;
 
   static const IconData arrow_up_down = PhosphorIcons.arrowsOutLineVertical;
@@ -85,7 +87,7 @@ abstract class RenderIcons {
 
   static const IconData border_radius = MaterialSymbols.rounded_corner;
 
-  static const IconData refresh = Iconsax.refresh;
+  static const IconData refresh = Icons.refresh;
 
   static const IconData random = MaterialSymbols.shuffle_on;
 

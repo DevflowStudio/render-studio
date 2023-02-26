@@ -16,6 +16,7 @@ export 'others/qr_data_editor.dart';
 export 'others/unsplash.dart';
 export 'others/app_unavailable.dart';
 export 'others/app_update.dart';
+export 'others/error_screen.dart';
 export 'palette/create.dart';
 export 'palette/palettes.dart';
 export 'palette/edit.dart';

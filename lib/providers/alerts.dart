@@ -199,7 +199,7 @@ class Alerts {
   }
 
   static Future<void> picker(BuildContext context, {
-    required double itemExtent,
+    double? itemExtent,
     required List<Widget> children,
     int initialIndex = 0,
     required ValueChanged<int> onSelectedItemChanged,
@@ -222,7 +222,7 @@ class Alerts {
           Expanded(
             child: CupertinoPicker(
               backgroundColor: Palette.of(context).background,
-              itemExtent: 30,
+              itemExtent: itemExtent ?? 30,
               scrollController: FixedExtentScrollController(initialItem: initialIndex),
               magnification: 1.1,
               diameterRatio: 1.3,

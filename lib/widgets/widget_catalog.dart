@@ -735,7 +735,7 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
             ),
           ) : Container(
             margin: EdgeInsets.only(
-              top: widget.ad != null ? 0 : 48.0
+              // top: widget.ad != null ? 0 : 48.0
             ),
             decoration: BoxDecoration(
               color: Palette.of(context).surface,

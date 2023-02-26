@@ -5,7 +5,9 @@ import '../rehmat.dart';
 /// Lite version of project to reduce load times and heavy calculations
 class ProjectGlance {
 
-  ProjectGlance(this.id, this.data);
+  ProjectGlance(this.id, this.data) {
+    metadata = ProjectMetadata.fromJSON(data['meta']);
+  }
 
   final String id;
 
@@ -26,6 +28,8 @@ class ProjectGlance {
   PostSize get size => PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
 
   int get nPages => data['pages'].length;
+
+  late final ProjectMetadata metadata;
 
   static ProjectGlance? build({
     required String id,

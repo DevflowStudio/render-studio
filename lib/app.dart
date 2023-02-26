@@ -24,7 +24,7 @@ class App {
     App app = App._(flavor: flavor);
     app.auth = AuthState.instance;
     app.info = await PackageInfo.fromPlatform();
-    app.remoteConfig = await RemoteConfig.instance;
+    app.remoteConfig = await RemoteConfig.initialize(flavor: flavor);
     return app;
   }
 

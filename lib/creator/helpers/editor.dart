@@ -144,12 +144,14 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
               AnimatedSize(
                 duration: kAnimationDuration * 2,
                 curve: Sprung.underDamped,
-                child: SizedBox.fromSize(
-                  size: Editor.isHidden ? Size.fromHeight(Constants.of(context).bottomPadding) : editorSize,
+                child: Editor.isHidden ? SizedBox.fromSize(
+                  size: Size.fromHeight(Constants.of(context).bottomPadding),
+                ) : SizedBox.fromSize(
+                  size: editorSize,
                   child: Padding(
                     padding: EdgeInsets.only(
                       top: 12,
-                      bottom: Constants.of(context).bottomPadding,
+                      // bottom: Constants.of(context).bottomPadding,
                     ),
                     child: Center(
                       child: TabBarView(
@@ -1262,7 +1264,6 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
     final Offset offset = _shadow.offset;
     distance = sqrt(pow(offset.dx, 2) + pow(offset.dy, 2));
     direction = atan2(offset.dy, offset.dx);
-    print(direction);
   }
 
 }

@@ -10,19 +10,15 @@ class Project extends ChangeNotifier {
   }) {
     pages = PageManager(this);
     id ??= Constants.generateID(6);
-    created ??= DateTime.now();
-    edited ??= DateTime.now(); // if (edited == null) edited = DateTime.now();
     deviceSize = MediaQuery.of(context).size;
   }
 
   late final PageManager pages;
   final bool fromSaves;
 
+  late final ProjectMetadata metadata;
+
   String? id;
-
-  DateTime? created;
-
-  DateTime? edited;
 
   /// Headline of the project
   String? title;
@@ -36,8 +32,6 @@ class Project extends ChangeNotifier {
   
   List<String> images = [];
   String? thumbnail;
-
-  late AssetManager assetManager;
 
   Map<String, dynamic>? data;
 
@@ -86,18 +80,19 @@ class Project extends ChangeNotifier {
     bool saveToGallery = false
   }) async {
 
-    List<Map<String, dynamic>> pageData = [];
-    for (var page in pages.pages) {
-      pageData.add(await page.toJSON());
-    }
-
     images.clear();
     for (CreatorPage page in pages.pages) {
       String? thumbnail = await page.save(context, saveToGallery: saveToGallery);
       if (thumbnail != null) images.add(thumbnail);
       else issues.add(Exception('Failed to render page ${pages.pages.indexOf(page) + 1}'));
     }
-    thumbnail = images.first;
+    thumbnail = images.firstOrNull;
+
+    List<Map<String, dynamic>> pageData = [];
+    for (CreatorPage page in pages.pages) {
+      await page.assetManager.compile();
+      pageData.add(page.toJSON(BuildInfo(buildType: BuildType.save)));
+    }
 
     Map<String, dynamic> json = {
       'id': id,
@@ -111,11 +106,7 @@ class Project extends ChangeNotifier {
         'width': size.size.width,
       },
       'pages': pageData,
-      'meta': {
-        'created': created?.millisecondsSinceEpoch,
-        'edited': DateTime.now().millisecondsSinceEpoch,
-      },
-      'assets': await assetManager.toJSON(),
+      'meta': metadata.toJSON()
     };
 
     return json;
@@ -132,11 +123,9 @@ class Project extends ChangeNotifier {
     project.description = data['description'];
     project.images = List<String>.from(data['images']);
     project.size = PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
-    project.created = DateTime.fromMillisecondsSinceEpoch(data['meta']['created']);
-    project.edited = DateTime.fromMillisecondsSinceEpoch(data['meta']['edited']);
-    project.assetManager = await AssetManager.initialize(project, data: data);
     project.thumbnail = data['thumbnail'];
     project.data = data;
+    project.metadata = ProjectMetadata.fromJSON(data['meta']);
 
     for (Map pageDate in data['pages']) {
       CreatorPage? page = await CreatorPage.fromJSON(Map<String, dynamic>.from(pageDate), project: project);
@@ -158,7 +147,7 @@ class Project extends ChangeNotifier {
   }) async {
     Project project = Project(context);
     project.size = size ?? PostSizePresets.square.toSize();
-    project.assetManager = await AssetManager.initialize(project, data: {});
+    project.metadata = ProjectMetadata.create();
     return project;
   }
 
@@ -167,12 +156,24 @@ class Project extends ChangeNotifier {
       ... data!,
       'id': Constants.generateID(),
       'title': '$title (copy)',
-      'meta': {
-        ... data!['meta'],
-        'created': DateTime.now().millisecondsSinceEpoch,
-        'edited': DateTime.now().millisecondsSinceEpoch,
-      }
+      'meta': ProjectMetadata.create().toJSON()
     });
+  }
+
+  static void createNewProject(BuildContext context, PostSize size) async {
+    Project project = await Project.create(context, size: size);
+    String title;
+    if (manager.projects.isEmpty) title = 'My First Project';
+    else {
+      int n = manager.projects.length + 1;
+      title = 'Project ($n)';
+      while (manager.projects.where((glance) => glance.title == title).isNotEmpty) {
+        n++;
+        title = 'Project ($n)';
+      }
+    }
+    project.title = title;
+    AppRouter.push(context, page: Information(project: project, isNewProject: true,));
   }
 
 }

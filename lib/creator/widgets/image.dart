@@ -391,7 +391,7 @@ class ImageWidget extends CreatorWidget {
     ImageWidget image = ImageWidget(page: page);
     file ??= await FilePicker.imagePicker(context, crop: true);
     if (file == null) return;
-    Asset _asset = await Asset.create(project: page.project, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
+    Asset _asset = await Asset.create(page: page, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
     image.provider = CreativeImageProvider.create(image);
     image.asset = _asset;
     image.size = page.project.contentSize/2;
@@ -496,13 +496,15 @@ class ImageWidget extends CreatorWidget {
   late CreativeImageProvider provider;
 
   @override
-  Widget widget(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(borderRadius),
-    child: provider.build(
-      asset!,
-      size: size,
-    )
-  );
+  Widget widget(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: provider.build(
+        asset!,
+        size: size,
+      )
+    );
+  }
 
   Future<void> resizeByImage() async {
     Size? dimensions = await asset!.dimensions;

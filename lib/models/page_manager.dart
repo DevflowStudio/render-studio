@@ -21,9 +21,9 @@ class PageManager extends PropertyChangeNotifier {
 
   static int maxPages = 10;
 
-  void add({
+  Future<void> add({
     bool silent = false
-  }) {
+  }) async {
     if (pages.length >= maxPages) return;
     pages.add(CreatorPage(project: project, isFirstPage: pages.isEmpty));
     if (pages.length > 1) controller.animateToPage(pages.length - 1, duration: Constants.animationDuration, curve: Sprung.overDamped);
@@ -44,7 +44,7 @@ class PageManager extends PropertyChangeNotifier {
   Future<void> duplicate([int? index]) async {
     index ??= currentPage;
     if (pages.length >= maxPages) return;
-    Map<String, dynamic> data = pages[index].toJSON();
+    Map<String, dynamic> data = await pages[index].toJSON();
     CreatorPage? duplicate = await CreatorPage.fromJSON(data, project: project);
     if (duplicate == null) return;
     pages.insert(index + 1, duplicate);

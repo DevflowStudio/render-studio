@@ -62,7 +62,6 @@ class FilePicker {
     final ImagePicker _picker = ImagePicker();
     XFile? xFile;
     File file;
-    print(type);
     switch (type) {
       case FileType.image:
         xFile = await _picker.pickImage(
