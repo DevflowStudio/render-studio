@@ -8,10 +8,10 @@ class ProjectMetadata {
   final DateTime edited;
 
   /// Project version that is created by the current version of the app
-  static final String currentVersion = '1.0';
+  static final String currentVersion = '1.1';
 
   /// Project version that is the least supported by the current version of the app
-  static final String minVersion = '1.0';
+  static final String minVersion = '1.1';
 
   ProjectMetadata._({
     required this.version,
@@ -60,6 +60,6 @@ class ProjectMetadata {
     'edited': edited.millisecondsSinceEpoch,
   };
 
-  bool get isCompatible => version != 'unknown' && checkVersionCompatibility(currentVersion: currentVersion, minimumVersion: minVersion);
+  bool get isCompatible => version != 'unknown' && checkVersionCompatibility(currentVersion: version, minimumVersion: minVersion);
 
 }
