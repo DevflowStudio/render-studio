@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -305,12 +307,20 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     updateListeners(WidgetChange.drag);
   }
 
+  void updatePositionWithOffset(Offset offset) {
+    if (!isDraggable) return;
+    _previousPosition = position;
+    position += offset;
+    if (angle == 0) updateGrids(realtime: true, showGridLines: true, snap: true);
+    updateListeners(WidgetChange.drag);
+  }
+
   void _onGestureUpdate(DragUpdateDetails details, BuildContext context) {
     if (isDraggable) updatePosition(details);
     updateListeners(WidgetChange.misc);
   }
 
-  void _onGestureEnd(DragEndDetails details, BuildContext context) {
+  void _onDragEnd(BuildContext context) {
     // if (!page.widgets.multiselect && this is! WidgetGroup) page.widgets.select(this);
     isDragging = false;
     onDragFinish(context);
@@ -842,6 +852,7 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
   void initState() {
     super.initState();
     creatorWidget = widget.widget;
+    // _tempSize = creatorWidget.size;
     creatorWidget.addListener(onWidgetChange);
   }
 
@@ -851,6 +862,9 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
     super.dispose();
   }
 
+  late Size _tempSize;
+  late double _tempAngle;
+
   @override
   Widget build(BuildContext context) {
     if (creatorWidget != widget.widget) updateWidget();
@@ -858,9 +872,34 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
     bool _allowDrag = widget.isInteractive && creatorWidget.isDraggable && creatorWidget.group == null && _isOnlySelected && !creatorWidget.isLocked;
     return GestureDetector(
       behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
-      onPanStart: _allowDrag ? (details) => creatorWidget.onGestureStart() : null,
-      onPanUpdate: _allowDrag ? (details) => creatorWidget._onGestureUpdate(details, context) : null,
-      onPanEnd: _allowDrag ? (details) => creatorWidget._onGestureEnd(details, context) : null,
+      // onPanStart: _allowDrag ? (details) => creatorWidget.onGestureStart() : null,
+      // onPanUpdate: _allowDrag ? (details) => creatorWidget._onGestureUpdate(details, context) : null,
+      // onPanEnd: _allowDrag ? (details) => creatorWidget._onDragEnd(context) : null,
+      onScaleStart: (details) {
+        _tempSize = creatorWidget.size;
+        _tempAngle = creatorWidget.angle;
+        creatorWidget.onResizeStart();
+      },
+      onScaleUpdate: (details) {
+        // Update size
+        Size _size = Size(_tempSize.width * details.scale, _tempSize.height * details.scale);
+        if (creatorWidget.allowResize(_size)) creatorWidget.onResize(_size);
+        
+        // Update angle
+        double _angle = _tempAngle + (details.rotation * 180 / pi);
+        num closest = [0, 45, 90, 135, 180, 225, 270, 360].findClosestNumber(_angle);
+        if ((closest - _angle).abs() < 2 * (preferences.snapSensitivity)) _angle = closest.toDouble();
+        creatorWidget.angle = _angle;
+        
+        // Update position
+        if (_allowDrag && details.pointerCount == 1) creatorWidget.updatePositionWithOffset(details.focalPointDelta);
+        
+        creatorWidget.updateListeners(WidgetChange.misc);
+      },
+      onScaleEnd: (details) {
+        creatorWidget.onResizeFinished();
+        creatorWidget.onDragFinish(context);
+      },
       dragStartBehavior: DragStartBehavior.down,
       child: Stack(
         children: [
@@ -926,7 +965,7 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
                 dx: positionX,
                 child: DragHandler(
                   onPositionUpdate: (details) => creatorWidget._onGestureUpdate(details, context),
-                  onPositionUpdateEnd: (details) => creatorWidget._onGestureEnd(details, context),
+                  onPositionUpdateEnd: (details) => creatorWidget._onDragEnd(context),
                 ),
               );
             }

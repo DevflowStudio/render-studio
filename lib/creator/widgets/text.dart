@@ -741,7 +741,7 @@ class CreatorText extends CreatorWidget {
     ResizeHandler? handler,
     bool limitSize = false
   }) {
-    if (textWidget is CreativeTextWidget) return;
+    if (textWidget is! AutoSizeText) return;
     String _text = text.replaceAll('*', '');
     final span = TextSpan(
       style: (textWidget as AutoSizeText).style,

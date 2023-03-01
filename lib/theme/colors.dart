@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../rehmat.dart';
 
-// import '../rehmat.dart';
-
-class Palette {
+abstract class Palette {
 
   static ColorScheme of(BuildContext context) => Theme.of(context).colorScheme;
 
