@@ -26,7 +26,6 @@ class RenderStudioWatermark extends CreatorWidget {
   @override
   final String id = 'watermark';
 
-  bool keepAspectRatio = true;
   bool isResizable = true;
   bool isDraggable = true;
 

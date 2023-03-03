@@ -404,7 +404,6 @@ class ImageWidget extends CreatorWidget {
   @override
   final String id = 'image';
 
-  bool keepAspectRatio = true;
   bool isResizable = true;
   bool isDraggable = true;
 

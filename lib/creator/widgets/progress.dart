@@ -31,6 +31,7 @@ class CreativeProgressWidget extends CreatorWidget {
   final String id = 'progress';
 
   bool keepAspectRatio = true;
+  
   bool isResizable = true;
   bool isDraggable = true;
 

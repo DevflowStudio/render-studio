@@ -131,10 +131,10 @@ class WidgetGroup extends CreatorWidget {
       Offset topRight;
       Offset bottomLeft;
       Offset bottomRight;
-      topLeft = Offset(widget.position.dx - widget.size.width/2, widget.position.dy - widget.size.height/2);
-      bottomLeft = Offset(widget.position.dx - widget.size.width/2, widget.position.dy + widget.size.height/2);
-      topRight = Offset(widget.position.dx + widget.size.width/2, widget.position.dy - widget.size.height/2);
-      bottomRight = Offset(widget.position.dx + widget.size.width/2, widget.position.dy + widget.size.height/2);
+      topLeft = Offset(widget.position.dx - widget.getSize().width/2, widget.position.dy - widget.getSize().height/2);
+      bottomLeft = Offset(widget.position.dx - widget.getSize().width/2, widget.position.dy + widget.getSize().height/2);
+      topRight = Offset(widget.position.dx + widget.getSize().width/2, widget.position.dy - widget.getSize().height/2);
+      bottomRight = Offset(widget.position.dx + widget.getSize().width/2, widget.position.dy + widget.getSize().height/2);
       _offsets.addAll([topLeft, topRight, bottomLeft, bottomRight]);
     }
     for (Offset offset in _offsets) {
@@ -224,7 +224,6 @@ class WidgetGroup extends CreatorWidget {
 
   late final Group _group;
 
-  bool keepAspectRatio = true;
   bool isResizable = true;
   bool isDraggable = true;
 
@@ -243,20 +242,21 @@ class WidgetGroup extends CreatorWidget {
 
   @override
   void onResize(Size size) {
-    double scale = size.width / this.size.width;
-    bool resizeAllowed = true;
-    for (CreatorWidget widget in widgets) {
-      var scaledSize = Size(widget.size.width * scale, widget.size.height * scale);
-      if (!widget.allowResize(scaledSize)) {
-        minSize = size;
-        resizeAllowed = false;
-        return;
-      }
-    }
-    if (resizeAllowed) for (CreatorWidget widget in widgets) {
-      widget.size = Size(widget.size.width * scale, widget.size.height * scale);
-      widget.position = Offset(widget.position.dx * scale, widget.position.dy * scale);
-    }
+    // TODO: Group Resize
+    // double scale = size.width / this.size.width;
+    // bool resizeAllowed = true;
+    // for (CreatorWidget widget in widgets) {
+    //   var scaledSize = Size(widget.size.width * scale, widget.size.height * scale);
+    //   if (!widget.allowResize(scaledSize)) {
+    //     minSize = size;
+    //     resizeAllowed = false;
+    //     return;
+    //   }
+    // }
+    // if (resizeAllowed) for (CreatorWidget widget in widgets) {
+    //   widget.size = Size(widget.size.width * scale, widget.size.height * scale);
+    //   widget.position = Offset(widget.position.dx * scale, widget.position.dy * scale);
+    // }
     super.onResize(size);
   }
 
@@ -290,13 +290,14 @@ class WidgetGroup extends CreatorWidget {
     return (page.widgets.selections.toSet().intersection(widgets.toSet()).isNotEmpty && page.widgets.nSelections == 1);
   }
 
-  @override
-  bool scale(double scale) {
-    for (CreatorWidget widget in widgets) {
-      if (!widget.scale(scale)) return false;
-    }
-    return super.scale(scale);
-  }
+  // TODO: Verify Group Scaling
+  // @override
+  // bool scale(double scale) {
+  //   for (CreatorWidget widget in widgets) {
+  //     if (!widget.scale(scale)) return false;
+  //   }
+  //   return super.scale(scale);
+  // }
 
   @override
   bool get isLocked => widgets.any((element) => element.isLocked);

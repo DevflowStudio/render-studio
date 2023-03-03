@@ -65,7 +65,7 @@ class __DebugModeWidgetState extends State<ProjectDebugBanner> {
                 ),
               ),
               Text(
-                'OFF(${creatorWidget.position.dx.toStringAsFixed(2)}, ${creatorWidget.position.dy.toStringAsFixed(2)}), ${creatorWidget.size.width.toStringAsFixed(2)} x ${creatorWidget.size.height.toStringAsFixed(2)}',
+                'OFF(${creatorWidget.position.dx.toStringAsFixed(2)}, ${creatorWidget.position.dy.toStringAsFixed(2)}), ${creatorWidget.getSize().width.toStringAsFixed(2)} x ${creatorWidget.getSize().height.toStringAsFixed(2)}',
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: Colors.red,
                   fontWeight: FontWeight.w500,

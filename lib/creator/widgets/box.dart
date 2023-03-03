@@ -87,7 +87,7 @@ class CreativeContainerProvider {
       Option.button(
         title: 'Border',
         onTap: (context) async {
-          Size originalWidgetSize = widget.size;
+          Size originalWidgetSize = widget.getSize();
           await EditorTab.modal(
             context,
             actions: [
@@ -117,7 +117,8 @@ class CreativeContainerProvider {
                           max: 10,
                           label: 'Width',
                           onChange: (value) {
-                            widget.size = Size(originalWidgetSize.width + value * 2, originalWidgetSize.height + value * 2);
+                            // TODO: Fix border width
+                            // widget.size = Size(originalWidgetSize.width + value * 2, originalWidgetSize.height + value * 2);
                             if (borderColor == null) borderColor = color?.computeTextColor();
                             borderWidth = value;
                             onChange(WidgetChange.misc);
@@ -141,7 +142,7 @@ class CreativeContainerProvider {
                         CustomSlider(
                           value: borderRadius,
                           min: 0,
-                          max: widget.size.width / 2,
+                          max: widget.getSize().width / 2,
                           label: 'Radius',
                           onChange: (value) {
                             borderRadius = value;
@@ -169,13 +170,14 @@ class CreativeContainerProvider {
         icon: RenderIcons.padding,
         tooltip: 'Add padding to the widget',
         onTap: (context) async {
-          Size originalWidgetSize = widget.size;
+          Size originalWidgetSize = widget.getSize();
           await EditorTab.modal(
             context,
             tab: (context, setState) => EditorTab.paddingEditor(
               padding: padding,
               onChange: (value) {
-                widget.size = Size(originalWidgetSize.width + value.horizontal, originalWidgetSize.height + value.vertical);
+                // TODO: Fix padding
+                // widget.size = Size(originalWidgetSize.width + value.horizontal, originalWidgetSize.height + value.vertical);
                 padding = value;
                 onChange(WidgetChange.misc);
               },
@@ -330,7 +332,6 @@ class CreatorBoxWidget extends CreatorWidget {
   @override
   final String id = 'box';
 
-  bool keepAspectRatio = false;
   bool isResizable = true;
   bool isDraggable = true;
 

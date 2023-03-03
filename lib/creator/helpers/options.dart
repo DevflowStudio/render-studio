@@ -399,15 +399,13 @@ class Option {
       EditorTab.modal(
         context,
         tab: (context, setState) => EditorTab.scale(
-          size: widget.size,
-          minSize: widget.minSize ?? Size(20, 20),
-          maxSize: widget.page.project.contentSize * 1.5,
+          widget: widget,
           onChange: (value) {
-            widget.size  = value;
+            widget.scale  = value;
             widget.updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            widget.size  = value;
+            widget.scale  = value;
             widget.updateListeners(WidgetChange.update);
           },
         )

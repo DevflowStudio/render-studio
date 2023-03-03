@@ -18,7 +18,6 @@ class CreatorWidgetSyntax extends CreatorWidget {
   @override
   final String id = 'example';
 
-  bool keepAspectRatio = true;
   bool isResizable = true;
   bool isDraggable = true;
 

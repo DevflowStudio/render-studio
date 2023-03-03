@@ -32,7 +32,6 @@ class CreativeBlob extends CreatorWidget {
   @override
   final String id = 'blob';
 
-  bool keepAspectRatio = true;
   bool isResizable = true;
   bool isDraggable = true;
 

@@ -197,12 +197,14 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   bool isResizing = false;
   ResizeHandler? _currentResizingHandler;
 
+  Size defaultSize = const Size(0, 0);
+
   Size size = const Size(0, 0);
   Size? minSize;
 
-  /// Setting this to `true` will allow
-  /// resizing but only in the fixed aspect ratio
-  bool keepAspectRatio = false;
+  Size getSize() => size * scale;
+
+  double scale = 1.0;
 
   /// Set to `false` if you want the widget
   /// to not be resizable.
@@ -238,25 +240,13 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     updateListeners(WidgetChange.update);
   }
 
-  /// Use this method to resize the widget using scale factor
-  /// 
-  /// For example, to resize the widget by 10%,
-  /// use `scale(1.1)`
-  bool scale(double scale) {
-    Size _size = Size(size.width * scale, size.height * scale);
-    if (allowResize(_size)) {
-      size = _size;
-      return true;
-    } else return false;
-  }
-
   List<ResizeHandler> _getResizeHandlersWRTSize() {
     List<ResizeHandler> __handlers = [];
-    if (size.height.isBetween(0, 50)) {
+    if (getSize().height.isBetween(0, 50)) {
       __handlers = [
         ResizeHandler.bottomRight
       ];
-    } else if (size.height.isBetween(50, 95)) {
+    } else if (getSize().height.isBetween(50, 95)) {
       __handlers = List.from(resizeHandlers.where((handler) => handler.type == ResizeHandlerType.corner));
     } else {
       __handlers = List.from(resizeHandlers);
@@ -278,7 +268,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   Offset position = const Offset(0, 0);
   Offset _previousPosition = const Offset(0, 0);
 
-  Rect get area => position.translate(-size.width/2, -size.height/2) & size;
+  Rect get area => position.translate(-getSize().width/2, -getSize().height/2) & getSize();
 
   /// Set to `false` if you want the widget
   /// to not be draggable.
@@ -334,10 +324,10 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     // Update the listener to `update` changes. This will tell the parent to reload state and save the change in history
     double dx = position.dx;
     double dy = position.dy;
-    double minDX = -(page.project.contentSize.width/2) - size.width/4;
-    double minDY = -(page.project.contentSize.height/2) - size.height/4;
-    double maxDX = page.project.contentSize.width/2 + size.width/4;
-    double maxDY = page.project.contentSize.height/2 + size.height/4;
+    double minDX = -(page.project.contentSize.width/2) - getSize().width/4;
+    double minDY = -(page.project.contentSize.height/2) - getSize().height/4;
+    double maxDX = page.project.contentSize.width/2 + getSize().width/4;
+    double maxDY = page.project.contentSize.height/2 + getSize().height/4;
     if (dx < minDX) dx = minDX;
     if (dy < minDY) dy = minDY;
     if (dx > maxDX) dx = maxDX;
@@ -387,17 +377,20 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       dy: position.dy,
       childHeight: size.height,
       childWidth: size.width,
-      child: rotatedWidget(
-        child: _CustomGestureDetector(
-          uid: uid,
-          onDoubleTap: (this is WidgetGroup || isLocked) ? null : () => onDoubleTap(context),
-          onTap: (this is WidgetGroup) ? null : () {
-            if (!isSelected()) page.widgets.select(this);
-          },
-          child: SizedBox.fromSize(
-            size: size,
-            child: widget(context)
-          )
+      child: Transform.scale(
+        scale: scale,
+        child: rotatedWidget(
+          child: _CustomGestureDetector(
+            uid: uid,
+            onDoubleTap: (this is WidgetGroup || isLocked) ? null : () => onDoubleTap(context),
+            onTap: (this is WidgetGroup) ? null : () {
+              if (!isSelected()) page.widgets.select(this);
+            },
+            child: SizedBox.fromSize(
+              size: size,
+              child: widget(context)
+            )
+          ),
         ),
       ),
     );
@@ -453,21 +446,21 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     double dx = position.dx;
     double dy = position.dy;
 
-    double x0 = position.dx - size.width/2;
+    double x0 = position.dx - getSize().width/2;
     double x = position.dx;
-    double x1 = position.dx + size.width/2;
+    double x1 = position.dx + getSize().width/2;
 
-    double px0 = _previousPosition.dx - size.width/2;
+    double px0 = _previousPosition.dx - getSize().width/2;
     double px = _previousPosition.dx;
-    double px1 = _previousPosition.dx + size.width/2;
+    double px1 = _previousPosition.dx + getSize().width/2;
 
-    double y0 = position.dy - size.height/2;
+    double y0 = position.dy - getSize().height/2;
     double y = position.dy;
-    double y1 = position.dy + size.height/2;
+    double y1 = position.dy + getSize().height/2;
 
-    double py0 = _previousPosition.dy - size.height/2;
+    double py0 = _previousPosition.dy - getSize().height/2;
     double py = _previousPosition.dy;
-    double py1 = _previousPosition.dy + size.height/2;
+    double py1 = _previousPosition.dy + getSize().height/2;
 
     bool isInSnapSensitiveArea(double x, double px, Grid grid) {
       double target = grid.position.dx;
@@ -504,24 +497,24 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
         if (grid.layout == GridLayout.vertical) {
           if (isInSnapSensitiveArea(x0, px0, grid) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerVertical) {
-            dx = grid.position.dx + size.width/2;
+            dx = grid.position.dx + getSize().width/2;
             hasSnapped = true;
           } else if (isInSnapSensitiveArea(x, px, grid) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical) {
             dx = grid.position.dx;
             hasSnapped = true;
           } else if (isInSnapSensitiveArea(x1, px1, grid) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerVertical) {
-            dx = grid.position.dx - size.width/2;
+            dx = grid.position.dx - getSize().width/2;
             hasSnapped = true;
           }
         } else if (grid.layout == GridLayout.horizontal) {
           if (isInSnapSensitiveArea(y0, py0, grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerHorizontal) {
-            dy = grid.position.dy + size.height/2;
+            dy = grid.position.dy + getSize().height/2;
             hasSnapped = true;
           } else if (isInSnapSensitiveArea(y, py, grid) && grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal) {
             dy = grid.position.dy;
             hasSnapped = true;
           } else if (isInSnapSensitiveArea(y1, py1, grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerHorizontal) {
-            dy = grid.position.dy - size.height/2;
+            dy = grid.position.dy - getSize().height/2;
             hasSnapped = true;
           }
         }
@@ -559,11 +552,11 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       page: page,
       widget: this,
       dotted: true,
-      length: layout == GridLayout.horizontal ? null : (size.height < page.project.contentSize.height/3 ? size.height * 3 : page.project.contentSize.height/2),
+      length: layout == GridLayout.horizontal ? null : (getSize().height < page.project.contentSize.height/3 ? getSize().height * 3 : page.project.contentSize.height/2),
     );
 
-    bool hasSmallHeight = size.height < 20;
-    bool hasSmallWidth = size.width < 40;
+    bool hasSmallHeight = getSize().height < 20;
+    bool hasSmallWidth = getSize().width < 40;
 
     if (createGrids && !realtime) {
       newGrids.addAll([
@@ -676,6 +669,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           'dx': position.dx,
           'dy': position.dy
         },
+        'scale': scale,
         'angle': angle,
         'opacity': opacity,
         'size': {
@@ -787,6 +781,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     angle = data['properties']['angle'];
     opacity = data['properties']['opacity'];
     size = Size(data['properties']['size']['width'], data['properties']['size']['height']);
+    scale = data['properties']['scale'];
     if (data['group'] != null) group = Group(data['group']);
     if (data['asset'] != null) asset = page.assetManager.get(data['asset']);
     if (asset?.history.isEmpty ?? false) {
@@ -862,8 +857,7 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
     super.dispose();
   }
 
-  late Size _tempSize;
-  late double _tempAngle;
+  double? _initialScale;
 
   @override
   Widget build(BuildContext context) {
@@ -876,24 +870,17 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
       // onPanUpdate: _allowDrag ? (details) => creatorWidget._onGestureUpdate(details, context) : null,
       // onPanEnd: _allowDrag ? (details) => creatorWidget._onDragEnd(context) : null,
       onScaleStart: (details) {
-        _tempSize = creatorWidget.size;
-        _tempAngle = creatorWidget.angle;
         creatorWidget.onResizeStart();
+        _initialScale = creatorWidget.scale;
       },
       onScaleUpdate: (details) {
-        // Update size
-        Size _size = Size(_tempSize.width * details.scale, _tempSize.height * details.scale);
-        if (creatorWidget.allowResize(_size)) creatorWidget.onResize(_size);
-        
-        // Update angle
-        double _angle = _tempAngle + (details.rotation * 180 / pi);
-        num closest = [0, 45, 90, 135, 180, 225, 270, 360].findClosestNumber(_angle);
-        if ((closest - _angle).abs() < 2 * (preferences.snapSensitivity)) _angle = closest.toDouble();
-        creatorWidget.angle = _angle;
-        
-        // Update position
+        if (details.scale != 1) {
+          double scale = _initialScale! * details.scale;
+          if (scale < 0.25) scale = 0.25;
+          else if (scale > 2) scale = 2;
+          creatorWidget.scale = scale;
+        }
         if (_allowDrag && details.pointerCount == 1) creatorWidget.updatePositionWithOffset(details.focalPointDelta);
-        
         creatorWidget.updateListeners(WidgetChange.misc);
       },
       onScaleEnd: (details) {
@@ -903,9 +890,9 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
       dragStartBehavior: DragStartBehavior.down,
       child: Stack(
         children: [
-
+    
           _SelectedWidgetHighlighter(widget: creatorWidget),
-
+    
           if (creatorWidget is WidgetGroup) ...[
             for (CreatorWidget child in (creatorWidget as WidgetGroup).widgets) if (child.isSelected()) _SelectedWidgetHighlighter(
               widget: child,
@@ -913,25 +900,24 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
               highlight: true,
             )
           ],
-
+    
           if (_isOnlySelected) Visibility(
             visible: (creatorWidget.isResizable && !creatorWidget.isLocked),
             child: AlignPositioned(
               dx: creatorWidget.position.dx,
               dy: creatorWidget.position.dy,
-              childHeight: creatorWidget.size.height + 40,
-              childWidth: creatorWidget.size.width + 40,
+              childHeight: creatorWidget.getSize().height + 40,
+              childWidth: creatorWidget.getSize().width + 40,
               // rotateDegrees: angle,
               child: SizedBox(
-                width: creatorWidget.size.width + 40,
-                height: creatorWidget.size.height + 40,
+                width: creatorWidget.getSize().width + 40,
+                height: creatorWidget.getSize().height + 40,
                 child: creatorWidget.rotatedWidget(
                   child: Stack(
                     children: [
                       for (ResizeHandler handler in creatorWidget.resizeHandlers) ResizeHandlerBall(
                         type: handler,
                         widget: creatorWidget,
-                        keepAspectRatio: creatorWidget.keepAspectRatio,
                         onSizeChange: creatorWidget.onResize,
                         onResizeEnd: creatorWidget.onResizeFinished,
                         isResizing: creatorWidget.isResizing,
@@ -953,11 +939,11 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
             builder: (_) {
               double dy = creatorWidget.position.dy;
               double dx = creatorWidget.position.dx;
-              double positionY = dy + creatorWidget.size.height/2 + 15 + 15;
+              double positionY = dy + creatorWidget.getSize().height/2 + 15 + 15;
               double positionX = dx;
       
               if ((positionY + 15) > creatorWidget.page.project.contentSize.height/2) {
-                positionY = dy - creatorWidget.size.height - 15;
+                positionY = dy - creatorWidget.getSize().height - 15;
               }
       
               return AlignPositioned(
@@ -977,11 +963,11 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
               builder: (_) {
                 double dy = creatorWidget.position.dy;
                 double dx = creatorWidget.position.dx;
-                double positionY = dy + creatorWidget.size.height/2 + 20 + 15;
+                double positionY = dy + creatorWidget.getSize().height/2 + 20 + 15;
                 double positionX = dx;
                 
                 if ((positionY + 15) > creatorWidget.page.project.contentSize.height/2) {
-                  positionY = dy - creatorWidget.size.height/2 - 20 - 15;
+                  positionY = dy - creatorWidget.getSize().height/2 - 20 - 15;
                 }
                 
                 return AlignPositioned(
@@ -1030,8 +1016,8 @@ class _SelectedWidgetHighlighter extends StatelessWidget {
     return AlignPositioned(
       dx: _position.dx,
       dy: _position.dy,
-      childHeight: widget.size.height + 2,
-      childWidth: widget.size.width + 2,
+      childHeight: widget.getSize().height + 2,
+      childWidth: widget.getSize().width + 2,
       child: IgnorePointer(
         child: widget.rotatedWidget(
           child: Container(

@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-
+import 'dart:math';
 import '../../rehmat.dart';
 
 enum ResizeHandler {
@@ -20,7 +20,7 @@ extension ResizeHandlerProperties on ResizeHandler {
     required Widget child,
     required CreatorWidget widget,
   }) {
-    Size size = widget.size;
+    Size size = widget.getSize();
     switch (this) {
       case ResizeHandler.topLeft:
         return Positioned(
@@ -125,95 +125,180 @@ extension ResizeHandlerProperties on ResizeHandler {
     }
   }
 
-  Size? calculateSize({
-    /// Drag update details
+  void onResize({
     required DragUpdateDetails details,
-    /// Previous Size
     required CreatorWidget widget,
-    /// Setting this to `true` will keep updating the position of the widget as it is resized (default: `true`)
-    /// This will provide the feedback of resizing the widget with the opposite end of the widget locked to a position
     bool updatePosition = true,
     bool keepAspectRatio = false,
   }) {
-    double changeInX = details.delta.dx;
-    double changeInY = details.delta.dy;
-    switch (this) {
-      case ResizeHandler.topLeft:
-        Size _size = _calculateNewSize(widget, -changeInX, -changeInY, keepAspectRatio);
-        if (widget.allowResize(_size)) {
-          if (keepAspectRatio) changeInY = widget.size.height - _size.height;
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
-          return _size;
-        }
-        return widget.size;
-      case ResizeHandler.topCenter:
-        Size _size = _calculateNewSize(widget, 0, -changeInY, keepAspectRatio);
-        if (widget.allowResize(_size)) {
-          if (updatePosition) widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
-          return _size;
-        }
-        return widget.size;
-      case ResizeHandler.topRight:
-        Size _size = _calculateNewSize(widget, changeInX, -changeInY, keepAspectRatio);
-        if (widget.allowResize(_size)) {
-          if (keepAspectRatio) changeInY = widget.size.height - _size.height;
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
-          return _size;
-        }
-        return widget.size;
+    Size prevSize = widget.getSize();
+    if (type == ResizeHandlerType.corner) {
+      double dx = details.delta.dx;
 
-      case ResizeHandler.centerLeft:
-        Size _size = _calculateNewSize(widget, -changeInX, 0, keepAspectRatio);
-        if (widget.allowResize(_size)) {
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
-          return _size;
-        }
-        return widget.size;
-      case ResizeHandler.centerRight:
-        Size _size = _calculateNewSize(widget, changeInX, 0, keepAspectRatio);
-        if (widget.allowResize(_size)) {
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
-          return _size;
-        }
-        return widget.size;
+      bool isIncreasing = true;
+      if (this == ResizeHandler.bottomLeft || this == ResizeHandler.topLeft) isIncreasing = dx < 0;
+      else isIncreasing = dx > 0;
 
-      case ResizeHandler.bottomLeft:
-        Size _size = _calculateNewSize(widget, -changeInX, changeInY, keepAspectRatio);
-        if (widget.allowResize(_size)) {
-          if (keepAspectRatio) changeInY = _size.height - widget.size.height;
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
-          return _size;
-        }
-        return widget.size;
-      case ResizeHandler.bottomCenter:
-        Size _size = _calculateNewSize(widget, 0, changeInY, keepAspectRatio);
-        if (widget.allowResize(_size)) {
-          if (updatePosition) widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
-          return _size;
-        }
-        return widget.size;
-      case ResizeHandler.bottomRight:
-        Size _size = _calculateNewSize(widget, changeInX, changeInY, keepAspectRatio);
-        if (widget.allowResize(_size)) {
-          if (keepAspectRatio) changeInY = _size.height - widget.size.height;
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
-          return _size;
-        }
-        return widget.size;
-      default:
-        return null;
+      num hypotenuse = pow(pow(prevSize.width, 2) + pow(prevSize.height, 2), 0.5);
+      num changeInHypotenuse = pow(2 * pow(dx, 2), 0.5);
+
+      num newScale = (hypotenuse + (changeInHypotenuse * (isIncreasing ? 1 : -1))) / hypotenuse;
+      Size _newCalculatedSize = Size(prevSize.width * newScale, prevSize.height * newScale);
+
+      if (newScale < 0.25) newScale = 0.25;
+      else if (newScale > 2) newScale = 2;
+      if (widget.minSize != null && (_newCalculatedSize.width < widget.minSize!.width || _newCalculatedSize.height < widget.minSize!.height)) return;
+
+      widget.scale = widget.scale * newScale.toDouble();
+    } else {
+      double dx = details.delta.dx;
+      double dy = details.delta.dy;
+      switch (this) {
+        case ResizeHandler.topCenter:
+          dy = -dy;
+          dx = 0;
+          break;
+        case ResizeHandler.centerLeft:
+          dx = -dx;
+          dy = 0;
+          break;
+        case ResizeHandler.centerRight:
+          dy = 0;
+          break;
+        case ResizeHandler.bottomCenter:
+          dx = 0;
+          break;
+        default:
+      }
+      Size _calculateSize = Size(widget.size.width + dx, widget.size.height + dy);
+      if (widget.minSize != null && (_calculateSize.width < widget.minSize!.width || _calculateSize.height < widget.minSize!.height)) return;
+      widget.size = _calculateSize;
     }
+    Size newSize = widget.getSize();
+    if (updatePosition) {
+      Offset prevCenter = Offset(prevSize.width / 2, prevSize.height / 2);
+      Offset newCenter = Offset(newSize.width / 2, newSize.height / 2);
+      Offset changeInCenter = newCenter - prevCenter;
+      switch (this) {
+        case ResizeHandler.topLeft:
+          widget.position = Offset(widget.position.dx - changeInCenter.dx, widget.position.dy - changeInCenter.dy);
+          break;
+        case ResizeHandler.topRight:
+          widget.position = Offset(widget.position.dx + changeInCenter.dx, widget.position.dy - changeInCenter.dy);
+          break;
+        case ResizeHandler.bottomLeft:
+          widget.position = Offset(widget.position.dx - changeInCenter.dx, widget.position.dy + changeInCenter.dy);
+          break;
+        case ResizeHandler.bottomRight:
+          widget.position = Offset(widget.position.dx + changeInCenter.dx, widget.position.dy + changeInCenter.dy);
+          break;
+        case ResizeHandler.topCenter:
+          widget.position = Offset(widget.position.dx, widget.position.dy - changeInCenter.dy);
+          break;
+        case ResizeHandler.centerLeft:
+          widget.position = Offset(widget.position.dx - changeInCenter.dx, widget.position.dy);
+          break;
+        case ResizeHandler.centerRight:
+          widget.position = Offset(widget.position.dx + changeInCenter.dx, widget.position.dy);
+          break;
+        case ResizeHandler.bottomCenter:
+          widget.position = Offset(widget.position.dx, widget.position.dy + changeInCenter.dy);
+          break;
+        default:
+      }
+    }
+    widget.updateListeners(WidgetChange.misc);
   }
 
-  Size _calculateNewSize(CreatorWidget widget, double changeInX, double changeInY, bool keepAspectRatio) {
-    if (keepAspectRatio) {
-      double ratio = widget.size.width/widget.size.height;
-      double _width = widget.size.width + (changeInX == 0 ? changeInY : changeInX);
-      double _height = _width / ratio;
-      return Size(_width, _height);
-    }
-    else return Size(widget.size.width + changeInX, widget.size.height + changeInY);
-  }
+//   Size? calculateSize({
+//     /// Drag update details
+//     required DragUpdateDetails details,
+//     /// Previous Size
+//     required CreatorWidget widget,
+//     /// Setting this to `true` will keep updating the position of the widget as it is resized (default: `true`)
+//     /// This will provide the feedback of resizing the widget with the opposite end of the widget locked to a position
+//     bool updatePosition = true,
+//     bool keepAspectRatio = false,
+//   }) {
+//     double changeInX = details.delta.dx;
+//     double changeInY = details.delta.dy;
+//     switch (this) {
+//       case ResizeHandler.topLeft:
+//         Size _size = _calculateNewSize(widget, -changeInX, -changeInY, keepAspectRatio);
+//         if (widget.allowResize(_size)) {
+//           if (keepAspectRatio) changeInY = widget.size.height - _size.height;
+//           if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
+//           return _size;
+//         }
+//         return widget.size;
+//       case ResizeHandler.topCenter:
+//         Size _size = _calculateNewSize(widget, 0, -changeInY, keepAspectRatio);
+//         if (widget.allowResize(_size)) {
+//           if (updatePosition) widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
+//           return _size;
+//         }
+//         return widget.size;
+//       case ResizeHandler.topRight:
+//         Size _size = _calculateNewSize(widget, changeInX, -changeInY, keepAspectRatio);
+//         if (widget.allowResize(_size)) {
+//           if (keepAspectRatio) changeInY = widget.size.height - _size.height;
+//           if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
+//           return _size;
+//         }
+//         return widget.size;
+// 
+//       case ResizeHandler.centerLeft:
+//         Size _size = _calculateNewSize(widget, -changeInX, 0, keepAspectRatio);
+//         if (widget.allowResize(_size)) {
+//           if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
+//           return _size;
+//         }
+//         return widget.size;
+//       case ResizeHandler.centerRight:
+//         Size _size = _calculateNewSize(widget, changeInX, 0, keepAspectRatio);
+//         if (widget.allowResize(_size)) {
+//           if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
+//           return _size;
+//         }
+//         return widget.size;
+// 
+//       case ResizeHandler.bottomLeft:
+//         Size _size = _calculateNewSize(widget, -changeInX, changeInY, keepAspectRatio);
+//         if (widget.allowResize(_size)) {
+//           if (keepAspectRatio) changeInY = _size.height - widget.size.height;
+//           if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
+//           return _size;
+//         }
+//         return widget.size;
+//       case ResizeHandler.bottomCenter:
+//         Size _size = _calculateNewSize(widget, 0, changeInY, keepAspectRatio);
+//         if (widget.allowResize(_size)) {
+//           if (updatePosition) widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
+//           return _size;
+//         }
+//         return widget.size;
+//       case ResizeHandler.bottomRight:
+//         Size _size = _calculateNewSize(widget, changeInX, changeInY, keepAspectRatio);
+//         if (widget.allowResize(_size)) {
+//           if (keepAspectRatio) changeInY = _size.height - widget.size.height;
+//           if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
+//           return _size;
+//         }
+//         return widget.size;
+//       default:
+//         return null;
+//     }
+//   }
+// 
+//   Size _calculateNewSize(CreatorWidget widget, double changeInX, double changeInY, bool keepAspectRatio) {
+//     if (keepAspectRatio) {
+//       double ratio = widget.size.width/widget.size.height;
+//       double _width = widget.size.width + (changeInX == 0 ? changeInY : changeInX);
+//       double _height = _width / ratio;
+//       return Size(_width, _height);
+//     }
+//     else return Size(widget.size.width + changeInX, widget.size.height + changeInY);
+//   }
 
   ResizeHandlerType get type {
     switch (this) {
@@ -397,8 +482,9 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
   Size get _size => isDragging ? widget.type.feedbackSize : (minimizeSize ? widget.type.size/2 : widget.type.size);
 
   void _onDrag(DragUpdateDetails details) {
-    Size? size = widget.type.calculateSize(details: details, widget: widget.widget, updatePosition: widget.updatePosition, keepAspectRatio: widget.keepAspectRatio);
-    if (size != null) widget.onSizeChange(size);
+    // Size? size = widget.type.calculateSize(details: details, widget: widget.widget, updatePosition: widget.updatePosition, keepAspectRatio: widget.keepAspectRatio);
+    // if (size != null) widget.onSizeChange(size);
+    widget.type.onResize(details: details, widget: widget.widget);
   }
 
   void _onDragStart([DragStartDetails? details]) {

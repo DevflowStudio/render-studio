@@ -22,7 +22,7 @@ extension WidgetAlignmentExtension on WidgetAlignment {
   Offset getPosition(CreatorWidget widget) {
     double dx = widget.position.dx;
     double dy = widget.position.dy;
-    Size size = widget.size;
+    Size size = widget.getSize();
     Size pageSize = widget.page.project.contentSize;
     switch (this) {
       case WidgetAlignment.top:
@@ -51,7 +51,7 @@ extension WidgetAlignmentExtension on WidgetAlignment {
   static List<WidgetAlignment> fromPosition(CreatorWidget widget) {
     double dx = widget.position.dx;
     double dy = widget.position.dy;
-    Size size = widget.size;
+    Size size = widget.getSize();
     Size pageSize = widget.page.project.contentSize;
     List<WidgetAlignment> alignments = [];
     if (dx == size.width/2 - pageSize.width/2) {

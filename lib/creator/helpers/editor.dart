@@ -426,43 +426,25 @@ class EditorTab {
   );
 
   static EditorTab scale({
-    required Size size,
-    required Size minSize,
-    required Size maxSize,
-    required Function(Size value) onChange,
-    Function(Size value)? onChangeEnd,
+    required CreatorWidget widget,
+    required Function(double value) onChange,
+    Function(double value)? onChangeEnd,
   }) {
-
-    double ratio = size.width / size.height;
-    
-    double min = (ratio < 1) ? minSize.height : minSize.width;
-    double max = (ratio < 1) ? maxSize.height : maxSize.width;
-
-    Size _calculateSize({required double value}) {
-      if (ratio < 1) {
-        return Size(value * ratio, value);
-      } else {
-        return Size(value, value / ratio);
-      }
-    }
-
-    double value = ratio < 1 ? size.height : size.width;
-    if (value <= min) value = min;
 
     return EditorTab(
       type: EditorTabType.single,
       tab: 'Scale',
       options: [
         Option.slider(
-          value: value,
-          min: min,
-          max: max,
+          value: widget.scale,
+          min: 0.25,
+          max: 2,
           label: 'Scale',
           onChange: (value) {
-            onChange(_calculateSize(value: value));
+            onChange(value);
           },
           onChangeEnd: (value) {
-            if (onChangeEnd != null) onChangeEnd(_calculateSize(value: value));
+            if (onChangeEnd != null) onChangeEnd(value);
           }
         )
       ],

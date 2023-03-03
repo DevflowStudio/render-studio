@@ -26,7 +26,6 @@ class CreatorDesignAsset extends CreatorWidget {
   @override
   final String id = 'design_asset';
 
-  bool keepAspectRatio = true;
   bool isResizable = true;
   bool isDraggable = true;
 

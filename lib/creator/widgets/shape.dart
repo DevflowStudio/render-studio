@@ -60,7 +60,6 @@ class ShapeWidget extends CreatorWidget {
   @override
   final String id = 'shape';
 
-  bool keepAspectRatio = false;
   bool isResizable = true;
   bool isDraggable = true;
 
