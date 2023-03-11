@@ -305,7 +305,6 @@ class CreativePieChart extends CreatorWidget {
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            strokeWidth = value;
             updateListeners(WidgetChange.update);
           },
         ),
@@ -329,7 +328,6 @@ class CreativePieChart extends CreatorWidget {
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            initialAngle = value;
             updateListeners(WidgetChange.update);
           },
           showValueEditor: true
@@ -349,7 +347,6 @@ class CreativePieChart extends CreatorWidget {
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            legendSpacing = value;
             updateListeners(WidgetChange.update);
           },
         ),

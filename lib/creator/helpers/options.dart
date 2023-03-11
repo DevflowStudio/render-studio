@@ -116,7 +116,8 @@ class Option {
     Function(double value)? onChangeEnd,
     List<num>? snapPoints,
     num? snapSensitivity,
-    bool showValueEditor = false
+    bool showValueEditor = false,
+    bool showValueInPercent = false,
   }) => Option(
     widget: (context) => CustomSlider(
       label: label,
@@ -130,6 +131,7 @@ class Option {
       snapPoints: snapPoints,
       snapSensitivity: snapSensitivity,
       showValueEditor: showValueEditor,
+      showValueInPercent: showValueInPercent,
     ),
   );
 
@@ -160,16 +162,17 @@ class Option {
     required double max,
     required Function(double value) onChange,
     Function(double value)? onChangeStart,
-    Function(double value)? onChangeEnd,
+    Function(double? value)? onChangeEnd,
     String? tooltip,
     num? snapSensitivity,
     List<num>? snapPoints,
-    bool showValueEditor = false
+    bool showValueEditor = false,
+    bool showValueInPercent = false,
   }) => Option.button(
     title: title,
     tooltip: tooltip,
-    onTap: (context) => {
-      EditorTab.modal(
+    onTap: (context) async {
+      await EditorTab.modal(
         context,
         tab: (context, setState) => EditorTab(
           tab: title,
@@ -185,10 +188,12 @@ class Option {
               snapPoints: snapPoints,
               snapSensitivity: snapSensitivity,
               showValueEditor: showValueEditor,
+              showValueInPercent: showValueInPercent
             )
           ]
         )
-      )
+      );
+      onChangeEnd?.call(null);
     },
     icon: icon
   );
@@ -366,26 +371,26 @@ class Option {
     IconData icon = RenderIcons.refresh,
     String tooltip = 'Tap to open angle adjuster',
     required CreatorWidget widget,
-  }) => Option.button(
-    title: 'Rotate',
-    onTap: (context) {
-      EditorTab.modal(
-        context,
-        tab: (context, setState) => EditorTab.rotate(
-          angle: widget.angle,
-          onChange: (value) {
-            widget.angle = value;
-            widget.updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (value) {
-            widget.angle = value;
-            widget.updateListeners(WidgetChange.update);
-          },
-        )
-      );
-    },
+  }) => Option.showSlider(
+    title: title,
     icon: icon,
-    tooltip: tooltip
+    value: widget.angle,
+    min: -90,
+    max: 90,
+    snapPoints: [
+      -90,
+      -45,
+      0,
+      45,
+      90,
+    ],
+    onChange: (value) {
+      widget.angle = value;
+      widget.updateListeners(WidgetChange.misc);
+    },
+    onChangeEnd: (value) {
+      widget.updateListeners(WidgetChange.update);
+    },
   );
 
   static Option scale({
@@ -393,26 +398,21 @@ class Option {
     IconData icon = RenderIcons.scale,
     String tooltip = 'Tap to scale the widget size',
     required CreatorWidget widget,
-  }) => Option.button(
+  }) => Option.showSlider(
     title: title,
-    onTap: (context) {
-      EditorTab.modal(
-        context,
-        tab: (context, setState) => EditorTab.scale(
-          widget: widget,
-          onChange: (value) {
-            widget.scale  = value;
-            widget.updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (value) {
-            widget.scale  = value;
-            widget.updateListeners(WidgetChange.update);
-          },
-        )
-      );
-    },
     icon: icon,
-    tooltip: tooltip
+    value: widget.scale,
+    min: widget.minScale,
+    max: 2,
+    showValueEditor: true,    
+    showValueInPercent: true,
+    onChange: (value) {
+      widget.scale  = value;
+      widget.updateListeners(WidgetChange.misc);
+    },
+    onChangeEnd: (value) {
+      widget.updateListeners(WidgetChange.update);
+    },
   );
 
   static Option opacity({
@@ -420,26 +420,19 @@ class Option {
     IconData icon = RenderIcons.opacity,
     String tooltip = 'Opacity',
     required CreatorWidget widget,
-  }) => Option.button(
+  }) => Option.showSlider(
     title: title,
-    onTap: (context) {
-      EditorTab.modal(
-        context,
-        tab: (context, setState) => EditorTab.opacity(
-          opacity: widget.opacity,
-          onChange: (value) {
-            widget.opacity = value;
-            widget.updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (value) {
-            widget.opacity = value;
-            widget.updateListeners(WidgetChange.update);
-          },
-        ),
-      );
-    },
     icon: icon,
-    tooltip: tooltip
+    value: widget.opacity,
+    min: 0.05,
+    max: 1,
+    onChange: (value) {
+      widget.opacity = value;
+      widget.updateListeners(WidgetChange.misc);
+    },
+    onChangeEnd: (value) {
+      widget.updateListeners(WidgetChange.update);
+    },
   );
 
   static Option nudge({
@@ -507,6 +500,7 @@ class CustomSlider extends StatefulWidget {
     this.actions = const [],
     /// Whether to show the value editor of the slider along with the slider
     this.showValueEditor = false,
+    this.showValueInPercent = false,
   }) : super(key: key);
 
   final String? label;
@@ -521,6 +515,7 @@ class CustomSlider extends StatefulWidget {
   final num? snapSensitivity;
   final List<Widget> actions;
   final bool showValueEditor;
+  final bool showValueInPercent;
 
   @override
   _CustomSliderState createState() => _CustomSliderState();
@@ -537,7 +532,7 @@ class _CustomSliderState extends State<CustomSlider> {
     value = widget.value;
     if (value > widget.max) value = widget.max;
     if (value < widget.min) value = widget.min;
-    _controller.text = value.toString();
+    _controller.text = getParsedValueString(value);
     super.initState();
   }
 
@@ -596,27 +591,17 @@ class _CustomSliderState extends State<CustomSlider> {
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
                   textInputAction: TextInputAction.done,
                   onTapOutside: (event) {
+                    String value = _controller.text.replaceAll('%', '');
                     if (_controller.text.isNotEmpty) {
-                      double? val = double.tryParse(_controller.text);
-                      if (val != null) {
-                        if (val > widget.max) val = widget.max;
-                        if (val < widget.min) val = widget.min;
-                        onChange(val);
-                        widget.onChange(this.value);
-                      }
+                      onFieldChanged(value);
                     }
                     FocusScope.of(context).requestFocus(FocusNode());
                   },
                   textAlign: TextAlign.center,
                   onFieldSubmitted: (value) {
+                    value = value.replaceAll('%', '');
                     if (value.isNotEmpty) {
-                      double? val = double.tryParse(value);
-                      if (val != null) {
-                        if (val > widget.max) val = widget.max;
-                        if (val < widget.min) val = widget.min;
-                        onChange(val);
-                        widget.onChange(this.value);
-                      }
+                      onFieldChanged(value);
                     }
                   },
                 ),
@@ -635,8 +620,26 @@ class _CustomSliderState extends State<CustomSlider> {
       num closest = widget.snapPoints!.findClosestNumber(value);
       if ((closest - value).abs() < 2 * (widget.snapSensitivity ?? preferences.snapSensitivity)) this.value = closest.toDouble();
     }
-    _controller.text = this.value.toStringAsFixed(2);
+    _controller.text = getParsedValueString(value);
     setState(() { });
+  }
+
+  String getParsedValueString(double value) {
+    double val = value;
+    if (widget.showValueInPercent) val = val * 100;
+    if (widget.showValueInPercent) return '${val.ceil()}%';
+    return val.toStringAsFixed(2);
+  }
+
+  void onFieldChanged(String value) {
+    value = value.replaceAll('%', '');
+    double? val = double.tryParse(value);
+    if (val == null) return;
+    if (widget.showValueInPercent) val = val / 100;
+    if (val > widget.max) val = widget.max;
+    if (val < widget.min) val = widget.min;
+    onChange(val);
+    widget.onChange(this.value);
   }
 
 }

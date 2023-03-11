@@ -145,14 +145,16 @@ extension ResizeHandlerProperties on ResizeHandler {
       num newScale = (hypotenuse + (changeInHypotenuse * (isIncreasing ? 1 : -1))) / hypotenuse;
       Size _newCalculatedSize = Size(prevSize.width * newScale, prevSize.height * newScale);
 
-      if (newScale < 0.25) newScale = 0.25;
+      newScale *= widget.scale;
+
+      if (newScale < widget.minScale) newScale = widget.minScale;
       else if (newScale > 2) newScale = 2;
       if (widget.minSize != null && (_newCalculatedSize.width < widget.minSize!.width || _newCalculatedSize.height < widget.minSize!.height)) return;
 
-      widget.scale = widget.scale * newScale.toDouble();
+      widget.scale = newScale.toDouble();
     } else {
-      double dx = details.delta.dx;
-      double dy = details.delta.dy;
+      double dx = details.delta.dx / widget.scale;
+      double dy = details.delta.dy / widget.scale;
       switch (this) {
         case ResizeHandler.topCenter:
           dy = -dy;
@@ -375,7 +377,7 @@ class ResizeHandlerBall extends StatefulWidget {
 
   final ResizeHandler type;
   final CreatorWidget widget;
-  final void Function(Size size) onSizeChange;
+  final void Function({ResizeHandler? handler}) onSizeChange;
   final void Function({DragStartDetails? details, ResizeHandler? handler})? onResizeStart;
   final void Function({DragEndDetails? details, ResizeHandler? handler})? onResizeEnd;
   final bool isVisible;
@@ -484,6 +486,7 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
   void _onDrag(DragUpdateDetails details) {
     // Size? size = widget.type.calculateSize(details: details, widget: widget.widget, updatePosition: widget.updatePosition, keepAspectRatio: widget.keepAspectRatio);
     // if (size != null) widget.onSizeChange(size);
+    widget.onSizeChange(handler: widget.type);
     widget.type.onResize(details: details, widget: widget.widget);
   }
 

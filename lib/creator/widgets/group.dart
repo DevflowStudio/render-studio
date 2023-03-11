@@ -101,13 +101,19 @@ class WidgetGroup extends CreatorWidget {
         return null;
       }
 
+      List<double> minScales = [];
+
       for (CreatorWidget widget in _widgets) {
         if (widget.group != null) {
           widget.group!.ungroup(widget, soft: true);
         }
+        minScales.add(widget.minScale / widget.scale);
         widget.group = group._group;
         group.widgets.add(widget);
       }
+
+      minScales.sort();
+      group.minScale = minScales.last;
 
       if (widgets == null) for (CreatorWidget widget in group.widgets) {
         page.widgets.delete(widget.uid, soft: true);
@@ -175,19 +181,20 @@ class WidgetGroup extends CreatorWidget {
     bool soft = false,
   }) {
     CreatorWidget widget = widgets.firstWhere((element) => element.uid == uid);
-    widget.position = Offset(widget.position.dx + position.dx, widget.position.dy + position.dy);
+    widget.position = (widget.position + position) / scale;
     widget.group = null;
+    widget.scale *= scale;
     widgets.remove(widget);
     page.widgets.add(widget, soft: true);
     if (widgets.length == 1) {
       ungroup(widgets.first.uid, soft: soft);
       return;
     } else if (widgets.length == 0) {
-      page.widgets.delete(this.uid, soft: soft);
+      page.widgets.delete(this.uid, soft: true);
       return;
     }
     for (CreatorWidget widget in widgets) {
-      widget.position = Offset(widget.position.dx + position.dx, widget.position.dy + position.dy);
+      widget.position = widget.position + position / scale;
     }
     resizeGroup();
     if (!soft) {
@@ -202,11 +209,15 @@ class WidgetGroup extends CreatorWidget {
     CreatorWidget _selected = page.widgets.selections.first;
     for (CreatorWidget widget in widgets) {
       widget.group = null;
-      widget.position = Offset(widget.position.dx + position.dx, widget.position.dy + position.dy);
+      widget.scale *= scale;
+      widget.position = (widget.position) + position;
       page.widgets.add(widget, soft: true);
     }
-    page.widgets.delete(uid, soft: soft);
-    if (!soft) page.widgets.select(_selected);
+    page.widgets.delete(uid, soft: true);
+    if (!soft) {
+      page.history.log('Ungroup Widgets');
+      page.widgets.select(_selected);
+    }
   }
 
   void deleteWidget(String uid) {
@@ -240,25 +251,26 @@ class WidgetGroup extends CreatorWidget {
     ResizeHandler.bottomRight
   ];
 
-  @override
-  void onResize(Size size) {
-    // TODO: Group Resize
-    // double scale = size.width / this.size.width;
-    // bool resizeAllowed = true;
-    // for (CreatorWidget widget in widgets) {
-    //   var scaledSize = Size(widget.size.width * scale, widget.size.height * scale);
-    //   if (!widget.allowResize(scaledSize)) {
-    //     minSize = size;
-    //     resizeAllowed = false;
-    //     return;
-    //   }
-    // }
-    // if (resizeAllowed) for (CreatorWidget widget in widgets) {
-    //   widget.size = Size(widget.size.width * scale, widget.size.height * scale);
-    //   widget.position = Offset(widget.position.dx * scale, widget.position.dy * scale);
-    // }
-    super.onResize(size);
-  }
+  // @override
+  // void onResize({
+  //   ResizeHandler? handler,
+  // }) {
+  //   double scale = size.width / this.size.width;
+  //   bool resizeAllowed = true;
+  //   for (CreatorWidget widget in widgets) {
+  //     var scaledSize = Size(widget.size.width * scale, widget.size.height * scale);
+  //     if (!widget.allowResize(scaledSize)) {
+  //       minSize = size;
+  //       resizeAllowed = false;
+  //       return;
+  //     }
+  //   }
+  //   if (resizeAllowed) for (CreatorWidget widget in widgets) {
+  //     widget.size = Size(widget.size.width * scale, widget.size.height * scale);
+  //     widget.position = Offset(widget.position.dx * scale, widget.position.dy * scale);
+  //   }
+  //   super.onResize();
+  // }
 
   @override
   List<EditorTab> get tabs => [
@@ -289,15 +301,6 @@ class WidgetGroup extends CreatorWidget {
   bool isOnlySelected() {
     return (page.widgets.selections.toSet().intersection(widgets.toSet()).isNotEmpty && page.widgets.nSelections == 1);
   }
-
-  // TODO: Verify Group Scaling
-  // @override
-  // bool scale(double scale) {
-  //   for (CreatorWidget widget in widgets) {
-  //     if (!widget.scale(scale)) return false;
-  //   }
-  //   return super.scale(scale);
-  // }
 
   @override
   bool get isLocked => widgets.any((element) => element.isLocked);

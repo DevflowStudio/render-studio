@@ -87,7 +87,7 @@ class CreativeContainerProvider {
       Option.button(
         title: 'Border',
         onTap: (context) async {
-          Size originalWidgetSize = widget.getSize();
+          Size originalWidgetSize = widget.size;
           await EditorTab.modal(
             context,
             actions: [
@@ -117,8 +117,7 @@ class CreativeContainerProvider {
                           max: 10,
                           label: 'Width',
                           onChange: (value) {
-                            // TODO: Fix border width
-                            // widget.size = Size(originalWidgetSize.width + value * 2, originalWidgetSize.height + value * 2);
+                            widget.size = Size(originalWidgetSize.width + value * 2, originalWidgetSize.height + value * 2);
                             if (borderColor == null) borderColor = color?.computeTextColor();
                             borderWidth = value;
                             onChange(WidgetChange.misc);
@@ -170,14 +169,13 @@ class CreativeContainerProvider {
         icon: RenderIcons.padding,
         tooltip: 'Add padding to the widget',
         onTap: (context) async {
-          Size originalWidgetSize = widget.getSize();
+          Size originalWidgetSize = widget.size;
           await EditorTab.modal(
             context,
             tab: (context, setState) => EditorTab.paddingEditor(
               padding: padding,
               onChange: (value) {
-                // TODO: Fix padding
-                // widget.size = Size(originalWidgetSize.width + value.horizontal, originalWidgetSize.height + value.vertical);
+                widget.size = Size(originalWidgetSize.width + value.horizontal, originalWidgetSize.height + value.vertical);
                 padding = value;
                 onChange(WidgetChange.misc);
               },
@@ -185,6 +183,7 @@ class CreativeContainerProvider {
               max: 20,
             )
           );
+          onChange(WidgetChange.update);
         },
       ),
       Option.showSlider(
@@ -198,7 +197,6 @@ class CreativeContainerProvider {
           onChange(WidgetChange.misc);
         },
         onChangeEnd: (value) {
-          blur = value;
           onChange(WidgetChange.update);
         },
         showValueEditor: true
@@ -506,7 +504,6 @@ class CreatorBoxWidget extends CreatorWidget {
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            borderRadius = value;
             updateListeners(WidgetChange.update);
           },
         )
@@ -526,7 +523,6 @@ class CreatorBoxWidget extends CreatorWidget {
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            blur = value;
             updateListeners(WidgetChange.update);
           },
           showValueEditor: true

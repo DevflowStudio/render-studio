@@ -104,7 +104,6 @@ class CreativeImageProvider {
           onChange(WidgetChange.misc);
         },
         onChangeEnd: (value) {
-          brightness = value;
           onChange(WidgetChange.update);
         },
         showValueEditor: true
@@ -120,7 +119,6 @@ class CreativeImageProvider {
           onChange(WidgetChange.misc);
         },
         onChangeEnd: (value) {
-          contrast = value;
           onChange(WidgetChange.update);
         },
         showValueEditor: true
@@ -136,7 +134,6 @@ class CreativeImageProvider {
           onChange(WidgetChange.misc);
         },
         onChangeEnd: (value) {
-          exposure = value;
           onChange(WidgetChange.update);
         },
         showValueEditor: true
@@ -152,7 +149,6 @@ class CreativeImageProvider {
           onChange(WidgetChange.misc);
         },
         onChangeEnd: (value) {
-          saturation = value;
           onChange(WidgetChange.update);
         },
         showValueEditor: true
@@ -183,7 +179,6 @@ class CreativeImageProvider {
           onChange(WidgetChange.misc);
         },
         onChangeEnd: (value) {
-          hue = value;
           onChange(WidgetChange.update);
         },
         showValueEditor: true
@@ -470,7 +465,6 @@ class ImageWidget extends CreatorWidget {
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            borderRadius = value;
             updateListeners(WidgetChange.update);
           },
         ),

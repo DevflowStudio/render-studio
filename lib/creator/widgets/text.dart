@@ -1,10 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:easy_rich_text/easy_rich_text.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:render_studio/creator/helpers/text_span_helpers.dart';
 import '../../rehmat.dart';
 
 class CreatorText extends CreatorWidget {
@@ -21,6 +19,7 @@ class CreatorText extends CreatorWidget {
       page: page,
       style: text.style
     );
+    text.buildTextSpan();
     page.widgets.add(text);
   }
 
@@ -39,9 +38,11 @@ class CreatorText extends CreatorWidget {
     );
     CreatorText widget = CreatorText(page: page);
     widget.text = text;
+    widget.fontSize = 40;
     widget.primaryStyle = CreativeTextStyle.fromTextStyle(style, widget: widget);
     widget.size = size;
     widget.align = TextAlign.center;
+    widget.buildTextSpan();
     page.widgets.add(widget, soft: true);
   }
   
@@ -74,78 +75,44 @@ class CreatorText extends CreatorWidget {
             updateListeners(change);
           },
         ),
-        Option.toggle(
-          title: 'Auto Size',
-          value: autoSize,
-          onChange: (value) {
-            autoSize = value;
-            updateListeners(WidgetChange.update);
-          },
-          enabledIcon: RenderIcons.auto_size,
-          disabledIcon: RenderIcons.auto_size_off,
-          enabledTooltip: 'Disabled auto-size text',
-          disabledTooltip: 'Enable auto-size text',
-        ),
-        if (group == null) Option.button(
-          title: 'Size',
-          tooltip: 'Text size',
-          onTap: (context) async {
-            autoSize = false;
-            updateListeners(WidgetChange.misc);
-            await EditorTab.modal(
-              context,
-              tab: (context, setState) => EditorTab.size(
-                current: fontSize,
-                min: 10,
-                max: 200,
-                onChange: (value) {
-                  fontSize = value;
-                  size = calculateSizeForTextStyle(text, style: style, page: page);
-                  updateListeners(WidgetChange.misc);
-                }
-              )
-            );
-            updateListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.text_size
-        ),
+        // Option.toggle(
+        //   title: 'Auto Size',
+        //   value: autoSize,
+        //   onChange: (value) {
+        //     autoSize = value;
+        //     updateListeners(WidgetChange.update);
+        //   },
+        //   enabledIcon: RenderIcons.auto_size,
+        //   disabledIcon: RenderIcons.auto_size_off,
+        //   enabledTooltip: 'Disabled auto-size text',
+        //   disabledTooltip: 'Enable auto-size text',
+        // ),
+        // if (group == null) Option.button(
+        //   title: 'Size',
+        //   tooltip: 'Text size',
+        //   onTap: (context) async {
+        //     autoSize = false;
+        //     updateListeners(WidgetChange.misc);
+        //     await EditorTab.modal(
+        //       context,
+        //       tab: (context, setState) => EditorTab.size(
+        //         current: fontSize,
+        //         min: 10,
+        //         max: 200,
+        //         onChange: (value) {
+        //           fontSize = value;
+        //           size = calculateSizeForTextStyle(text, style: style, page: page);
+        //           updateListeners(WidgetChange.misc);
+        //         }
+        //       )
+        //     );
+        //     updateListeners(WidgetChange.update);
+        //   },
+        //   icon: RenderIcons.text_size
+        // ),
         ... defaultOptions,
       ],
     ),
-    // EditorTab(
-    //   tab: 'Font',
-    //   options: [
-    //     Option.button(
-    //       title: 'Search',
-    //       onTap: (context) async {
-    //         String? _font = await AppRouter.push<String>(context, page: const FontSelector());
-    //         if (_font != null) fontFamily = _font;
-    //         notifyListeners(WidgetChange.update);
-    //       },
-    //       icon: RenderIcons.search,
-    //       tooltip: 'Search Fonts'
-    //     ),
-    //     for (String font in [
-    //       'Roboto',
-    //       'Poppins',
-    //       'Abril Fatface',
-    //       'Open Sans',
-    //       'Montserrat',
-    //       'Noto Sans',
-    //       'Ubuntu',
-    //       'Merriweather',
-    //       'Playfair Display',
-    //       'DM Sans'
-    //     ]) Option.font(
-    //       font: font,
-    //       isSelected: fontFamily == font,
-    //       onFontSelect: (context, font) {
-    //         this.fontFamily = font;
-    //         updateListeners(WidgetChange.update);
-    //       },
-    //     ),
-    //   ],
-    // ),
     EditorTab(
       tab: 'Style',
       options: [
@@ -205,38 +172,44 @@ class CreatorText extends CreatorWidget {
       type: EditorTabType.single,
       options: [
         Option.custom(
-          widget: (context) => Center(
-            child: SegmentedButton<TextAlign>(
-              emptySelectionAllowed: false,
-              segments: [
-                ButtonSegment(
-                  value: TextAlign.left,
-                  icon: Icon(RenderIcons.text_align_left),
-                  label: Text('Left'),
-                ),
-                ButtonSegment(
-                  value: TextAlign.center,
-                  icon: Icon(RenderIcons.text_align_right),
-                  label: Text('Center'),
-                ),
-                ButtonSegment(
-                  value: TextAlign.right,
-                  icon: Icon(RenderIcons.text_align_center),
-                  label: Text('Right'),
-                ),
-                ButtonSegment(
-                  value: TextAlign.justify,
-                  icon: Icon(RenderIcons.text_align_justify),
-                  label: Text('Justify'),
-                ),
-              ],
-              showSelectedIcon: false,
-              multiSelectionEnabled: false,
-              onSelectionChanged: (align) {
-                this.align = align.first;
-                updateListeners(WidgetChange.update);
-              },
-              selected: {align}
+          widget: (context) => Padding(
+            padding: EdgeInsets.only(
+              bottom: Constants.of(context).bottomPadding,
+              top: 12
+            ),
+            child: Center(
+              child: SegmentedButton<TextAlign>(
+                emptySelectionAllowed: false,
+                segments: [
+                  ButtonSegment(
+                    value: TextAlign.left,
+                    icon: Icon(RenderIcons.text_align_left),
+                    label: Text('Left'),
+                  ),
+                  ButtonSegment(
+                    value: TextAlign.center,
+                    icon: Icon(RenderIcons.text_align_right),
+                    label: Text('Center'),
+                  ),
+                  ButtonSegment(
+                    value: TextAlign.right,
+                    icon: Icon(RenderIcons.text_align_center),
+                    label: Text('Right'),
+                  ),
+                  ButtonSegment(
+                    value: TextAlign.justify,
+                    icon: Icon(RenderIcons.text_align_justify),
+                    label: Text('Justify'),
+                  ),
+                ],
+                showSelectedIcon: false,
+                multiSelectionEnabled: false,
+                onSelectionChanged: (align) {
+                  this.align = align.first;
+                  updateListeners(WidgetChange.update);
+                },
+                selected: {align}
+              ),
             ),
           ),
         ),
@@ -391,10 +364,10 @@ class CreatorText extends CreatorWidget {
           value: letterSpacing,
           onChange: (value) {
             letterSpacing = value;
+            _rebuildHeightFromSize();
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            letterSpacing = value;
             updateListeners(WidgetChange.update);
           },
         ),
@@ -407,10 +380,10 @@ class CreatorText extends CreatorWidget {
           value: wordSpacing,
           onChange: (value) {
             wordSpacing = value;
+            _rebuildHeightFromSize();
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            wordSpacing = value;
             updateListeners(WidgetChange.update);
           },
         ),
@@ -423,10 +396,10 @@ class CreatorText extends CreatorWidget {
           value: lineHeight,
           onChange: (value) {
             lineHeight = value;
+            _rebuildHeightFromSize();
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            lineHeight = value;
             updateListeners(WidgetChange.update);
           },
         ),
@@ -484,14 +457,17 @@ class CreatorText extends CreatorWidget {
 
   late CreativeContainerProvider containerProvider;
 
+  late TextSpan textSpan;
+
   Widget widget(BuildContext context) => containerProvider.build(
-    child: Center(
+    child: Align(
+      alignment: Alignment.topCenter,
       child: textWidget
     ),
   );
 
-  Widget get textWidget => CreativeTextWidget(
-    text,
+  CreativeTextWidget get textWidget => CreativeTextWidget(
+    textSpan,
     textAlign: align,
     style: style,
     secondaryStyle: secondaryTextStyle,
@@ -523,6 +499,23 @@ class CreatorText extends CreatorWidget {
   @override
   void onDoubleTap(BuildContext context) async {
     await showEditTextModal(context);
+  }
+
+  void buildTextSpan() {
+    textSpan = textSpanBuilder(
+      text: text,
+      patternList: [
+        CustomRichTextPattern(
+          targetString: r'\*(.+?)\*',
+          style: secondaryTextStyle ?? style,
+          matchBuilder: (match) => TextSpan(
+            text: match![0]!.replaceAll('*', ''),
+            style: secondaryTextStyle ?? style,
+          ),
+        ),
+      ],
+      defaultStyle: style
+    );
   }
 
   Future<void> showEditTextModal(BuildContext context) async {
@@ -708,7 +701,8 @@ class CreatorText extends CreatorWidget {
     this.align = align;
     String text = textCtrl.text;
     if (text.trim() != '') this.text = text;
-    if (autoSize) _removeExtraSpaceFromSize(limitSize: true);
+    buildTextSpan();
+    _resizeFromText();
     if (logHistory) updateListeners(WidgetChange.update);
     else updateListeners(WidgetChange.misc);
     if (_containsSecondaryStyle(text) && secondaryStyle == null) Alerts.snackbar(
@@ -726,57 +720,49 @@ class CreatorText extends CreatorWidget {
     ResizeHandler.bottomLeft,
     ResizeHandler.bottomRight,
   ];
-
+  
   @override
-  void onResizeFinished({
-    DragEndDetails? details,
+  void onResize({
     ResizeHandler? handler,
-    bool updateNotify = true
   }) {
-    _removeExtraSpaceFromSize(handler: handler);
-    // if (autoSize && fitSize.width < size.width) size = Size(fitSize.width, size.height);
-    // if (autoSize && fitSize.height < size.height) size = Size(size.width, fitSize.height);
-    super.onResizeFinished(details: details, handler: handler, updateNotify: updateNotify);
+    if (handler?.type == ResizeHandlerType.center) _rebuildHeightFromSize();
+    super.onResize();
   }
 
-  void _removeExtraSpaceFromSize({
-    ResizeHandler? handler,
-    bool limitSize = false
-  }) {
-    if (textWidget is! AutoSizeText) return;
-    String _text = text.replaceAll('*', '');
-    final span = TextSpan(
-      style: (textWidget as AutoSizeText).style,
-      text: _text,
-    );
-    final words = span.toPlainText().split(RegExp('\\s+'));
+  void _rebuildHeightFromSize() {
     final TextPainter textPainter = TextPainter(
-      text: TextSpan(
-        text: _text,
-        style: (textWidget as AutoSizeText).style,
-      ),
+      text: textSpan,
       textAlign: align,
-      maxLines: words.length,
       textDirection: TextDirection.ltr
     ) ..layout(minWidth: 0, maxWidth: size.width);
-    List lines = textPainter.computeLineMetrics();
-    if (lines.length > 1) {
-      double _lineHeight = 1.0;
-      for (int i = 0; i < lines.length; i++) {
-        if (i == 0) continue;
-        _lineHeight += lines[i].height / lines[i - 1].height;
-      }
-      _lineHeight /= lines.length;
-      lineHeight = _lineHeight;
+    Size prevSize = getSize();
+    size = Size(size.width, textPainter.height);
+    Size newSize = getSize();
+    // update the position to keep the top center of the widget in the same place
+    position = Offset(position.dx, position.dy + (newSize.height - prevSize.height)/2);
+  }
+
+  void _resizeFromText() {
+    final TextPainter textPainter = TextPainter(
+      text: textSpan,
+      textAlign: align,
+      textDirection: TextDirection.ltr
+    ) ..layout(minWidth: 0, maxWidth: size.width);
+    double height = textPainter.height;
+    double width = textPainter.width;
+    if (height > page.project.contentSize.height - page.widgets.background.padding.vertical/2) {
+      double resizedHeight = page.project.contentSize.height - page.widgets.background.padding.vertical/2;
+      scale = resizedHeight/height;
     }
-    Size wantedSize = textPainter.size + Offset(containerProvider.padding.horizontal, containerProvider.padding.vertical);
-    Size adjustedSize = size;
-    if (((wantedSize.width - size.width)).abs() > 5) adjustedSize = Size(wantedSize.width, adjustedSize.height);
-    if (((wantedSize.height - size.height)).abs() > 5) adjustedSize = Size(adjustedSize.width, wantedSize.height);
-    if (limitSize && adjustedSize.height >= page.project.contentSize.height * 0.75) adjustedSize = Size(adjustedSize.width, page.project.contentSize.height * 0.75);
-    if (limitSize && adjustedSize.width >= page.project.contentSize.width * 0.75) adjustedSize = Size(page.project.contentSize.width * 0.75, adjustedSize.height);
-    _autoPositionAfterResize(oldSize: size, newSize: adjustedSize);
-    size = adjustedSize;
+    if (width > page.project.contentSize.width - page.widgets.background.padding.horizontal/2) {
+      double resizedWidth = page.project.contentSize.width - page.widgets.background.padding.horizontal/2;
+      scale = resizedWidth/width;
+    }
+    Size prevSize = getSize();
+    size = Size(width, height);
+    Size newSize = getSize();
+    _autoPositionAfterResize(newSize: newSize, oldSize: prevSize);
+    updateListeners(WidgetChange.misc);
   }
   
   /// Auto position after `_removeExtraSpaceFromSize()` has finished
@@ -814,6 +800,14 @@ class CreatorText extends CreatorWidget {
       primaryStyle.color = page.palette.onBackground;
     }
     updateListeners(WidgetChange.misc);
+  }
+
+  @override
+  void updateListeners(WidgetChange change, {
+    bool removeGrids = false
+  }) {
+    buildTextSpan();
+    super.updateListeners(change, removeGrids: removeGrids);
   }
 
   @override
@@ -897,6 +891,8 @@ class CreatorText extends CreatorWidget {
       if (json['container-provider'] != null) {
         containerProvider = CreativeContainerProvider.fromJSON(json['container-provider'], widget: this);
       }
+
+      buildTextSpan();
 
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'failed to render text', stacktrace: stacktrace);
@@ -1106,7 +1102,7 @@ class CreativeTextStyle {
 
 class CreativeTextWidget extends StatelessWidget {
 
-  const CreativeTextWidget(this.text, {
+  const CreativeTextWidget(this.span, {
     super.key,
     this.style,
     this.secondaryStyle,
@@ -1121,7 +1117,7 @@ class CreativeTextWidget extends StatelessWidget {
     this.textHeightBehavior
   });
 
-  final String text;
+  final TextSpan span;
   final TextStyle? style;
   final TextStyle? secondaryStyle;
   final TextAlign? textAlign;
@@ -1136,23 +1132,8 @@ class CreativeTextWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    TextSpan textSpan = textSpanBuilder(
-      context,
-      text: text,
-      patternList: [
-        EasyRichTextPattern(
-          targetString: r'\*(.+?)\*',
-          style: secondaryStyle ?? style,
-          matchBuilder: (context, match) => TextSpan(
-            text: match![0]!.replaceAll('*', ''),
-            style: secondaryStyle ?? style,
-          ),
-        ),
-      ],
-      defaultStyle: style
-    );
     return Text.rich(
-      textSpan,
+      span,
       textAlign: textAlign ?? TextAlign.center,
       strutStyle: strutStyle,
       textDirection: textDirection,
@@ -1178,337 +1159,10 @@ Size calculateSizeForTextStyle(String text, {
   );
   final words = span.toPlainText().split(RegExp('\\s+'));
   final TextPainter textPainter = TextPainter(
-    text: TextSpan(
-      text: text,
-      style: style,
-    ),
+    text: span,
     textAlign: TextAlign.left,
     maxLines: words.length,
-    textDirection: TextDirection.ltr
+    textDirection: TextDirection.ltr,
   ) ..layout(minWidth: 0, maxWidth: maxWidth ?? page.project.contentSize.width - 20);
   return textPainter.size;
-}
-
-TextSpan textSpanBuilder(BuildContext context, {
-  required String text,
-  required List<EasyRichTextPattern> patternList,
-  required TextStyle? defaultStyle,
-  bool caseSensitive = true,
-  bool multiLine = false,
-  bool dotAll = false,
-}) {
-  _launchURL(String str) async {
-    String url = str;
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    }
-  }
-  List<String> specialCharacters() {
-    return '\\~[]{}#%^*+=_|<>£€•.,!’()?-\$'.split('');
-  }
-
-  TapGestureRecognizer? tapGestureRecognizerForUrls(String str, String urlType) {
-    TapGestureRecognizer? tapGestureRecognizer;
-    switch (urlType) {
-      case 'web':
-        if (str.substring(0, 4) != "http") {
-          str = "https://$str";
-        }
-        tapGestureRecognizer = TapGestureRecognizer()
-          ..onTap = () {
-            _launchURL(str);
-          };
-        break;
-      case 'email':
-        tapGestureRecognizer = TapGestureRecognizer()
-          ..onTap = () {
-            _launchURL("mailto:$str");
-          };
-        break;
-      case 'tel':
-        tapGestureRecognizer = TapGestureRecognizer()
-          ..onTap = () {
-            _launchURL("tel:${str.replaceAll(' ', '')}");
-            // In order to recognize the number, iOS requires no empty spaces.
-          };
-        break;
-      default:
-        TapGestureRecognizer();
-    }
-    return tapGestureRecognizer;
-  }
-
-  List<String> processStrList(List<EasyRichTextPattern> patternList, String temText) {
-    List<String> strList = [];
-    List<List<int>> positions = [];
-
-    patternList.asMap().forEach((index, pattern) {
-      String thisRegExPattern;
-      String targetString = pattern.targetString;
-      String stringBeforeTarget = pattern.stringBeforeTarget;
-      String stringAfterTarget = pattern.stringAfterTarget;
-
-      bool matchLeftWordBoundary = pattern.matchLeftWordBoundary;
-      bool matchRightWordBoundary = pattern.matchRightWordBoundary;
-      bool matchWordBoundaries = pattern.matchWordBoundaries;
-      //if hasSpecialCharacters then unicode is
-      bool unicode = !pattern.hasSpecialCharacters;
-
-      String wordBoundaryStringBeforeTarget1 = "\\b";
-      String wordBoundaryStringBeforeTarget2 = "\\s";
-      String wordBoundaryStringAfterTarget1 = "\\s";
-      String wordBoundaryStringAfterTarget2 = "\\b";
-
-      String leftBoundary = "(?<!\\w)";
-      String rightBoundary = "(?!\\w)";
-
-      ///if any of matchWordBoundaries or matchLeftWordBoundary is false
-      ///set leftBoundary = ""
-      if (!matchWordBoundaries || !matchLeftWordBoundary) {
-        leftBoundary = "";
-        wordBoundaryStringBeforeTarget1 = "";
-        wordBoundaryStringAfterTarget1 = "";
-      }
-
-      if (!matchWordBoundaries || !matchRightWordBoundary) {
-        rightBoundary = "";
-        wordBoundaryStringBeforeTarget2 = "";
-        wordBoundaryStringAfterTarget2 = "";
-      }
-
-      bool isHan = RegExp(
-        r"[\u4e00-\u9fa5]+",
-        caseSensitive: caseSensitive,
-        unicode: unicode,
-        multiLine: multiLine,
-        dotAll: dotAll,
-      ).hasMatch(targetString);
-
-      bool isArabic = RegExp(r"[\u0621-\u064A]+",
-              caseSensitive: caseSensitive, unicode: unicode)
-          .hasMatch(targetString);
-
-      /// if target string is Han or Arabic character
-      /// set matchWordBoundaries = false
-      /// set wordBoundaryStringBeforeTarget = ""
-      if (isHan || isArabic) {
-        matchWordBoundaries = false;
-        leftBoundary = "";
-        rightBoundary = "";
-        wordBoundaryStringBeforeTarget1 = "";
-        wordBoundaryStringBeforeTarget2 = "";
-        wordBoundaryStringAfterTarget1 = "";
-        wordBoundaryStringAfterTarget2 = "";
-      }
-
-      String stringBeforeTargetRegex = "";
-      if (stringBeforeTarget != "") {
-        stringBeforeTargetRegex =
-            "(?<=$wordBoundaryStringBeforeTarget1$stringBeforeTarget$wordBoundaryStringBeforeTarget2)";
-      }
-      String stringAfterTargetRegex = "";
-      if (stringAfterTarget != "") {
-        stringAfterTargetRegex =
-            "(?=$wordBoundaryStringAfterTarget1$stringAfterTarget$wordBoundaryStringAfterTarget2)";
-      }
-
-      //modify targetString by matchWordBoundaries and wordBoundaryStringBeforeTarget settings
-      thisRegExPattern =
-          '($stringBeforeTargetRegex$leftBoundary$targetString$rightBoundary$stringAfterTargetRegex)';
-      RegExp exp = new RegExp(
-        thisRegExPattern,
-        caseSensitive: caseSensitive,
-        unicode: unicode,
-        multiLine: multiLine,
-        dotAll: dotAll,
-      );
-      var allMatches = exp.allMatches(temText);
-
-      //check matchOption ['all','first','last', 0, 1, 2, 3, 10]
-
-      int matchesLength = allMatches.length;
-      List<int> matchIndexList = [];
-      var matchOption = pattern.matchOption;
-      if (matchOption is String) {
-        switch (matchOption) {
-          case 'all':
-            matchIndexList = new List<int>.generate(matchesLength, (i) => i);
-            break;
-          case 'first':
-            matchIndexList = [0];
-            break;
-          case 'last':
-            matchIndexList = [matchesLength - 1];
-            break;
-          default:
-            matchIndexList = new List<int>.generate(matchesLength, (i) => i);
-        }
-      } else if (matchOption is List<dynamic>) {
-        matchOption.forEach(
-          (option) {
-            switch (option) {
-              case 'all':
-                matchIndexList =
-                    new List<int>.generate(matchesLength, (i) => i);
-                break;
-              case 'first':
-                matchIndexList.add(0);
-                break;
-              case 'last':
-                matchIndexList.add(matchesLength - 1);
-                break;
-              default:
-                if (option is int) matchIndexList.add(option);
-            }
-          },
-        );
-      }
-
-      ///eg. positions = [[7,11],[26,30],]
-      allMatches.toList().asMap().forEach((index, match) {
-        if (matchIndexList.indexOf(index) > -1) {
-          positions.add([match.start, match.end]);
-        }
-      });
-    });
-    //in some cases the sorted result is still disordered;need re-sort the 1d list;
-    positions.sort((a, b) => a[0].compareTo(b[0]));
-
-    //remove invalid positions
-    List<List<int>> positionsToRemove = [];
-    for (var i = 1; i < positions.length; i++) {
-      if (positions[i][0] < positions[i - 1][1]) {
-        positionsToRemove.add(positions[i]);
-      }
-    }
-    positionsToRemove.forEach((position) {
-      positions.remove(position);
-    });
-
-    //convert positions to 1d list
-    List<int> splitPositions = [0];
-    positions.forEach((position) {
-      splitPositions.add(position[0]);
-      splitPositions.add(position[1]);
-    });
-    splitPositions.add(temText.length);
-    splitPositions.sort();
-
-    splitPositions.asMap().forEach((index, splitPosition) {
-      if (index != 0) {
-        strList
-            .add(temText.substring(splitPositions[index - 1], splitPosition));
-      }
-    });
-    return strList;
-  }
-
-  String replaceSpecialCharacters(str) {
-    String tempStr = str;
-    //\[]()^*+?.$-{}|!
-    specialCharacters().forEach((chr) {
-      tempStr = tempStr.replaceAll(chr, '\\$chr');
-    });
-
-    return tempStr;
-  }
-  String temText = text;
-  List<EasyRichTextPattern> tempPatternList = patternList;
-  List<EasyRichTextPattern> finalTempPatternList = [];
-  List<EasyRichTextPattern> finalTempPatternList2 = [];
-  List<String> strList = [];
-  bool unicode = true;
-
-  if (tempPatternList.isEmpty) {
-    strList = [temText];
-  } else {
-    tempPatternList.asMap().forEach((index, pattern) {
-      ///if targetString is a list
-      if (pattern.targetString is List<String>) {
-        pattern.targetString.asMap().forEach((index, eachTargetString) {
-          finalTempPatternList
-              .add(pattern.copyWith(targetString: eachTargetString));
-        });
-      } else {
-        finalTempPatternList.add(pattern);
-      }
-    });
-
-    finalTempPatternList.asMap().forEach((index, pattern) {
-      if (pattern.hasSpecialCharacters) {
-        unicode = false;
-        String newTargetString =
-            replaceSpecialCharacters(pattern.targetString);
-        finalTempPatternList2
-            .add(pattern.copyWith(targetString: newTargetString));
-      } else {
-        finalTempPatternList2.add(pattern);
-      }
-    });
-
-    strList = processStrList(finalTempPatternList2, temText);
-  }
-
-  List<InlineSpan> textSpanList = [];
-  strList.forEach((str) {
-    var inlineSpan;
-    int targetIndex = -1;
-    RegExpMatch? match;
-    if (tempPatternList.isNotEmpty) {
-      finalTempPatternList2.asMap().forEach((index, pattern) {
-        String targetString = pattern.targetString;
-
-        //\$, match end
-        RegExp targetStringExp = RegExp(
-          '^$targetString\$',
-          caseSensitive: caseSensitive,
-          unicode: unicode,
-          multiLine: multiLine,
-          dotAll: dotAll,
-        );
-
-        RegExpMatch? tempMatch = targetStringExp.firstMatch(str);
-        if (tempMatch is RegExpMatch) {
-          targetIndex = index;
-          match = tempMatch;
-        }
-      });
-    }
-
-    ///If str is targetString
-    if (targetIndex > -1) {
-      //if str is url
-      var pattern = finalTempPatternList2[targetIndex];
-      var urlType = pattern.urlType;
-
-      if (null != pattern.matchBuilder && match is RegExpMatch) {
-        inlineSpan = pattern.matchBuilder!(context, match);
-      } else if (urlType != null) {
-        inlineSpan = TextSpan(
-          text: str,
-          recognizer: tapGestureRecognizerForUrls(str, urlType),
-          style: pattern.style == null
-              ? DefaultTextStyle.of(context).style
-              : pattern.style,
-        );
-      } else {
-        inlineSpan = TextSpan(
-          text: str,
-          recognizer: pattern.recognizer,
-          style: pattern.style == null
-              ? DefaultTextStyle.of(context).style
-              : pattern.style,
-        );
-      }
-    } else {
-      inlineSpan = TextSpan(
-        text: str,
-      );
-    }
-    textSpanList.add(inlineSpan);
-  });
-  return TextSpan(
-    children: textSpanList,
-    style: defaultStyle
-  );
 }

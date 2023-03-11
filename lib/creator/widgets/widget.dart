@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -204,6 +202,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   Size getSize() => size * scale;
 
+  double minScale = 0.25;
   double scale = 1.0;
 
   /// Set to `false` if you want the widget
@@ -224,8 +223,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     // _resizeHandlers = [handler];
   }
 
-  void onResize(Size size) {
-    this.size = size;
+  void onResize({
+    ResizeHandler? handler,
+  }) {
     updateListeners(WidgetChange.resize);
   }
 
@@ -255,6 +255,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }
 
   bool allowResize(Size _size) {
+    _size = _size * scale;
     if (_size.width < (minSize?.width ?? 10)) return false;
     if (_size.height < (minSize?.height ?? 10)) return false;
     if (_size.width > ((page.project.deviceSize.width * 1.4) - 40)) return false;
@@ -649,6 +650,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   void delete() {
     if (group != null) group!.deleteWidget(this);
     else page.widgets.delete(this.uid);
+    updateListeners(WidgetChange.update);
   }
 
   /// Convert the state and properties of the widget to JSON
@@ -859,6 +861,9 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
 
   double? _initialScale;
 
+  bool _isUpdatingScale = false;
+  bool _isUpdatingPosition = false;
+
   @override
   Widget build(BuildContext context) {
     if (creatorWidget != widget.widget) updateWidget();
@@ -872,20 +877,24 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
       onScaleStart: (details) {
         creatorWidget.onResizeStart();
         _initialScale = creatorWidget.scale;
+        _isUpdatingPosition = details.pointerCount == 1;
+        _isUpdatingScale = details.pointerCount == 2;
       },
       onScaleUpdate: (details) {
-        if (details.scale != 1) {
+        if (details.scale != 1 && _isUpdatingScale && !_isUpdatingPosition) {
           double scale = _initialScale! * details.scale;
-          if (scale < 0.25) scale = 0.25;
+          if (scale < creatorWidget.minScale) scale = creatorWidget.minScale;
           else if (scale > 2) scale = 2;
           creatorWidget.scale = scale;
         }
-        if (_allowDrag && details.pointerCount == 1) creatorWidget.updatePositionWithOffset(details.focalPointDelta);
+        if (_isUpdatingPosition && !_isUpdatingScale && _allowDrag && details.pointerCount == 1) creatorWidget.updatePositionWithOffset(details.focalPointDelta);
         creatorWidget.updateListeners(WidgetChange.misc);
       },
       onScaleEnd: (details) {
-        creatorWidget.onResizeFinished();
-        creatorWidget.onDragFinish(context);
+        if (_isUpdatingScale && !_isUpdatingScale) creatorWidget.onResizeFinished();
+        if (_isUpdatingPosition && !_isUpdatingScale) creatorWidget.onDragFinish(context);
+        _isUpdatingPosition = false;
+        _isUpdatingScale = false;
       },
       dragStartBehavior: DragStartBehavior.down,
       child: Stack(
@@ -893,11 +902,14 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
     
           _SelectedWidgetHighlighter(widget: creatorWidget),
     
-          if (creatorWidget is WidgetGroup) ...[
-            for (CreatorWidget child in (creatorWidget as WidgetGroup).widgets) if (child.isSelected()) _SelectedWidgetHighlighter(
-              widget: child,
-              position: child.position + creatorWidget.position,
-              highlight: true,
+          if (creatorWidget is WidgetGroup) ... [
+            for (CreatorWidget child in (creatorWidget as WidgetGroup).widgets) if (child.isSelected()) Transform.scale(
+              scale: creatorWidget.scale,
+              child: _SelectedWidgetHighlighter(
+                widget: child,
+                position: child.position + creatorWidget.position * (1 / creatorWidget.scale),
+                highlight: true,
+              ),
             )
           ],
     

@@ -79,7 +79,6 @@ class CreativeProgressWidget extends CreatorWidget {
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            this.progress = value;
             updateListeners(WidgetChange.update);
           },
           showValueEditor: true
@@ -173,7 +172,6 @@ class CreativeProgressWidget extends CreatorWidget {
             updateListeners(WidgetChange.misc);
           },
           onChangeEnd: (value) {
-            this.strokeWidth = value;
             updateListeners(WidgetChange.update);
           },
         ),
@@ -231,7 +229,6 @@ class CreativeProgressWidget extends CreatorWidget {
               updateListeners(WidgetChange.misc);
             },
             onChangeEnd: (value) {
-              this.startAngle = value;
               updateListeners(WidgetChange.misc);
             },
             showValueEditor: true
@@ -247,7 +244,6 @@ class CreativeProgressWidget extends CreatorWidget {
               updateListeners(WidgetChange.misc);
             },
             onChangeEnd: (value) {
-              this.backgroundDashSize = value;
               updateListeners(WidgetChange.update);
             },
           ),
@@ -262,7 +258,6 @@ class CreativeProgressWidget extends CreatorWidget {
               updateListeners(WidgetChange.misc);
             },
             onChangeEnd: (value) {
-              this.backgroundGapSize = value;
               updateListeners(WidgetChange.update);
             },
           ),
