@@ -277,6 +277,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   Offset position = const Offset(0, 0);
   Offset _previousPosition = const Offset(0, 0);
 
+  // Offset get globalPosition => position;
+
   Rect get area => position.translate(-size.width/2, -size.height/2) & size;
 
   /// Set to `false` if you want the widget
@@ -314,19 +316,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     updateListeners(WidgetChange.drag);
   }
 
-  void _onGestureUpdate(DragUpdateDetails details, BuildContext context) {
-    if (isDraggable) updatePosition(details);
-    updateListeners(WidgetChange.misc);
-  }
-
-  void _onDragEnd(BuildContext context) {
-    // if (!page.widgets.multiselect && this is! WidgetGroup) page.widgets.select(this);
-    isDragging = false;
-    onDragFinish(context);
-  }
-
-  void onGestureStart() {
+  void onDragStart([DragStartDetails? details]) {
     isDragging = true;
+    updateListeners(WidgetChange.misc);
   }
 
   void onDragFinish(BuildContext context) {
@@ -343,6 +335,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (dy > maxDY) dy = maxDY;
     // Prevent the widget from going out of the safe area
     position = Offset(dx, dy);
+    isDragging = false;
     updateGrids(showGridLines: true, snap: true);
     updateListeners(WidgetChange.update, removeGrids: true);
   }
@@ -917,8 +910,9 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
       onScaleStart: (details) {
         _tempSize = creatorWidget.size;
         _initPointerCount = details.pointerCount;
-        creatorWidget.onResizeStart();
         if (DateTime.now().difference(_lastGestureTime).inMilliseconds < 200) _initPointerCount = 0;
+        if (_initPointerCount == 2) creatorWidget.onResizeStart();
+        else if (_initPointerCount == 1) creatorWidget.onDragStart();
       },
       onScaleUpdate: (details) {
         if (_initPointerCount == 2) {
@@ -983,30 +977,8 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
             ),
           ),
     
-          if (creatorWidget._getResizeHandlersWRTSize().length == 1 && creatorWidget.isDraggable && !creatorWidget.isLocked && _isOnlySelected) Builder(
-            builder: (_) {
-              double dy = creatorWidget.position.dy;
-              double dx = creatorWidget.position.dx;
-              double positionY = dy + creatorWidget.size.height/2 + 15 + 15;
-              double positionX = dx;
-      
-              if ((positionY + 15) > creatorWidget.page.project.contentSize.height/2) {
-                positionY = dy - creatorWidget.size.height - 15;
-              }
-      
-              return AlignPositioned(
-                dy: positionY,
-                dx: positionX,
-                child: DragHandler(
-                  onPositionUpdate: (details) => creatorWidget._onGestureUpdate(details, context),
-                  onPositionUpdateEnd: (details) => creatorWidget._onDragEnd(context),
-                ),
-              );
-            }
-          ),
-    
           if (_isOnlySelected) Visibility(
-            visible: creatorWidget._getResizeHandlersWRTSize().length > 1 && !creatorWidget.isDragging,
+            visible: !creatorWidget.isDragging,
             child: Builder(
               builder: (_) {
                 double dy = creatorWidget.position.dy;

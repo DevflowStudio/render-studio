@@ -51,7 +51,7 @@ abstract class RenderIcons {
 
   static const IconData gradient = Icons.gradient;
 
-  static const IconData rotate = Iconsax.d_rotate;
+  static const IconData rotate = Iconsax.rotate_right;
 
   static const IconData replace = Icons.change_circle_outlined;
 

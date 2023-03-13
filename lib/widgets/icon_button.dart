@@ -5,9 +5,9 @@ import '../rehmat.dart';
 
 // Use a standard IconButton with specific style to implement the
 // 'Filled' toggle button.
-class FilledIconButtons extends StatefulWidget {
+class FilledIconButton extends StatefulWidget {
 
-  const FilledIconButtons({
+  const FilledIconButton({
     super.key,
     this.selected = false,
     required this.onPressed,
@@ -23,10 +23,10 @@ class FilledIconButtons extends StatefulWidget {
   final String? tooltip;
 
   @override
-  State<FilledIconButtons> createState() => _FilledIconButtonsState();
+  State<FilledIconButton> createState() => _FilledIconButtonState();
 }
 
-class _FilledIconButtonsState extends State<FilledIconButtons> {
+class _FilledIconButtonState extends State<FilledIconButton> {
 
   @override
   Widget build(BuildContext context) {
