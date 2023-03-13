@@ -2,8 +2,8 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:easy_rich_text/easy_rich_text.dart';
 import '../../rehmat.dart';
+import '../helpers/text_span_helper.dart';
 
 class CreatorText extends CreatorWidget {
 
@@ -22,22 +22,18 @@ class CreatorText extends CreatorWidget {
     TextStyle style = GoogleFonts.inter(
       fontSize: 40,
     );
-    Size size = calculateSizeForTextStyle(
-      text,
-      page: page,
-      style: style,
-      maxWidth: page.project.contentSize.width * 2/3,
-    );
     CreatorText widget = CreatorText(page: page);
     widget.text = text;
+    widget.fontSize = 40;
     widget.primaryStyle = CreativeTextStyle.fromTextStyle(style, widget: widget);
-    widget.size = size;
     widget.align = TextAlign.center;
+    widget.buildTextSpan(calculateSize: true, forceWidgetResize: true);
     page.widgets.add(widget, soft: true);
   }
   
   @override
   void onInitialize() {
+    // buildTextSpan();
     primaryStyle = CreativeTextStyle(widget: this);
     primaryStyle.color = page.palette.onBackground;
     containerProvider = CreativeContainerProvider.create(this);
@@ -62,20 +58,8 @@ class CreatorText extends CreatorWidget {
           fontFamily: fontFamily,
           onChange: (change, font) {
             if (font != null) fontFamily = font;
-            updateListeners(change);
+            updateListeners(change, forceSpanResize: true);
           },
-        ),
-        Option.toggle(
-          title: 'Auto Size',
-          value: autoSize,
-          onChange: (value) {
-            autoSize = value;
-            updateListeners(WidgetChange.update);
-          },
-          enabledIcon: RenderIcons.auto_size,
-          disabledIcon: RenderIcons.auto_size_off,
-          enabledTooltip: 'Disabled auto-size text',
-          disabledTooltip: 'Enable auto-size text',
         ),
         if (group == null) Option.button(
           title: 'Size',
@@ -103,40 +87,6 @@ class CreatorText extends CreatorWidget {
         ... defaultOptions,
       ],
     ),
-    // EditorTab(
-    //   tab: 'Font',
-    //   options: [
-    //     Option.button(
-    //       title: 'Search',
-    //       onTap: (context) async {
-    //         String? _font = await AppRouter.push<String>(context, page: const FontSelector());
-    //         if (_font != null) fontFamily = _font;
-    //         notifyListeners(WidgetChange.update);
-    //       },
-    //       icon: RenderIcons.search,
-    //       tooltip: 'Search Fonts'
-    //     ),
-    //     for (String font in [
-    //       'Roboto',
-    //       'Poppins',
-    //       'Abril Fatface',
-    //       'Open Sans',
-    //       'Montserrat',
-    //       'Noto Sans',
-    //       'Ubuntu',
-    //       'Merriweather',
-    //       'Playfair Display',
-    //       'DM Sans'
-    //     ]) Option.font(
-    //       font: font,
-    //       isSelected: fontFamily == font,
-    //       onFontSelect: (context, font) {
-    //         this.fontFamily = font;
-    //         updateListeners(WidgetChange.update);
-    //       },
-    //     ),
-    //   ],
-    // ),
     EditorTab(
       tab: 'Style',
       options: [
@@ -197,37 +147,42 @@ class CreatorText extends CreatorWidget {
       options: [
         Option.custom(
           widget: (context) => Center(
-            child: SegmentedButton<TextAlign>(
-              emptySelectionAllowed: false,
-              segments: [
-                ButtonSegment(
-                  value: TextAlign.left,
-                  icon: Icon(RenderIcons.text_align_left),
-                  label: Text('Left'),
-                ),
-                ButtonSegment(
-                  value: TextAlign.center,
-                  icon: Icon(RenderIcons.text_align_right),
-                  label: Text('Center'),
-                ),
-                ButtonSegment(
-                  value: TextAlign.right,
-                  icon: Icon(RenderIcons.text_align_center),
-                  label: Text('Right'),
-                ),
-                ButtonSegment(
-                  value: TextAlign.justify,
-                  icon: Icon(RenderIcons.text_align_justify),
-                  label: Text('Justify'),
-                ),
-              ],
-              showSelectedIcon: false,
-              multiSelectionEnabled: false,
-              onSelectionChanged: (align) {
-                this.align = align.first;
-                updateListeners(WidgetChange.update);
-              },
-              selected: {align}
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: Constants.of(context).bottomPadding
+              ),
+              child: SegmentedButton<TextAlign>(
+                emptySelectionAllowed: false,
+                segments: [
+                  ButtonSegment(
+                    value: TextAlign.left,
+                    icon: Icon(RenderIcons.text_align_left),
+                    label: Text('Left'),
+                  ),
+                  ButtonSegment(
+                    value: TextAlign.center,
+                    icon: Icon(RenderIcons.text_align_right),
+                    label: Text('Center'),
+                  ),
+                  ButtonSegment(
+                    value: TextAlign.right,
+                    icon: Icon(RenderIcons.text_align_center),
+                    label: Text('Right'),
+                  ),
+                  ButtonSegment(
+                    value: TextAlign.justify,
+                    icon: Icon(RenderIcons.text_align_justify),
+                    label: Text('Justify'),
+                  ),
+                ],
+                showSelectedIcon: false,
+                multiSelectionEnabled: false,
+                onSelectionChanged: (align) {
+                  this.align = align.first;
+                  updateListeners(WidgetChange.update);
+                },
+                selected: {align}
+              ),
             ),
           ),
         ),
@@ -382,12 +337,9 @@ class CreatorText extends CreatorWidget {
           value: letterSpacing,
           onChange: (value) {
             letterSpacing = value;
-            updateListeners(WidgetChange.misc);
+            alterHeightToFit();
           },
-          onChangeEnd: (value) {
-            letterSpacing = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
         ),
         Option.showSlider(
           icon: RenderIcons.word_spacing,
@@ -398,10 +350,10 @@ class CreatorText extends CreatorWidget {
           value: wordSpacing,
           onChange: (value) {
             wordSpacing = value;
-            updateListeners(WidgetChange.misc);
+            alterHeightToFit();
           },
-          onChangeEnd: (value) {
-            wordSpacing = value;
+          onChangeEnd: () {
+            alterHeightToFit();
             updateListeners(WidgetChange.update);
           },
         ),
@@ -414,10 +366,10 @@ class CreatorText extends CreatorWidget {
           value: lineHeight,
           onChange: (value) {
             lineHeight = value;
-            updateListeners(WidgetChange.misc);
+            alterHeightToFit();
           },
-          onChangeEnd: (value) {
-            lineHeight = value;
+          onChangeEnd: () {
+            alterHeightToFit();
             updateListeners(WidgetChange.update);
           },
         ),
@@ -431,10 +383,20 @@ class CreatorText extends CreatorWidget {
 
   late Size fitSize;
 
+  @override
+  List<ResizeHandler> get resizeHandlers => [
+    ResizeHandler.topLeft,
+    ResizeHandler.topRight,
+    ResizeHandler.centerLeft,
+    ResizeHandler.centerRight,
+    ResizeHandler.bottomLeft,
+    ResizeHandler.bottomRight,    
+  ];
+
   bool isResizable = true;
   bool isDraggable = true;
 
-  bool keepAspectRatio = false;
+  bool keepAspectRatio = true;
   
   /// BackgroundWidget Color
   Color textBackground = Colors.transparent;
@@ -451,6 +413,8 @@ class CreatorText extends CreatorWidget {
 
   Size size = const Size(200, 100);
   Size? minSize = const Size(10, 5);
+
+  late Size _spanSize;
 
   double fontSize = 100;
 
@@ -475,34 +439,33 @@ class CreatorText extends CreatorWidget {
 
   BoxShadow? boxShadow;
 
+  late TextSpan textSpan;
+
   late CreativeContainerProvider containerProvider;
 
   Widget widget(BuildContext context) => containerProvider.build(
-    child: Center(
+    child: FittedBox(
+      fit: BoxFit.fitWidth,
       child: textWidget
     ),
   );
 
-  Widget get textWidget => autoSize ? AutoSizeText(
-    text,
-    textAlign: align,
-    style: style,
-    secondaryStyle: secondaryTextStyle,
-    maxFontSize: 200,
-    presetFontSizes: [
-      ... 5.0.upTo(200, stepSize: 0.01).reversed
-    ],
-    onFontSizeChanged: (fontSize, fitSize) {
-      this.fontSize = fontSize;
-      this.fitSize = fitSize;
-    },
-    wrapWords: false,
-    // softWrap: false,
-  ) : CreativeTextWidget(
-    text,
-    textAlign: align,
-    style: style,
-    secondaryStyle: secondaryTextStyle,
+  Widget get textWidget => Container(
+    decoration: BoxDecoration(
+      border: preferences.debugMode ? Border.all(
+        color: Colors.red,
+        width: 0
+      ) : null,
+    ),
+    child: SizedBox.fromSize(
+      size: _spanSize,
+      child: CreativeTextWidget(
+        textSpan,
+        textAlign: align,
+        style: style,
+        secondaryStyle: secondaryTextStyle,
+      ),
+    ),
   );
 
   late CreativeTextStyle primaryStyle;
@@ -533,11 +496,85 @@ class CreatorText extends CreatorWidget {
     await showEditTextModal(context);
   }
 
+  void buildTextSpan({
+    /// Calculate the size of the text
+    bool calculateSize = false,
+    /// Force the widget to resize to the size of the text
+    /// Only works if calculateSize is `true`
+    bool forceWidgetResize = false
+  }) {
+    textSpan = textSpanBuilder(
+      text: text,
+      patternList: [
+        CustomRichTextPattern(
+          targetString: r'\*(.+?)\*',
+          style: secondaryTextStyle ?? style,
+          matchBuilder: (match) => TextSpan(
+            text: match![0]!.replaceAll('*', ''),
+            style: secondaryTextStyle ?? style,
+          ),
+        ),
+      ],
+      defaultStyle: style
+    );
+    if (calculateSize) {
+      _spanSize = getTextPainter().size;
+      if (forceWidgetResize) size = _spanSize;
+    }
+  }
+
+  TextPainter getTextPainter({
+    double? maxWidth,
+  }) {
+    return TextPainter(
+      text: textSpan,
+      textAlign: align,
+      textDirection: TextDirection.ltr
+    )..layout(minWidth: 0, maxWidth: maxWidth ?? size.width);
+  }
+
+  double _widthScale = 1.0;
+
+  /// Calculates new height of the widget when the width is changed using ResizeHandler (center)
+  void alterHeightOnResize({
+    required ResizeHandler handler,
+    required Size size
+  }) {
+    double _newSpanWidth = size.width / _widthScale;
+    _spanSize = getTextPainter(maxWidth: _newSpanWidth).size;
+    Size _newSize = Size(size.width, _spanSize.height * _widthScale);
+    position = CreatorWidget.autoPosition(
+      position: position,
+      newSize: _newSize,
+      prevSize: this.size,
+      alignment: handler == ResizeHandler.centerRight ? Alignment.topLeft : Alignment.topRight
+    );
+    this.size = _newSize;
+  }
+
+  /// Matches the height of the widget to fit the text
+  void alterHeightToFit() {
+    buildTextSpan();
+    Size _newSpanSize = getTextPainter().size;
+    double widthScale = size.width / _newSpanSize.width;
+    Size _newSize = Size(size.width, _newSpanSize.height * widthScale);
+    position = CreatorWidget.autoPosition(
+      position: position,
+      newSize: _newSize,
+      prevSize: size,
+      alignment: Alignment.topLeft
+    );
+    size = _newSize;
+    _spanSize = _newSpanSize;
+    updateListeners(WidgetChange.misc);
+  }
+
   Future<void> showEditTextModal(BuildContext context) async {
     TextEditingController textCtrl = TextEditingController(text: this.text);
     textCtrl.selection = TextSelection.collapsed(offset: textCtrl.text.length);
     TextAlign align = this.align;
     var focusNode = FocusNode();
+    double scale = size.width / _spanSize.width;
     await showModalBottomSheet(
       context: context,
       enableDrag: false,
@@ -716,7 +753,23 @@ class CreatorText extends CreatorWidget {
     this.align = align;
     String text = textCtrl.text;
     if (text.trim() != '') this.text = text;
-    if (autoSize) _removeExtraSpaceFromSize(limitSize: true);
+    buildTextSpan();
+    Size newSpanSize = getTextPainter(maxWidth: page.project.contentSize.width - page.widgets.background.padding.horizontal).size;
+    Size maxSize = Size(page.project.contentSize.height - page.widgets.background.padding.vertical, page.project.contentSize.width - page.widgets.background.padding.horizontal);
+    Size newWidgetSize = newSpanSize * scale;
+    if (newWidgetSize.width > newWidgetSize.height) {
+      if (newWidgetSize.width > maxSize.width) {
+        scale = maxSize.width / newWidgetSize.width;
+        newWidgetSize = newSpanSize * scale;
+      }
+    } else {
+      if (newWidgetSize.height > maxSize.height) {
+        scale = maxSize.height / newWidgetSize.height;
+        newWidgetSize = newSpanSize * scale;
+      }
+    }
+    _spanSize = newSpanSize;
+    size = newWidgetSize;
     if (logHistory) updateListeners(WidgetChange.update);
     else updateListeners(WidgetChange.misc);
     if (_containsSecondaryStyle(text) && secondaryStyle == null) Alerts.snackbar(
@@ -726,77 +779,18 @@ class CreatorText extends CreatorWidget {
   }
 
   @override
-  void onResizeFinished({
-    DragEndDetails? details,
-    ResizeHandler? handler,
-    bool updateNotify = true
-  }) {
-    _removeExtraSpaceFromSize(handler: handler);
-    // if (autoSize && fitSize.width < size.width) size = Size(fitSize.width, size.height);
-    // if (autoSize && fitSize.height < size.height) size = Size(size.width, fitSize.height);
-    super.onResizeFinished(details: details, handler: handler, updateNotify: updateNotify);
+  void onResizeStart({DragStartDetails? details, ResizeHandler? handler}) {
+    _widthScale = size.width / _spanSize.width;
+    super.onResizeStart(details: details, handler: handler);
   }
 
-  void _removeExtraSpaceFromSize({
-    ResizeHandler? handler,
-    bool limitSize = false
-  }) {
-    if (textWidget is! AutoSizeText) return;
-    String _text = text.replaceAll('*', '');
-    final span = TextSpan(
-      style: (textWidget as AutoSizeText).style,
-      text: _text,
-    );
-    final words = span.toPlainText().split(RegExp('\\s+'));
-    final TextPainter textPainter = TextPainter(
-      text: TextSpan(
-        text: _text,
-        style: (textWidget as AutoSizeText).style,
-      ),
-      textAlign: align,
-      maxLines: words.length,
-      textDirection: TextDirection.ltr
-    ) ..layout(minWidth: 0, maxWidth: size.width);
-    List lines = textPainter.computeLineMetrics();
-    if (lines.length > 1) {
-      double _lineHeight = 1.0;
-      for (int i = 0; i < lines.length; i++) {
-        if (i == 0) continue;
-        _lineHeight += lines[i].height / lines[i - 1].height;
-      }
-      _lineHeight /= lines.length;
-      lineHeight = _lineHeight;
-    }
-    Size wantedSize = textPainter.size + Offset(containerProvider.padding.horizontal, containerProvider.padding.vertical);
-    Size adjustedSize = size;
-    if (((wantedSize.width - size.width)).abs() > 5) adjustedSize = Size(wantedSize.width, adjustedSize.height);
-    if (((wantedSize.height - size.height)).abs() > 5) adjustedSize = Size(adjustedSize.width, wantedSize.height);
-    if (limitSize && adjustedSize.height >= page.project.contentSize.height * 0.75) adjustedSize = Size(adjustedSize.width, page.project.contentSize.height * 0.75);
-    if (limitSize && adjustedSize.width >= page.project.contentSize.width * 0.75) adjustedSize = Size(page.project.contentSize.width * 0.75, adjustedSize.height);
-    _autoPositionAfterResize(oldSize: size, newSize: adjustedSize);
-    size = adjustedSize;
-  }
-  
-  /// Auto position after `_removeExtraSpaceFromSize()` has finished
-  /// 
-  /// Executing this provides a better experience when resizing the widget
-  void _autoPositionAfterResize({
-    required Size newSize,
-    required Size oldSize
-  }) {
-    double changeInX = 0;
-    double changeInY = 0;
-
-    bool isLeftCornerOutOfBounds = position.dx - newSize.width/2 < (-page.project.contentSize.width/2);
-    bool isRightCornerOutOfBounds = position.dx + newSize.width/2 > (page.project.contentSize.width/2);
-
-    int nWords = text.split(' ').length;
-
-    if (align == TextAlign.center || align == TextAlign.justify || nWords < 2);
-    else if (isLeftCornerOutOfBounds || align == TextAlign.left) changeInX = (oldSize.width - newSize.width)/2;
-    else if (isRightCornerOutOfBounds || align == TextAlign.right) changeInX = -(oldSize.width - newSize.width)/2;
-
-    position = Offset(position.dx - changeInX, position.dy - changeInY);
+  @override
+  void onResize(Size size, {ResizeHandler? type}) {
+    if (type?.type == ResizeHandlerType.corner) position = CreatorWidget.autoPosition(position: position, newSize: size, prevSize: this.size, alignment: type?.autoPositionAlignment ?? Alignment.center);
+    
+    if (type?.type == ResizeHandlerType.center) alterHeightOnResize(handler: type!, size: size);
+    else this.size = size;
+    updateListeners(WidgetChange.drag);
   }
 
   bool _containsSecondaryStyle(String text) {
@@ -811,7 +805,18 @@ class CreatorText extends CreatorWidget {
     } else {
       primaryStyle.color = page.palette.onBackground;
     }
+    buildTextSpan();
     updateListeners(WidgetChange.misc);
+  }
+
+  @override
+  void updateListeners(WidgetChange change, {
+    bool removeGrids = false,
+    bool forceSpanResize = false
+  }) {
+    buildTextSpan(calculateSize: forceSpanResize);
+    if (forceSpanResize) alterHeightToFit();
+    super.updateListeners(change, removeGrids: removeGrids);
   }
 
   @override
@@ -825,6 +830,10 @@ class CreatorText extends CreatorWidget {
       'auto-size': autoSize,
       'font-size': fontSize,
       'line-height': lineHeight
+    },
+    '_span-size': {
+      'width': _spanSize.width,
+      'height': _spanSize.height
     },
     'color': {
       'background': textBackground.toHex()
@@ -894,6 +903,13 @@ class CreatorText extends CreatorWidget {
 
       if (json['container-provider'] != null) {
         containerProvider = CreativeContainerProvider.fromJSON(json['container-provider'], widget: this);
+      }
+
+      try {
+        _spanSize = Size(json['_span-size']['width'], json['_span-size']['height']);
+        buildTextSpan(calculateSize: false);
+      } catch (e) {
+        buildTextSpan(calculateSize: true);
       }
 
     } catch (e, stacktrace) {
@@ -1104,7 +1120,7 @@ class CreativeTextStyle {
 
 class CreativeTextWidget extends StatelessWidget {
 
-  const CreativeTextWidget(this.text, {
+  const CreativeTextWidget(this.span, {
     super.key,
     this.style,
     this.secondaryStyle,
@@ -1119,7 +1135,7 @@ class CreativeTextWidget extends StatelessWidget {
     this.textHeightBehavior
   });
 
-  final String text;
+  final TextSpan span;
   final TextStyle? style;
   final TextStyle? secondaryStyle;
   final TextAlign? textAlign;
@@ -1134,11 +1150,10 @@ class CreativeTextWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return EasyRichText(
-      text,
-      defaultStyle: style,
-      strutStyle: strutStyle,
+    return Text.rich(
+      span,
       textAlign: textAlign ?? TextAlign.center,
+      strutStyle: strutStyle,
       textDirection: textDirection,
       locale: locale,
       softWrap: softWrap ?? true,
@@ -1146,16 +1161,6 @@ class CreativeTextWidget extends StatelessWidget {
       maxLines: maxLines,
       semanticsLabel: semanticsLabel,
       textHeightBehavior: textHeightBehavior,
-      patternList: [
-        EasyRichTextPattern(
-          targetString: r'\*(.+?)\*',
-          style: secondaryStyle ?? style,
-          matchBuilder: (context, match) => TextSpan(
-            text: match![0]!.replaceAll('*', ''),
-            style: secondaryStyle ?? style,
-          ),
-        ),
-      ],
     );
   }
 
@@ -1172,13 +1177,10 @@ Size calculateSizeForTextStyle(String text, {
   );
   final words = span.toPlainText().split(RegExp('\\s+'));
   final TextPainter textPainter = TextPainter(
-    text: TextSpan(
-      text: text,
-      style: style,
-    ),
+    text: span,
     textAlign: TextAlign.left,
     maxLines: words.length,
-    textDirection: TextDirection.ltr
+    textDirection: TextDirection.ltr,
   ) ..layout(minWidth: 0, maxWidth: maxWidth ?? page.project.contentSize.width - 20);
   return textPainter.size;
 }

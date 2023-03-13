@@ -1094,133 +1094,37 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Wrap(
-          //   crossAxisAlignment: WrapCrossAlignment.start,
-          //   alignment: WrapAlignment.start,
-          //   children: [
-          //     // _ShadowEditorGroupValueEditor(
-          //     //   label: 'X',
-          //     //   textEditingController: xController,
-          //     //   signed: true,
-          //     //   onChange: (value) {
-          //     //     x = value;
-          //     //     onChange();
-          //     //   },
-          //     // ),
-          //     _ShadowEditorGroupValueEditor(
-          //       label: 'Blur',
-          //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //       textEditingController: blurController,
-          //       onChange: (value) {
-          //         blur = value;
-          //         onChange();
-          //       },
-          //     ),
-          //     // _ShadowEditorGroupValueEditor(
-          //     //   label: 'Y',
-          //     //   signed: true,
-          //     //   textEditingController: yController,
-          //     //   onChange: (value) {
-          //     //     y = value;
-          //     //     onChange();
-          //     //   },
-          //     // ),
-          //     // if (shadow.runtimeType != BoxShadow) _ShadowEditorGroupValueEditor(
-          //     //   label: 'Spread',
-          //     //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //     //   textEditingController: spreadController,
-          //     //   onChange: (value) {
-          //     //     spread = value;
-          //     //     onChange();
-          //     //   },
-          //     // ),
-          //   ],
-          // ),
-          Row(
-            children: [
-              Row(
-                children: [
-                  Text(
-                    'Color',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  ColorSelector(
-                    title: 'Color',
-                    onColorSelect: (color) {
-                      this.color = color;
-                      onChange();
-                    },
-                    reverseOrder: true,
-                    size: const Size(30, 30),
-                    color: color,
-                    tooltip: 'Shadow Color',
-                  ),
-                ],
-              ),
-              Spacer(),
-              Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    'Blur',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  SizedBox.fromSize(
-                    size: const Size(100, 50),
-                    child: TextFormField(
-                      controller: blurController,
-                      decoration: InputDecoration(
-                        hintText: '0 - 20',
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d{0,2}\.?\d{0,1}'))
-                      ],
-                      keyboardType: TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      onChanged: (value) {
-                        if (value.isEmpty) return;
-                        try {
-                          double _value = double.parse(value);
-                          if (_value > 20) {
-                            blurController.text = '20';
-                            blur = 20;
-                          } else {
-                            blur = _value;
-                          }
-                        } catch (e, stacktrace) {
-                          analytics.logError(e, cause: 'ShadowEditorGroup', stacktrace: stacktrace);
-                        }
-                      },
-                    )
-                  )
-                ],
-              ),
-            ],
-          ),
           CustomSlider(
             value: distance,
             min: 0,
             max: 20,
             label: 'Distance',
+            actions: [
+              Text(
+                'Color',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+                ),
+              ),
+              SizedBox(width: 12),
+              ColorSelector(
+                title: 'Color',
+                onColorSelect: (color) {
+                  this.opacity = color.opacity;
+                  this.color = color.withOpacity(1);
+                  onChange();
+                },
+                reverseOrder: true,
+                size: const Size(30, 30),
+                color: color,
+                tooltip: 'Shadow Color',
+              ),
+            ],
             onChange: (value) {
               distance = value;
               onChange();
             },
           ),
-          SizedBox(height: 12),
           CustomSlider(
             value: direction,
             min: 0.0174533,
@@ -1228,6 +1132,17 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
             label: 'Direction',
             onChange: (value) {
               direction = value;
+              onChange();
+            },
+          ),
+          SizedBox(height: 12),
+          CustomSlider(
+            value: blur,
+            min: 0,
+            max: 20,
+            label: 'Blur',
+            onChange: (value) {
+              blur = value;
               onChange();
             },
           ),

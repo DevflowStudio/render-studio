@@ -276,22 +276,24 @@ class _ColorSelectorState extends State<ColorSelector> {
           setState(() { });
         },
         child: Container(
-          height: widget.size?.height ?? 60,
-          width: widget.size?.width ?? 60,
           decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(widget.size?.width ?? 60),
+            borderRadius: BorderRadius.circular(100),
             border: Border.all(
-              color: Palette.of(context).outline,
-              width: 1
+              color: color,
+              width: 2
+            )
+          ),
+          child: SizedBox.fromSize(
+            size: widget.size ?? Size(60, 60),
+            child: Padding(
+              padding: const EdgeInsets.all(2.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(100),
+                ),
+              ),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: Offset(0, 0)
-              )
-            ]
           ),
         ),
       ),

@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -222,7 +220,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     // _resizeHandlers = [handler];
   }
 
-  void onResize(Size size) {
+  void onResize(Size size, {ResizeHandler? type}) {
+    position = autoPosition(position: position, newSize: size, prevSize: this.size, alignment: type?.autoPositionAlignment ?? Alignment.center);
     this.size = size;
     updateListeners(WidgetChange.resize);
   }
@@ -267,8 +266,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   bool allowResize(Size _size) {
     if (_size.width < (minSize?.width ?? 10)) return false;
     if (_size.height < (minSize?.height ?? 10)) return false;
-    if (_size.width > ((page.project.deviceSize.width * 1.4) - 40)) return false;
-    if (_size.height > ((page.project.deviceSize.height * 1.4) - 40)) return false;
+    if (_size.width > page.project.deviceSize.width * 2) return false;
+    if (_size.height > page.project.deviceSize.height * 2) return false;
     return true;
   }
 
@@ -796,6 +795,44 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     updateListeners(WidgetChange.misc);
   }
 
+  /// Generates new offset for the widget to be positioned with alignment after resize
+  static Offset autoPosition({
+    required Offset position,
+    required Size newSize,
+    required Size prevSize,
+    Alignment alignment = Alignment.center
+  }) {
+    double changeInHeight = newSize.height - prevSize.height;
+    double changeInWidth = newSize.width - prevSize.width;
+
+    double dx = position.dx;
+    double dy = position.dy;
+
+    if (alignment == Alignment.topLeft) {
+      dx = position.dx + changeInWidth / 2;
+      dy = position.dy + changeInHeight / 2;
+    } else if (alignment == Alignment.topCenter) {
+      dy = position.dy + changeInHeight / 2;
+    } else if (alignment == Alignment.topRight) {
+      dx = position.dx - changeInWidth / 2;
+      dy = position.dy + changeInHeight / 2;
+    } else if (alignment == Alignment.centerLeft) {
+      dx = position.dx + changeInWidth / 2;
+    } else if (alignment == Alignment.centerRight) {
+      dx = position.dx - changeInWidth / 2;
+    } else if (alignment == Alignment.bottomLeft) {
+      dx = position.dx + changeInWidth / 2;
+      dy = position.dy - changeInHeight / 2;
+    } else if (alignment == Alignment.bottomCenter) {
+      dy = position.dy - changeInHeight / 2;
+    } else if (alignment == Alignment.bottomRight) {
+      dx = position.dx - changeInWidth / 2;
+      dy = position.dy - changeInHeight / 2;
+    }
+
+    return Offset(dx, dy);
+  }
+
 }
 
 
@@ -863,7 +900,9 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
   }
 
   late Size _tempSize;
-  late double _tempAngle;
+
+  int _initPointerCount = 0;
+  DateTime _lastGestureTime = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
@@ -877,28 +916,22 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
       // onPanEnd: _allowDrag ? (details) => creatorWidget._onDragEnd(context) : null,
       onScaleStart: (details) {
         _tempSize = creatorWidget.size;
-        _tempAngle = creatorWidget.angle;
+        _initPointerCount = details.pointerCount;
         creatorWidget.onResizeStart();
+        if (DateTime.now().difference(_lastGestureTime).inMilliseconds < 200) _initPointerCount = 0;
       },
       onScaleUpdate: (details) {
-        // Update size
-        Size _size = Size(_tempSize.width * details.scale, _tempSize.height * details.scale);
-        if (creatorWidget.allowResize(_size)) creatorWidget.onResize(_size);
-        
-        // Update angle
-        double _angle = _tempAngle + (details.rotation * 180 / pi);
-        num closest = [0, 45, 90, 135, 180, 225, 270, 360].findClosestNumber(_angle);
-        if ((closest - _angle).abs() < 2 * (preferences.snapSensitivity)) _angle = closest.toDouble();
-        creatorWidget.angle = _angle;
-        
-        // Update position
-        if (_allowDrag && details.pointerCount == 1) creatorWidget.updatePositionWithOffset(details.focalPointDelta);
-        
+        if (_initPointerCount == 2) {
+          Size _size = Size(_tempSize.width * details.scale, _tempSize.height * details.scale);
+          if (creatorWidget.allowResize(_size)) creatorWidget.onResize(_size);
+        }
+        if (_allowDrag && _initPointerCount == 1) creatorWidget.updatePositionWithOffset(details.focalPointDelta);
         creatorWidget.updateListeners(WidgetChange.misc);
       },
       onScaleEnd: (details) {
-        creatorWidget.onResizeFinished();
-        creatorWidget.onDragFinish(context);
+        if (_initPointerCount == 2) creatorWidget.onResizeFinished();
+        else if (_initPointerCount == 1) creatorWidget.onDragFinish(context);
+        _lastGestureTime = DateTime.now();
       },
       dragStartBehavior: DragStartBehavior.down,
       child: Stack(
@@ -906,11 +939,13 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
 
           _SelectedWidgetHighlighter(widget: creatorWidget),
 
-          if (creatorWidget is WidgetGroup) ...[
-            for (CreatorWidget child in (creatorWidget as WidgetGroup).widgets) if (child.isSelected()) _SelectedWidgetHighlighter(
-              widget: child,
-              position: child.position + creatorWidget.position,
-              highlight: true,
+          if (creatorWidget is WidgetGroup) ... [
+            for (CreatorWidget child in (creatorWidget as WidgetGroup).widgets) if (child.isSelected()) creatorWidget.rotatedWidget(
+              child: _SelectedWidgetHighlighter(
+                widget: child,
+                position: child.position + creatorWidget.position,
+                highlight: true,
+              ),
             )
           ],
 
@@ -937,7 +972,6 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
                         isResizing: creatorWidget.isResizing,
                         onResizeStart: creatorWidget.onResizeStart,
                         isVisible: creatorWidget._getResizeHandlersWRTSize().contains(handler) || creatorWidget._currentResizingHandler == handler,
-                        updatePosition: creatorWidget.angle == 0,
                         isMinimized: creatorWidget.isDragging,
                         // color: creatorWidget.page.palette.isLightBackground ? creatorWidget.page.palette.onBackground : creatorWidget.page.palette.onBackground.harmonizeWith(Colors.white),
                         color: Colors.white,

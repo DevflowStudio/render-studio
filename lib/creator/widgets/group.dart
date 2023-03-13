@@ -242,7 +242,7 @@ class WidgetGroup extends CreatorWidget {
   ];
 
   @override
-  void onResize(Size size) {
+  void onResize(Size size, {ResizeHandler? type}) {
     double scale = size.width / this.size.width;
     bool resizeAllowed = true;
     for (CreatorWidget widget in widgets) {

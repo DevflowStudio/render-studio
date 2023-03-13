@@ -195,10 +195,7 @@ class CreativeContainerProvider {
           blur = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          blur = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       ... options
@@ -504,10 +501,7 @@ class CreatorBoxWidget extends CreatorWidget {
             borderRadius = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            borderRadius = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
         )
       ],
     ),
@@ -524,10 +518,7 @@ class CreatorBoxWidget extends CreatorWidget {
             blur = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            blur = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
           showValueEditor: true
         )
       ]

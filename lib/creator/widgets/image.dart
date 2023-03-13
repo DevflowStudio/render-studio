@@ -103,10 +103,7 @@ class CreativeImageProvider {
           brightness = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          brightness = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       Option.showSlider(
@@ -119,10 +116,7 @@ class CreativeImageProvider {
           contrast = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          contrast = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       Option.showSlider(
@@ -135,10 +129,7 @@ class CreativeImageProvider {
           exposure = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          exposure = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       Option.showSlider(
@@ -151,10 +142,7 @@ class CreativeImageProvider {
           saturation = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          saturation = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       // Option.showSlider(
@@ -182,10 +170,7 @@ class CreativeImageProvider {
           hue = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          hue = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       Option.button(
@@ -470,10 +455,7 @@ class ImageWidget extends CreatorWidget {
             borderRadius = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            borderRadius = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
         ),
         ... defaultOptions,
       ],

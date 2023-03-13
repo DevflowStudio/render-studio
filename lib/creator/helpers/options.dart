@@ -160,7 +160,7 @@ class Option {
     required double max,
     required Function(double value) onChange,
     Function(double value)? onChangeStart,
-    Function(double value)? onChangeEnd,
+    Function()? onChangeEnd,
     String? tooltip,
     num? snapSensitivity,
     List<num>? snapPoints,
@@ -168,8 +168,8 @@ class Option {
   }) => Option.button(
     title: title,
     tooltip: tooltip,
-    onTap: (context) => {
-      EditorTab.modal(
+    onTap: (context) async {
+      await EditorTab.modal(
         context,
         tab: (context, setState) => EditorTab(
           tab: title,
@@ -180,7 +180,6 @@ class Option {
               min: min,
               max: max,
               onChange: onChange,
-              onChangeEnd: onChangeEnd,
               onChangeStart: onChangeStart,
               snapPoints: snapPoints,
               snapSensitivity: snapSensitivity,
@@ -188,7 +187,8 @@ class Option {
             )
           ]
         )
-      )
+      );
+      onChangeEnd?.call();
     },
     icon: icon
   );
@@ -554,7 +554,7 @@ class _CustomSliderState extends State<CustomSlider> {
           Text(
             widget.label ?? 'Label',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+              color: Theme.of(context).colorScheme.onSurfaceVariant
             ),
           ),
           SizedBox(height: 6),

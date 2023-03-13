@@ -304,10 +304,7 @@ class CreativePieChart extends CreatorWidget {
             strokeWidth = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            strokeWidth = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
         ),
         Option.showSlider(
           title: 'Angle',
@@ -328,10 +325,7 @@ class CreativePieChart extends CreatorWidget {
             initialAngle = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            initialAngle = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
           showValueEditor: true
         ),
         Option.showSlider(
@@ -348,10 +342,7 @@ class CreativePieChart extends CreatorWidget {
             legendSpacing = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            legendSpacing = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
         ),
         Option.button(
           title: 'Decimal Places',

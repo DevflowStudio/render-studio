@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import '../rehmat.dart';
-
 /// Controller to synchronize the fontSize of multiple AutoSizeTexts.
 class AutoSizeGroup {
   final _listeners = <_AutoSizeTextState, double>{};
@@ -341,14 +339,32 @@ class _AutoSizeTextState extends State<AutoSizeText> {
       if (widget.overflowReplacement != null && !textFits) {
         return widget.overflowReplacement!;
       } else {
+        // return AnimatedDefaultTextStyle(
+        //   style: style.copyWith(fontSize: __fontSize),
+        //   duration: const Duration(milliseconds: 0),
+        //   curve: Curves.easeOut,
+        //   child: CreativeTextWidget(
+        //     widget.data!,
+        //     key: widget.textKey,
+        //     secondaryStyle: widget.secondaryStyle,
+        //     strutStyle: widget.strutStyle,
+        //     textAlign: widget.textAlign,
+        //     textDirection: widget.textDirection,
+        //     locale: widget.locale,
+        //     softWrap: widget.softWrap,
+        //     overflow: TextOverflow.visible,
+        //     maxLines: maxLines,
+        //     semanticsLabel: widget.semanticsLabel,
+        //     textHeightBehavior: const TextHeightBehavior(applyHeightToFirstAscent: true, leadingDistribution: TextLeadingDistribution.even),
+        //   ),
+        // );
         return AnimatedDefaultTextStyle(
           style: style.copyWith(fontSize: __fontSize),
           duration: const Duration(milliseconds: 0),
           curve: Curves.easeOut,
-          child: CreativeTextWidget(
+          child: Text(
             widget.data!,
             key: widget.textKey,
-            secondaryStyle: widget.secondaryStyle,
             strutStyle: widget.strutStyle,
             textAlign: widget.textAlign,
             textDirection: widget.textDirection,
