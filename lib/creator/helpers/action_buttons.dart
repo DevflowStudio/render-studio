@@ -29,20 +29,22 @@ class _WidgetActionButtonState extends State<WidgetActionButton> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (widget.widget.size.width < (35 * 3)) DragHandler(
-            onPositionUpdate: (details) {
-              widget.widget.updatePosition(details);
-            },
-            onPositionUpdateEnd: (details) => widget.widget.onDragFinish(context),
+          if (widget.widget.size.width < (35 * 3)) Flexible(
+            child: DragHandler(
+              onPositionUpdate: (details) {
+                widget.widget.updatePosition(details);
+              },
+              onPositionUpdateEnd: (details) => widget.widget.onDragFinish(context),
+            ),
           )
           else Container(
             height: 35,
             decoration: BoxDecoration(
-              color: widget.backgroundColor ?? Palette.of(context).background,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(40),
               boxShadow: [
                 BoxShadow(
-                  color: (widget.iconColor ?? Palette.of(context).onBackground).withOpacity(0.1),
+                  color: Colors.black.withOpacity(0.2),
                   blurRadius: 5,
                   spreadRadius: 1,
                 )
@@ -112,7 +114,7 @@ class _WidgetActionButtonState extends State<WidgetActionButton> {
       child: Center(
         child: Icon(
           icon,
-          color: widget.iconColor ?? Palette.of(context).onBackground,
+          color: Colors.black,
           size: 20,
         ),
       ),

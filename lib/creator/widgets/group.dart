@@ -205,8 +205,11 @@ class WidgetGroup extends CreatorWidget {
       widget.position = Offset(widget.position.dx + position.dx, widget.position.dy + position.dy);
       page.widgets.add(widget, soft: true);
     }
-    page.widgets.delete(uid, soft: soft);
-    if (!soft) page.widgets.select(_selected);
+    page.widgets.delete(uid, soft: true);
+    if (!soft) {
+      page.widgets.select(_selected);
+      page.history.log('Ungroup Widgets');
+    }
   }
 
   void deleteWidget(String uid) {
@@ -257,7 +260,7 @@ class WidgetGroup extends CreatorWidget {
       widget.size = Size(widget.size.width * scale, widget.size.height * scale);
       widget.position = Offset(widget.position.dx * scale, widget.position.dy * scale);
     }
-    super.onResize(size);
+    super.onResize(size, type: type);
   }
 
   @override

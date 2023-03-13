@@ -31,17 +31,13 @@ class History {
   String get undoTooltip => undoEnabled ? 'Undo${dates[date].title != null ? ': ' + dates[date].title!.toTitleCase() : ''}' : 'Nothing to Undo';
   String get redoTooltip => redoEnabled ? 'Redo${dates[date + 1].title != null ? ': ' + dates[date + 1].title!.toTitleCase() : ''}' : 'Nothing to Redo';
 
-  void _undo() {
-    page.widgets.select();
-    date -= 1;
-    restore(date);
-    page.widgets.rebuildListeners();
-    page.updateListeners(PageChange.update);
-  }
+  void _undo() => _restore(-1);
 
-  void _redo() {
+  void _redo() => _restore(1);
+
+  void _restore(int change) {
     page.widgets.select();
-    date += 1;
+    date += change;
     restore(date);
     page.widgets.rebuildListeners();
     page.updateListeners(PageChange.update);

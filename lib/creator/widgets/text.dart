@@ -12,7 +12,10 @@ class CreatorText extends CreatorWidget {
   static Future<void> create(BuildContext context, {
     required CreatorPage page
   }) async {
-    page.widgets.add(CreatorText(page: page));
+    CreatorText widget = CreatorText(page: page);
+    widget.fontSize = 40;
+    widget.buildTextSpan(calculateSize: true, forceWidgetResize: true);
+    page.widgets.add(widget);
   }
 
   static Future<void> createDefaultWidget({
@@ -770,7 +773,8 @@ class CreatorText extends CreatorWidget {
     }
     _spanSize = newSpanSize;
     size = newWidgetSize;
-    if (logHistory) updateListeners(WidgetChange.update);
+    if (group != null) group!.findGroup(this).resizeGroup();
+    if (logHistory) updateListeners(WidgetChange.update, historyMessage: 'Edit Text');
     else updateListeners(WidgetChange.misc);
     if (_containsSecondaryStyle(text) && secondaryStyle == null) Alerts.snackbar(
       context,
@@ -787,14 +791,12 @@ class CreatorText extends CreatorWidget {
   @override
   void onResize(Size size, {ResizeHandler? type}) {
     if (type?.type == ResizeHandlerType.corner) position = CreatorWidget.autoPosition(position: position, newSize: size, prevSize: this.size, alignment: type?.autoPositionAlignment ?? Alignment.center);
-    
     if (type?.type == ResizeHandlerType.center) alterHeightOnResize(handler: type!, size: size);
     else this.size = size;
     updateListeners(WidgetChange.drag);
   }
 
   bool _containsSecondaryStyle(String text) {
-    // return true if the string contains words enclosed in asterisks
     return text.contains(RegExp(r'\*.*\*'));
   }
 
@@ -812,11 +814,12 @@ class CreatorText extends CreatorWidget {
   @override
   void updateListeners(WidgetChange change, {
     bool removeGrids = false,
-    bool forceSpanResize = false
+    bool forceSpanResize = false,
+    String? historyMessage
   }) {
     buildTextSpan(calculateSize: forceSpanResize);
     if (forceSpanResize) alterHeightToFit();
-    super.updateListeners(change, removeGrids: removeGrids);
+    super.updateListeners(change, removeGrids: removeGrids, historyMessage: historyMessage);
   }
 
   @override

@@ -427,7 +427,7 @@ class ImageWidget extends CreatorWidget {
             if (file == null) return;
             asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
             await resizeByImage();
-            updateListeners(WidgetChange.update);
+            updateListeners(WidgetChange.update, historyMessage: 'Replace Image');
           },
           icon: RenderIcons.replace,
           tooltip: 'Replace Image'
@@ -441,8 +441,7 @@ class ImageWidget extends CreatorWidget {
             if (cropped == null) return;
             asset!.logVersion(version: page.history.nextVersion ?? '', file: cropped);
             await resizeByImage();
-            updateListeners(WidgetChange.update);
-            // asset.updateFile(cropped);
+            updateListeners(WidgetChange.update, historyMessage: 'Crop');
           },
         ),
         Option.showSlider(
@@ -496,17 +495,6 @@ class ImageWidget extends CreatorWidget {
       else _size = Size(size.width, size.width * dimensions.height/dimensions.width);
       size = _size;
     }
-  }
-
-  @override
-  void updateListeners(
-    /// Type of change when notifying listeners
-    /// Affects the history of the widget
-    WidgetChange change, {
-    /// Pass `true` to remove all grids
-    bool removeGrids = false
-  }) {
-    super.updateListeners(change, removeGrids: removeGrids);
   }
 
   @override

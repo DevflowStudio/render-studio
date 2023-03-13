@@ -93,14 +93,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         );
       },
     ),
-    // Option.button(
-    //   icon: RenderIcons.arrow_link,
-    //   title: 'Arrow Link',
-    //   tooltip: 'Make an arrow link to another widget',
-    //   onTap: (context) async {
-    //     // TODO: Arrow Link
-    //   },
-    // ),
     Option.toggle(
       disabledIcon: RenderIcons.unlock,
       enabledIcon: RenderIcons.lock,
@@ -129,7 +121,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Must be in lowercase letters
   final String id = 'widget';
 
-  // ignore: unused_field
   late final Color _identificationColor;
 
   final bool allowClipboard = true;
@@ -234,7 +225,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   }) {
     isResizing = false;
     _currentResizingHandler = null;
-    updateListeners(WidgetChange.update);
+    updateListeners(WidgetChange.update, historyMessage: 'Resize');
   }
 
   /// Use this method to resize the widget using scale factor
@@ -253,10 +244,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     List<ResizeHandler> __handlers = [];
     if (size.height.isBetween(0, 50)) {
       __handlers = [
-        ResizeHandler.bottomRight
+        ResizeHandler.bottomRight,
+        if (resizeHandlers.contains(ResizeHandler.centerLeft) && size.height > 20) ResizeHandler.centerLeft,
       ];
-    } else if (size.height.isBetween(50, 95)) {
-      __handlers = List.from(resizeHandlers.where((handler) => handler.type == ResizeHandlerType.corner));
     } else {
       __handlers = List.from(resizeHandlers);
     }
@@ -279,7 +269,11 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   // Offset get globalPosition => position;
 
-  Rect get area => position.translate(-size.width/2, -size.height/2) & size;
+  Rect get area => group != null ? Rect.zero : Rect.fromCenter(
+    center: position + Offset(page.project.contentSize.width / 2, page.project.contentSize.height / 2),
+    width: size.width,
+    height: size.height,
+  );
 
   /// Set to `false` if you want the widget
   /// to not be draggable.
@@ -337,7 +331,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     position = Offset(dx, dy);
     isDragging = false;
     updateGrids(showGridLines: true, snap: true);
-    updateListeners(WidgetChange.update, removeGrids: true);
+    updateListeners(WidgetChange.update, removeGrids: true, historyMessage: 'Move');
   }
 
   void onDoubleTap(BuildContext context) {}
@@ -384,7 +378,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
           uid: uid,
           onDoubleTap: (this is WidgetGroup || isLocked) ? null : () => onDoubleTap(context),
           onTap: (this is WidgetGroup) ? null : () {
-            if (!isSelected()) page.widgets.select(this);
+            if (!isSelected() || (isSelected() && page.widgets.multiselect)) page.widgets.select(this);
           },
           child: SizedBox.fromSize(
             size: size,
@@ -410,7 +404,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     /// Affects the history of the widget
     WidgetChange change, {
     /// Pass `true` to remove all grids
-    bool removeGrids = false
+    bool removeGrids = false,
+    String? historyMessage,
   }) {
     if (change == WidgetChange.update) updateGrids();
     if (removeGrids) page.gridState.hideAll();
@@ -418,6 +413,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     stateCtrl.update(change);
     if (change == WidgetChange.update && asset != null) {
       asset!.logVersion(version: page.history.nextVersion ?? '', file: asset!.file);
+    }
+    if (change == WidgetChange.update) {
+      page.history.log(historyMessage);
     }
   }
 
@@ -478,7 +476,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     bool isWithinReachableDistance(Grid grid) {
       if (grid.widget == null || grid.length == null) return true;
       if (grid.layout == GridLayout.horizontal) return true;
-      double md = grid.length! / 1.5;
+      double md = grid.length! / 2;
       double d = (grid.position.dy - dy).abs();
       return d <= md;
     }
@@ -882,7 +880,6 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
   void initState() {
     super.initState();
     creatorWidget = widget.widget;
-    // _tempSize = creatorWidget.size;
     creatorWidget.addListener(onWidgetChange);
   }
 

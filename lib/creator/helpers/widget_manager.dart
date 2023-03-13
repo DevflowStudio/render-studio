@@ -170,6 +170,10 @@ class WidgetManager extends ChangeNotifier {
     page.updateListeners(PageChange.misc);
   }
 
+  CreatorWidget? findWidget(String uid) {
+    return _widgets[uid];
+  }
+
   void updateGrids() {
     page.gridState.clear();
     for (CreatorWidget widget in _widgets.values) {
@@ -200,18 +204,12 @@ class WidgetManager extends ChangeNotifier {
   }
 
   /// Set the state of the page when a widget is updated.
-  /// Also records history.
-  void onWidgetUpdate() {
-    // notifyListeners(PageChange.update);
-    page.history.log();
-  }
+  void onWidgetUpdate() { }
 
   /// This method is different from `onWidgetUpdate`.
   /// This is called when the widget is dragged, resized or rotated.
   /// This has to be separated because it does not record history.
-  void onWidgetNotReallyUpdate() {
-    // notifyListeners(PageChange.update);
-  }
+  void onWidgetNotReallyUpdate() { }
 
   void dispose() {
     removeListeners();
@@ -277,7 +275,6 @@ class WidgetManager extends ChangeNotifier {
   }) {
     return [
       _WidgetHandlerBuilder(
-        key: ValueKey('widget-${selections.firstOrNull?.uid}}'),
         manager: this
       ),
       _MultiselectDragOverlay(widgets: this)
@@ -388,7 +385,12 @@ class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
       } : null,
       onPanEnd: widgets.multiselect ? (details) {
         Size _selectorSize = Size((_selectorEnd!.dx - _selectorStart!.dx).abs(), (_selectorEnd!.dy - _selectorStart!.dy).abs());
-        Rect rect = _selectorMiddle!.translate(-_selectorSize.width/2, -_selectorSize.height/2) & _selectorSize;
+        Rect rect = Rect.fromLTWH(
+          _selectorMiddle!.dx + widgets.page.project.contentSize.width/2 - _selectorSize.width/2,
+          _selectorMiddle!.dy + widgets.page.project.contentSize.height/2 - _selectorSize.height/2,
+          _selectorSize.width,
+          _selectorSize.height
+        );
         _selectorStart = _selectorMiddle = _selectorEnd = null;
         for (CreatorWidget widget in widgets.widgets) {
           if (widget is BackgroundWidget) continue;
@@ -438,7 +440,6 @@ class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
 class _WidgetHandlerBuilder extends StatefulWidget {
 
   const _WidgetHandlerBuilder({
-    super.key,
     required this.manager,
   });
 
@@ -470,16 +471,24 @@ class __WidgetHandlerBuilderState extends State<_WidgetHandlerBuilder> {
   @override
   Widget build(BuildContext context) {
     if (manager.selections.firstOrNull is BackgroundWidget || manager.selections.firstOrNull == null || manager.selections.firstOrNull is RenderStudioWatermark) return Container();
-    else if (manager.selections.first.group != null) return WidgetHandlerBuilder(
-      widget: manager.selections.first.group!.findGroup(manager.selections.first)
-    );
-    else return Stack(
-      children: [
-        for (CreatorWidget widget in manager.selections) WidgetHandlerBuilder(
-          widget: widget
-        ),
-      ],
-    );
+    else {
+      List<CreatorWidget> widgets = [];
+      for (CreatorWidget widget in manager.selections) {
+        if (widget.group != null) {
+          WidgetGroup group = manager.selections.first.group!.findGroup(manager.selections.first);
+          if (!widgets.contains(group)) widgets.add(group);
+        } else {
+          widgets.add(widget);
+        }
+      }
+      return Stack(
+        children: [
+          for (CreatorWidget widget in widgets) WidgetHandlerBuilder(
+            widget: widget
+          ),
+        ],
+      );
+    }
   }
 
   void onSelectionChange() => setState(() { });

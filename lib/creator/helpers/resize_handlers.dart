@@ -84,17 +84,17 @@ extension ResizeHandlerProperties on ResizeHandler {
       case ResizeHandler.topLeft:
         return const Size(17, 17);
       case ResizeHandler.topCenter:
-        return const Size(30, 3);
+        return const Size(20, 5);
       case ResizeHandler.topRight:
         return const Size(17, 17);
       case ResizeHandler.centerLeft:
-        return const Size(3, 30);
+        return const Size(5, 20);
       case ResizeHandler.centerRight:
-        return const Size(3, 30);
+        return const Size(5, 20);
       case ResizeHandler.bottomLeft:
         return const Size(17, 17);
       case ResizeHandler.bottomCenter:
-        return const Size(30, 3);
+        return const Size(20, 5);
       case ResizeHandler.bottomRight:
         return const Size(17, 17);
       default:
@@ -107,17 +107,17 @@ extension ResizeHandlerProperties on ResizeHandler {
       case ResizeHandler.topLeft:
         return const Size(30, 30);
       case ResizeHandler.topCenter:
-        return const Size(40, 6);
+        return const Size(30, 8);
       case ResizeHandler.topRight:
         return const Size(30, 30);
       case ResizeHandler.centerLeft:
-        return const Size(6, 40);
+        return const Size(8, 30);
       case ResizeHandler.centerRight:
-        return const Size(6, 40);
+        return const Size(8, 30);
       case ResizeHandler.bottomLeft:
         return const Size(30, 30);
       case ResizeHandler.bottomCenter:
-        return const Size(40, 6);
+        return const Size(30, 8);
       case ResizeHandler.bottomRight:
         return const Size(30, 30);
       default:

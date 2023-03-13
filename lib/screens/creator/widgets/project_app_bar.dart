@@ -1,3 +1,4 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:badges/badges.dart' as badge;
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card/flip_card_controller.dart';
@@ -78,25 +79,29 @@ class _AppBarState extends State<ProjectAppBar> {
       ),
       centerTitle: false,
       titleSpacing: 0,
-      title: title != null ? Container(
-        decoration: BoxDecoration(
-          color: Palette.of(context).surface,
-          borderRadius: BorderRadius.circular(40),
-          border: Border.all(
-            color: Palette.of(context).outline,
-            width: 2
-          )
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 12
-        ),
-        child: Text(
-          title!,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            height: 0.66
+      title: project.pages.current.widgets.nSelections >= 2 ? FadeInDown(
+        from: 10,
+        duration: kAnimationDuration,
+        child: OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            padding: EdgeInsets.symmetric(
+              vertical: 10,
+              horizontal: 20,
+            ),
+            textStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontFamily: 'Google Sans',
+              fontWeight: FontWeight.w500
+            )
           ),
-        )
+          onPressed: () {
+            WidgetGroup.create(page: project.pages.current);
+          },
+          icon: Icon(
+            RenderIcons.add,
+            size: Theme.of(context).textTheme.bodyLarge?.fontSize,
+          ),
+          label: Text('Group (${project.pages.current.widgets.nSelections})'),
+        ),
       ) : null,
       backgroundColor: Colors.transparent,
       actions: [

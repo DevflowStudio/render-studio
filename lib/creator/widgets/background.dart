@@ -95,7 +95,7 @@ class BackgroundWidget extends CreatorWidget {
                 bottom: Constants.of(context).bottomPadding
               )
             );
-            if (hasChanged) updateListeners(WidgetChange.update);
+            if (hasChanged) updateListeners(WidgetChange.update, historyMessage: 'Change Palette');
           },
         ),
         Option.button(
@@ -254,14 +254,16 @@ class BackgroundWidget extends CreatorWidget {
     /// Affects the history of the widget
     WidgetChange change, {
     /// Pass `true` to remove all grids
-    bool removeGrids = false
+    bool removeGrids = false,
+    String? historyMessage,
   }) {
     if (removeGrids) page.gridState.hideAll();
-    if (change == WidgetChange.update) notifyListeners(change);
-    stateCtrl.update(change);
-    if (change == WidgetChange.update && asset != null) {
-      asset!.logVersion(version: page.history.nextVersion ?? '', file: asset!.file);
+    if (change == WidgetChange.update) {
+      notifyListeners(change);
+      if (asset != null) asset!.logVersion(version: page.history.nextVersion ?? '', file: asset!.file);
+      page.history.log(historyMessage);
     }
+    stateCtrl.update(change);
   }
 
   @override
