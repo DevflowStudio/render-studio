@@ -31,17 +31,9 @@ class History {
   String get undoTooltip => undoEnabled ? 'Undo${dates[date].title != null ? ': ' + dates[date].title!.toTitleCase() : ''}' : 'Nothing to Undo';
   String get redoTooltip => redoEnabled ? 'Redo${dates[date + 1].title != null ? ': ' + dates[date + 1].title!.toTitleCase() : ''}' : 'Nothing to Redo';
 
-  void _undo() => _restore(-1);
+  void _undo() => restore(-1);
 
-  void _redo() => _restore(1);
-
-  void _restore(int change) {
-    page.widgets.select();
-    date += change;
-    restore(date);
-    page.widgets.rebuildListeners();
-    page.updateListeners(PageChange.update);
-  }
+  void _redo() => restore(1);
 
   /// Logs a new history event with the current state of the page
   /// Uses method [create] to create a new history event
@@ -60,7 +52,10 @@ class History {
     page.updateListeners(PageChange.misc);
   }
 
-  void restore(int date) => dates[date].restore();
+  void restore(int change) {
+    date += change;
+    dates[date].restore();
+  }
 
 }
 

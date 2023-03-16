@@ -119,6 +119,12 @@ class CreatorPage extends PropertyChangeNotifier {
   }) async {
     widgets.select();
     String? _path;
+    double pixelRatio;
+    if (autoExportQuality && preferences.exportQuality.name != 'default') {
+      pixelRatio = preferences.exportQuality.pixelRatio(context);
+    } else {
+      pixelRatio = project.pixelRatio;
+    }
     try {
       DateTime _start = DateTime.now();
       Uint8List bytes = await screenshotController.captureFromWidget(
@@ -129,7 +135,7 @@ class CreatorPage extends PropertyChangeNotifier {
           ),
         ),
         context: context,
-        pixelRatio: autoExportQuality ? preferences.exportQuality.pixelRatio(context) : MediaQuery.of(context).devicePixelRatio
+        pixelRatio: pixelRatio
       );
       _path = '/Render Projects/${project.id}/page-${Constants.generateID(3)}.png';
       await pathProvider.saveToDocumentsDirectory(_path, bytes: bytes);

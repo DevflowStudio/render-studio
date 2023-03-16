@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:universal_io/io.dart';
 
 /// A helper class for Google AdMob
 /// TODO: Replace the ad unit ids with your own

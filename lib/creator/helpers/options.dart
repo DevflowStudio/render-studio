@@ -248,6 +248,7 @@ class Option {
         return ButtonWithIcon(
           title: 'Font',
           onTap: (context) async {
+            String _initialFont = fontFamily;
             await EditorTab.modal(
               context,
               height: 170,
@@ -347,7 +348,8 @@ class Option {
                 );
               }
             );
-            onChange(WidgetChange.update, null);
+            if (fontFamily != _initialFont) onChange(WidgetChange.update, null);
+            else onChange(WidgetChange.misc, null);
           },
           child: Text(
             'Aa',

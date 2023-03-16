@@ -121,6 +121,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Must be in lowercase letters
   final String id = 'widget';
 
+  // ignore: unused_field
   late final Color _identificationColor;
 
   final bool allowClipboard = true;

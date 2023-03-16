@@ -5,7 +5,6 @@ import 'package:colorfilter_generator/presets.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:octo_image/octo_image.dart';
-import 'package:on_image_matrix/on_image_matrix.dart';
 import 'package:sprung/sprung.dart';
 import 'package:universal_io/io.dart';
 import '../../rehmat.dart';
@@ -472,8 +471,6 @@ class ImageWidget extends CreatorWidget {
 
   double borderRadius = 0;
 
-  OnImageController controller = OnImageController();
-
   late CreativeImageProvider provider;
 
   @override
@@ -500,7 +497,6 @@ class ImageWidget extends CreatorWidget {
   @override
   void dispose() {
     super.dispose();
-    controller.dispose();
   }
 
   @override

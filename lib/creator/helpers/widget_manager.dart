@@ -171,7 +171,8 @@ class WidgetManager extends ChangeNotifier {
   }
 
   CreatorWidget? findWidget(String uid) {
-    return _widgets[uid];
+    if (_widgets.containsKey(uid)) return _widgets[uid];
+    return null;
   }
 
   void updateGrids() {
@@ -306,6 +307,7 @@ class WidgetManager extends ChangeNotifier {
   void restoreHistory(List<Map> data, {
     required String? version
   }) {
+    _selections.clear();
     page.gridState.clear();
     _widgets.clear();
     for (Map widgetData in data) try {
@@ -325,8 +327,8 @@ class WidgetManager extends ChangeNotifier {
       analytics.logError(e, cause: 'could not restore history', stacktrace: stacktrace);
       page.project.issues.add(Exception('${widgetData['name']} failed to rebuild'));
     }
-    _selections = [];
-    page.updateListeners(PageChange.misc);
+    rebuildListeners();
+    page.updateListeners(PageChange.update);
   }
 
   /// Runs a function on every widget in the page.

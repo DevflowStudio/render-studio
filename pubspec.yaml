@@ -62,7 +62,6 @@ dependencies:
   universal_io: ^2.0.4
   image_picker: ^0.8.6
   skeletons: ^0.0.3
-  on_image_matrix: ^1.0.0+1
   device_info_plus: ^8.0.0
   flutter_dotenv: ^5.0.2
   flutter_slidable: ^2.0.0

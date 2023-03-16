@@ -61,7 +61,7 @@ class CreatorText extends CreatorWidget {
           fontFamily: fontFamily,
           onChange: (change, font) {
             if (font != null) fontFamily = font;
-            updateListeners(change, forceSpanResize: true);
+            updateListeners(change, forceSpanResize: true, historyMessage: 'Change Font');
           },
         ),
         if (group == null) Option.button(
@@ -448,7 +448,6 @@ class CreatorText extends CreatorWidget {
 
   Widget widget(BuildContext context) => containerProvider.build(
     child: FittedBox(
-      fit: BoxFit.fitWidth,
       child: textWidget
     ),
   );
@@ -558,7 +557,7 @@ class CreatorText extends CreatorWidget {
   /// Matches the height of the widget to fit the text
   void alterHeightToFit() {
     buildTextSpan();
-    Size _newSpanSize = getTextPainter().size;
+    Size _newSpanSize = getTextPainter(maxWidth: _spanSize.width).size;
     double widthScale = size.width / _newSpanSize.width;
     Size _newSize = Size(size.width, _newSpanSize.height * widthScale);
     position = CreatorWidget.autoPosition(
@@ -569,6 +568,33 @@ class CreatorText extends CreatorWidget {
     );
     size = _newSize;
     _spanSize = _newSpanSize;
+    updateListeners(WidgetChange.misc);
+  }
+
+  void removeExtraSpaceFromSize() {
+    double wWidth = size.width;
+    double wHeight = size.height;
+    double sWidth = _spanSize.width;
+    double sHeight = _spanSize.height;
+
+    double scale;
+
+    if (wWidth > wHeight) {
+      if (sWidth > sHeight) {
+        scale = wHeight / sHeight;
+      } else {
+        scale = wWidth / sWidth;
+      }
+    } else {
+      if (sWidth > sHeight) {
+        scale = wHeight / sHeight;
+      } else {
+        scale = wWidth / sWidth;
+      }
+    }
+
+    Size _newSize = Size(sWidth * scale, sHeight * scale);
+    size = _newSize;
     updateListeners(WidgetChange.misc);
   }
 
@@ -752,29 +778,37 @@ class CreatorText extends CreatorWidget {
         },
       ),
     );
-    bool logHistory = this.text != textCtrl.text || align != this.align;
+    bool hasChanged = this.text != textCtrl.text || align != this.align;
     this.align = align;
     String text = textCtrl.text;
     if (text.trim() != '') this.text = text;
+
     buildTextSpan();
-    Size newSpanSize = getTextPainter(maxWidth: page.project.contentSize.width - page.widgets.background.padding.horizontal).size;
-    Size maxSize = Size(page.project.contentSize.height - page.widgets.background.padding.vertical, page.project.contentSize.width - page.widgets.background.padding.horizontal);
-    Size newWidgetSize = newSpanSize * scale;
-    if (newWidgetSize.width > newWidgetSize.height) {
-      if (newWidgetSize.width > maxSize.width) {
-        scale = maxSize.width / newWidgetSize.width;
-        newWidgetSize = newSpanSize * scale;
+    Size nSpanSize = getTextPainter(maxWidth: page.project.contentSize.width - page.widgets.background.padding.horizontal).size;
+    Size nWidgetSize = nSpanSize * scale;
+    Size mWidgetSize = Size(
+      page.project.contentSize.width - page.widgets.background.padding.horizontal,
+      page.project.contentSize.height - page.widgets.background.padding.vertical,
+    );
+
+    if (nWidgetSize.aspectRatio > 1) {
+      if (nWidgetSize.width > mWidgetSize.width) {
+        double ratio = mWidgetSize.width / nWidgetSize.width;
+        nWidgetSize = nWidgetSize * ratio;
       }
     } else {
-      if (newWidgetSize.height > maxSize.height) {
-        scale = maxSize.height / newWidgetSize.height;
-        newWidgetSize = newSpanSize * scale;
+      if (nWidgetSize.height > mWidgetSize.height) {
+        double ratio = mWidgetSize.height / nWidgetSize.height;
+        nWidgetSize = nWidgetSize * ratio;
       }
     }
-    _spanSize = newSpanSize;
-    size = newWidgetSize;
+
+    size = nWidgetSize;
+    _spanSize = nSpanSize;
+    _widthScale = size.width / _spanSize.width;
+
     if (group != null) group!.findGroup(this).resizeGroup();
-    if (logHistory) updateListeners(WidgetChange.update, historyMessage: 'Edit Text');
+    if (hasChanged) updateListeners(WidgetChange.update, historyMessage: 'Edit Text');
     else updateListeners(WidgetChange.misc);
     if (_containsSecondaryStyle(text) && secondaryStyle == null) Alerts.snackbar(
       context,
@@ -794,6 +828,12 @@ class CreatorText extends CreatorWidget {
     if (type?.type == ResizeHandlerType.center) alterHeightOnResize(handler: type!, size: size);
     else this.size = size;
     updateListeners(WidgetChange.drag);
+  }
+
+  @override
+  void onResizeFinished({DragEndDetails? details, ResizeHandler? handler, bool updateNotify = true}) {
+    removeExtraSpaceFromSize();
+    super.onResizeFinished(details: details, handler: handler, updateNotify: updateNotify);
   }
 
   bool _containsSecondaryStyle(String text) {

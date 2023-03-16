@@ -27,7 +27,7 @@ extension ExportQualityExtension on ExportQuality {
         return ExportQuality.extreme;
       case 'high':
         return ExportQuality.high;
-      case 'dedium':
+      case 'default':
         return ExportQuality.auto;
       default:
         return ExportQuality.auto;

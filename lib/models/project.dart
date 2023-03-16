@@ -59,6 +59,8 @@ class Project extends ChangeNotifier {
     return actualSize;
   }
 
+  double get pixelRatio => size.size.width / contentSize.width;
+
   /// Renders and saves each of the page as a png file to the device gallery
   ///
   /// Returns false if an issue is encountered in any of the pages
