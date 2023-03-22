@@ -5,6 +5,7 @@ import 'package:flip_card/flip_card_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sprung/sprung.dart';
+import 'package:supercharged/supercharged.dart';
 
 import '../../../rehmat.dart';
 
@@ -93,14 +94,14 @@ class _AppBarState extends State<ProjectAppBar> {
               fontWeight: FontWeight.w500
             )
           ),
-          onPressed: () {
+          onPressed: project.pages.current.widgets.nSelections.isBetween(2, 10) ? () {
             WidgetGroup.create(page: project.pages.current);
-          },
+          } : null,
           icon: Icon(
             RenderIcons.add,
             size: Theme.of(context).textTheme.bodyLarge?.fontSize,
           ),
-          label: Text('Group (${project.pages.current.widgets.nSelections})'),
+          label: Text('Group'),
         ),
       ) : null,
       backgroundColor: Colors.transparent,

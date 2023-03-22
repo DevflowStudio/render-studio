@@ -84,6 +84,13 @@ class Grid {
     );
   }
 
+  Size get size {
+    return layout.getSize(
+      grid: this,
+      page: page
+    );
+  }
+
 }
 
 enum GridLayout {
@@ -124,17 +131,25 @@ extension GridLayoutExtension on GridLayout {
       case GridLayout.vertical:
         return SizedBox(
           width: 3,
-          height: grid.length ?? page.project.size.size.height,
-          child: Center(
-            child: DottedLine(
-              direction: Axis.vertical,
-              dashColor: color,
-              dashGapLength: dotted ? 3 : 0,
-            ),
+          height: grid.length ?? (page.project.contentSize.height * 1.5),
+          child: DottedLine(
+            direction: Axis.vertical,
+            dashColor: color,
+            dashGapLength: dotted ? 3 : 0,
           ),
         );
-      default:
-        return Container();
+    }
+  }
+
+  Size getSize({
+    required Grid grid,
+    required CreatorPage page
+  }) {
+    switch (this) {
+      case GridLayout.horizontal:
+        return Size(grid.length ?? page.project.size.size.width, 3);
+      case GridLayout.vertical:
+        return Size(3, grid.length ?? (page.project.contentSize.height * 1.2));
     }
   }
 
@@ -173,6 +188,7 @@ class PageGridViewState extends State<PageGridView> {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         for (Grid grid in state.grids) AnimatedSwitcher(
           key: grid.key,
@@ -183,6 +199,8 @@ class PageGridViewState extends State<PageGridView> {
             key: UniqueKey(),
             dy: grid.position.dy,
             dx: grid.position.dx,
+            childHeight: grid.size.height,
+            childWidth: grid.size.width,
             child: grid.build()
           ) : null,
         )

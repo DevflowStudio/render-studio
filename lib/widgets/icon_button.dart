@@ -581,7 +581,7 @@ class _DragHandlerState extends State<DragHandler> {
         child: Center(
           child: Icon(
             RenderIcons.drag,
-            size: isHovering ? 30 : 18,
+            size: 18,
             color: widget.iconColor ?? Palette.of(context).onBackground,
           ),
         ),

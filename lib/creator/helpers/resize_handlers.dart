@@ -30,7 +30,7 @@ extension ResizeHandlerProperties on ResizeHandler {
         );
       case ResizeHandler.topCenter:
         return Positioned(
-          top: 0,
+          top: -0.75,
           left: size.width / 2,
           child: child
         );
@@ -42,13 +42,13 @@ extension ResizeHandlerProperties on ResizeHandler {
         );
       case ResizeHandler.centerLeft:
         return Positioned(
-          left: 0,
+          left: -0.75,
           top: size.height / 2,
           child: child
         );
       case ResizeHandler.centerRight:
         return Positioned(
-          right: 0,
+          right: -0.75,
           top: size.height / 2,
           child: child
         );
@@ -60,7 +60,7 @@ extension ResizeHandlerProperties on ResizeHandler {
         );
       case ResizeHandler.bottomCenter:
         return Positioned(
-          bottom: 0,
+          bottom: -0.75,
           left: size.width / 2,
           child: child
         );

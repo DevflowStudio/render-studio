@@ -134,7 +134,7 @@ extension PaddingExtension on EdgeInsets {
     };
   }
 
-  static EdgeInsets fromJSON(Map<String, dynamic> json) {
+  static EdgeInsets fromJSON(Map json) {
     if (json.containsKey('vertical') && json.containsKey('horizontal')) return EdgeInsets.symmetric(
       vertical: json['vertical'],
       horizontal: json['horizontal']

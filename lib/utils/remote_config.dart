@@ -17,7 +17,11 @@ class RemoteConfig {
       )
     );
     _setDefaults(firebaseConfig);
-    await firebaseConfig.fetchAndActivate();
+    try {
+      await firebaseConfig.fetchAndActivate();
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'remote config fetch error', stacktrace: stacktrace);
+    }
     return RemoteConfig._(firebaseConfig);
   }
 

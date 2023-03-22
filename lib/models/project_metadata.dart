@@ -57,7 +57,7 @@ class ProjectMetadata {
   Map<String, dynamic> toJSON() => {
     'version': version,
     'created': created.millisecondsSinceEpoch,
-    'edited': edited.millisecondsSinceEpoch,
+    'edited': DateTime.now().millisecondsSinceEpoch,
   };
 
   bool get isCompatible => version != 'unknown' && checkVersionCompatibility(currentVersion: version, minimumVersion: minVersion);

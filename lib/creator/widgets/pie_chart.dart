@@ -376,42 +376,45 @@ class CreativePieChart extends CreatorWidget {
 
   @override
   Widget widget(BuildContext context) => Center(
-    child: PieChart(
-      dataMap: {
-        for (_CreativePieChartSection section in data) section.title: section.value
-      },
-      chartRadius: size.width / 2 - (chartType == ChartType.disc ? 0 : strokeWidth / 2),
-      legendOptions: LegendOptions(
-        showLegends: showLegend,
-        legendTextStyle: TextStyle(
-          color: page.palette.onBackground,
-          fontWeight: FontWeight.w500
-        )
+    child: Material(
+      color: Colors.transparent,
+      child: PieChart(
+        dataMap: {
+          for (_CreativePieChartSection section in data) section.title: section.value
+        },
+        chartRadius: size.width / 2 - (chartType == ChartType.disc ? 0 : strokeWidth / 2),
+        legendOptions: LegendOptions(
+          showLegends: showLegend,
+          legendTextStyle: TextStyle(
+            color: page.palette.onBackground,
+            fontWeight: FontWeight.w500
+          )
+        ),
+        colorList: [
+          for (_CreativePieChartSection section in data) section.color
+        ],
+        chartValuesOptions: ChartValuesOptions(
+          showChartValues: showChartValues,
+          decimalPlaces: decimalPlaces,
+          showChartValuesOutside: showChartValuesOutside,
+          showChartValuesInPercentage: showChartValuesInPercentage,
+          showChartValueBackground: showChartValueBackground,
+          chartValueBackgroundColor: page.palette.onBackground,
+          chartValueStyle: TextStyle(
+            color: page.palette.background
+          )
+        ),
+        chartType: chartType,
+        degreeOptions: DegreeOptions(
+          initialAngle: initialAngle
+        ),
+        legendLabels: {
+          for (_CreativePieChartSection section in data) section.title: section.title
+        },
+        chartLegendSpacing: legendSpacing,
+        ringStrokeWidth: strokeWidth,
+        animationDuration: Duration.zero,
       ),
-      colorList: [
-        for (_CreativePieChartSection section in data) section.color
-      ],
-      chartValuesOptions: ChartValuesOptions(
-        showChartValues: showChartValues,
-        decimalPlaces: decimalPlaces,
-        showChartValuesOutside: showChartValuesOutside,
-        showChartValuesInPercentage: showChartValuesInPercentage,
-        showChartValueBackground: showChartValueBackground,
-        chartValueBackgroundColor: page.palette.onBackground,
-        chartValueStyle: TextStyle(
-          color: page.palette.background
-        )
-      ),
-      chartType: chartType,
-      degreeOptions: DegreeOptions(
-        initialAngle: initialAngle
-      ),
-      legendLabels: {
-        for (_CreativePieChartSection section in data) section.title: section.title
-      },
-      chartLegendSpacing: legendSpacing,
-      ringStrokeWidth: strokeWidth,
-      animationDuration: Duration.zero,
     ),
   );
 

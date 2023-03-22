@@ -81,8 +81,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     ),
     if (allowClipboard) Option.button(
       icon: RenderIcons.duplicate,
-      title: 'Duplicate',
-      tooltip: 'Duplicate this widget',
+      title: group != null ? 'Duplicate Group' : 'Duplicate',
+      tooltip: group != null ? 'Duplicate the group' : 'Duplicate the widget',
       onTap: (context) {
         Spinner.fullscreen(
           context,
@@ -298,7 +298,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     _previousPosition = position;
     position = position + details.delta;
     bool isDraggingFast = !details.delta.dx.isBetween(-preferences.snapSensitivity, preferences.snapSensitivity) || !details.delta.dy.isBetween(-preferences.snapSensitivity, preferences.snapSensitivity);
-    // bool isDraggingSlow = details.delta.dx.abs() < 0.2 || details.delta.dy.abs() < 0.2;
     if (angle == 0) updateGrids(realtime: true, showGridLines: true, snap: !isDraggingFast);
     updateListeners(WidgetChange.drag);
   }
@@ -1034,15 +1033,15 @@ class _SelectedWidgetHighlighter extends StatelessWidget {
     return AlignPositioned(
       dx: _position.dx,
       dy: _position.dy,
-      childHeight: widget.size.height + 2,
-      childWidth: widget.size.width + 2,
+      childHeight: widget.size.height + 3,
+      childWidth: widget.size.width + 3,
       child: IgnorePointer(
         child: widget.rotatedWidget(
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(
-                color: highlight ? Palette.of(context).primary.harmonizeWith(widget.page.palette.background) : (isLightBackground ? Colors.grey[300]! : Colors.white),
-                width: 1,
+                color: (highlight ? Colors.pinkAccent : Palette.of(context).primary).harmonizeWith(widget.page.palette.background),
+                width: 1.5,
               ),
               boxShadow: [
                 if (!isLightBackground) BoxShadow(

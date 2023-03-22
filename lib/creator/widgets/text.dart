@@ -857,7 +857,7 @@ class CreatorText extends CreatorWidget {
     bool forceSpanResize = false,
     String? historyMessage
   }) {
-    buildTextSpan(calculateSize: forceSpanResize);
+    buildTextSpan();
     if (forceSpanResize) alterHeightToFit();
     super.updateListeners(change, removeGrids: removeGrids, historyMessage: historyMessage);
   }

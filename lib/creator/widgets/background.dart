@@ -277,12 +277,12 @@ class BackgroundWidget extends CreatorWidget {
     bool hideCenterGrids = false
   }) {
     page.gridState.grids.removeWhere((grid) => grid.widget == this);
-    Color gridColor;
-    if (type == BackgroundType.color) {
-      gridColor = page.palette.onBackground;
-    } else {
-      gridColor = Colors.white;
-    }
+    Color gridColor = Colors.pinkAccent;
+    // if (type == BackgroundType.color) {
+    //   gridColor = page.palette.onBackground;
+    // } else {
+    //   gridColor = Colors.white;
+    // }
     // Color gridColor = Colors.deepPurple;
     List<Grid> grids = [
       Grid(

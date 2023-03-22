@@ -97,10 +97,15 @@ class WidgetManager extends ChangeNotifier {
       page.updateListeners(PageChange.selection);
       return;
     }
-    if (widget.uid == background.uid || widget is BackgroundWidget || widget is WidgetGroup) {
+    if (widget is WidgetGroup) {
       multiselect = false;
       _selections.clear();
       _selections.add(background);
+    } else if (widget.uid == background.uid || widget is BackgroundWidget) {
+      if (!multiselect) {
+        _selections.clear();
+        _selections.add(background);
+      }
     } else {
       if (multiselect) {
         if (isSelected(widget: widget)) {
@@ -476,11 +481,10 @@ class __WidgetHandlerBuilderState extends State<_WidgetHandlerBuilder> {
     else {
       List<CreatorWidget> widgets = [];
       for (CreatorWidget widget in manager.selections) {
-        if (widget.group != null) {
-          WidgetGroup group = manager.selections.first.group!.findGroup(manager.selections.first);
+        if (widget.group == null || widget is WidgetGroup) widgets.add(widget);
+        else if (widget.group != null) {
+          WidgetGroup group = widget.group!.findGroup(manager.selections.first);
           if (!widgets.contains(group)) widgets.add(group);
-        } else {
-          widgets.add(widget);
         }
       }
       return Stack(
