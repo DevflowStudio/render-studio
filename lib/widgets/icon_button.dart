@@ -208,10 +208,10 @@ class ColorSelector extends StatefulWidget {
 
   const ColorSelector({
     Key? key,
-    required this.title,
+    this.title,
     required this.onColorSelect,
     required this.color,
-    required this.tooltip,
+    this.onColorSelectEnd,
     this.size,
     this.borderWidth = 5,
     this.reverseOrder = false,
@@ -219,10 +219,10 @@ class ColorSelector extends StatefulWidget {
     this.allowOpacity = true
   }) : super(key: key);
 
-  final String title;
+  final String? title;
   final Function(Color color) onColorSelect;
+  final Function(Color? color)? onColorSelectEnd;
   final Color color;
-  final String tooltip;
   final bool reverseOrder;
   final ColorPalette? palette;
   final bool allowOpacity;
@@ -255,43 +255,49 @@ class _ColorSelectorState extends State<ColorSelector> {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: '${widget.title} (${color.toHex()})',
-      child: GestureDetector(
-        onTap: () async {
-          TapFeedback.light();
-          await EditorTab.modal(
+    Size size = widget.size ?? Size(60, 60);
+    return GestureDetector(
+      onTap: () async {
+        TapFeedback.light();
+        await EditorTab.modal(
+          context,
+          tab: (context, setState) => EditorTab.color(
             context,
-            tab: (context, setState) => EditorTab.color(
-              context,
-              palette: widget.palette,
-              allowOpacity: widget.allowOpacity,
-              selected: color,
-              onChange: (_color) {
-                color = _color;
-                widget.onColorSelect(_color);
-              },
-            )
-          );
-          setState(() { });
-        },
+            palette: widget.palette,
+            allowOpacity: widget.allowOpacity,
+            selected: color,
+            onChange: (_color) {
+              color = _color;
+              widget.onColorSelect(_color);
+            },
+          )
+        );
+        setState(() { });
+      },
+      child: SizedBox.fromSize(
+        size: size,
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(100),
             border: Border.all(
               color: color,
               width: 2
-            )
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.5),
+                blurRadius: 5,
+                spreadRadius: 1,
+                offset: Offset(0, 2)
+              )
+            ]
           ),
-          child: SizedBox.fromSize(
-            size: widget.size ?? Size(60, 60),
-            child: Padding(
-              padding: const EdgeInsets.all(2.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(100),
-                ),
+          child: Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(100),
               ),
             ),
           ),

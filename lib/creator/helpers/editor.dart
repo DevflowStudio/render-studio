@@ -1107,7 +1107,6 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
               ),
               SizedBox(width: 12),
               ColorSelector(
-                title: 'Color',
                 onColorSelect: (color) {
                   this.opacity = color.opacity;
                   this.color = color.withOpacity(1);
@@ -1116,7 +1115,6 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
                 reverseOrder: true,
                 size: const Size(30, 30),
                 color: color,
-                tooltip: 'Shadow Color',
               ),
             ],
             onChange: (value) {

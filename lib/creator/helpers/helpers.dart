@@ -5,3 +5,5 @@ export 'build_types.dart';
 export 'shape.dart';
 export 'alignment.dart';
 export 'action_buttons.dart';
+export 'container.dart';
+export 'gradient.dart';

@@ -111,7 +111,6 @@ class CreativePieChart extends CreatorWidget {
                         setState(() {});
                       },
                       color: section.color,
-                      tooltip: 'tooltip'
                     ),
                     minLeadingWidth: 1,
                     title: Row(

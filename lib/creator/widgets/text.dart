@@ -778,7 +778,11 @@ class CreatorText extends CreatorWidget {
         },
       ),
     );
+
     bool hasChanged = this.text != textCtrl.text || align != this.align;
+
+    if (!hasChanged) return;
+    
     this.align = align;
     String text = textCtrl.text;
     if (text.trim() != '') this.text = text;
