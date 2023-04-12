@@ -10,7 +10,7 @@ class AppTheme {
     Color? seed,
     ColorScheme? colorScheme
   }) {
-    seed ??= HexColor.fromHex('#1437f6');
+    seed ??= HexColor.fromHex('#473335');
     colorScheme ??= ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
     Color contrastTextColor = brightness == Brightness.light ? Colors.black : Colors.white;
     Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[400]!;

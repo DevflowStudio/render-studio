@@ -117,6 +117,7 @@ dependencies:
   open_store: ^0.5.0
   reorderable_grid_view: ^2.2.5
   sliver_tools: ^0.2.9
+  figma_squircle: ^0.5.3
 
 dev_dependencies:
   flutter_test:

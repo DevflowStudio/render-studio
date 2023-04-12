@@ -399,6 +399,7 @@ class WidgetGroup extends CreatorWidget {
       dWidgets.tryAdd(CreatorWidget.fromJSON(data, page: page, buildInfo: BuildInfo(buildType: BuildType.unknown)));
     }
     WidgetGroup? group = await WidgetGroup._createGroup(page: page, widgets: dWidgets);
+    group?.position = Offset(position.dx + 10, position.dy + 10);
     return group;
   }
 
