@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import '../../../rehmat.dart';
-import 'dart:convert' as convert;
 
 class Home extends StatefulWidget {
 
@@ -65,11 +64,8 @@ class _HomeState extends State<Home> {
               pinned: false,
               floating: false,
             ),
-            if (app.remoteConfig.allowCreateProject) SliverPadding(
-              padding: const EdgeInsets.only(top: 12),
-              sliver: SliverToBoxAdapter(
-                child: CreateProjectBanner(),
-              ),
+            if (app.remoteConfig.allowCreateProject) SliverToBoxAdapter(
+              child: CreateProjectBanner(),
             ),
             SliverPadding(
               padding: EdgeInsets.only(

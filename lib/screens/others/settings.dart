@@ -103,7 +103,7 @@ class _SettingsState extends State<Settings> {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
                   },
-                  icon: const Icon(RenderIcons.openInBrowser)
+                  icon: Icon(RenderIcons.openInBrowser)
                 ),
               ),
               ListTile(
@@ -121,7 +121,7 @@ class _SettingsState extends State<Settings> {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
                   },
-                  icon: const Icon(RenderIcons.openInBrowser)
+                  icon: Icon(RenderIcons.openInBrowser)
                 ),
               ),
               ListTile(
@@ -139,7 +139,7 @@ class _SettingsState extends State<Settings> {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
                   },
-                  icon: const Icon(RenderIcons.openInBrowser)
+                  icon: Icon(RenderIcons.openInBrowser)
                 ),
               ),
               const ListTile(

@@ -18,7 +18,7 @@ class Option {
     required IconData icon,
     String? tooltip,
     Function(BuildContext context)? onLongPress,
-    bool greyOut = false
+    bool greyOut = false,
   }) => Option(
     widget: (context) => ButtonWithIcon(
       title: title,
@@ -476,20 +476,23 @@ class Option {
 
   static Option position({
     String title = 'Position',
-    IconData icon = RenderIcons.position,
+    IconData? icon,
     String tooltip = 'Position the widget across the page',
     required CreatorWidget widget,
-  }) => Option.button(
-    title: title,
-    onTap: (context) =>  EditorTab.modal(
-      context,
-      tab: (context, setState) => EditorTab.position(
-        widget: widget
-      )
-    ),
-    icon: icon,
-    tooltip: tooltip
-  );
+  }) {
+    icon ??= RenderIcons.position;
+    return Option.button(
+      title: title,
+      onTap: (context) =>  EditorTab.modal(
+        context,
+        tab: (context, setState) => EditorTab.position(
+          widget: widget
+        )
+      ),
+      icon: icon,
+      tooltip: tooltip
+    );
+  }
 
   Widget build(BuildContext context) => widget(context);
 

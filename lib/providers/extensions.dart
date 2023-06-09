@@ -162,11 +162,23 @@ extension ColorExtension on Color {
 
 extension HexColor on Color {
   /// String is in the format "aabbcc" or "ffaabbcc" with an optional leading "#".
-  static Color fromHex(String hexString) {
-    final buffer = StringBuffer();
-    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
-    buffer.write(hexString.replaceFirst('#', ''));
-    return Color(int.parse(buffer.toString(), radix: 16));
+  static Color fromHex(String? hexString, {
+    /// The default color to use if [hexString] is null or empty or can't be parsed.
+    Color? defaultColor,
+  }) {
+    try {
+      if (hexString == null || hexString.isEmpty) {
+        if (defaultColor != null) return defaultColor;
+        throw Exception('Hex string is empty');
+      }
+      final buffer = StringBuffer();
+      if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
+      buffer.write(hexString.replaceFirst('#', ''));
+      return Color(int.parse(buffer.toString(), radix: 16));
+    } catch (e) {
+      if (defaultColor != null) return defaultColor;
+      rethrow;
+    }
   }
 
   /// Prefixes a hash sign if [leadingHashSign] is set to `true` (default is `true`).
@@ -222,9 +234,9 @@ extension StringExtension on String {
 
 extension SizeExtension on Size {
 
-  Size get half => Size(width/2, height/2);
+  // Size get half => Size(width/2, height/2);
 
-  Size get double => Size(width*2, height*2);
+  // Size get double => Size(width*2, height*2);
 
   bool operator >(Object other) {
     if (other is Size) {
@@ -239,6 +251,22 @@ extension SizeExtension on Size {
       return this.width < other.width && this.height < other.height;
     } else {
       return false;
+    }
+  }
+
+  static Size fromJSON(Map json) {
+    double width = _convertToDouble(json['width']);
+    double height = _convertToDouble(json['height']);
+    return Size(width, height);
+  }
+
+  static double _convertToDouble(dynamic value) {
+    if (value is int) {
+      return value.toDouble();
+    } else if (value is String) {
+      return double.parse(value);
+    } else {
+      throw ArgumentError('Value must be an int or a String');
     }
   }
 

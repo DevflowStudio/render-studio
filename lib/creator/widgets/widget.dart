@@ -601,6 +601,24 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Here, write the code to update colors used within the widget
   void onPaletteUpdate() { }
 
+  void onProjectSizeChange(PostSize oldSize, PostSize newSize) {
+    // Size oldActualSize = getActualSizeFromPostSize(oldSize, page.project.deviceSize);
+    // Size newActualSize = getActualSizeFromPostSize(newSize, page.project.deviceSize);
+    // 
+    // double distanceFromPageLeft = oldActualSize.width/2 - (position.dx - size.width/2).abs();
+    // double distanceFromPageRight = oldActualSize.width/2 - (position.dx + size.width/2).abs();
+    // double distanceFromPageTop = oldActualSize.height/2 - (position.dy - size.height/2).abs();
+    // double distanceFromPageBottom = oldActualSize.height/2 - (position.dy + size.height/2).abs();
+    // double distanceFromPageCenter = position.distance.abs();
+    // 
+    // print('Widget: $name');
+    // print('distanceFromPageLeft: $distanceFromPageLeft');
+    // print('distanceFromPageRight: $distanceFromPageRight');
+    // print('distanceFromPageTop: $distanceFromPageTop');
+    // print('distanceFromPageBottom: $distanceFromPageBottom');
+    // print('distanceFromPageCenter: $distanceFromPageCenter');
+  }
+
   /// This method is called when the widget is deleted
   /// 
   /// It should be used to clean up any resources that the widget is using

@@ -194,7 +194,7 @@ class CreativeContainerProvider {
           onChange(WidgetChange.update);
         },
         icon: Icons.border_all,
-        tooltip: 'Customize the border',
+        tooltip: 'Customize the border'
       ),
       if (showPadding) Option.button(
         title: 'Padding',

@@ -205,7 +205,6 @@ class CreativePieChart extends CreatorWidget {
                   trailing: GestureDetector(
                     onTap: () => Alerts.picker(
                       context,
-                      itemExtent: 2,
                       children: [
                         Text('Disc'),
                         Text('Ring'),
@@ -249,7 +248,6 @@ class CreativePieChart extends CreatorWidget {
                   trailing: GestureDetector(
                     onTap: showChartValues ? () => Alerts.picker(
                       context,
-                      itemExtent: 2,
                       children: [
                         Text('Inside'),
                         Text('Outside'),

@@ -22,40 +22,30 @@ class CreateProjectBannerState extends State<CreateProjectBanner> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(
-            left: 12,
-            right: 12,
-            bottom: 9
-          ),
-          child: Text(
-            app.remoteConfig.createProjectBannerTitle,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              height: 1,
-              color: Palette.of(context).onSurfaceVariant
-            )
-          )
-        ),
-        Container(
-          margin: EdgeInsets.only(
-            left: 6,
-            right: 6,
-            bottom: 6
-          ),
-          decoration: ShapeDecoration(
-            color: Constants.getThemedBlackAndWhite(context),
-            shape: SmoothRectangleBorder(
-              borderRadius: SmoothBorderRadius(
-                cornerRadius: kBorderRadius,
-                cornerSmoothing: 0.5,
-              ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Palette.of(context).surfaceVariant,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 12,
+              right: 12,
+              bottom: 0,
+              top: 21
             ),
+            child: Text(
+              app.remoteConfig.createProjectBannerTitle,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                height: 1,
+                color: Palette.of(context).onSurfaceVariant
+              )
+            )
           ),
-          child: ClipRRect(
+          ClipRRect(
             borderRadius: BorderRadius.circular(kBorderRadius),
             child: SizedBox(
               height: ((Theme.of(context).textTheme.labelMedium?.fontSize ?? 20) * 2 * 1.2) + 12 + 70 + 3 + 12,
@@ -67,55 +57,101 @@ class CreateProjectBannerState extends State<CreateProjectBanner> {
                   horizontal: 12,
                   vertical: 12
                 ),
-                itemBuilder: (context, index) => GestureDetector(
-                  onTap: () {
-                    TapFeedback.light();
-                    Project.createNewProject(context, PostSizePresets.values[index].toSize());
-                  },
-                  child: SizedBox(
-                    width: 70,
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: 70,
-                          width: 70,
-                          child: Container(
-                            decoration: ShapeDecoration(
-                              color: Palette.of(context).surface,
-                              shape: SmoothRectangleBorder(
-                                borderRadius: SmoothBorderRadius(
-                                  cornerRadius: kBorderRadius - 8,
-                                  cornerSmoothing: 0.5,
-                                ),
-                              ),
-                            ),
-                            child: Center(child: Icon(PostSizePresets.values[index].icon)),
-                          ),
-                        ),
-                        SizedBox(height: 3),
-                        Flexible(
-                          child: Text(
-                            PostSizePresets.values[index].title.toTitleCase(),
-                            maxLines: 2,
-                            textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              height: 1.2,
-                              color: Palette.of(context).background,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-                itemCount: PostSizePresets.values.length,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return _CreateButton(
+                      onTap: () async { },
+                      icon: RenderIcons.magic,
+                      title: 'Magic',
+                    );
+                  } else {
+                    return _CreateButton(
+                      onTap: () {
+                        TapFeedback.light();
+                        Project.createNewProject(context, PostSizePresets.values[index + 1].toSize());
+                      },
+                      icon: PostSizePresets.values[index - 1].icon,
+                      title: PostSizePresets.values[index - 1].title.toTitleCase(),
+                    );
+                  }
+                },
+                itemCount: PostSizePresets.values.length + 1,
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
+}
+
+class _CreateButton extends StatelessWidget {
+
+  const _CreateButton({
+    this.onTap,
+    required this.icon,
+    required this.title,
+  });
+
+  final void Function()? onTap;
+  final IconData icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 70,
+      child: Column(
+        children: [
+          SizedBox(
+            height: 70,
+            width: 70,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Palette.of(context).background,
+                borderRadius: SmoothBorderRadius(
+                  cornerRadius: kBorderRadius - 8,
+                  cornerSmoothing: 0.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    offset: Offset(0, 1),
+                    blurRadius: 2
+                  )
+                ]
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: Ink(
+                  child: InkWell(
+                    borderRadius: SmoothBorderRadius(
+                      cornerRadius: kBorderRadius - 8,
+                      cornerSmoothing: 0.5,
+                    ),
+                    onTap: onTap,
+                    child: Center(child: Icon(icon)),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 3),
+          Flexible(
+            child: Text(
+              title,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                height: 1.2,
+                color: Palette.of(context).onSurfaceVariant,
+              ),
+            ),
+          )
+        ],
+      ),
+    );
+  }
 }

@@ -164,7 +164,7 @@ class _WidgetCatalogState extends State<WidgetCatalog> with SingleTickerProvider
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Expanded(
-                        child: SearchBar(
+                        child: RenderSearchBar(
                           controller: searchCtrl,
                           placeholder: 'Search Images and Design Assets',
                           onSuffixTap: () => setState(() {

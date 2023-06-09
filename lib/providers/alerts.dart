@@ -199,42 +199,52 @@ class Alerts {
   }
 
   static Future<void> picker(BuildContext context, {
-    double? itemExtent,
     required List<Widget> children,
     int initialIndex = 0,
+    double itemExtent = 30,
     required ValueChanged<int> onSelectedItemChanged,
-  }) => showCupertinoModalPopup(
+  }) => showModalBottomSheet(
     context: context,
-    builder: (_) => Container(
-      height: MediaQuery.of(context).size.height / 4,
-      color: Palette.of(context).background,
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              IconButton(
-                onPressed: Navigator.of(context).pop,
+    backgroundColor: Palette.of(context).background,
+    elevation: 0,
+    builder: (context) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: _SlideDownBar(),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(right: 17),
+              child: FilledTonalIconButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
                 icon: Icon(RenderIcons.done)
-              )
-            ],
+              ),
+            )
+          ],
+        ),
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height / 5,
+            minHeight: MediaQuery.of(context).size.height * 0.2,
           ),
-          Expanded(
-            child: CupertinoPicker(
-              backgroundColor: Palette.of(context).background,
-              itemExtent: itemExtent ?? 30,
-              scrollController: FixedExtentScrollController(initialItem: initialIndex),
-              magnification: 1.1,
-              diameterRatio: 1.3,
-              squeeze: 1,
-              children: children,
-              onSelectedItemChanged: onSelectedItemChanged
-            ),
+          child: CupertinoPicker(
+            itemExtent: itemExtent,
+            onSelectedItemChanged: onSelectedItemChanged,
+            children: children,
+            scrollController: FixedExtentScrollController(initialItem: initialIndex),
+            magnification: 1.1,
+            diameterRatio: 1.3,
+            squeeze: 1,
           ),
-          SizedBox(height: Constants.of(context).bottomPadding,)
-        ],
-      ),
-    )
+        ),
+      ],
+    ),
   );
 
   static Future<String?> modalInfoBuilder(BuildContext context, {
@@ -255,7 +265,7 @@ class Alerts {
   }
 
   static Future<T?> modal<T>(BuildContext context, {
-    required String title,
+    String? title,
     required Widget Function(BuildContext context, void Function(void Function()) setState) childBuilder,
     List<Widget>? actionButton
   }) async {
@@ -264,14 +274,14 @@ class Alerts {
       backgroundColor: Colors.transparent,
       // barrierColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          return ClipRRect(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            child: Container(
+      builder: (context) => ClipRRect(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        child: StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
               decoration: BoxDecoration(
                 color: Palette.of(context).background,
                 borderRadius: BorderRadius.only(
@@ -288,45 +298,35 @@ class Alerts {
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: Palette.of(context).outline,
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                        )
-                      ],
-                    ),
+                    child: _SlideDownBar(),
                   ),
                   SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: [
-                        Label(
-                          label: title,
-                        ),
-                        if (actionButton != null) ... [
-                          Spacer(),
-                          ...actionButton
-                        ]
-                      ],
+                  if (title != null || actionButton != null) ... [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          if (title != null) Label(
+                            label: title,
+                          ),
+                          if (actionButton != null) ... [
+                            Spacer(),
+                            ...actionButton
+                          ]
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 12,),
+                    SizedBox(height: 12,),
+                  ],
                   childBuilder(context, setState),
                   SizedBox(
                     height: Constants.of(context).bottomPadding + MediaQuery.of(context).viewInsets.bottom,
                   )
                 ],
               ),
-            ),
-          );
-        }
+            );
+          }
+        ),
       ),
     );
   }
@@ -340,6 +340,25 @@ class Alerts {
     )
   );
 
+}
+
+class _SlideDownBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 50,
+          height: 5,
+          decoration: BoxDecoration(
+            color: Palette.of(context).outline,
+            borderRadius: BorderRadius.circular(5),
+          ),
+        )
+      ],
+    );
+  }
 }
 
 class AlertOption {

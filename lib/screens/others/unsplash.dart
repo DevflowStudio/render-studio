@@ -64,7 +64,7 @@ class _UnsplashImagePickerState extends State<UnsplashImagePicker> {
                     horizontal: 6,
                     vertical: 3
                   ),
-                  child: SearchBar(
+                  child: RenderSearchBar(
                     controller: searchCtrl,
                     placeholder: 'Search',
                     onSubmitted: (value) {
@@ -526,8 +526,8 @@ class __UnsplashPhotoBuilderState extends State<UnsplashPhotoBuilder> {
         duration: Constants.animationDuration,
         child: photo.isLoading ? Stack(
           children: [
-            BlurHash(
-              hash: photo.blurHash,
+            if (photo.blurHash != null) BlurHash(
+              hash: photo.blurHash!,
             ),
             Align(
               alignment: Alignment.center,
@@ -559,13 +559,13 @@ class __UnsplashPhotoBuilderState extends State<UnsplashPhotoBuilder> {
           ],
         ) : OctoImage(
           image: CachedNetworkImageProvider(photo.url),
-          placeholderBuilder: (context) => BlurHash(
-            hash: photo.blurHash,
-          ),
+          placeholderBuilder: photo.blurHash != null ? (context) => BlurHash(
+            hash: photo.blurHash!,
+          ) : null,
           errorBuilder: (context, error, stackTrace) => Stack(
             children: [
-              BlurHash(
-                hash: photo.blurHash,
+              if (photo.blurHash != null) BlurHash(
+                hash: photo.blurHash!,
               ),
               Align(
                 alignment: Alignment.center,

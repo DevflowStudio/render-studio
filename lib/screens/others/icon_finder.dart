@@ -35,7 +35,7 @@ class _IconFinderScreenState extends State<IconFinderScreen> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: SearchBar(
+              child: RenderSearchBar(
                 controller: searchCtrl,
                 onSubmitted: (value) => setState(() {}),
               ),

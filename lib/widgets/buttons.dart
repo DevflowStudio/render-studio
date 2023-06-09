@@ -254,6 +254,7 @@ class _RenderButtonState extends State<_RenderButton> {
 
   @override
   Widget build(BuildContext context) {
+    TextStyle? textStyle = Theme.of(context).textTheme.titleMedium;
     return GestureDetector(
       onPanDown: (details) => reduceRadius(),
       onTapDown: (details) => reduceRadius(),
@@ -280,18 +281,19 @@ class _RenderButtonState extends State<_RenderButton> {
             ]
           ),
           child: DefaultTextStyle(
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(
+            style: textStyle!.copyWith(
               color: widget.textColor,
               fontWeight: FontWeight.w600,
               fontSize: 17,
               fontFamily: 'Helvetica Neue',
+              height: 1
             ),
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: isLoading ? SizedBox(
-                  height: 18,
-                  width: 18,
+                  height: textStyle.fontSize ?? 20,
+                  width: textStyle.fontSize ?? 20,
                   child: Spinner(
                     valueColor: widget.textColor,
                     strokeWidth: 2,

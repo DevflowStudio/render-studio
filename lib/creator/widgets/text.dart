@@ -225,16 +225,16 @@ class CreatorText extends CreatorWidget {
           icon: RenderIcons.shadow,
           tooltip: 'Customize shadow of text'
         ),
-        Option.button(
-          title: 'Outline',
-          tooltip: 'Add an outline to text',
-          onTap: (context) async {
-            primaryStyle.addStroke();
-            secondaryStyle?.addStroke();
-            updateListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.outline
-        ),
+        // Option.button(
+        //   title: 'Outline',
+        //   tooltip: 'Add an outline to text',
+        //   onTap: (context) async {
+        //     primaryStyle.addStroke();
+        //     secondaryStyle?.addStroke();
+        //     updateListeners(WidgetChange.update);
+        //   },
+        //   icon: RenderIcons.outline
+        // ),
         Option.button(
           title: 'Lifted',
           tooltip: 'Add a lifted effect to text',
@@ -252,6 +252,23 @@ class CreatorText extends CreatorWidget {
             updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.lifted
+        ),
+        Option.button(
+          title: 'Drop Shadow',
+          tooltip: 'Add a drop shadow to text',
+          onTap: (context) async {
+            if ((shadows?.length ?? 0) == 1 && shadows!.first.offset == Offset(0, 3) && shadows!.first.blurRadius == 1 && shadows!.first.color == Colors.black.withOpacity(0.2)) {
+              shadows = null;
+            } else shadows = [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 1,
+                offset: Offset(0, 3)
+              )
+            ];
+            updateListeners(WidgetChange.update);
+          },
+          icon: RenderIcons.drop_shadow
         ),
         Option.button(
           title: 'Echo',
@@ -278,28 +295,28 @@ class CreatorText extends CreatorWidget {
           },
           icon: RenderIcons.echo
         ),
-        Option.button(
-          title: 'Splice',
-          tooltip: 'Add splice effect to text',
-          onTap: (context) async {
-            if (primaryStyle.stroke != null && (shadows?.length ?? 0) == 1 && shadows!.first.blurRadius == 2 && shadows!.first.offset == Offset(5, 5)) {
-              if (primaryStyle.stroke != null) primaryStyle.addStroke();
-              shadows = [];
-            } else {
-              secondaryStyle = null;
-              if (primaryStyle.stroke == null) primaryStyle.addStroke();
-              shadows = [
-                BoxShadow(
-                  color: primaryStyle.color.withOpacity(0.4),
-                  blurRadius: 2,
-                  offset: Offset(5, 5)
-                ),
-              ];
-            }
-            updateListeners(WidgetChange.update);
-          },
-          icon: RenderIcons.splice
-        ),
+        // Option.button(
+        //   title: 'Splice',
+        //   tooltip: 'Add splice effect to text',
+        //   onTap: (context) async {
+        //     if (primaryStyle.stroke != null && (shadows?.length ?? 0) == 1 && shadows!.first.blurRadius == 2 && shadows!.first.offset == Offset(5, 5)) {
+        //       if (primaryStyle.stroke != null) primaryStyle.addStroke();
+        //       shadows = [];
+        //     } else {
+        //       secondaryStyle = null;
+        //       if (primaryStyle.stroke == null) primaryStyle.addStroke();
+        //       shadows = [
+        //         BoxShadow(
+        //           color: primaryStyle.color.withOpacity(0.4),
+        //           blurRadius: 2,
+        //           offset: Offset(5, 5)
+        //         ),
+        //       ];
+        //     }
+        //     updateListeners(WidgetChange.update);
+        //   },
+        //   icon: RenderIcons.splice
+        // ),
         Option.button(
           title: 'Glitch',
           tooltip: 'Add glitch effect to text',
@@ -1030,7 +1047,6 @@ class CreativeTextStyle {
         ..style = PaintingStyle.stroke
         ..strokeWidth = bold ? 2 : 1
         ..color = color;
-      // if (isToggling) updateListeners(WidgetChange.update);
     } else if (isToggling && stroke != null) {
       stroke = null;
     }

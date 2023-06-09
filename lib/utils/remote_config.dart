@@ -38,7 +38,7 @@ class RemoteConfig {
         'Studio Render': 0.05,
       }.getRandomWithProbabilities(),
       'create_project_banner_title': [
-        'Create a Project',
+        'Create Project',
         'New Project',
         'Get Started',
         'Start a Project',

@@ -22,11 +22,9 @@ class Editor extends StatefulWidget {
   static bool isHidden = false;
 
   static Size calculateSize(BuildContext context) {
-    double verticalPadding = Constants.of(context).bottomPadding + 10;
-    Size editorSize = Size(double.infinity, MediaQuery.of(context).size.height * 0.1); // The editor can only be allowed to cover 10% of the screen area.
-    if (editorSize.height > 180) editorSize = Size(editorSize.width, 180);
-    else if (editorSize.height < 90) editorSize = Size(editorSize.width, 90);
-    return Size(editorSize.width, editorSize.height + verticalPadding);
+    double verticalPadding = Constants.of(context).bottomPadding;
+    double height = getButtonWithIconHeight(context);
+    return Size(double.infinity, height + verticalPadding);
   }
 
   @override
@@ -50,6 +48,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
   @override
   void dispose() {
     creatorWidget.removeListener(onPropertyChange, [WidgetChange.update, WidgetChange.lock]);
+    tabController.dispose();
     super.dispose();
   }
 
@@ -63,8 +62,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 3,
-            spreadRadius: 0,
+            blurRadius: 2,
           )
         ],
       ),
@@ -156,6 +154,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                       child: TabBarView(
                         controller: tabController,
                         physics: const NeverScrollableScrollPhysics(),
+                        clipBehavior: Clip.none,
                         children: List.generate(
                           creatorWidget.tabs.length,
                           (index) {

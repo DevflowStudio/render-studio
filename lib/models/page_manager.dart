@@ -22,10 +22,11 @@ class PageManager extends PropertyChangeNotifier {
   static int maxPages = 10;
 
   Future<void> add({
-    bool silent = false
+    bool silent = false,
+    bool addDefaultWidgets = true
   }) async {
     if (pages.length >= maxPages) return;
-    pages.add(CreatorPage(project: project, isFirstPage: pages.isEmpty));
+    pages.add(CreatorPage(project: project, isFirstPage: pages.isEmpty, addDefaultWidgets: addDefaultWidgets));
     if (pages.length > 1) controller.animateToPage(pages.length - 1, duration: Constants.animationDuration, curve: Sprung.overDamped);
     updateListeners();
     if (!silent) notifyListeners(PageViewChange.page);

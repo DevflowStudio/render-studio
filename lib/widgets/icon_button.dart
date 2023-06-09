@@ -318,7 +318,7 @@ class ButtonWithIcon extends StatefulWidget {
     this.child,
     this.icon,
     this.tooltip,
-    this.borderRadius = 60,
+    this.borderRadius = 70,
     this.feedbackBorderRadius = 5,
     this.size,
     this.greyOut = false,
@@ -378,7 +378,7 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
   Widget build(BuildContext context) {
     return tooltip(
       child: SizedBox(
-        width: 60,
+        width: 70,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -399,16 +399,32 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
               },
               child: AnimatedContainer(
                 duration: Duration(milliseconds: 200),
-                height: widget.size?.height ?? 60,
-                width: widget.size?.width ?? 60,
+                height: widget.size?.height ?? 70,
+                width: widget.size?.width ?? 70,
                 decoration: BoxDecoration(
-                  // color: Palette.of(context).surface,
-                  color: widget.backgroundColor ?? Constants.getThemedObject(context, light: Colors.grey[100]!.withOpacity(0.5), dark: Colors.grey[900]),
+                  color: Palette.of(context).surfaceVariant,
+                  // color: widget.backgroundColor ?? Constants.getThemedObject(context, light: Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.2), dark: Colors.grey[900]),
+                  // color: context.isDarkMode ? Colors.grey[900] : null,
+                  // gradient: context.isDarkMode ? null : LinearGradient(
+                  //   begin: Alignment.topLeft,
+                  //   end: Alignment.bottomRight,
+                  //   colors: [
+                  //     Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.1) ?? Colors.white,
+                  //     Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.3) ?? Colors.white
+                  //   ]
+                  // ),
                   border: widget.showBorder ? Border.all(
-                    color: Constants.getThemedObject(context, light: Colors.grey[200]!, dark: Colors.grey[800]!),
+                    color: Constants.getThemedObject(context, light: Palette.of(context).outline, dark: Colors.grey[800]!),
                     width: 1,
                   ) : null,
-                  borderRadius: BorderRadius.circular(radius)
+                  borderRadius: BorderRadius.circular(radius),
+                  // boxShadow: [
+                  //   BoxShadow(
+                  //     color: Colors.black.withOpacity(0.1),
+                  //     blurRadius: 2,
+                  //     offset: Offset(0, 1)
+                  //   )
+                  // ]
                 ),
                 child: Center(
                   child: widget.child ?? Icon(
@@ -420,20 +436,20 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
             ),
             if (widget.title != null) ... [
               Container(height: 6,),
-              Container(
-                // color: Colors.red,
-                child: SizedBox(
-                  height: calculateHeight() - 70,
-                  child: Center(
-                    child: Text(
-                      widget.title!,
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        fontFamily: 'Google Sans'
-                      ),
-                      overflow: TextOverflow.visible,
-                      maxLines: 2,
-                      textAlign: TextAlign.center,
+              SizedBox(
+                height: calculateTextHeight(),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Text(
+                    widget.title!,
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      fontFamily: 'Google Sans',
+                      height: 1.2,
                     ),
+                    overflow: TextOverflow.visible,
+                    maxLines: 2,
+                    softWrap: true,
+                    textAlign: TextAlign.center,
                   ),
                 ),
               )
@@ -463,14 +479,18 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
     if (widget.animateBorderRadius) setState(() => radius = widget.borderRadius);
   }
 
-  double calculateHeight() {
+  double calculateTextHeight() {
     if (widget.title != null) {
-      return Theme.of(context).textTheme.titleMedium!.fontSize! + 10 + 60;
+      return (Theme.of(context).textTheme.bodySmall!.fontSize! * 1.2 * 2);
     } else {
-      return 60;
+      return 0;
     }
   }
 
+}
+
+double getButtonWithIconHeight(BuildContext context) {
+  return (Theme.of(context).textTheme.bodySmall!.fontSize! * 1.2 * 2) + 6 + 70;
 }
 
 class ToggleIconButton extends StatefulWidget {

@@ -232,7 +232,7 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                   setState(() { });
                   break;
                 case 'meta':
-                  await AppRouter.push(context, page: Information(project: project));
+                  await AppRouter.push(context, page: ProjectMeta(project: project));
                   break;
                 case 'page-add':
                   project.pages.add();
@@ -250,7 +250,7 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                   setState(() { });
                   break;
                 case 'project-info':
-                  AppRouter.push(context, page: Information(project: project));
+                  AppRouter.push(context, page: ProjectMeta(project: project));
                   break;
                 default:
               }

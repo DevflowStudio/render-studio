@@ -26,6 +26,8 @@ class Project extends ChangeNotifier {
   /// Description of the project
   String? description;
 
+  late bool isTemplate;
+
   late PostSize size;
 
   late Size deviceSize;
@@ -39,25 +41,7 @@ class Project extends ChangeNotifier {
 
   /// This is the actual size of the page
   /// and will be used to export the image
-  Size get contentSize {
-    double height = size.size.height;
-    double width = size.size.width;
-    double ratio = width/height;
-
-    double actualWidth = deviceSize.width;
-    double actualHeight = deviceSize.width / ratio;
-
-    Size actualSize = Size(actualWidth, actualHeight);
-
-    double maxCanvasRatio = 0.6;
-
-    if (actualHeight > deviceSize.height * maxCanvasRatio) {
-      double _height = deviceSize.height * maxCanvasRatio;
-      actualSize = Size(_height * ratio, _height);
-    }
-
-    return actualSize;
-  }
+  Size get contentSize => getActualSizeFromPostSize(size, deviceSize);
 
   double get pixelRatio => size.size.width / contentSize.width;
 
@@ -76,6 +60,14 @@ class Project extends ChangeNotifier {
       }
     }
     return issues.isEmpty;
+  }
+
+  void resize(PostSize size) {
+    for (CreatorPage page in pages.pages) {
+      page.onSizeChange(this.size, size);
+    }
+    this.size = size;
+    notifyListeners();
   }
 
   Future<Map<String, dynamic>> toJSON(BuildContext context, {
@@ -108,7 +100,8 @@ class Project extends ChangeNotifier {
         'width': size.size.width,
       },
       'pages': pageData,
-      'meta': metadata.toJSON()
+      'meta': metadata.toJSON(),
+      'is-template': isTemplate,
     };
 
     return json;
@@ -128,6 +121,7 @@ class Project extends ChangeNotifier {
     project.thumbnail = data['thumbnail'];
     project.data = data;
     project.metadata = ProjectMetadata.fromJSON(data['meta']);
+    project.isTemplate = data['is-template'] ?? false;
 
     for (Map pageDate in data['pages']) {
       CreatorPage? page = await CreatorPage.fromJSON(Map<String, dynamic>.from(pageDate), project: project);
@@ -144,12 +138,18 @@ class Project extends ChangeNotifier {
   
   /// Create a new empty Project
   /// Requires a BuildContext to get the device size
-  static Future<Project> create(BuildContext context, {
-    PostSize? size
-  }) async {
+  static Project create(BuildContext context, {
+    required String title,
+    PostSize? size,
+    String? description,
+    bool isTemplate = false,
+  }) {
     Project project = Project(context);
     project.size = size ?? PostSizePresets.square.toSize();
     project.metadata = ProjectMetadata.create();
+    project.title = title;
+    if (description != null) project.description = description;
+    project.isTemplate = isTemplate;
     return project;
   }
 
@@ -158,24 +158,13 @@ class Project extends ChangeNotifier {
       ... data!,
       'id': Constants.generateID(),
       'title': '$title (copy)',
-      'meta': ProjectMetadata.create().toJSON()
+      'meta': ProjectMetadata.create().toJSON(),
+      'is-template': data!['is-template'] ?? false,
     });
   }
 
   static void createNewProject(BuildContext context, PostSize size) async {
-    Project project = await Project.create(context, size: size);
-    String title;
-    if (manager.projects.isEmpty) title = 'My First Project';
-    else {
-      int n = manager.projects.length + 1;
-      title = 'Project ($n)';
-      while (manager.projects.where((glance) => glance.title == title).isNotEmpty) {
-        n++;
-        title = 'Project ($n)';
-      }
-    }
-    project.title = title;
-    AppRouter.push(context, page: Information(project: project, isNewProject: true,));
+    AppRouter.push(context, page: ProjectMeta(size: size));
   }
 
 }
@@ -188,4 +177,24 @@ class ProjectCreationException implements Exception {
 
   ProjectCreationException(this.message, {this.details, this.code});
 
+}
+
+Size getActualSizeFromPostSize(PostSize size, Size deviceSize) {
+  double height = size.size.height;
+  double width = size.size.width;
+  double ratio = width/height;
+
+  double actualWidth = deviceSize.width;
+  double actualHeight = deviceSize.width / ratio;
+
+  Size actualSize = Size(actualWidth, actualHeight);
+
+  double maxCanvasRatio = 0.6;
+
+  if (actualHeight > deviceSize.height * maxCanvasRatio) {
+    double _height = deviceSize.height * maxCanvasRatio;
+    actualSize = Size(_height * ratio, _height);
+  }
+
+  return actualSize;
 }

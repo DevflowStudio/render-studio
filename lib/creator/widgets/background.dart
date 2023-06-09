@@ -1,7 +1,7 @@
 import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_io/io.dart';
-
+import 'package:collection/collection.dart';
 import '../../rehmat.dart';
 
 class BackgroundWidget extends CreatorWidget {
@@ -186,15 +186,18 @@ class BackgroundWidget extends CreatorWidget {
           title: 'Resize',
           tooltip: 'Tap to resize the project',
           onTap: (context) async {
+            PostSize currentSize = page.project.size;
+            PostSizePresets? currentPreset = PostSizePresets.values.firstWhereOrNull((preset) => preset.toSize().size == currentSize.size);
             EditorTab.modal(
               context,
               tab: (context, setState) => EditorTab.pickerBuilder(
                 title: 'Resize Project',
                 itemBuilder: (context, index) => Text('${PostSizePresets.values[index].title}'),
                 childCount: PostSizePresets.values.length,
+                initialIndex: currentPreset != null ? PostSizePresets.values.indexOf(currentPreset) : 0,
                 onSelectedItemChanged: (index) {
-                  page.project.size = PostSizePresets.values[index].toSize();
-                  page.notifyListeners(PageChange.misc);
+                  PostSize size = PostSizePresets.values[index].toSize();
+                  page.project.resize(size);
                 },
               )
             );
