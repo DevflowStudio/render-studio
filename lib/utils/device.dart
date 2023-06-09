@@ -20,11 +20,11 @@ class DeviceInfo {
     } else if (Platform.isIOS) {
       IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
       return DeviceInfo(
-        model: iosInfo.model ?? iosInfo.localizedModel ?? 'Unknown iPhone',
+        model: iosInfo.model,
         isEmulator: !iosInfo.isPhysicalDevice,
         brand: 'Apple',
-        device: iosInfo.name ?? 'Unknown iPhone',
-        version: iosInfo.systemVersion ?? 'Unknown iOS Version',
+        device: iosInfo.name,
+        version: iosInfo.systemVersion,
         os: 'ios'
       );
     } else if (Platform.isMacOS) {

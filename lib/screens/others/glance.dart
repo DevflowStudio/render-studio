@@ -340,10 +340,18 @@ class ProjectGlanceCard extends StatelessWidget {
         }
       },
       borderRadius: BorderRadius.circular(20),
-      child: Card(
+      child: Container(
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20)
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: Palette.of(context).background,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              offset: Offset(0, 1),
+              blurRadius: 2
+            )
+          ]
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

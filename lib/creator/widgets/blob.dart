@@ -43,7 +43,10 @@ class CreativeBlob extends CreatorWidget {
   
   @override
   List<ResizeHandler> resizeHandlers = [
-    ... ResizeHandler.values
+    ResizeHandler.topLeft,
+    ResizeHandler.topRight,
+    ResizeHandler.bottomLeft,
+    ResizeHandler.bottomRight,
   ];
 
   late Color color;

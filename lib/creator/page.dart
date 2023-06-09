@@ -13,7 +13,8 @@ class CreatorPage extends PropertyChangeNotifier {
   CreatorPage({
     required this.project,
     Map<String, dynamic>? data,
-    bool isFirstPage = false
+    bool isFirstPage = false,
+    bool addDefaultWidgets = true
   }) {
 
     gridState = GridState(
@@ -23,7 +24,7 @@ class CreatorPage extends PropertyChangeNotifier {
     void buildWidgets() {
       if (!isFirstPage) return;
       if (app.remoteConfig.showWatermark) RenderStudioWatermark.create(page: this);
-      CreatorText.createDefaultWidget(page: this);
+      if (addDefaultWidgets) CreatorText.createDefaultWidget(page: this);
     }
 
     if (data == null) {
@@ -119,6 +120,12 @@ class CreatorPage extends PropertyChangeNotifier {
   }) async {
     widgets.select();
     String? _path;
+    double pixelRatio;
+    if (autoExportQuality && preferences.exportQuality.name != 'default') {
+      pixelRatio = preferences.exportQuality.pixelRatio(context);
+    } else {
+      pixelRatio = project.pixelRatio;
+    }
     try {
       DateTime _start = DateTime.now();
       Uint8List bytes = await screenshotController.captureFromWidget(
@@ -129,7 +136,7 @@ class CreatorPage extends PropertyChangeNotifier {
           ),
         ),
         context: context,
-        pixelRatio: autoExportQuality ? preferences.exportQuality.pixelRatio(context) : MediaQuery.of(context).devicePixelRatio
+        pixelRatio: pixelRatio
       );
       _path = '/Render Projects/${project.id}/page-${Constants.generateID(3)}.png';
       await pathProvider.saveToDocumentsDirectory(_path, bytes: bytes);
@@ -144,24 +151,12 @@ class CreatorPage extends PropertyChangeNotifier {
     return _path;
   }
 
-  // Future<bool> saveToGallery(BuildContext context) async {
-  //   try {
-  //     Uint8List? image = await screenshotController.captureFromWidget(
-  //       build(context),
-  //       delay: Duration(milliseconds: 50),
-  //     );
-  //     final result = await ImageGallerySaver.saveImage(
-  //       image,
-  //       name: 'Render Project ${Constants.generateUID(5)}',
-  //       quality: 100
-  //     );
-  //     if (result is Map && result['isSuccess'] == true) {
-  //       return true;
-  //     } else return false;
-  //   } catch (e) {
-  //     return false;
-  //   }
-  // }
+  void onSizeChange(PostSize oldSize, PostSize newSize) {
+    for (CreatorWidget widget in widgets.widgets) {
+      widget.onProjectSizeChange(oldSize, newSize);
+    }
+    notifyListeners(PageChange.update);
+  }
 
   Map<String, dynamic> toJSON([BuildInfo buildInfo = BuildInfo.unknown]) => {
     ... widgets.toJSON(buildInfo),

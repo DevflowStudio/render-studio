@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -17,7 +18,7 @@ class Option {
     required IconData icon,
     String? tooltip,
     Function(BuildContext context)? onLongPress,
-    bool greyOut = false
+    bool greyOut = false,
   }) => Option(
     widget: (context) => ButtonWithIcon(
       title: title,
@@ -160,7 +161,7 @@ class Option {
     required double max,
     required Function(double value) onChange,
     Function(double value)? onChangeStart,
-    Function(double value)? onChangeEnd,
+    Function()? onChangeEnd,
     String? tooltip,
     num? snapSensitivity,
     List<num>? snapPoints,
@@ -168,8 +169,8 @@ class Option {
   }) => Option.button(
     title: title,
     tooltip: tooltip,
-    onTap: (context) => {
-      EditorTab.modal(
+    onTap: (context) async {
+      await EditorTab.modal(
         context,
         tab: (context, setState) => EditorTab(
           tab: title,
@@ -180,7 +181,6 @@ class Option {
               min: min,
               max: max,
               onChange: onChange,
-              onChangeEnd: onChangeEnd,
               onChangeStart: onChangeStart,
               snapPoints: snapPoints,
               snapSensitivity: snapSensitivity,
@@ -188,7 +188,8 @@ class Option {
             )
           ]
         )
-      )
+      );
+      onChangeEnd?.call();
     },
     icon: icon
   );
@@ -247,6 +248,7 @@ class Option {
         return ButtonWithIcon(
           title: 'Font',
           onTap: (context) async {
+            String _initialFont = fontFamily;
             await EditorTab.modal(
               context,
               height: 170,
@@ -346,7 +348,8 @@ class Option {
                 );
               }
             );
-            onChange(WidgetChange.update, null);
+            if (fontFamily != _initialFont) onChange(WidgetChange.update, null);
+            else onChange(WidgetChange.misc, null);
           },
           child: Text(
             'Aa',
@@ -473,20 +476,23 @@ class Option {
 
   static Option position({
     String title = 'Position',
-    IconData icon = RenderIcons.position,
+    IconData? icon,
     String tooltip = 'Position the widget across the page',
     required CreatorWidget widget,
-  }) => Option.button(
-    title: title,
-    onTap: (context) =>  EditorTab.modal(
-      context,
-      tab: (context, setState) => EditorTab.position(
-        widget: widget
-      )
-    ),
-    icon: icon,
-    tooltip: tooltip
-  );
+  }) {
+    icon ??= RenderIcons.position;
+    return Option.button(
+      title: title,
+      onTap: (context) =>  EditorTab.modal(
+        context,
+        tab: (context, setState) => EditorTab.position(
+          widget: widget
+        )
+      ),
+      icon: icon,
+      tooltip: tooltip
+    );
+  }
 
   Widget build(BuildContext context) => widget(context);
 
@@ -554,7 +560,7 @@ class _CustomSliderState extends State<CustomSlider> {
           Text(
             widget.label ?? 'Label',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)
+              color: Theme.of(context).colorScheme.onSurfaceVariant
             ),
           ),
           SizedBox(height: 6),

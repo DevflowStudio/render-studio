@@ -1,7 +1,7 @@
 import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_io/io.dart';
-
+import 'package:collection/collection.dart';
 import '../../rehmat.dart';
 
 class BackgroundWidget extends CreatorWidget {
@@ -25,8 +25,7 @@ class BackgroundWidget extends CreatorWidget {
   /// Color of the page background
   Color color = Colors.white;
 
-  List<Color>? gradient;
-  BackgroundGradient gradientType = BackgroundGradient.type2;
+  CreativeGradient? gradient;
 
   BackgroundType type = BackgroundType.color;
 
@@ -54,24 +53,6 @@ class BackgroundWidget extends CreatorWidget {
         //     borderRadius: 15,
         //   ),
         // ),
-        Option.color(
-          palette: page.palette,
-          onChange: (color) {
-            if (color == null) return;
-            this.color = color;
-            if (type != BackgroundType.color) {
-              changeBackgroundType(BackgroundType.color);
-            }
-            updateListeners(WidgetChange.misc);
-          },
-          onChangeEnd: (color) {
-            if (color != null) this.color = color;
-            if (type != BackgroundType.color) {
-              changeBackgroundType(BackgroundType.color);
-            }
-            updateListeners(WidgetChange.update);
-          },
-        ),
         Option.button(
           icon: RenderIcons.palette,
           title: 'Palette',
@@ -95,50 +76,56 @@ class BackgroundWidget extends CreatorWidget {
                 bottom: Constants.of(context).bottomPadding
               )
             );
-            if (hasChanged) updateListeners(WidgetChange.update);
+            if (hasChanged) updateListeners(WidgetChange.update, historyMessage: 'Change Palette');
           },
         ),
-        Option.button(
-          icon: RenderIcons.resize,
-          title: 'Resize',
-          tooltip: 'Tap to resize the project',
-          onTap: (context) async {
-            EditorTab.modal(
-              context,
-              tab: (context, setState) => EditorTab.pickerBuilder(
-                title: 'Resize Project',
-                itemBuilder: (context, index) => Text('${PostSizePresets.values[index].title}'),
-                childCount: PostSizePresets.values.length,
-                onSelectedItemChanged: (index) {
-                  page.project.size = PostSizePresets.values[index].toSize();
-                  page.notifyListeners(PageChange.misc);
-                },
-              )
-            );
+        Option.color(
+          palette: page.palette,
+          onChange: (color) {
+            if (color == null) return;
+            this.color = color;
+            gradient = null;
+            if (type != BackgroundType.color) {
+              changeBackgroundType(BackgroundType.color);
+            }
+            updateListeners(WidgetChange.misc);
           },
-        ),
-        Option.button(
-          title: 'Padding',
-          onTap: (context) async {
-            updateGrids(showGridLines: true, hideCenterGrids: true);
-            await EditorTab.modal(
-              context,
-              tab: (context, setState) => EditorTab.paddingEditor(
-                padding: padding,
-                max: page.project.contentSize.width/8,
-                min: 5,
-                onChange: (value) {
-                  padding = value;
-                  updateGrids(showGridLines: true, hideCenterGrids: true);
-                  updateListeners(WidgetChange.misc);
-                },
-              )
-            );
-            updateGrids(showGridLines: false);
+          onChangeEnd: (color) {
+            if (color != null) this.color = color;
+            if (type != BackgroundType.color) {
+              changeBackgroundType(BackgroundType.color);
+            }
             updateListeners(WidgetChange.update);
           },
-          icon: RenderIcons.padding,
-          tooltip: 'Adjust Padding'
+        ),
+        Option.button(
+          title: 'Gradient',
+          onTap: (context) async {
+            gradient ??= CreativeGradient.fromPalette(palette: page.palette);
+            updateListeners(WidgetChange.misc);
+            await EditorTab.modal(
+              context,
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    gradient = null;
+                    Navigator.of(context).pop();
+                  },
+                  icon: Icon(RenderIcons.delete)
+                ),
+              ],
+              tab: (context, setState) => gradient!.getEditor(
+                palette: page.palette,
+                allowOpacity: false,
+                onChange: (change) {
+                  setState(() {});
+                  updateListeners(change);
+                },
+              ),
+            );
+            updateListeners(WidgetChange.update);
+          },
+          icon: RenderIcons.gradient
         ),
         Option.button(
           icon: RenderIcons.image,
@@ -194,6 +181,51 @@ class BackgroundWidget extends CreatorWidget {
             }
           },
         ),
+        Option.button(
+          icon: RenderIcons.resize,
+          title: 'Resize',
+          tooltip: 'Tap to resize the project',
+          onTap: (context) async {
+            PostSize currentSize = page.project.size;
+            PostSizePresets? currentPreset = PostSizePresets.values.firstWhereOrNull((preset) => preset.toSize().size == currentSize.size);
+            EditorTab.modal(
+              context,
+              tab: (context, setState) => EditorTab.pickerBuilder(
+                title: 'Resize Project',
+                itemBuilder: (context, index) => Text('${PostSizePresets.values[index].title}'),
+                childCount: PostSizePresets.values.length,
+                initialIndex: currentPreset != null ? PostSizePresets.values.indexOf(currentPreset) : 0,
+                onSelectedItemChanged: (index) {
+                  PostSize size = PostSizePresets.values[index].toSize();
+                  page.project.resize(size);
+                },
+              )
+            );
+          },
+        ),
+        Option.button(
+          title: 'Padding',
+          onTap: (context) async {
+            updateGrids(showGridLines: true, hideCenterGrids: true);
+            await EditorTab.modal(
+              context,
+              tab: (context, setState) => EditorTab.paddingEditor(
+                padding: padding,
+                max: page.project.contentSize.width/8,
+                min: 5,
+                onChange: (value) {
+                  padding = value;
+                  updateGrids(showGridLines: true, hideCenterGrids: true);
+                  updateListeners(WidgetChange.misc);
+                },
+              )
+            );
+            updateGrids(showGridLines: false);
+            updateListeners(WidgetChange.update);
+          },
+          icon: RenderIcons.padding,
+          tooltip: 'Adjust Padding'
+        ),
         if (page.project.pages.length > 1) Option.button(
           icon: RenderIcons.delete,
           title: 'Delete Page',
@@ -234,11 +266,7 @@ class BackgroundWidget extends CreatorWidget {
       child: Container(
         decoration: BoxDecoration(
           color: type == BackgroundType.color ? color : Colors.white,
-          gradient: (type == BackgroundType.gradient && gradient != null) ? LinearGradient(
-            colors: gradient!,
-            begin: gradientType.begin,
-            end: gradientType.end,
-          ) : null
+          gradient: gradient?.gradient
         ),
         child: (asset != null && imageProvider != null) ? imageProvider!.build(
           asset!,
@@ -254,14 +282,16 @@ class BackgroundWidget extends CreatorWidget {
     /// Affects the history of the widget
     WidgetChange change, {
     /// Pass `true` to remove all grids
-    bool removeGrids = false
+    bool removeGrids = false,
+    String? historyMessage,
   }) {
     if (removeGrids) page.gridState.hideAll();
-    if (change == WidgetChange.update) notifyListeners(change);
-    stateCtrl.update(change);
-    if (change == WidgetChange.update && asset != null) {
-      asset!.logVersion(version: page.history.nextVersion ?? '', file: asset!.file);
+    if (change == WidgetChange.update) {
+      notifyListeners(change);
+      if (asset != null) asset!.logVersion(version: page.history.nextVersion ?? '', file: asset!.file);
+      page.history.log(historyMessage);
     }
+    stateCtrl.update(change);
   }
 
   @override
@@ -275,12 +305,12 @@ class BackgroundWidget extends CreatorWidget {
     bool hideCenterGrids = false
   }) {
     page.gridState.grids.removeWhere((grid) => grid.widget == this);
-    Color gridColor;
-    if (type == BackgroundType.color) {
-      gridColor = page.palette.onBackground;
-    } else {
-      gridColor = Colors.white;
-    }
+    Color gridColor = Colors.pinkAccent;
+    // if (type == BackgroundType.color) {
+    //   gridColor = page.palette.onBackground;
+    // } else {
+    //   gridColor = Colors.white;
+    // }
     // Color gridColor = Colors.deepPurple;
     List<Grid> grids = [
       Grid(
@@ -361,37 +391,15 @@ class BackgroundWidget extends CreatorWidget {
     switch (_type) {
       case BackgroundType.color:
         asset = null;
-        gradient = null;
         imageProvider = null;
         break;
       case BackgroundType.image:
         gradient = null;
         break;
-      case BackgroundType.gradient:
-        asset = null;
-        imageProvider = null;
-        break;
       default:
     }
     type = _type;
     updateListeners(WidgetChange.misc);
-  }
-
-  List<String>? _generateGradientsHex() {
-    List<String> _generated = [];
-    if (gradient == null) return null;
-    for (Color color in gradient!) {
-      _generated.add(color.toHex());
-    }
-    return _generated;
-  }
-
-  List<Color> _generateGradientsColor(List<String> hex) {
-    List<Color> _generated = [];
-    for (String h in hex) {
-      _generated.add(HexColor.fromHex(h));
-    }
-    return _generated;
   }
 
   void onPaletteUpdate() {
@@ -411,7 +419,7 @@ class BackgroundWidget extends CreatorWidget {
     return {
       ... super.toJSON(buildInfo: buildInfo),
       'color': color.toHex(),
-      'gradient': _generateGradientsHex(),
+      'gradient': gradient?.toJSON(),
       'padding': padding.toJSON(),
       'image-provider': imageProvider?.toJSON(),
     };
@@ -427,10 +435,9 @@ class BackgroundWidget extends CreatorWidget {
       if (asset != null) {
         type = BackgroundType.image;
       }
-      if (json['gradient'] != null) {
-        gradient = _generateGradientsColor(json['gradient']);
-        type = BackgroundType.gradient;
-      }
+      if (json['gradient'] != null) try {
+        gradient = CreativeGradient.fromJSON(Map.from(json['gradient']));
+      } catch (e) { }
       if (json['padding'] != null) {
         padding = PaddingExtension.fromJSON(Map.from(json['padding']));
       }
@@ -450,47 +457,5 @@ class BackgroundWidget extends CreatorWidget {
 
 enum BackgroundType {
   color,
-  gradient,
   image
-}
-
-enum BackgroundGradient {
-  type1,
-  type2,
-  type3,
-  type4,
-}
-
-extension BackgroundGradientExtension on BackgroundGradient {
-
-  AlignmentGeometry get begin {
-    switch (this) {
-      case BackgroundGradient.type1:
-        return Alignment.centerLeft;
-      case BackgroundGradient.type2:
-        return Alignment.topLeft;
-      case BackgroundGradient.type3:
-        return Alignment.topCenter;
-      case BackgroundGradient.type4:
-        return Alignment.topRight;
-      default:
-        return Alignment.topLeft;
-    }
-  }
-
-  AlignmentGeometry get end {
-    switch (this) {
-      case BackgroundGradient.type1:
-        return Alignment.centerRight;
-      case BackgroundGradient.type2:
-        return Alignment.bottomRight;
-      case BackgroundGradient.type3:
-        return Alignment.bottomCenter;
-      case BackgroundGradient.type4:
-        return Alignment.bottomLeft;
-      default:
-        return Alignment.bottomRight;
-    }
-  }
-
 }

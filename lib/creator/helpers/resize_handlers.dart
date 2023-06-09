@@ -30,7 +30,7 @@ extension ResizeHandlerProperties on ResizeHandler {
         );
       case ResizeHandler.topCenter:
         return Positioned(
-          top: 0,
+          top: -0.75,
           left: size.width / 2,
           child: child
         );
@@ -42,13 +42,13 @@ extension ResizeHandlerProperties on ResizeHandler {
         );
       case ResizeHandler.centerLeft:
         return Positioned(
-          left: 0,
+          left: -0.75,
           top: size.height / 2,
           child: child
         );
       case ResizeHandler.centerRight:
         return Positioned(
-          right: 0,
+          right: -0.75,
           top: size.height / 2,
           child: child
         );
@@ -60,7 +60,7 @@ extension ResizeHandlerProperties on ResizeHandler {
         );
       case ResizeHandler.bottomCenter:
         return Positioned(
-          bottom: 0,
+          bottom: -0.75,
           left: size.width / 2,
           child: child
         );
@@ -84,17 +84,17 @@ extension ResizeHandlerProperties on ResizeHandler {
       case ResizeHandler.topLeft:
         return const Size(17, 17);
       case ResizeHandler.topCenter:
-        return const Size(30, 3);
+        return const Size(20, 5);
       case ResizeHandler.topRight:
         return const Size(17, 17);
       case ResizeHandler.centerLeft:
-        return const Size(3, 30);
+        return const Size(5, 20);
       case ResizeHandler.centerRight:
-        return const Size(3, 30);
+        return const Size(5, 20);
       case ResizeHandler.bottomLeft:
         return const Size(17, 17);
       case ResizeHandler.bottomCenter:
-        return const Size(30, 3);
+        return const Size(20, 5);
       case ResizeHandler.bottomRight:
         return const Size(17, 17);
       default:
@@ -107,17 +107,17 @@ extension ResizeHandlerProperties on ResizeHandler {
       case ResizeHandler.topLeft:
         return const Size(30, 30);
       case ResizeHandler.topCenter:
-        return const Size(40, 6);
+        return const Size(30, 8);
       case ResizeHandler.topRight:
         return const Size(30, 30);
       case ResizeHandler.centerLeft:
-        return const Size(6, 40);
+        return const Size(8, 30);
       case ResizeHandler.centerRight:
-        return const Size(6, 40);
+        return const Size(8, 30);
       case ResizeHandler.bottomLeft:
         return const Size(30, 30);
       case ResizeHandler.bottomCenter:
-        return const Size(40, 6);
+        return const Size(30, 8);
       case ResizeHandler.bottomRight:
         return const Size(30, 30);
       default:
@@ -130,9 +130,6 @@ extension ResizeHandlerProperties on ResizeHandler {
     required DragUpdateDetails details,
     /// Previous Size
     required CreatorWidget widget,
-    /// Setting this to `true` will keep updating the position of the widget as it is resized (default: `true`)
-    /// This will provide the feedback of resizing the widget with the opposite end of the widget locked to a position
-    bool updatePosition = true,
     bool keepAspectRatio = false,
   }) {
     double changeInX = details.delta.dx;
@@ -142,14 +139,12 @@ extension ResizeHandlerProperties on ResizeHandler {
         Size _size = _calculateNewSize(widget, -changeInX, -changeInY, keepAspectRatio);
         if (widget.allowResize(_size)) {
           if (keepAspectRatio) changeInY = widget.size.height - _size.height;
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
       case ResizeHandler.topCenter:
         Size _size = _calculateNewSize(widget, 0, -changeInY, keepAspectRatio);
         if (widget.allowResize(_size)) {
-          if (updatePosition) widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
@@ -157,7 +152,6 @@ extension ResizeHandlerProperties on ResizeHandler {
         Size _size = _calculateNewSize(widget, changeInX, -changeInY, keepAspectRatio);
         if (widget.allowResize(_size)) {
           if (keepAspectRatio) changeInY = widget.size.height - _size.height;
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
@@ -165,14 +159,12 @@ extension ResizeHandlerProperties on ResizeHandler {
       case ResizeHandler.centerLeft:
         Size _size = _calculateNewSize(widget, -changeInX, 0, keepAspectRatio);
         if (widget.allowResize(_size)) {
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
           return _size;
         }
         return widget.size;
       case ResizeHandler.centerRight:
         Size _size = _calculateNewSize(widget, changeInX, 0, keepAspectRatio);
         if (widget.allowResize(_size)) {
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy);
           return _size;
         }
         return widget.size;
@@ -181,14 +173,12 @@ extension ResizeHandlerProperties on ResizeHandler {
         Size _size = _calculateNewSize(widget, -changeInX, changeInY, keepAspectRatio);
         if (widget.allowResize(_size)) {
           if (keepAspectRatio) changeInY = _size.height - widget.size.height;
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
       case ResizeHandler.bottomCenter:
         Size _size = _calculateNewSize(widget, 0, changeInY, keepAspectRatio);
         if (widget.allowResize(_size)) {
-          if (updatePosition) widget.position = Offset(widget.position.dx, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
@@ -196,7 +186,6 @@ extension ResizeHandlerProperties on ResizeHandler {
         Size _size = _calculateNewSize(widget, changeInX, changeInY, keepAspectRatio);
         if (widget.allowResize(_size)) {
           if (keepAspectRatio) changeInY = _size.height - widget.size.height;
-          if (updatePosition) widget.position = Offset(widget.position.dx + changeInX / 2, widget.position.dy + changeInY / 2,);
           return _size;
         }
         return widget.size;
@@ -261,6 +250,30 @@ extension ResizeHandlerProperties on ResizeHandler {
     }
   }
 
+  /// Returns the alignment to auto position the element during resize
+  Alignment get autoPositionAlignment {
+    switch (this) {
+      case ResizeHandler.topLeft:
+        return Alignment.bottomRight;
+      case ResizeHandler.topCenter:
+        return Alignment.bottomCenter;
+      case ResizeHandler.topRight:
+        return Alignment.bottomLeft;
+      case ResizeHandler.centerLeft:
+        return Alignment.centerRight;
+      case ResizeHandler.centerRight:
+        return Alignment.centerLeft;
+      case ResizeHandler.bottomLeft:
+        return Alignment.topRight;
+      case ResizeHandler.bottomCenter:
+        return Alignment.topCenter;
+      case ResizeHandler.bottomRight:
+        return Alignment.topLeft;
+      default:
+        return Alignment.center;
+    }
+  }
+
 }
 
 enum ResizeHandlerType {
@@ -280,9 +293,6 @@ class ResizeHandlerBall extends StatefulWidget {
     this.isVisible = true,
     this.isResizing = false,
     this.color,
-    /// Setting this to `true` will keep updating the position of the widget as it is resized (default: `true`)
-    /// This will provide the feedback of resizing the widget with the opposite end of the widget locked to a position
-    this.updatePosition = true,
     this.keepAspectRatio = false,
     /// Set to `true` to reduce the size of resize handlers
     this.isMinimized = false
@@ -290,14 +300,13 @@ class ResizeHandlerBall extends StatefulWidget {
 
   final ResizeHandler type;
   final CreatorWidget widget;
-  final void Function(Size size) onSizeChange;
+  final void Function(Size size, {ResizeHandler? type}) onSizeChange;
   final void Function({DragStartDetails? details, ResizeHandler? handler})? onResizeStart;
   final void Function({DragEndDetails? details, ResizeHandler? handler})? onResizeEnd;
   final bool isVisible;
   /// Set to `true` if the widget is currently being resized
   final bool isResizing;
   final Color? color;
-  final bool updatePosition;
   final bool keepAspectRatio;
   final bool isMinimized;
 
@@ -397,8 +406,8 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
   Size get _size => isDragging ? widget.type.feedbackSize : (minimizeSize ? widget.type.size/2 : widget.type.size);
 
   void _onDrag(DragUpdateDetails details) {
-    Size? size = widget.type.calculateSize(details: details, widget: widget.widget, updatePosition: widget.updatePosition, keepAspectRatio: widget.keepAspectRatio);
-    if (size != null) widget.onSizeChange(size);
+    Size? size = widget.type.calculateSize(details: details, widget: widget.widget, keepAspectRatio: widget.keepAspectRatio);
+    if (size != null) widget.onSizeChange(size, type: widget.type);
   }
 
   void _onDragStart([DragStartDetails? details]) {

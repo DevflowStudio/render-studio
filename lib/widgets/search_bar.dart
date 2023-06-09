@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:render_studio/rehmat.dart';
 import 'package:universal_io/io.dart';
 
-class SearchBar extends StatelessWidget {
+class RenderSearchBar extends StatelessWidget {
 
-  const SearchBar({
+  const RenderSearchBar({
     super.key,
     this.controller,
     this.onSuffixTap,

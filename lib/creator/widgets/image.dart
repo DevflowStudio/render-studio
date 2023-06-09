@@ -5,7 +5,6 @@ import 'package:colorfilter_generator/presets.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:octo_image/octo_image.dart';
-import 'package:on_image_matrix/on_image_matrix.dart';
 import 'package:sprung/sprung.dart';
 import 'package:universal_io/io.dart';
 import '../../rehmat.dart';
@@ -103,10 +102,7 @@ class CreativeImageProvider {
           brightness = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          brightness = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       Option.showSlider(
@@ -119,10 +115,7 @@ class CreativeImageProvider {
           contrast = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          contrast = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       Option.showSlider(
@@ -135,10 +128,7 @@ class CreativeImageProvider {
           exposure = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          exposure = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       Option.showSlider(
@@ -151,10 +141,7 @@ class CreativeImageProvider {
           saturation = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          saturation = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       // Option.showSlider(
@@ -182,10 +169,7 @@ class CreativeImageProvider {
           hue = value;
           onChange(WidgetChange.misc);
         },
-        onChangeEnd: (value) {
-          hue = value;
-          onChange(WidgetChange.update);
-        },
+        onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
       Option.button(
@@ -442,7 +426,7 @@ class ImageWidget extends CreatorWidget {
             if (file == null) return;
             asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
             await resizeByImage();
-            updateListeners(WidgetChange.update);
+            updateListeners(WidgetChange.update, historyMessage: 'Replace Image');
           },
           icon: RenderIcons.replace,
           tooltip: 'Replace Image'
@@ -456,8 +440,7 @@ class ImageWidget extends CreatorWidget {
             if (cropped == null) return;
             asset!.logVersion(version: page.history.nextVersion ?? '', file: cropped);
             await resizeByImage();
-            updateListeners(WidgetChange.update);
-            // asset.updateFile(cropped);
+            updateListeners(WidgetChange.update, historyMessage: 'Crop');
           },
         ),
         Option.showSlider(
@@ -470,10 +453,7 @@ class ImageWidget extends CreatorWidget {
             borderRadius = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            borderRadius = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
         ),
         ... defaultOptions,
       ],
@@ -490,8 +470,6 @@ class ImageWidget extends CreatorWidget {
   ];
 
   double borderRadius = 0;
-
-  OnImageController controller = OnImageController();
 
   late CreativeImageProvider provider;
 
@@ -517,20 +495,8 @@ class ImageWidget extends CreatorWidget {
   }
 
   @override
-  void updateListeners(
-    /// Type of change when notifying listeners
-    /// Affects the history of the widget
-    WidgetChange change, {
-    /// Pass `true` to remove all grids
-    bool removeGrids = false
-  }) {
-    super.updateListeners(change, removeGrids: removeGrids);
-  }
-
-  @override
   void dispose() {
     super.dispose();
-    controller.dispose();
   }
 
   @override

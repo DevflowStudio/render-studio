@@ -50,11 +50,11 @@ class UnsplashAPI extends ChangeNotifier {
           'page': page != null ? ((page/30) + 1).toInt() : null,
           'query': searchTerm,
           'per_page': 30,
-          'order_by': 'popular',
+          'order_by': searchTerm != null ? 'relevant' : 'latest',
         }
       );
       if (response.statusCode != 200) {
-        await analytics.logError('Status code ${response.statusCode} with message: ${response.statusMessage}', cause: 'Failed to fetch Unsplash photo');
+        await analytics.logError('Status code ${response.statusCode} with message: ${response.statusMessage}', cause: 'Failed to fetch Unsplash photo e1');
       } else {
         try {
           List<UnsplashPhoto> _photos = [];
@@ -69,7 +69,7 @@ class UnsplashAPI extends ChangeNotifier {
       }
       return null;
     } catch (e, stacktrace) {
-      await analytics.logError(e, stacktrace: stacktrace, cause: 'Failed to fetch Unsplash photos');
+      await analytics.logError(e, stacktrace: stacktrace, cause: 'Failed to fetch Unsplash photos e2');
       return null;
     }
   }
@@ -101,7 +101,7 @@ class UnsplashPhoto extends ChangeNotifier {
 
   String get downloadURL => data['links']['download'];
 
-  String get blurHash => data['blur_hash'];
+  String? get blurHash => data['blur_hash'];
 
   Color get color => HexColor.fromHex(data['color']);
 
@@ -150,7 +150,7 @@ class UnsplashPhoto extends ChangeNotifier {
       }
     );
     if (response.statusCode != 200) {
-      await analytics.logError('Status code ${response.statusCode} with message: ${response.statusMessage} when fetching Unsplash photo $id', cause: 'Failed to fetch Unsplash photo');
+      await analytics.logError('Status code ${response.statusCode} with message: ${response.statusMessage} when fetching Unsplash photo $id', cause: 'Failed to fetch Unsplash photo e3');
       return null;
     } else {
       return UnsplashPhoto(response.data);

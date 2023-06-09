@@ -33,51 +33,6 @@ class _CreatePaletteState extends State<CreatePalette> {
       appBar: AppBar(
         leading: NewBackButton(),
         title: Text('Create Palette'),
-        actions: [
-          PopupMenuButton(
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                child: Text('Create From Image'),
-                value: 'image-palette',
-              ),
-            ],
-            onSelected: (value) async {
-              switch (value) {
-                case 'image-palette':
-                  try {
-                    File? file = await FilePicker.pick(context: context, crop: false, type: FileType.image);
-                    if (file == null) return;
-                    PaletteGenerator? paletteGenerator;
-                    await Spinner.fullscreen(
-                      context,
-                      task: () async {
-                        Uint8List bytes = await file.readAsBytes();
-                        Image image = Image.memory(bytes);
-                        paletteGenerator = await PaletteGenerator.fromImageProvider(image.image);
-                      },
-                    );
-                    if (paletteGenerator == null) return;
-                    palette = ColorPalette(
-                      id: Constants.generateID(),
-                      colors: [
-                        paletteGenerator!.dominantColor!.color,
-                        paletteGenerator!.lightVibrantColor?.color ?? Colors.white,
-                        paletteGenerator!.vibrantColor?.color ?? Colors.white,
-                        paletteGenerator!.darkVibrantColor?.color ?? Colors.white,
-                        paletteGenerator!.darkMutedColor?.color ?? Colors.white,
-                      ],
-                    );
-                    // if (paletteGenerator != null) palette = ColorPalette(id: Constants.generateID(), colors: paletteGenerator!.colors.toList());
-                    setState(() { });
-                  } catch (e) {
-                    Alerts.snackbar(context, text: 'Oops! Something went wrong.');
-                  }
-                  break;
-                default:
-              }
-            },
-          )
-        ],
       ),
       body: Column(
         children: [
@@ -124,6 +79,7 @@ class _CreatePaletteState extends State<CreatePalette> {
                     autoLoading: true,
                     onPressed: () async {
                       palette = await ColorPalette.generate();
+                      setState(() { });
                     },
                   ),
                 ),
@@ -144,6 +100,17 @@ class _CreatePaletteState extends State<CreatePalette> {
                     ),
                   ),
                 ),
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: IconButton(
+                      onPressed: extractFromImage,
+                      icon: Icon(RenderIcons.upload),
+                      tooltip: 'Extract palette from image',
+                    ),
+                  ),
+                ),
               ],
             ),
           )
@@ -151,6 +118,40 @@ class _CreatePaletteState extends State<CreatePalette> {
       ),
     );
   }
+
+  Future<void> extractFromImage() async {
+    try {
+      File? file;
+      PaletteGenerator? paletteGenerator;
+      await Spinner.fullscreen(
+        context,
+        task: () async {
+          file = await FilePicker.pick(context: context, crop: false, type: FileType.image);
+          if (file == null) return;
+          Uint8List bytes = await file!.readAsBytes();
+          Image image = Image.memory(bytes);
+          paletteGenerator = await PaletteGenerator.fromImageProvider(image.image);
+        },
+      );
+      if (file == null) return;
+      if (paletteGenerator == null) return;
+      palette = ColorPalette(
+        id: Constants.generateID(),
+        colors: [
+          paletteGenerator!.dominantColor!.color,
+          paletteGenerator!.lightVibrantColor?.color ?? Colors.white,
+          paletteGenerator!.vibrantColor?.color ?? Colors.white,
+          paletteGenerator!.darkVibrantColor?.color ?? Colors.white,
+          paletteGenerator!.darkMutedColor?.color ?? Colors.white,
+        ],
+      );
+      // if (paletteGenerator != null) palette = ColorPalette(id: Constants.generateID(), colors: paletteGenerator!.colors.toList());
+      setState(() { });
+    } catch (e) {
+      Alerts.snackbar(context, text: 'Oops! Something went wrong.');
+    }
+  }
+
 }
 
 class _PaletteViewModal extends StatelessWidget {
@@ -223,6 +224,7 @@ class _PaletteViewModal extends StatelessWidget {
       ),
     );
   }
+
 }
 
 class _SaveButton extends StatefulWidget {

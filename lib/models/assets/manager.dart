@@ -74,7 +74,11 @@ class AssetManager {
   Future<void> _removeUnlinkedAssets() async {
     List<String> unusedAssets = assets.keys.toList();
     for (CreatorWidget widget in page.widgets.widgets) {
-      if (widget.asset != null && unusedAssets.contains(widget.asset!.id)) unusedAssets.remove(widget.asset!.id);
+      if (widget is WidgetGroup) {
+        for (CreatorWidget child in widget.widgets) {
+          if (child.asset != null && unusedAssets.contains(child.asset!.id)) unusedAssets.remove(child.asset!.id);
+        }
+      } else if (widget.asset != null && unusedAssets.contains(widget.asset!.id)) unusedAssets.remove(widget.asset!.id);
     }
     for (String id in unusedAssets) await delete(assets[id]!);
   }

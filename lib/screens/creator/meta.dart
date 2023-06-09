@@ -1,37 +1,42 @@
 import 'package:flutter/material.dart';
 import '../../../rehmat.dart';
 
-class Information extends StatefulWidget {
+class ProjectMeta extends StatefulWidget {
 
-  const Information({
+  const ProjectMeta({
     Key? key,
-    required this.project,
-    this.isNewProject = false
-  }) : super(key: key);
+    this.project,
+    this.size
+  }) : assert(size != null || project != null), super(key: key);
 
-  final Project project;
-  final bool isNewProject;
+  final Project? project;
+  final PostSize? size;
 
   @override
-  _InformationState createState() => _InformationState();
+  _ProjectMetaState createState() => _ProjectMetaState();
 }
 
-class _InformationState extends State<Information> {
+class _ProjectMetaState extends State<ProjectMeta> {
   
   TextEditingController titleCtrl = TextEditingController();
   TextEditingController descriptionCtrl = TextEditingController();
 
-  PostSizePresets size = PostSizePresets.square;
-
-  late Project project;
-
   bool titleError = false;
+  bool hasTitleChanged = false;
+
+  bool isCreatingProject = false;
+
+  bool isTemplate = false;
 
   @override
   void initState() {
-    project = widget.project;
-    titleCtrl.text = project.title ?? '';
-    descriptionCtrl.text = project.description ?? '';
+    if (widget.project == null) {
+      isCreatingProject = true;
+      setTitle();
+    } else {
+      titleCtrl.text = widget.project?.title ?? '';
+      descriptionCtrl.text = widget.project?.description ?? '';
+    }
     super.initState();
   }
 
@@ -42,7 +47,7 @@ class _InformationState extends State<Information> {
         slivers: [
           RenderAppBar(
             title: Text(
-              widget.isNewProject ? 'New Project' : 'Metadata'
+              isCreatingProject ? 'New Project' : 'Metadata'
             )
           ),
           SliverList(
@@ -57,6 +62,9 @@ class _InformationState extends State<Information> {
                     errorText: titleError ? 'Please add a title' : null
                   ),
                   maxLength: 80,
+                  onChanged: (value) {
+                    hasTitleChanged = true;
+                  },
                 ),
               ),
               FormGroup(
@@ -74,12 +82,48 @@ class _InformationState extends State<Information> {
                   maxLength: 2000,
                 ),
               ),
-              SizedBox(height: 10,),
-              SizedBox(height: 22,),
+              if (isCreatingProject) Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Label(
+                      label: 'Template',
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Create this project as a template to remix later',
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: Palette.of(context).onSurfaceVariant
+                            ),
+                          ),
+                        ),
+                        Switch.adaptive(
+                          value: isTemplate,
+                          onChanged: (value) {
+                            setState(() {
+                              isTemplate = value;
+                              setTitle();
+                            });
+                          },
+                        )
+                      ],
+                    ),
+                  ],
+                ),
+              ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: EdgeInsets.only(
+                  left: 12,
+                  right: 12,
+                  top: 12,
+                  bottom: Constants.of(context).bottomPadding
+                ),
                 child: PrimaryButton(
-                  child: Text(widget.isNewProject ? 'Let\'s Go' : 'Save'),
+                  child: Text(isCreatingProject ? 'Let\'s Go' : 'Save'),
                   onPressed: next,
                 ),
               )
@@ -93,8 +137,6 @@ class _InformationState extends State<Information> {
   void next() {
     String title = titleCtrl.text.trim();
     String description = descriptionCtrl.text.trim();
-    project.title = title;
-    project.description = description;
 
     if (title.trim().isEmpty) {
       setState(() {
@@ -103,8 +145,41 @@ class _InformationState extends State<Information> {
       return;
     }
 
-    if (widget.isNewProject) AppRouter.replace(context, page: Studio(project: project));
-    else Navigator.of(context).pop();
+    if (isCreatingProject) {
+      Project project = Project.create(
+        context,
+        title: title,
+        description: description,
+        size: widget.size,
+        isTemplate: isTemplate
+      );
+      AppRouter.replace(context, page: Studio(project: project));
+    } else {
+      widget.project!.title = title;
+      widget.project!.description = description;
+      widget.project!.isTemplate = isTemplate;
+      Navigator.of(context).pop();
+    }
+  }
+
+  void setTitle() {
+    if (hasTitleChanged) return;
+    if (manager.projects.isEmpty) {
+      if (isTemplate) {
+        titleCtrl.text = 'My First Template';
+      } else {
+        titleCtrl.text = 'My First Project';
+      }
+    }
+    else {
+      String prefix = isTemplate ? 'Template' : 'Project';
+      int n = manager.projects.length + 1;
+      titleCtrl.text = '$prefix ($n)';
+      while (manager.projects.where((glance) => glance.title == titleCtrl.text).isNotEmpty) {
+        n++;
+        titleCtrl.text = '$prefix ($n)';
+      }
+    }
   }
 
 }

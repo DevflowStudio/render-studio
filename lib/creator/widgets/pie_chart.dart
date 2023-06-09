@@ -111,7 +111,6 @@ class CreativePieChart extends CreatorWidget {
                         setState(() {});
                       },
                       color: section.color,
-                      tooltip: 'tooltip'
                     ),
                     minLeadingWidth: 1,
                     title: Row(
@@ -206,7 +205,6 @@ class CreativePieChart extends CreatorWidget {
                   trailing: GestureDetector(
                     onTap: () => Alerts.picker(
                       context,
-                      itemExtent: 2,
                       children: [
                         Text('Disc'),
                         Text('Ring'),
@@ -250,7 +248,6 @@ class CreativePieChart extends CreatorWidget {
                   trailing: GestureDetector(
                     onTap: showChartValues ? () => Alerts.picker(
                       context,
-                      itemExtent: 2,
                       children: [
                         Text('Inside'),
                         Text('Outside'),
@@ -304,10 +301,7 @@ class CreativePieChart extends CreatorWidget {
             strokeWidth = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            strokeWidth = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
         ),
         Option.showSlider(
           title: 'Angle',
@@ -328,10 +322,7 @@ class CreativePieChart extends CreatorWidget {
             initialAngle = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            initialAngle = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
           showValueEditor: true
         ),
         Option.showSlider(
@@ -348,10 +339,7 @@ class CreativePieChart extends CreatorWidget {
             legendSpacing = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            legendSpacing = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
         ),
         Option.button(
           title: 'Decimal Places',
@@ -385,42 +373,45 @@ class CreativePieChart extends CreatorWidget {
 
   @override
   Widget widget(BuildContext context) => Center(
-    child: PieChart(
-      dataMap: {
-        for (_CreativePieChartSection section in data) section.title: section.value
-      },
-      chartRadius: size.width / 2 - (chartType == ChartType.disc ? 0 : strokeWidth / 2),
-      legendOptions: LegendOptions(
-        showLegends: showLegend,
-        legendTextStyle: TextStyle(
-          color: page.palette.onBackground,
-          fontWeight: FontWeight.w500
-        )
+    child: Material(
+      color: Colors.transparent,
+      child: PieChart(
+        dataMap: {
+          for (_CreativePieChartSection section in data) section.title: section.value
+        },
+        chartRadius: size.width / 2 - (chartType == ChartType.disc ? 0 : strokeWidth / 2),
+        legendOptions: LegendOptions(
+          showLegends: showLegend,
+          legendTextStyle: TextStyle(
+            color: page.palette.onBackground,
+            fontWeight: FontWeight.w500
+          )
+        ),
+        colorList: [
+          for (_CreativePieChartSection section in data) section.color
+        ],
+        chartValuesOptions: ChartValuesOptions(
+          showChartValues: showChartValues,
+          decimalPlaces: decimalPlaces,
+          showChartValuesOutside: showChartValuesOutside,
+          showChartValuesInPercentage: showChartValuesInPercentage,
+          showChartValueBackground: showChartValueBackground,
+          chartValueBackgroundColor: page.palette.onBackground,
+          chartValueStyle: TextStyle(
+            color: page.palette.background
+          )
+        ),
+        chartType: chartType,
+        degreeOptions: DegreeOptions(
+          initialAngle: initialAngle
+        ),
+        legendLabels: {
+          for (_CreativePieChartSection section in data) section.title: section.title
+        },
+        chartLegendSpacing: legendSpacing,
+        ringStrokeWidth: strokeWidth,
+        animationDuration: Duration.zero,
       ),
-      colorList: [
-        for (_CreativePieChartSection section in data) section.color
-      ],
-      chartValuesOptions: ChartValuesOptions(
-        showChartValues: showChartValues,
-        decimalPlaces: decimalPlaces,
-        showChartValuesOutside: showChartValuesOutside,
-        showChartValuesInPercentage: showChartValuesInPercentage,
-        showChartValueBackground: showChartValueBackground,
-        chartValueBackgroundColor: page.palette.onBackground,
-        chartValueStyle: TextStyle(
-          color: page.palette.background
-        )
-      ),
-      chartType: chartType,
-      degreeOptions: DegreeOptions(
-        initialAngle: initialAngle
-      ),
-      legendLabels: {
-        for (_CreativePieChartSection section in data) section.title: section.title
-      },
-      chartLegendSpacing: legendSpacing,
-      ringStrokeWidth: strokeWidth,
-      animationDuration: Duration.zero,
     ),
   );
 

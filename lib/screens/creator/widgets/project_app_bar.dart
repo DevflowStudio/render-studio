@@ -1,9 +1,11 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:badges/badges.dart' as badge;
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card/flip_card_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sprung/sprung.dart';
+import 'package:supercharged/supercharged.dart';
 
 import '../../../rehmat.dart';
 
@@ -78,25 +80,29 @@ class _AppBarState extends State<ProjectAppBar> {
       ),
       centerTitle: false,
       titleSpacing: 0,
-      title: title != null ? Container(
-        decoration: BoxDecoration(
-          color: Palette.of(context).surface,
-          borderRadius: BorderRadius.circular(40),
-          border: Border.all(
-            color: Palette.of(context).outline,
-            width: 2
-          )
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 12
-        ),
-        child: Text(
-          title!,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            height: 0.66
+      title: project.pages.current.widgets.nSelections >= 2 ? FadeInDown(
+        from: 10,
+        duration: kAnimationDuration,
+        child: OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            padding: EdgeInsets.symmetric(
+              vertical: 10,
+              horizontal: 20,
+            ),
+            textStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontFamily: 'Google Sans',
+              fontWeight: FontWeight.w500
+            )
           ),
-        )
+          onPressed: project.pages.current.widgets.nSelections.isBetween(2, 10) ? () {
+            WidgetGroup.create(page: project.pages.current);
+          } : null,
+          icon: Icon(
+            RenderIcons.add,
+            size: Theme.of(context).textTheme.bodyLarge?.fontSize,
+          ),
+          label: Text('Group'),
+        ),
       ) : null,
       backgroundColor: Colors.transparent,
       actions: [
@@ -226,7 +232,7 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                   setState(() { });
                   break;
                 case 'meta':
-                  await AppRouter.push(context, page: Information(project: project));
+                  await AppRouter.push(context, page: ProjectMeta(project: project));
                   break;
                 case 'page-add':
                   project.pages.add();
@@ -244,7 +250,7 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                   setState(() { });
                   break;
                 case 'project-info':
-                  AppRouter.push(context, page: Information(project: project));
+                  AppRouter.push(context, page: ProjectMeta(project: project));
                   break;
                 default:
               }

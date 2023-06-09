@@ -83,18 +83,13 @@ class WidgetGroup extends CreatorWidget {
     required CreatorPage page,
     List<CreatorWidget>? widgets
   }) async {
-    // if (page.widgets.nSelections < 2) {
-    //   Alerts.snackbar(context, text: 'Select at least 2 widgets to group');
-    //   return null;
-    // } else if (page.widgets.nSelections > 10) {
-    //   Alerts.snackbar(context, text: 'You can only group up to 10 widgets');
-    //   return null;
-    // }
     try {
       WidgetGroup group = WidgetGroup(page: page);
       group._group = Group.create(group.uid);
+      
       List<CreatorWidget> _widgets = widgets ?? page.widgets.selections;
-      // _widgets.removeWhere((element) => element is WidgetGroup);
+      _widgets.sort((a, b) => page.widgets.sortedUIDs.indexOf(a.uid).compareTo(page.widgets.sortedUIDs.indexOf(b.uid)));
+      
       if (_widgets.length < 2) {
         return null;
       } else if (_widgets.length > 10) {
@@ -174,15 +169,16 @@ class WidgetGroup extends CreatorWidget {
   void ungroup(String uid, {
     bool soft = false,
   }) {
+    if (widgets.length == 2) {
+      delete(soft: soft);
+      return;
+    }
     CreatorWidget widget = widgets.firstWhere((element) => element.uid == uid);
     widget.position = Offset(widget.position.dx + position.dx, widget.position.dy + position.dy);
     widget.group = null;
     widgets.remove(widget);
     page.widgets.add(widget, soft: true);
-    if (widgets.length == 1) {
-      ungroup(widgets.first.uid, soft: soft);
-      return;
-    } else if (widgets.length == 0) {
+    if (widgets.length == 0) {
       page.widgets.delete(this.uid, soft: soft);
       return;
     }
@@ -205,8 +201,11 @@ class WidgetGroup extends CreatorWidget {
       widget.position = Offset(widget.position.dx + position.dx, widget.position.dy + position.dy);
       page.widgets.add(widget, soft: true);
     }
-    page.widgets.delete(uid, soft: soft);
-    if (!soft) page.widgets.select(_selected);
+    page.widgets.delete(uid, soft: true);
+    if (!soft) {
+      page.widgets.select(_selected);
+      page.history.log('Ungroup Widgets');
+    }
   }
 
   void deleteWidget(String uid) {
@@ -242,7 +241,7 @@ class WidgetGroup extends CreatorWidget {
   ];
 
   @override
-  void onResize(Size size) {
+  void onResize(Size size, {ResizeHandler? type}) {
     double scale = size.width / this.size.width;
     bool resizeAllowed = true;
     for (CreatorWidget widget in widgets) {
@@ -257,7 +256,7 @@ class WidgetGroup extends CreatorWidget {
       widget.size = Size(widget.size.width * scale, widget.size.height * scale);
       widget.position = Offset(widget.position.dx * scale, widget.position.dy * scale);
     }
-    super.onResize(size);
+    super.onResize(size, type: type);
   }
 
   @override
@@ -400,6 +399,7 @@ class WidgetGroup extends CreatorWidget {
       dWidgets.tryAdd(CreatorWidget.fromJSON(data, page: page, buildInfo: BuildInfo(buildType: BuildType.unknown)));
     }
     WidgetGroup? group = await WidgetGroup._createGroup(page: page, widgets: dWidgets);
+    group?.position = Offset(position.dx + 10, position.dy + 10);
     return group;
   }
 

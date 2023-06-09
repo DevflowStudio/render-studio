@@ -27,6 +27,8 @@ class ProjectGlance {
 
   PostSize get size => PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
 
+  bool get isTemplate => data['is-template'] ?? false;
+
   int get nPages => data['pages'].length;
 
   late final ProjectMetadata metadata;

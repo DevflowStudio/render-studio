@@ -119,6 +119,11 @@ class _MyPalettesState extends State<MyPalettes> {
                 childCount: ColorPalette.collections[collectionName]!.length
               )
             ),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: Constants.of(context).bottomPadding,
+              ),
+            )
           ]
         ],
       ),

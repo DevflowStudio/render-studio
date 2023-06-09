@@ -17,7 +17,11 @@ class RemoteConfig {
       )
     );
     _setDefaults(firebaseConfig);
-    await firebaseConfig.fetchAndActivate();
+    try {
+      await firebaseConfig.fetchAndActivate();
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'remote config fetch error', stacktrace: stacktrace);
+    }
     return RemoteConfig._(firebaseConfig);
   }
 
@@ -34,7 +38,7 @@ class RemoteConfig {
         'Studio Render': 0.05,
       }.getRandomWithProbabilities(),
       'create_project_banner_title': [
-        'Create a Project',
+        'Create Project',
         'New Project',
         'Get Started',
         'Start a Project',

@@ -15,7 +15,7 @@ abstract class RenderIcons {
 
   static const IconData box = MaterialSymbols.square_filled;
 
-  static const IconData design_kit = PhosphorIcons.scribbleLoop;
+  static IconData design_kit = PhosphorIcons.regular.scribbleLoop;
 
   static const IconData image = CupertinoIcons.photo;
 
@@ -29,7 +29,7 @@ abstract class RenderIcons {
 
   static const IconData create = CupertinoIcons.add;
 
-  static const IconData projects = PhosphorIcons.gridFour;
+  static IconData projects = PhosphorIcons.regular.gridFour;
 
   static const IconData settings = CupertinoIcons.gear;
 
@@ -51,11 +51,11 @@ abstract class RenderIcons {
 
   static const IconData gradient = Icons.gradient;
 
-  static const IconData rotate = Iconsax.d_rotate;
+  static const IconData rotate = Iconsax.rotate_right;
 
   static const IconData replace = Icons.change_circle_outlined;
 
-  static const IconData close = PhosphorIcons.x;
+  static IconData close = PhosphorIcons.regular.x;
 
   static const IconData arrow_up = Icons.expand_less;
 
@@ -67,19 +67,19 @@ abstract class RenderIcons {
 
   static const IconData arrow_right_2 = CupertinoIcons.arrow_right;
 
-  static const IconData arrow_left_right = PhosphorIcons.arrowsOutLineHorizontal;
+  static IconData arrow_left_right = PhosphorIcons.regular.arrowsOutLineHorizontal;
 
-  static const IconData arrow_up_down = PhosphorIcons.arrowsOutLineVertical;
+  static IconData arrow_up_down = PhosphorIcons.regular.arrowsOutLineVertical;
 
   static const IconData arrow_back = CupertinoIcons.arrow_turn_up_left;
 
-  static const IconData arrow_link = PhosphorIcons.flowArrow;
+  static IconData arrow_link = PhosphorIcons.regular.flowArrow;
 
   static const IconData lock = CupertinoIcons.lock;
 
   static const IconData unlock = CupertinoIcons.lock_open;
 
-  static const IconData edit = PhosphorIcons.pencilSimple;
+  static IconData edit = PhosphorIcons.regular.pencilSimple;
 
   static const IconData edit_image = Iconsax.brush;
 
@@ -101,9 +101,11 @@ abstract class RenderIcons {
 
   static const IconData gap = Icons.space_bar;
 
-  static const IconData auto_size = PhosphorIcons.magicWandFill;
+  static IconData auto_size = PhosphorIcons.fill.magicWand;
 
-  static const IconData auto_size_off = PhosphorIcons.magicWand;
+  static IconData auto_size_off = PhosphorIcons.regular.magicWand;
+
+  static IconData magic = PhosphorIcons.regular.magicWand;
 
   static const IconData text_size = MaterialSymbols.text_fields;
 
@@ -121,7 +123,7 @@ abstract class RenderIcons {
 
   static const IconData remove = MaterialSymbols.remove;
 
-  static const IconData shadow = MaterialSymbols.ev_shadow;
+  static IconData shadow = PhosphorIcons.regular.sun;
 
   static const IconData blur = MaterialSymbols.blur_on;
 
@@ -147,13 +149,13 @@ abstract class RenderIcons {
 
   static const IconData warning = CupertinoIcons.exclamationmark_triangle;
 
-  static const IconData error = PhosphorIcons.circleWavyWarning;
+  static IconData error = PhosphorIcons.regular.warningCircle;
 
   static const IconData undo = CupertinoIcons.arrow_uturn_left;
 
   static const IconData redo = CupertinoIcons.arrow_uturn_right;
 
-  static const IconData info = PhosphorIcons.info;
+  static IconData info = PhosphorIcons.regular.info;
 
   static const IconData more = MaterialSymbols.more_horiz;
 
@@ -161,7 +163,7 @@ abstract class RenderIcons {
 
   static const IconData open = MaterialSymbols.open_in_new;
 
-  static const IconData openInBrowser = PhosphorIcons.arrowUpRight;
+  static IconData openInBrowser = PhosphorIcons.regular.arrowUpRight;
 
   static const IconData share = CupertinoIcons.share;
 
@@ -169,7 +171,7 @@ abstract class RenderIcons {
 
   static const IconData upload = MaterialSymbols.upload;
 
-  static const IconData drag = PhosphorIcons.arrowsOutCardinal;
+  static IconData drag = PhosphorIcons.regular.arrowsOutCardinal;
 
   static const IconData keyboard = CupertinoIcons.keyboard;
 
@@ -195,11 +197,11 @@ abstract class RenderIcons {
 
   static const IconData flip_vertical = CupertinoIcons.arrow_up_down_circle;
 
-  static const IconData duplicate = PhosphorIcons.copy;
+  static IconData duplicate = PhosphorIcons.regular.copy;
 
   static const IconData expand = MaterialSymbols.expand_more;
 
-  static const IconData layers = PhosphorIcons.stack;
+  static IconData layers = PhosphorIcons.regular.stack;
   
   static const IconData splice = CupertinoIcons.scissors;
 
@@ -207,69 +209,71 @@ abstract class RenderIcons {
 
   static const IconData lifted = CupertinoIcons.square_split_1x2;
 
+  static IconData drop_shadow = PhosphorIcons.regular.drop;
+
   static const IconData shapes = MaterialSymbols.shape_line;
 
-  static const IconData position = PhosphorIcons.dotsNine;
+  static IconData position = PhosphorIcons.regular.dotsNine;
 
-  static const IconData align_top = PhosphorIcons.alignTopSimple;
+  static IconData align_top = PhosphorIcons.regular.alignTopSimple;
 
-  static const IconData align_center = PhosphorIcons.alignCenterHorizontalSimple;
+  static IconData align_center = PhosphorIcons.regular.alignCenterHorizontalSimple;
 
-  static const IconData align_bottom = PhosphorIcons.alignBottomSimple;
+  static IconData align_bottom = PhosphorIcons.regular.alignBottomSimple;
 
-  static const IconData align_left = PhosphorIcons.alignLeftSimple;
+  static IconData align_left = PhosphorIcons.regular.alignLeftSimple;
 
-  static const IconData align_right = PhosphorIcons.alignRightSimple;
+  static IconData align_right = PhosphorIcons.regular.alignRightSimple;
 
-  static const IconData align_middle = PhosphorIcons.alignCenterVerticalSimple;
+  static IconData align_middle = PhosphorIcons.regular.alignCenterVerticalSimple;
 
-  static const IconData group = PhosphorIcons.selectionPlus;
+  static IconData group = PhosphorIcons.regular.selectionPlus;
 
-  static const IconData ungroup = PhosphorIcons.selectionSlash;
+  static IconData ungroup = PhosphorIcons.regular.selectionSlash;
 
   static const IconData deleteGroup = CupertinoIcons.rectangle_3_offgrid;
 
-  static const IconData multiselect = PhosphorIcons.selectionPlus;
+  static IconData multiselect = PhosphorIcons.regular.selectionPlus;
 
-  static const IconData multiselectDisabled = PhosphorIcons.selectionInverse;
+  static IconData multiselectDisabled = PhosphorIcons.regular.selectionInverse;
 
-  static const IconData swap = PhosphorIcons.swap;
+  static IconData swap = PhosphorIcons.regular.swap;
 
-  static const IconData progress = PhosphorIcons.hourglassMedium;
+  static IconData progress = PhosphorIcons.regular.hourglassMedium;
 
-  static const IconData pieChart = PhosphorIcons.chartPie;
+  static IconData pieChart = PhosphorIcons.regular.chartPie;
 
-  static const IconData pieChart2 = PhosphorIcons.chartPieSlice;
+  static IconData pieChart2 = PhosphorIcons.regular.chartPieSlice;
 
-  static const IconData dash = PhosphorIcons.circleDashed;
+  static IconData dash = PhosphorIcons.regular.circleDashed;
 
   static const IconData linear = Icons.horizontal_rule;
 
-  static const IconData circular = PhosphorIcons.circleNotch;
+  static IconData circular = PhosphorIcons.regular.circleNotch;
 
-  static const IconData pieChartLegends = PhosphorIcons.listNumbers;
+  static IconData pieChartLegends = PhosphorIcons.regular.listNumbers;
 
-  static const IconData pieChartLabels = PhosphorIcons.tagSimple;
+  static IconData pieChartLabels = PhosphorIcons.regular.tagSimple;
 
-  static const IconData pieChartPercentLabels = PhosphorIcons.percent;
+  static IconData pieChartPercentLabels = PhosphorIcons.regular.percent;
 
-  static const IconData number_zero = PhosphorIcons.numberZero;
+  static IconData number_zero = PhosphorIcons.regular.numberZero;
 
-  static const IconData number_one = PhosphorIcons.numberCircleOne;
+  static IconData number_one = PhosphorIcons.regular.numberCircleOne;
 
-  static const IconData number_two = PhosphorIcons.numberCircleTwo;
+  static IconData number_two = PhosphorIcons.regular.numberCircleTwo;
 
-  static const IconData textGlitch = PhosphorIcons.intersect;
+  static IconData textGlitch = PhosphorIcons.regular.intersect;
 
-  static const IconData user = PhosphorIcons.user;
+  static IconData user = PhosphorIcons.regular.user;
 
-  static const IconData signOut = PhosphorIcons.signOut;
+  static IconData signOut = PhosphorIcons.regular.signOut;
 
-  static const IconData signIn = PhosphorIcons.signIn;
+  static IconData signIn = PhosphorIcons.regular.signIn;
 
-  static const IconData calendar = PhosphorIcons.calendar;
+  static IconData calendar = PhosphorIcons.regular.calendar;
 
-  static const IconData help = PhosphorIcons.question;
+  static IconData help = PhosphorIcons.regular.question;
 
   static const IconData apple = FontAwesomeIcons.apple;
 

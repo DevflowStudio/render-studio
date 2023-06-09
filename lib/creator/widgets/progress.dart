@@ -77,10 +77,7 @@ class CreativeProgressWidget extends CreatorWidget {
             this.progress = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            this.progress = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
           showValueEditor: true
         ),
         Option.color(
@@ -171,10 +168,7 @@ class CreativeProgressWidget extends CreatorWidget {
             this.strokeWidth = value;
             updateListeners(WidgetChange.misc);
           },
-          onChangeEnd: (value) {
-            this.strokeWidth = value;
-            updateListeners(WidgetChange.update);
-          },
+          onChangeEnd: () => updateListeners(WidgetChange.update),
         ),
         Option.button(
           title: 'Corners',
@@ -229,10 +223,7 @@ class CreativeProgressWidget extends CreatorWidget {
               this.startAngle = value;
               updateListeners(WidgetChange.misc);
             },
-            onChangeEnd: (value) {
-              this.startAngle = value;
-              updateListeners(WidgetChange.misc);
-            },
+            onChangeEnd: () => updateListeners(WidgetChange.update),
             showValueEditor: true
           ),
           Option.showSlider(
@@ -245,10 +236,7 @@ class CreativeProgressWidget extends CreatorWidget {
               this.backgroundDashSize = value;
               updateListeners(WidgetChange.misc);
             },
-            onChangeEnd: (value) {
-              this.backgroundDashSize = value;
-              updateListeners(WidgetChange.update);
-            },
+            onChangeEnd: () => updateListeners(WidgetChange.update),
           ),
           Option.showSlider(
             title: 'Dash Gap',
@@ -260,10 +248,7 @@ class CreativeProgressWidget extends CreatorWidget {
               this.backgroundGapSize = value;
               updateListeners(WidgetChange.misc);
             },
-            onChangeEnd: (value) {
-              this.backgroundGapSize = value;
-              updateListeners(WidgetChange.update);
-            },
+            onChangeEnd: () => updateListeners(WidgetChange.update),
           ),
         ]
       ]

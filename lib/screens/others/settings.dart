@@ -46,7 +46,7 @@ class _SettingsState extends State<Settings> {
               ListTile(
                 title: const Text('Snap'),
                 subtitle: const Text('Automatically snap widgets to with reference to others'),
-                trailing: Switch(
+                trailing: Switch.adaptive(
                   value: preferences.snap,
                   onChanged: (value) async {
                     preferences.snap = value;
@@ -57,7 +57,7 @@ class _SettingsState extends State<Settings> {
               ListTile(
                 title: const Text('Vibrate on Snap'),
                 subtitle: const Text('Make a vibration when snapping widgets'),
-                trailing: Switch(
+                trailing: Switch.adaptive(
                   value: preferences.vibrateOnSnap,
                   onChanged: (value) async {
                     preferences.vibrateOnSnap = value;
@@ -66,8 +66,19 @@ class _SettingsState extends State<Settings> {
                 ),
               ),
               ListTile(
+                title: const Text('Action Bar'),
+                subtitle: const Text('Show an action bar for quick access to some options'),
+                trailing: Switch.adaptive(
+                  value: preferences.showActionBar,
+                  onChanged: (value) async {
+                    preferences.showActionBar = value;
+                    setState(() { });
+                  },
+                ),
+              ),
+              ListTile(
                 title: const Text('Collect Usage Data'),
-                trailing: Switch(
+                trailing: Switch.adaptive(
                   value: preferences.allowAnalytics,
                   onChanged: (value) async {
                     preferences.allowAnalytics = value;
@@ -92,7 +103,7 @@ class _SettingsState extends State<Settings> {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
                   },
-                  icon: const Icon(RenderIcons.openInBrowser)
+                  icon: Icon(RenderIcons.openInBrowser)
                 ),
               ),
               ListTile(
@@ -110,7 +121,7 @@ class _SettingsState extends State<Settings> {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
                   },
-                  icon: const Icon(RenderIcons.openInBrowser)
+                  icon: Icon(RenderIcons.openInBrowser)
                 ),
               ),
               ListTile(
@@ -128,7 +139,7 @@ class _SettingsState extends State<Settings> {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
                   },
-                  icon: const Icon(RenderIcons.openInBrowser)
+                  icon: Icon(RenderIcons.openInBrowser)
                 ),
               ),
               const ListTile(
