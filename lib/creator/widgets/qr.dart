@@ -272,7 +272,7 @@ class QRWidget extends CreatorWidget {
   Asset? embeddedImage;
 
   @override
-  Widget widget(BuildContext context) => QrImage(
+  Widget widget(BuildContext context) => QrImageView(
     data: data,
     backgroundColor: backgroundColor,
     eyeStyle: QrEyeStyle(
