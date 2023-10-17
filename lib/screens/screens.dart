@@ -1,4 +1,4 @@
-export 'home.dart';
+export 'home/home.dart';
 export 'auth/onboarding.dart';
 export 'auth/profile.dart';
 export 'creator/meta.dart';
@@ -23,3 +23,4 @@ export 'palette/edit.dart';
 export 'palette/color_tool.dart';
 export 'palette/image_color_picker.dart';
 export 'home/landing.dart';
+export 'creator/create_project.dart';

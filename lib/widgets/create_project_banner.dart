@@ -45,38 +45,27 @@ class CreateProjectBannerState extends State<CreateProjectBanner> {
               )
             )
           ),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(kBorderRadius),
-            child: SizedBox(
-              height: ((Theme.of(context).textTheme.labelMedium?.fontSize ?? 20) * 2 * 1.2) + 12 + 70 + 3 + 12,
-              child: ListView.separated(
-                controller: blurredEdgesCtrl.scrollCtrl,
-                scrollDirection: Axis.horizontal,
-                separatorBuilder: (context, index) => SizedBox(width: 6),
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 12
-                ),
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    return _CreateButton(
-                      onTap: () async { },
-                      icon: RenderIcons.magic,
-                      title: 'Magic',
-                    );
-                  } else {
-                    return _CreateButton(
-                      onTap: () {
-                        TapFeedback.light();
-                        Project.createNewProject(context, PostSizePresets.values[index + 1].toSize());
-                      },
-                      icon: PostSizePresets.values[index - 1].icon,
-                      title: PostSizePresets.values[index - 1].title.toTitleCase(),
-                    );
-                  }
-                },
-                itemCount: PostSizePresets.values.length + 1,
+          SizedBox(
+            height: ((Theme.of(context).textTheme.labelMedium?.fontSize ?? 20) * 2 * 1.2) + 12 + 70 + 3 + 12,
+            child: ListView.separated(
+              controller: blurredEdgesCtrl.scrollCtrl,
+              scrollDirection: Axis.horizontal,
+              separatorBuilder: (context, index) => SizedBox(width: 6),
+              padding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12
               ),
+              itemBuilder: (context, index) {
+                return _CreateButton(
+                  onTap: () {
+                    TapFeedback.light();
+                    Project.createNewProject(context, PostSizePresets.values[index].toSize());
+                  },
+                  icon: PostSizePresets.values[index].icon,
+                  title: PostSizePresets.values[index].title.toTitleCase(),
+                );
+              },
+              itemCount: PostSizePresets.values.length,
             ),
           ),
         ],

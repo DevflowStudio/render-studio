@@ -29,13 +29,13 @@ class RemoteConfig {
     await config.setDefaults({
       'app_available': false,
       'app_title': {
-        'Render': 0.9,
-        'Studio': 0.3,
-        'Render Studio': 0.2,
+        'Render': 0.70,
+        'Studio': 0.05,
+        'Render Studio': 0.20,
         'This one\'s rare': 0.01,
-        'Hey!': 0.1,
-        'Let\'s design': 0.2,
-        'Studio Render': 0.05,
+        'Hey!': 0.01,
+        'Let\'s design': 0.01,
+        'Studio Render': 0.02,
       }.getRandomWithProbabilities(),
       'create_project_banner_title': [
         'Create Project',

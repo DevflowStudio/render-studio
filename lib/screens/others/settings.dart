@@ -65,17 +65,17 @@ class _SettingsState extends State<Settings> {
                   },
                 ),
               ),
-              ListTile(
-                title: const Text('Action Bar'),
-                subtitle: const Text('Show an action bar for quick access to some options'),
-                trailing: Switch.adaptive(
-                  value: preferences.showActionBar,
-                  onChanged: (value) async {
-                    preferences.showActionBar = value;
-                    setState(() { });
-                  },
-                ),
-              ),
+              // ListTile(
+              //   title: const Text('Action Bar'),
+              //   subtitle: const Text('Show an action bar for quick access to some options'),
+              //   trailing: Switch.adaptive(
+              //     value: preferences.showActionBar,
+              //     onChanged: (value) async {
+              //       preferences.showActionBar = value;
+              //       setState(() { });
+              //     },
+              //   ),
+              // ),
               ListTile(
                 title: const Text('Collect Usage Data'),
                 trailing: Switch.adaptive(

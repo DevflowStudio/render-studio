@@ -13,3 +13,4 @@ export 'blurred_edges.dart';
 export 'create_project_banner.dart';
 export 'widget_catalog.dart';
 export 'search_bar.dart';
+export 'blur_visibility.dart';

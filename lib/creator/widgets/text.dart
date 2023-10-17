@@ -53,9 +53,28 @@ class CreatorText extends CreatorWidget {
           title: 'Edit',
           tooltip: 'Edit text',
           onTap: (context) async {
-            await showEditTextModal(context);
+            await editText(context);
           },
           icon: RenderIcons.keyboard
+        ),
+        Option.button(
+          title: 'Random Text',
+          tooltip: 'Edit text',
+          onTap: (context) async {
+            editText(context, text: [
+              "Mountain peaks",
+              "Lazy Sunday morning",
+              "Enchanted forest",
+              "Lost in translation",
+              "Summer vacation memories",
+              "Galactic adventures await",
+              "Coffee shop conversations",
+              "Mysterious ancient artifacts",
+              "Midnight rendezvous by the sea",
+              "Quantum physics theories explored",
+            ].getRandom());
+          },
+          icon: RenderIcons.refresh
         ),
         Option.font(
           fontFamily: fontFamily,
@@ -512,7 +531,7 @@ class CreatorText extends CreatorWidget {
 
   @override
   void onDoubleTap(BuildContext context) async {
-    await showEditTextModal(context);
+    await editText(context);
   }
 
   void buildTextSpan({
@@ -615,89 +634,82 @@ class CreatorText extends CreatorWidget {
     updateListeners(WidgetChange.misc);
   }
 
-  Future<void> showEditTextModal(BuildContext context) async {
+  /// Edits the text of the widget
+  /// Provide `text` to edit the text directly, otherwise a modal will be shown to edit the text
+  Future<void> editText(BuildContext context, {
+    /// New text to be set, if null, a modal will be shown to ask user the new text
+    String? text
+  }) async {
+    double scale = size.width / _spanSize.width;
+
     TextEditingController textCtrl = TextEditingController(text: this.text);
     textCtrl.selection = TextSelection.collapsed(offset: textCtrl.text.length);
     TextAlign align = this.align;
     var focusNode = FocusNode();
-    double scale = size.width / _spanSize.width;
-    await showModalBottomSheet(
-      context: context,
-      enableDrag: false,
-      isScrollControlled: true,
-      barrierColor: Colors.transparent,
-      backgroundColor: Colors.transparent,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          return SizedBox(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                width: double.infinity,
-                margin: EdgeInsets.only(
-                  left: 6,
-                  right: 6,
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Palette.of(context).background,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      autofocus: true,
-                      controller: textCtrl,
-                      focusNode: focusNode,
-                      decoration: InputDecoration(
-                        hintText: 'Type something ...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                          borderSide: BorderSide.none
+
+    if (text == null) {
+      await showModalBottomSheet(
+        context: context,
+        enableDrag: false,
+        isScrollControlled: true,
+        barrierColor: Colors.transparent,
+        backgroundColor: Colors.transparent,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setState) {
+            return SizedBox(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  width: double.infinity,
+                  margin: EdgeInsets.only(
+                    left: 6,
+                    right: 6,
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Palette.of(context).background,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        autofocus: true,
+                        controller: textCtrl,
+                        focusNode: focusNode,
+                        decoration: InputDecoration(
+                          hintText: 'Type something ...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide.none
+                          ),
+                          filled: false,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 9
+                          ),
                         ),
-                        filled: false,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 9
+                        minLines: 4,
+                        maxLines: 8,
+                        textAlign: align,
+                        style: TextStyle(
+                          fontFamily: fontFamily,
+                          fontSize: 20
                         ),
-                      ),
-                      minLines: 4,
-                      maxLines: 8,
-                      textAlign: align,
-                      style: TextStyle(
-                        fontFamily: fontFamily,
-                        fontSize: 20
-                      ),
-                      contextMenuBuilder: (BuildContext context, EditableTextState editableTextState) {
-                        return AdaptiveTextSelectionToolbar(
-                          anchors: editableTextState.contextMenuAnchors,
-                          children: [
-                            if (!editableTextState.currentTextEditingValue.selection.isCollapsed) Container(
-                              color: Constants.getThemedBlackAndWhite(context),
-                              child: TextButton(
-                                onPressed: () {
-                                  String text = editableTextState.currentTextEditingValue.selection.textInside(textCtrl.text);
-                                  textCtrl.text = textCtrl.text.replaceFirst(text, '*$text*');
-                                  textCtrl.selection = TextSelection.collapsed(offset: textCtrl.text.indexOf('*$text*') + text.length + 1);
-                                },
-                                child: Text(
-                                  'Style',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Constants.getThemedBlackAndWhite(context).isDark ? Colors.white : Colors.black,
-                                    fontFamily: 'SF Pro',
-                                    fontWeight: FontWeight.w300,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            ... editableTextState.contextMenuButtonItems.map((ContextMenuButtonItem buttonItem) {
-                              return Container(
+                        contextMenuBuilder: (BuildContext context, EditableTextState editableTextState) {
+                          return AdaptiveTextSelectionToolbar(
+                            anchors: editableTextState.contextMenuAnchors,
+                            children: [
+                              if (!editableTextState.currentTextEditingValue.selection.isCollapsed) Container(
                                 color: Constants.getThemedBlackAndWhite(context),
                                 child: TextButton(
-                                  onPressed: buttonItem.onPressed,
+                                  onPressed: () {
+                                    String text = editableTextState.currentTextEditingValue.selection.textInside(textCtrl.text);
+                                    textCtrl.text = textCtrl.text.replaceFirst(text, '*$text*');
+                                    textCtrl.selection = TextSelection.collapsed(offset: textCtrl.text.indexOf('*$text*') + text.length + 1);
+                                  },
                                   child: Text(
-                                    CupertinoTextSelectionToolbarButton.getButtonLabel(context, buttonItem),
+                                    'Style',
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: Constants.getThemedBlackAndWhite(context).isDark ? Colors.white : Colors.black,
                                       fontFamily: 'SF Pro',
@@ -705,104 +717,120 @@ class CreatorText extends CreatorWidget {
                                     ),
                                   ),
                                 ),
-                              );
-                            }).toList()
-                          ],
-                        );
-                      },
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          InkWell(
-                            borderRadius: BorderRadius.circular(6),
-                            onTap: () {
-                              List<TextAlign> alignments = [
-                                TextAlign.left,
-                                TextAlign.center,
-                                TextAlign.right,
-                                TextAlign.justify,
-                              ];
-                              int index = alignments.indexOf(align);
-                              setState(() {
-                                align = alignments[alignments.nextIndex(index)];
-                              });
-                              updateListeners(WidgetChange.misc);
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Palette.of(context).outline,
-                                  width: 1
-                                ),
-                                borderRadius: BorderRadius.circular(6)
                               ),
-                              child: Text(
-                                'Align: ${align.toString().split('.').last.toTitleCase()}',
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                            ),
-                          )
-                        ],
+                              ... editableTextState.contextMenuButtonItems.map((ContextMenuButtonItem buttonItem) {
+                                return Container(
+                                  color: Constants.getThemedBlackAndWhite(context),
+                                  child: TextButton(
+                                    onPressed: buttonItem.onPressed,
+                                    child: Text(
+                                      CupertinoTextSelectionToolbarButton.getButtonLabel(context, buttonItem),
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Constants.getThemedBlackAndWhite(context).isDark ? Colors.white : Colors.black,
+                                        fontFamily: 'SF Pro',
+                                        fontWeight: FontWeight.w300,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList()
+                            ],
+                          );
+                        },
                       ),
-                    ),
-                    Divider(
-                      height: 0,
-                      endIndent: 0,
-                      indent: 0,
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Palette.of(context).surfaceVariant,
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(20),
-                          bottomRight: Radius.circular(20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            InkWell(
+                              borderRadius: BorderRadius.circular(6),
+                              onTap: () {
+                                List<TextAlign> alignments = [
+                                  TextAlign.left,
+                                  TextAlign.center,
+                                  TextAlign.right,
+                                  TextAlign.justify,
+                                ];
+                                int index = alignments.indexOf(align);
+                                setState(() {
+                                  align = alignments[alignments.nextIndex(index)];
+                                });
+                                updateListeners(WidgetChange.misc);
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Palette.of(context).outline,
+                                    width: 1
+                                  ),
+                                  borderRadius: BorderRadius.circular(6)
+                                ),
+                                child: Text(
+                                  'Align: ${align.toString().split('.').last.toTitleCase()}',
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                              ),
+                            )
+                          ],
                         ),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: 6),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              focusNode.hasFocus ? RenderIcons.close_keyboard : RenderIcons.keyboard,
-                            ),
-                            onPressed: () {
-                              if (MediaQuery.of(context).viewInsets.bottom > 0) {
-                                focusNode.unfocus();
-                              } else {
-                                focusNode.requestFocus();
-                              }
-                            },
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text('Done')
-                          )
-                        ],
+                      Divider(
+                        height: 0,
+                        endIndent: 0,
+                        indent: 0,
                       ),
-                    )
-                  ],
-                )
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Palette.of(context).surfaceVariant,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
+                          ),
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 6),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                focusNode.hasFocus ? RenderIcons.close_keyboard : RenderIcons.keyboard,
+                              ),
+                              onPressed: () {
+                                if (MediaQuery.of(context).viewInsets.bottom > 0) {
+                                  focusNode.unfocus();
+                                } else {
+                                  focusNode.requestFocus();
+                                }
+                              },
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Done')
+                            )
+                          ],
+                        ),
+                      )
+                    ],
+                  )
+                ),
               ),
-            ),
-          );
-        },
-      ),
-    );
+            );
+          },
+        ),
+      );
+    }
 
-    bool hasChanged = this.text != textCtrl.text || align != this.align;
+    bool hasChanged = text == null ? (this.text != textCtrl.text || align != this.align) : (text != this.text);
 
     if (!hasChanged) return;
     
     this.align = align;
-    String text = textCtrl.text;
-    if (text.trim() != '') this.text = text;
+    String new_text = text ?? textCtrl.text;
+    if (new_text.trim() != '') this.text = new_text;
 
     buildTextSpan();
     Size nSpanSize = getTextPainter(maxWidth: page.project.contentSize.width - page.widgets.background.padding.horizontal).size;
@@ -831,7 +859,7 @@ class CreatorText extends CreatorWidget {
     if (group != null) group!.findGroup(this).resizeGroup();
     if (hasChanged) updateListeners(WidgetChange.update, historyMessage: 'Edit Text');
     else updateListeners(WidgetChange.misc);
-    if (_containsSecondaryStyle(text) && secondaryStyle == null) Alerts.snackbar(
+    if (_containsSecondaryStyle(new_text) && secondaryStyle == null) Alerts.snackbar(
       context,
       text: 'Please add a secondary style to apply new style to the selected text'
     );

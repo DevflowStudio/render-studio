@@ -268,10 +268,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   Offset position = const Offset(0, 0);
   Offset _previousPosition = const Offset(0, 0);
 
-  // Offset get globalPosition => position;
-
   Rect get area => group != null ? Rect.zero : Rect.fromCenter(
-    center: position + Offset(page.project.contentSize.width / 2, page.project.contentSize.height / 2),
+    center: position,
     width: size.width,
     height: size.height,
   );
@@ -1061,14 +1059,14 @@ class _SelectedWidgetHighlighter extends StatelessWidget {
                 color: (highlight ? Colors.pinkAccent : Palette.of(context).primary).harmonizeWith(widget.page.palette.background),
                 width: 1.5,
               ),
-              boxShadow: [
-                if (!isLightBackground) BoxShadow(
-                  blurStyle: BlurStyle.outer,
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 5,
-                  spreadRadius: 0,
-                )
-              ]
+              // boxShadow: [
+              //   if (!isLightBackground) BoxShadow(
+              //     blurStyle: BlurStyle.outer,
+              //     color: Colors.black.withOpacity(0.1),
+              //     blurRadius: 5,
+              //     spreadRadius: 0,
+              //   )
+              // ]
             ),
           ),
         ),

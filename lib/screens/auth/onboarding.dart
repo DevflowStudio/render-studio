@@ -35,9 +35,8 @@ class _OnboardingState extends State<Onboarding> {
                 width: double.maxFinite,
                 decoration: BoxDecoration(
                   color: Palette.of(context).primary,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(MediaQuery.of(context).size.width/4),
-                    bottomRight: Radius.circular(MediaQuery.of(context).size.width/4)
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(55)
                   )
                 ),
               ),
@@ -117,19 +116,15 @@ class _OnboardingState extends State<Onboarding> {
                       children: [
                         Icon(
                           RenderIcons.google,
-                          color: Colors.black,
+                          color: Colors.white,
                           size: 19
                         ),
                         SizedBox(width: 12),
                         Text('Sign in with Google')
                       ],
                     ),
-                    border: Border.all(
-                      color: Palette.of(context).outline,
-                      width: 2
-                    ),
-                    backgroundColor: Colors.white,
-                    textColor: Colors.black,
+                    backgroundColor: Colors.blue,
+                    textColor: Colors.white,
                     autoLoading: true,
                     onPressed: () async {
                       try {

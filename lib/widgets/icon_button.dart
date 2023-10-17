@@ -357,12 +357,11 @@ class ButtonWithIcon extends StatefulWidget {
 
 class _ButtonWithIconState extends State<ButtonWithIcon> {
 
-  late double radius;
+  double scale = 1;
 
   @override
   void initState() {
     super.initState();
-    radius = widget.borderRadius;
   }
   
   @override
@@ -383,53 +382,57 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
           mainAxisSize: MainAxisSize.min,
           children: [
             GestureDetector(
-              onPanDown: (details) => reduceRadius(),
-              onTapDown: (details) => reduceRadius(),
-              onPanCancel: () => resetRadius(),
-              onTapUp: (details) => resetRadius(),
-              onTapCancel: () => resetRadius(),
+              onPanDown: (details) => reduceScale(),
+              onTapDown: (details) => reduceScale(),
+              onPanCancel: () => resetScale(),
+              onTapUp: (details) => resetScale(),
+              onTapCancel: () => resetScale(),
               onLongPress: () {
                 if (widget.onLongPress != null) widget.onLongPress!(context);
               },
               onTap: () {
-                reduceRadius();
+                reduceScale();
                 TapFeedback.tap();
                 widget.onTap(context);
-                Future.delayed(const Duration(milliseconds: 300), () => resetRadius());
+                Future.delayed(const Duration(milliseconds: 300), () => resetScale());
               },
-              child: AnimatedContainer(
-                duration: Duration(milliseconds: 200),
-                height: widget.size?.height ?? 70,
-                width: widget.size?.width ?? 70,
-                decoration: BoxDecoration(
-                  color: Palette.of(context).surfaceVariant,
-                  // color: widget.backgroundColor ?? Constants.getThemedObject(context, light: Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.2), dark: Colors.grey[900]),
-                  // color: context.isDarkMode ? Colors.grey[900] : null,
-                  // gradient: context.isDarkMode ? null : LinearGradient(
-                  //   begin: Alignment.topLeft,
-                  //   end: Alignment.bottomRight,
-                  //   colors: [
-                  //     Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.1) ?? Colors.white,
-                  //     Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.3) ?? Colors.white
-                  //   ]
-                  // ),
-                  border: widget.showBorder ? Border.all(
-                    color: Constants.getThemedObject(context, light: Palette.of(context).outline, dark: Colors.grey[800]!),
-                    width: 1,
-                  ) : null,
-                  borderRadius: BorderRadius.circular(radius),
-                  // boxShadow: [
-                  //   BoxShadow(
-                  //     color: Colors.black.withOpacity(0.1),
-                  //     blurRadius: 2,
-                  //     offset: Offset(0, 1)
-                  //   )
-                  // ]
-                ),
-                child: Center(
-                  child: widget.child ?? Icon(
-                    widget.icon,
-                    color: widget.greyOut ? Colors.grey[700] : (widget.foregroundColor ?? Palette.of(context).onSurface)
+              child: AnimatedScale(
+                duration: Duration(milliseconds: 100),
+                scale: scale,
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 200),
+                  height: widget.size?.height ?? 70,
+                  width: widget.size?.width ?? 70,
+                  decoration: BoxDecoration(
+                    color: Palette.of(context).surfaceVariant,
+                    // color: widget.backgroundColor ?? Constants.getThemedObject(context, light: Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.2), dark: Colors.grey[900]),
+                    // color: context.isDarkMode ? Colors.grey[900] : null,
+                    // gradient: context.isDarkMode ? null : LinearGradient(
+                    //   begin: Alignment.topLeft,
+                    //   end: Alignment.bottomRight,
+                    //   colors: [
+                    //     Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.1) ?? Colors.white,
+                    //     Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.3) ?? Colors.white
+                    //   ]
+                    // ),
+                    border: widget.showBorder ? Border.all(
+                      color: Constants.getThemedObject(context, light: Palette.of(context).outline, dark: Colors.grey[800]!),
+                      width: 1,
+                    ) : null,
+                    borderRadius: BorderRadius.circular(widget.borderRadius),
+                    // boxShadow: [
+                    //   BoxShadow(
+                    //     color: Colors.black.withOpacity(0.1),
+                    //     blurRadius: 2,
+                    //     offset: Offset(0, 1)
+                    //   )
+                    // ]
+                  ),
+                  child: Center(
+                    child: widget.child ?? Icon(
+                      widget.icon,
+                      color: widget.greyOut ? Colors.grey[700] : (widget.foregroundColor ?? Palette.of(context).onSurface)
+                    ),
                   ),
                 ),
               ),
@@ -471,12 +474,12 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
     }
   }
 
-  void reduceRadius() {
-    if (widget.animateBorderRadius) setState(() => radius = widget.feedbackBorderRadius);
+  void reduceScale() {
+    if (widget.animateBorderRadius) setState(() => scale = 0.95);
   }
 
-  void resetRadius() {
-    if (widget.animateBorderRadius) setState(() => radius = widget.borderRadius);
+  void resetScale() {
+    if (widget.animateBorderRadius) setState(() => scale = 1);
   }
 
   double calculateTextHeight() {

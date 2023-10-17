@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:render_studio/creator/helpers/editor_manager.dart';
 import 'package:render_studio/creator/helpers/history.dart';
 import 'package:flutter/material.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
@@ -30,12 +31,14 @@ class CreatorPage extends PropertyChangeNotifier {
     if (data == null) {
       assetManager = AssetManager.create(this);
       widgets = WidgetManager.create(this, data: data);
+      editorManager = EditorManager.create(this);
       buildWidgets();
       history = History.create(this, data: data);
     } else {
       assetManager = AssetManager.fromJSON(this, data: data['assets']);
       history = History.create(this, data: data);
       widgets = WidgetManager.create(this, data: data);
+      editorManager = EditorManager.create(this);
       buildWidgets();
     }
     
@@ -50,6 +53,8 @@ class CreatorPage extends PropertyChangeNotifier {
   /// List of all the widgets in the page
   late WidgetManager widgets;
 
+  late EditorManager editorManager;
+
   late GridState gridState;
 
   ColorPalette palette = ColorPalette.defaultSet;
@@ -62,6 +67,8 @@ class CreatorPage extends PropertyChangeNotifier {
 
   // BackgroundWidget get properties => BackgroundWidget(project: project, page: this);
 
+  double scale = 1;
+
   Widget build(BuildContext context, {
     bool isInteractive = true,
     bool isDimensionless = false,
@@ -70,6 +77,10 @@ class CreatorPage extends PropertyChangeNotifier {
       absorbing: !isInteractive,
       child: _PageZoomableViewer(
         page: this,
+        onScaleChange: (scale) {
+          this.scale = scale;
+          notifyListeners(PageChange.misc);
+        },
         child: Center(
           child: widget(
             context,
@@ -89,12 +100,9 @@ class CreatorPage extends PropertyChangeNotifier {
       Center(
         child: widgets.buildWidgets(context, size: project.contentSize)
       ),
-      ... widgets.build(context, isInteractive: isInteractive),
+      ... widgets.buildHandlers(context, isInteractive: isInteractive),
       Center(
-        child: SizedBox.fromSize(
-          size: project.contentSize,
-          child: PageGridView(state: gridState)
-        ),
+        child: PageGridView(state: gridState),
       )
     ],
   );
@@ -203,11 +211,13 @@ class _PageZoomableViewer extends StatefulWidget {
 
   const _PageZoomableViewer({
     required this.page,
-    required this.child
+    required this.child,
+    this.onScaleChange,
   });
 
   final CreatorPage page;
   final Widget child;
+  final Function(double scale)? onScaleChange;
 
   @override
   State<_PageZoomableViewer> createState() => __PageZoomableViewerState();
@@ -220,6 +230,9 @@ class __PageZoomableViewerState extends State<_PageZoomableViewer> {
   void onMultiSelectChange() => setState(() { });
 
   bool get enableZoom => page.widgets.nSelections <= 1 && (page.widgets.selections.firstOrNull is BackgroundWidget || page.widgets.selections.isEmpty);
+
+  double prevScale = 1;
+  double scale = 1;
 
   @override
   void initState() {
@@ -241,6 +254,23 @@ class __PageZoomableViewerState extends State<_PageZoomableViewer> {
       scaleEnabled: enableZoom,
       maxScale: 5,
       clipBehavior: Clip.antiAlias,
+      onInteractionUpdate: (details) {
+        if (details.pointerCount == 2) {
+          scale = prevScale * details.scale;
+        }
+      },
+      onInteractionEnd: (details) {
+        if (scale < 1) {
+          scale = 1;
+          prevScale = 1;
+        } else if (scale > 5) {
+          scale = 5;
+          prevScale = 5;
+        } else {
+          prevScale = scale;
+        }
+        widget.onScaleChange?.call(scale);
+      },
       child: widget.child,
     );
   }

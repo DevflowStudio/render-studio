@@ -54,7 +54,7 @@ dependencies:
       url: https://github.com/Mayb3Nots/screenshot.git
       ref: master
   share_plus: ^7.0.0
-  shared_preferences: ^2.0.6
+  shared_preferences: ^2.2.0
   supercharged: ^2.1.1
   timeago: ^3.1.0
   url_launcher: ^6.0.6
@@ -121,6 +121,7 @@ dependencies:
   reorderable_grid_view: ^2.2.5
   sliver_tools: ^0.2.9
   figma_squircle: ^0.5.3
+  smooth_corner: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -157,129 +158,46 @@ flutter:
     - assets/animations/
 
   fonts:
-    - family: Google Sans
-      fonts:
-        - asset: "assets/fonts/Google Sans/Regular.ttf"
-          weight: 300
-        - asset: "assets/fonts/Google Sans/Regular-Italic.ttf"
-          weight: 300
-          style: italic
-        - asset: "assets/fonts/Google Sans/Medium.ttf"
-          weight: 500
-        - asset: "assets/fonts/Google Sans/Medium-Italic.ttf"
-          weight: 500
-          style: italic
-        - asset: "assets/fonts/Google Sans/Bold.ttf"
-          weight: 700
-        - asset: "assets/fonts/Google Sans/Bold-Italic.ttf"
-          weight: 700
-          style: italic
-    - family: DM Serif Display
-      fonts:
-        - asset: "assets/fonts/DM Serif Display/Regular.ttf"
-          weight: 300
-        - asset: "assets/fonts/DM Serif Display/Italics.ttf"
-          weight: 300
-          style: italic
-    - family: Circular
-      fonts:
-        - asset: "assets/fonts/Circular/Regular.ttf"
-          weight: 500
-    - family: Inter
-      fonts:
-        - asset: "assets/fonts/Inter/Thin.ttf"
-          weight: 100
-        - asset: "assets/fonts/Inter/ExtraLight.ttf"
-          weight: 200
-        - asset: "assets/fonts/Inter/Light.ttf"
-          weight: 300
-        - asset: "assets/fonts/Inter/Regular.ttf"
-          weight: 400
-        - asset: "assets/fonts/Inter/Medium.ttf"
-          weight: 500
-        - asset: "assets/fonts/Inter/SemiBold.ttf"
-          weight: 600
-        - asset: "assets/fonts/Inter/Bold.ttf"
-          weight: 700
-        - asset: "assets/fonts/Inter/ExtraBold.ttf"
-          weight: 800
-        - asset: "assets/fonts/Inter/Black.ttf"
-          weight: 900
-    - family: Red Hat
-      fonts:
-        - asset: "assets/fonts/Red Hat/Display-Light.ttf"
-          weight: 300
-        - asset: "assets/fonts/Red Hat/Display-Light.ttf"
-          weight: 300
-          style: italic
-        - asset: "assets/fonts/Red Hat/Display-Regular.ttf"
-          weight: 400
-        - asset: "assets/fonts/Red Hat/Display-Italic.ttf"
-          weight: 400
-          style: italic
-        - asset: "assets/fonts/Red Hat/Display-Medium.ttf"
-          weight: 500
-        - asset: "assets/fonts/Red Hat/Display-MediumItalic.ttf"
-          weight: 500
-          style: italic
-        - asset: "assets/fonts/Red Hat/Display-SemiBold.ttf"
-          weight: 600
-        - asset: "assets/fonts/Red Hat/Display-SemiBoldItalic.ttf"
-          weight: 600
-          style: italic
-        - asset: "assets/fonts/Red Hat/Display-Bold.ttf"
-          weight: 700
-        - asset: "assets/fonts/Red Hat/Display-BoldItalic.ttf"
-          weight: 700
-          style: italic
-        - asset: "assets/fonts/Red Hat/Display-ExtraBold.ttf"
-          weight: 800
-        - asset: "assets/fonts/Red Hat/Display-ExtraBoldItalic.ttf"
-          weight: 800
-          style: italic
-        - asset: "assets/fonts/Red Hat/Display-Black.ttf"
-          weight: 900
-        - asset: "assets/fonts/Red Hat/Display-BlackItalic.ttf"
-          weight: 900
-          style: italic
-    - family: Helvetica
-      fonts:
-        - asset: "assets/fonts/Helvetica/Thin.ttf"
-          weight: 100
-        - asset: "assets/fonts/Helvetica/Thin-Italic.ttf"
-          weight: 100
-          style: italic
-        - asset: "assets/fonts/Helvetica/Light.ttf"
-          weight: 300
-        - asset: "assets/fonts/Helvetica/Light-Italic.ttf"
-          weight: 300
-          style: italic
-        - asset: "assets/fonts/Helvetica/Regular.ttf"
-          weight: 400
-        - asset: "assets/fonts/Helvetica/Regular-Italic.ttf"
-          weight: 400
-          style: italic
-        - asset: "assets/fonts/Helvetica/Medium.ttf"
-          weight: 500
-        - asset: "assets/fonts/Helvetica/Medium-Italic.ttf"
-          weight: 500
-          style: italic
-        - asset: "assets/fonts/Helvetica/Bold.ttf"
-          weight: 700
-        - asset: "assets/fonts/Helvetica/Bold-Italic.ttf"
-          weight: 700
-          style: italic
-        - asset: "assets/fonts/Helvetica/Extra-Bold.ttf"
-          weight: 800
-        - asset: "assets/fonts/Helvetica/Extra-Bold-Italic.ttf"
-          weight: 800
-          style: italic
-        - asset: "assets/fonts/Helvetica/Black.ttf"
-          weight: 900
-        - asset: "assets/fonts/Helvetica/Black-Italic.ttf"
-          weight: 900
-          style: italic
     - family: SF Pro
       fonts:
-        - asset: "assets/fonts/SF Pro/Regular.ttf"
+        - asset: assets/fonts/SF Pro/SF-Pro.ttf
+
+    - family: SF Pro Display
+      fonts:
+        - asset: assets/fonts/SF Pro/Display-Thin.otf
+          weight: 200
+        - asset: assets/fonts/SF Pro/Display-Light.otf
+          weight: 300
+        - asset: assets/fonts/SF Pro/Display-Regular.otf
           weight: 400
+        - asset: assets/fonts/SF Pro/Display-Medium.otf
+          weight: 500
+        - asset: assets/fonts/SF Pro/Display-Semibold.otf
+          weight: 600
+        - asset: assets/fonts/SF Pro/Display-Bold.otf
+          weight: 700
+        - asset: assets/fonts/SF Pro/Display-Heavy.otf
+          weight: 800
+        - asset: assets/fonts/SF Pro/Display-Black.otf
+          weight: 900
+
+    - family: SF Pro Rounded
+      fonts:
+        - asset: assets/fonts/SF Pro/Rounded-Ultralight.otf
+          weight: 100
+        - asset: assets/fonts/SF Pro/Rounded-Thin.otf
+          weight: 200
+        - asset: assets/fonts/SF Pro/Rounded-Light.otf
+          weight: 300
+        - asset: assets/fonts/SF Pro/Rounded-Regular.otf
+          weight: 400
+        - asset: assets/fonts/SF Pro/Rounded-Medium.otf
+          weight: 500
+        - asset: assets/fonts/SF Pro/Rounded-Semibold.otf
+          weight: 600
+        - asset: assets/fonts/SF Pro/Rounded-Bold.otf
+          weight: 700
+        - asset: assets/fonts/SF Pro/Rounded-Heavy.otf
+          weight: 800
+        - asset: assets/fonts/SF Pro/Rounded-Black.otf
+          weight: 900

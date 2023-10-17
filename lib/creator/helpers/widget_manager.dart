@@ -2,6 +2,7 @@ import 'package:align_positioned/align_positioned.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:sprung/sprung.dart';
 import '../../rehmat.dart';
 import '../state.dart';
 
@@ -71,6 +72,7 @@ class WidgetManager extends ChangeNotifier {
       if (_selections.isNotEmpty) _selections.first,
     ];
     notifyListeners();
+    page.updateListeners(PageChange.selection);
   }
 
   bool isSelected({
@@ -276,7 +278,7 @@ class WidgetManager extends ChangeNotifier {
   ///   ... other widgets
   /// ]
   /// ```
-  List<Widget> build(BuildContext context, {
+  List<Widget> buildHandlers(BuildContext context, {
     bool isInteractive = true,
   }) {
     return [
@@ -291,18 +293,22 @@ class WidgetManager extends ChangeNotifier {
     Size? size
   }) {
     return ClipRRect(
-      child: SizedBox.fromSize(
-        size: size,
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
-          children: [
-            ... sortedUIDs.map((uid) => WidgetState(
-              key: UniqueKey(),
-              controller: _widgets[uid]!.stateCtrl,
-              widget: _widgets[uid]!,
-              page: page,
-            )).toList(),
-          ]
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 200),
+        curve: Sprung(),
+        child: SizedBox.fromSize(
+          size: size,
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              ... sortedUIDs.map((uid) => WidgetState(
+                key: UniqueKey(),
+                controller: _widgets[uid]!.stateCtrl,
+                widget: _widgets[uid]!,
+                page: page,
+              )).toList(),
+            ]
+          ),
         ),
       ),
     );
@@ -358,7 +364,6 @@ class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
   late WidgetManager widgets;
 
   Offset? _selectorStart;
-  Offset? _selectorMiddle;
   Offset? _selectorEnd;
 
   void onMultiselectChange() => setState(() { });
@@ -378,65 +383,86 @@ class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      dragStartBehavior: DragStartBehavior.down,
-      behavior: HitTestBehavior.translucent,
-      onPanStart: widgets.multiselect ? (details) {
-        _selectorStart = _selectorEnd = details.localPosition - Offset(widgets.page.project.contentSize.width/2, widgets.page.project.contentSize.height/2);
-        setState(() { });
-      } : null,
-      onPanUpdate: widgets.multiselect ? (details) {
-        _selectorEnd = Offset(_selectorEnd!.dx + details.delta.dx, _selectorEnd!.dy + details.delta.dy);
-        _selectorMiddle = Offset((_selectorStart!.dx + _selectorEnd!.dx)/2, (_selectorStart!.dy + _selectorEnd!.dy)/2);
-        setState(() { });
-      } : null,
-      onPanEnd: widgets.multiselect ? (details) {
-        Size _selectorSize = Size((_selectorEnd!.dx - _selectorStart!.dx).abs(), (_selectorEnd!.dy - _selectorStart!.dy).abs());
-        Rect rect = Rect.fromLTWH(
-          _selectorMiddle!.dx + widgets.page.project.contentSize.width/2 - _selectorSize.width/2,
-          _selectorMiddle!.dy + widgets.page.project.contentSize.height/2 - _selectorSize.height/2,
-          _selectorSize.width,
-          _selectorSize.height
-        );
-        _selectorStart = _selectorMiddle = _selectorEnd = null;
-        for (CreatorWidget widget in widgets.widgets) {
-          if (widget is BackgroundWidget) continue;
-          Rect intersect = widget.area.intersect(rect);
-          bool isIntersecting = intersect.size.width > 0 && intersect.size.height > 0;
-          if (isIntersecting) {
-            if (widget is WidgetGroup) {
-              for (CreatorWidget child in widget.widgets) {
-                widgets.select(child);
+    return Center(
+      child: GestureDetector(
+        dragStartBehavior: DragStartBehavior.down,
+        behavior: HitTestBehavior.translucent,
+        onPanStart: widgets.multiselect ? (details) {
+          _selectorStart = _selectorEnd = details.localPosition - Offset(widgets.page.project.contentSize.width/2, widgets.page.project.contentSize.height/2);
+          setState(() { });
+        } : null,
+        onPanUpdate: widgets.multiselect ? (details) {
+          _selectorEnd = Offset(_selectorEnd!.dx + details.delta.dx, _selectorEnd!.dy + details.delta.dy);
+          setState(() { });
+        } : null,
+        onPanEnd: widgets.multiselect ? (details) {
+          Size _selectorSize = Size((_selectorEnd!.dx - _selectorStart!.dx).abs(), (_selectorEnd!.dy - _selectorStart!.dy).abs());
+          Offset _selectorMiddle = Offset((_selectorStart!.dx + _selectorEnd!.dx)/2, (_selectorStart!.dy + _selectorEnd!.dy)/2) - Offset(widgets.page.project.contentSize.width/2, widgets.page.project.contentSize.height/2);
+          Rect rect = Rect.fromLTWH(
+            _selectorMiddle.dx + widgets.page.project.contentSize.width/2 - _selectorSize.width/2,
+            _selectorMiddle.dy + widgets.page.project.contentSize.height/2 - _selectorSize.height/2,
+            _selectorSize.width,
+            _selectorSize.height
+          );
+          _selectorStart = _selectorEnd = null;
+          for (CreatorWidget widget in widgets.widgets) {
+            if (widget is BackgroundWidget) continue;
+            Rect intersect = widget.area.intersect(rect);
+            bool isIntersecting = intersect.size.width > 0 && intersect.size.height > 0;
+            if (isIntersecting) {
+              if (widget is WidgetGroup) {
+                for (CreatorWidget child in widget.widgets) {
+                  widgets.select(child);
+                }
+              } else {
+                widgets.select(widget);
               }
-            } else {
-              widgets.select(widget);
             }
           }
-        }
-        setState(() { });
-      } : null,
-      child: SizedBox.fromSize(
-        size: widgets.page.project.contentSize,
-        child: Stack(
-          children: [
-            if (_selectorStart != null && _selectorMiddle != null && _selectorEnd != null) AlignPositioned(
-              dx: _selectorMiddle!.dx,
-              dy: _selectorMiddle!.dy,
-              child: SizedBox(
-                width: (_selectorStart!.dx - _selectorEnd!.dx).abs(),
-                height: (_selectorStart!.dy - _selectorEnd!.dy).abs(),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Palette.of(context).primary.harmonizeWith(widgets.page.palette.background).withOpacity(0.2),
-                    border: Border.all(
-                      color: Palette.of(context).primary,
-                      width: 1,
+          setState(() { });
+        } : null,
+        child: SizedBox.fromSize(
+          size: widgets.page.project.contentSize,
+          child: Stack(
+            children: [
+              if (_selectorStart != null && _selectorEnd != null) AlignPositioned(
+                dx: (_selectorStart!.dx + _selectorEnd!.dx)/2,
+                dy: (_selectorStart!.dy + _selectorEnd!.dy)/2,
+                child: SizedBox(
+                  width: (_selectorStart!.dx - _selectorEnd!.dx).abs(),
+                  height: (_selectorStart!.dy - _selectorEnd!.dy).abs(),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Palette.of(context).primary.harmonizeWith(widgets.page.palette.background).withOpacity(0.2),
+                      border: Border.all(
+                        color: Palette.of(context).primary,
+                        width: 1,
+                      ),
                     ),
-                  ),
-                )
+                  )
+                ),
               ),
-            ),
-          ],
+
+              // Uncomment to check if the area of each widget is calculated correctly
+              // for (CreatorWidget widget in widgets.widgets) if (widget is! BackgroundWidget) AlignPositioned(
+              //   dx: widget.area.center.dx,
+              //   dy: widget.area.center.dy,
+              //   child: SizedBox(
+              //     width: widget.area.width,
+              //     height: widget.area.height,
+              //     child: Container(
+              //       decoration: BoxDecoration(
+              //         color: Palette.of(context).primary.harmonizeWith(widgets.page.palette.background).withOpacity(0.2),
+              //         border: Border.all(
+              //           color: Palette.of(context).primary,
+              //           width: 1,
+              //         ),
+              //       ),
+              //     )
+              //   ),
+              // ),
+            ],
+          ),
         ),
       ),
     );

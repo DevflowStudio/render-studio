@@ -28,7 +28,7 @@ class AppTheme {
     );
     return ThemeData(
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      fontFamily: 'Google Sans',
+      fontFamily: 'SF Pro',
       colorScheme: colorScheme,
       useMaterial3: true,
       scaffoldBackgroundColor: background,
@@ -40,7 +40,7 @@ class AppTheme {
         backgroundColor: background,
         titleTextStyle: TextStyle(
           fontSize: 22,
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Rounded',
           fontWeight: FontWeight.w500,
           color: colorScheme.onBackground
         ),
@@ -55,7 +55,7 @@ class AppTheme {
           )
         ),
         textStyle: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Rounded',
           color: colorScheme.onSurfaceVariant
         ),
         enableFeedback: true,
@@ -67,7 +67,7 @@ class AppTheme {
         ),
         actionsPadding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
         titleTextStyle: TextStyle(
-          fontFamily: 'Helvetica',
+          fontFamily: 'SF Pro Rounded',
           fontSize: 25,
           color: contrastTextColor
         ),
@@ -95,7 +95,7 @@ class AppTheme {
           ),
           textStyle: TextStyle(
             fontSize: 17,
-            fontFamily: 'Google Sans',
+            fontFamily: 'SF Pro Rounded',
             fontWeight: FontWeight.w500,
             color: colorScheme.onSurfaceVariant
           ),
@@ -147,7 +147,7 @@ class AppTheme {
           ),
           textStyle: TextStyle(
             fontSize: 17,
-            fontFamily: 'Google Sans',
+            fontFamily: 'SF Pro Rounded',
             fontWeight: FontWeight.w500
           ),
         )
@@ -167,51 +167,51 @@ class AppTheme {
       ),
       textTheme: TextTheme(
         displayLarge: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Display',
           color: contrastTextColor
         ),
         displayMedium: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Display',
           color: contrastTextColor
         ),
         displaySmall: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Display',
           color: contrastTextColor
         ),
         titleLarge: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Rounded',
           color: contrastTextColor
         ),
         titleMedium: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Rounded',
           color: contrastTextColor
         ),
         titleSmall: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Rounded',
           color: contrastTextColor
         ),
         headlineLarge: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Display',
           color: contrastTextColor
         ),
         headlineMedium: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Display',
           color: contrastTextColor
         ),
         headlineSmall: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'SF Pro Display',
           color: contrastTextColorLight
         ),
         bodyLarge: TextStyle(
-          fontFamily: 'Google Sans',
+          fontFamily: 'SF Pro',
           color: contrastTextColor
         ),
         bodyMedium: TextStyle(
-          fontFamily: 'Google Sans',
+          fontFamily: 'SF Pro',
           color: contrastTextColor
         ),
         bodySmall: TextStyle(
-          fontFamily: 'Google Sans',
+          fontFamily: 'SF Pro',
           color: contrastTextColorLight
         ),
       ),
@@ -248,7 +248,7 @@ class AppTheme {
           )
         ),
         hintStyle: TextStyle(
-          fontFamily: 'Google Sans'
+          fontFamily: 'SF Pro Rounded'
         ),
       ),
       dividerTheme: DividerThemeData(

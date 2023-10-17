@@ -73,6 +73,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Stack(
+                alignment: Alignment.centerLeft,
                 children: [
                   TabBar(
                     controller: tabController,
@@ -127,7 +128,8 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                             creatorWidget.page.widgets.select();
                           }
                         },
-                        icon: Icon(Editor.isHidden ? RenderIcons.arrow_up : RenderIcons.arrow_down),
+                        icon: Icon(Editor.isHidden ? RenderIcons.arrow_up : RenderIcons.close),
+                        visualDensity: VisualDensity.compact,
                       ),
                     ),
                   )

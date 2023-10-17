@@ -25,7 +25,7 @@ abstract class RenderIcons {
 
   static const IconData palette = Iconsax.color_swatch;
 
-  static const IconData delete = MaterialSymbols.delete;
+  static const IconData delete = CupertinoIcons.delete;
 
   static const IconData create = CupertinoIcons.add;
 
@@ -79,7 +79,7 @@ abstract class RenderIcons {
 
   static const IconData unlock = CupertinoIcons.lock_open;
 
-  static IconData edit = PhosphorIcons.regular.pencilSimple;
+  static IconData edit = CupertinoIcons.pen;
 
   static const IconData edit_image = Iconsax.brush;
 
@@ -197,7 +197,7 @@ abstract class RenderIcons {
 
   static const IconData flip_vertical = CupertinoIcons.arrow_up_down_circle;
 
-  static IconData duplicate = PhosphorIcons.regular.copy;
+  static IconData duplicate = CupertinoIcons.plus_square_on_square;
 
   static const IconData expand = MaterialSymbols.expand_more;
 

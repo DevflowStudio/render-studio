@@ -64,7 +64,7 @@ class Preferences extends ChangeNotifier {
   double get nudgeSensitivity => prefs.getDouble('nudge-sensitivity') ?? 2;
   set nudgeSensitivity(double sensitivity) => prefs.setDouble('nudge-sensitivity', sensitivity).then((value) => notifyListeners());
 
-  bool get showActionBar => prefs.getBool('show-action-bar') ?? true;
+  bool get showActionBar => prefs.getBool('show-action-bar') ?? false;
   set showActionBar(bool value) => prefs.setBool('show-action-bar', value).then((value) => notifyListeners());
 
 }

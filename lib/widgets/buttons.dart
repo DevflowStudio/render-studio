@@ -242,6 +242,8 @@ class _RenderButtonState extends State<_RenderButton> {
   double radius = 60;
 
   bool isLoading = false;
+
+  double scale = 1;
   
   @override
   void setState(VoidCallback fn) {
@@ -262,38 +264,33 @@ class _RenderButtonState extends State<_RenderButton> {
       onTapUp: (details) => resetRadius(),
       onTapCancel: () => resetRadius(),
       onTap: widget.onPressed != null ? () {
-        reduceRadius();
         TapFeedback.tap();
         onPressed();
-        Future.delayed(const Duration(milliseconds: 190), () => resetRadius());
       } : null,
-      child: AnimatedSize(
+      child: AnimatedScale(
         duration: kAnimationDuration,
+        scale: scale,
         child: AnimatedContainer(
           duration: Duration(milliseconds: 500),
           curve: Sprung.criticallyDamped,
           decoration: BoxDecoration(
             color: widget.backgroundColor,
-            borderRadius: BorderRadius.circular(radius),
-            border: widget.border,
-            boxShadow: [
-              if (widget.shadow != null) widget.shadow!,
-            ]
+            borderRadius: BorderRadius.circular(radius)
           ),
           child: DefaultTextStyle(
             style: textStyle!.copyWith(
               color: widget.textColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 17,
-              fontFamily: 'Helvetica Neue',
+              fontSize: 19,
+              fontFamily: 'SF Pro Rounded',
+              fontWeight: FontWeight.w500,
               height: 1
             ),
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 child: isLoading ? SizedBox(
-                  height: textStyle.fontSize ?? 20,
-                  width: textStyle.fontSize ?? 20,
+                  height: 19,
+                  width: 19,
                   child: Spinner(
                     valueColor: widget.textColor,
                     strokeWidth: 2,
@@ -307,9 +304,9 @@ class _RenderButtonState extends State<_RenderButton> {
     );
   }
 
-  void reduceRadius() => setState(() => radius = 10);
+  void reduceRadius() => setState(() => scale = 0.95);
 
-  void resetRadius() => setState(() => radius = 40);
+  void resetRadius() => setState(() => scale = 1);
 
   Future<void> onPressed() async {
     if (widget.onPressed == null || isLoading) return;
