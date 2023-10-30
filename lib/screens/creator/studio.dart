@@ -71,10 +71,6 @@ class _StudioState extends State<Studio> {
                 alignment: Alignment.topLeft,
                 child: ProjectDebugBanner(project: project),
               ),
-              Align(
-                alignment: Alignment.topLeft,
-                child: ProjectDebugBanner(project: project),
-              ),
               Expanded(
                 child: Stack(
                   children: [
@@ -167,9 +163,7 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
 
   late Project project;
 
-  void onUpdate() => setState(() {
-    
-  });
+  void onUpdate() => setState(() { });
 
   late Editor editor;
 

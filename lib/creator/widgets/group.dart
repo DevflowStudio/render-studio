@@ -1,3 +1,5 @@
+import 'package:align_positioned/align_positioned.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 
 import '../../rehmat.dart';
@@ -88,15 +90,22 @@ class WidgetGroup extends CreatorWidget {
       group._group = Group.create(group.uid);
       
       List<CreatorWidget> _widgets = widgets ?? page.widgets.selections;
+
+      // Sorts the widgets in the local widget list by their z index order in the page.
       _widgets.sort((a, b) => page.widgets.sortedUIDs.indexOf(a.uid).compareTo(page.widgets.sortedUIDs.indexOf(b.uid)));
       
+      // Do not allow grouping of groups if selected number is less than 2 or more than 10.
       if (_widgets.length < 2) {
         return null;
       } else if (_widgets.length > 10) {
         return null;
       }
 
+      group.demographics = {};
+      group.calculateDemographics(widgets: _widgets);
+
       for (CreatorWidget widget in _widgets) {
+        // Remove the widget from it's current group if it is already in one.
         if (widget.group != null) {
           widget.group!.ungroup(widget, soft: true);
         }
@@ -108,7 +117,7 @@ class WidgetGroup extends CreatorWidget {
         page.widgets.delete(widget.uid, soft: true);
       }
 
-      group.resizeGroup();
+      group._sizeGroup();
 
       return group;
     } catch (e, stacktrace) {
@@ -117,44 +126,58 @@ class WidgetGroup extends CreatorWidget {
     }
   }
 
-  void resizeGroup() {
-    List<Offset> _offsets = [];
-    List<double> dy = [];
-    List<double> dx = [];
-    for (CreatorWidget widget in widgets) {
-      Offset topLeft;
-      Offset topRight;
-      Offset bottomLeft;
-      Offset bottomRight;
-      topLeft = Offset(widget.position.dx - widget.size.width/2, widget.position.dy - widget.size.height/2);
-      bottomLeft = Offset(widget.position.dx - widget.size.width/2, widget.position.dy + widget.size.height/2);
-      topRight = Offset(widget.position.dx + widget.size.width/2, widget.position.dy - widget.size.height/2);
-      bottomRight = Offset(widget.position.dx + widget.size.width/2, widget.position.dy + widget.size.height/2);
-      _offsets.addAll([topLeft, topRight, bottomLeft, bottomRight]);
+  void calculateDemographics({List<CreatorWidget>? widgets}) {
+    demographics.clear();
+    List<CreatorWidget> _widgets = widgets ?? this.widgets;
+    for (CreatorWidget widget in _widgets) {
+      List<String> overlaps = [];
+      List<String> above = [];
+      List<String> below = [];
+      List<String> left = [];
+      List<String> right = [];
+      
+      for (CreatorWidget widget2 in _widgets) {
+        if (widget == widget2) continue;
+        if (widget.area.overlaps(widget2.area) || widget.area.overlaps(widget2.area)) {
+          overlaps.add(widget2.uid);
+          continue;
+        }
+        
+        Rect area1 = Rect.fromCenter(center: Offset(0, widget.area.center.dy), width: double.infinity, height: widget.area.height);
+        Rect area2 = Rect.fromCenter(center: Offset(0, widget2.area.center.dy), width: double.infinity, height: widget2.area.height);
+        bool isInSameRow = area1.overlaps(area2) || area2.overlaps(area1);
+
+        if (isInSameRow) {
+          if (widget2.position.dx < widget.position.dx) {
+            left.add(widget2.uid);
+          } else if (widget2.position.dx > widget.position.dx) {
+            right.add(widget2.uid);
+          }
+        } else {
+          if (widget2.position.dy < widget.position.dy) {
+            above.add(widget2.uid);
+          } else if (widget2.position.dy > widget.position.dy) {
+            below.add(widget2.uid);
+          }
+        }
+      }
+
+      demographics[widget.uid] = {
+        'overlaps': overlaps,
+        'above': above,
+        'below': below,
+        'left': left,
+        'right': right,
+        'original-size': {
+          'width': widget.size.width,
+          'height': widget.size.height,
+        },
+      };
     }
-    for (Offset offset in _offsets) {
-      dy.add(offset.dy);
-      dx.add(offset.dx);
-    }
-    dy.sort();
-    double minDY = dy.first;
-    double maxDY = dy.last;
-    dx.sort();
-    double minDX = dx.first;
-    double maxDX = dx.last;
+  }
 
-    Offset bottomRight = Offset(maxDX, maxDY);
-    Offset topLeft = Offset(minDX, minDY);
-
-    double width = bottomRight.dx - topLeft.dx;
-    double height = bottomRight.dy - topLeft.dy;
-
-    // if ((width + 20) < project.canvasSize(context).width) width += 20;
-    // if ((height + 20) < project.canvasSize(context).height) height += 20;
-
-    Size _size = Size(width, height);
-
-    Offset center = Offset((bottomRight.dx + topLeft.dx)/2, (bottomRight.dy + topLeft.dy)/2);
+  void _sizeGroup() {
+    var (_size, center) = _getGroupSizeFromWidgets(widgets);
     
     position = center;
     size = _size;
@@ -162,6 +185,142 @@ class WidgetGroup extends CreatorWidget {
     for (CreatorWidget widget in widgets) {
       widget.position = Offset(widget.position.dx - center.dx, widget.position.dy - center.dy);
     }
+
+    updateListeners(WidgetChange.misc);
+  }
+
+  static (Size, Offset) _getGroupSizeFromWidgets(List<CreatorWidget> widgets) {
+    double minDY = 0;
+    double maxDY = 0;
+    double minDX = 0;
+    double maxDX = 0;
+    for (CreatorWidget widget in widgets) {
+      Offset topLeft = Offset(widget.position.dx - widget.size.width/2, widget.position.dy - widget.size.height/2);
+      Offset bottomLeft = Offset(widget.position.dx - widget.size.width/2, widget.position.dy + widget.size.height/2);
+      Offset topRight = Offset(widget.position.dx + widget.size.width/2, widget.position.dy - widget.size.height/2);
+      Offset bottomRight = Offset(widget.position.dx + widget.size.width/2, widget.position.dy + widget.size.height/2);
+      for (Offset offset in [topLeft, topRight, bottomLeft, bottomRight]) {
+        if (offset.dy < minDY) minDY = offset.dy;
+        if (offset.dy > maxDY) maxDY = offset.dy;
+        if (offset.dx < minDX) minDX = offset.dx;
+        if (offset.dx > maxDX) maxDX = offset.dx;
+      }
+    }
+
+    Offset bottomRight = Offset(maxDX, maxDY);
+    Offset topLeft = Offset(minDX, minDY);
+
+    double width = bottomRight.dx - topLeft.dx;
+    double height = bottomRight.dy - topLeft.dy;
+
+    return (Size(width, height), Offset((bottomRight.dx + topLeft.dx)/2, (bottomRight.dy + topLeft.dy)/2));
+  }
+
+  void onElementsResize() {
+    Size _prevSize = size;
+    for (CreatorWidget widget in widgets) {
+      Size newSize = widget.size;
+      Size prevSize = Size(demographics[widget.uid]!['original-size']['width'], demographics[widget.uid]!['original-size']['height']);
+
+      bool hasSizeChanged = newSize.width != prevSize.width || widget.size.height != prevSize.height;
+      double widthChange = newSize.width - prevSize.width;
+      double heightChange = newSize.height - prevSize.height;
+
+      // List<String> overlaps = demographics[widget.uid]!['overlaps'];
+      List<String> widgetsAbove = demographics[widget.uid]!['above'];
+      List<String> widgetsBelow = demographics[widget.uid]!['below'];
+      List<String> widgetsLeft = demographics[widget.uid]!['left'];
+      List<String> widgetsRight = demographics[widget.uid]!['right'];
+
+      if (hasSizeChanged) {
+        if (widgetsAbove.isNotEmpty || widgetsBelow.isNotEmpty) size = Size(size.width, size.height + heightChange);
+
+        double belowHeightDistribution = heightChange / 2;
+        double aboveHeightDistribution = heightChange / 2;
+        // if (widgetsAbove.isEmpty) belowHeightDistribution = heightChange;
+        // if (widgetsBelow.isEmpty) aboveHeightDistribution = heightChange;
+
+        for (String uid in widgetsAbove) {
+          CreatorWidget widget = widgets.firstWhere((element) => element.uid == uid);
+          widget.position = Offset(widget.position.dx, widget.position.dy - aboveHeightDistribution);
+        }
+        for (String uid in widgetsBelow) {
+          CreatorWidget widget = widgets.firstWhere((element) => element.uid == uid);
+          widget.position = Offset(widget.position.dx, widget.position.dy + belowHeightDistribution);
+        }
+
+        double leftWidthDistribution = widthChange / 2;
+        double rightWidthDistribution = widthChange / 2;
+
+        if (widget.horizontalExpandDirection == HorizontalExpandDirection.left) {
+          leftWidthDistribution = widthChange;
+          rightWidthDistribution = 0;
+        } else if (widget.horizontalExpandDirection == HorizontalExpandDirection.right) {
+          leftWidthDistribution = 0;
+          rightWidthDistribution = widthChange;
+        } else if (widget.horizontalExpandDirection == HorizontalExpandDirection.both) {
+          if (widgetsLeft.isEmpty && widgetsRight.isEmpty) {
+            leftWidthDistribution = widthChange / 2;
+            rightWidthDistribution = widthChange / 2;
+          } else if (widgetsLeft.isNotEmpty && widgetsRight.isEmpty) {
+            leftWidthDistribution = rightWidthDistribution = 0;
+            widget.position = Offset(widget.position.dx + widthChange/2, widget.position.dy);
+          } else if (widgetsRight.isNotEmpty && widgetsLeft.isEmpty) {
+            leftWidthDistribution = rightWidthDistribution = 0;
+            widget.position = Offset(widget.position.dx - widthChange/2, widget.position.dy);
+          } else {
+            leftWidthDistribution = widthChange / 2;
+            rightWidthDistribution = widthChange / 2;
+          }
+        }
+
+        for (String uid in widgetsLeft) {
+          CreatorWidget widget = widgets.firstWhere((element) => element.uid == uid);
+          widget.position = Offset(widget.position.dx - leftWidthDistribution, widget.position.dy);
+        }
+        for (String uid in widgetsRight) {
+          CreatorWidget widget = widgets.firstWhere((element) => element.uid == uid);
+          widget.position = Offset(widget.position.dx + rightWidthDistribution, widget.position.dy);
+        }
+        calculateDemographics();
+      }
+    }
+    resizeBoundaries(previousSize: _prevSize);
+  }
+
+  void resizeBoundaries({Size? previousSize}) {
+    double minDY = 0;
+    double maxDY = 0;
+    double minDX = 0;
+    double maxDX = 0;
+    for (CreatorWidget widget in widgets) {
+      Offset topLeft = Offset(widget.position.dx - widget.size.width/2, widget.position.dy - widget.size.height/2);
+      Offset bottomLeft = Offset(widget.position.dx - widget.size.width/2, widget.position.dy + widget.size.height/2);
+      Offset topRight = Offset(widget.position.dx + widget.size.width/2, widget.position.dy - widget.size.height/2);
+      Offset bottomRight = Offset(widget.position.dx + widget.size.width/2, widget.position.dy + widget.size.height/2);
+      for (Offset offset in [topLeft, topRight, bottomLeft, bottomRight]) {
+        if (offset.dy < minDY) minDY = offset.dy;
+        if (offset.dy > maxDY) maxDY = offset.dy;
+        if (offset.dx < minDX) minDX = offset.dx;
+        if (offset.dx > maxDX) maxDX = offset.dx;
+      }
+    }
+
+    Offset bottomRight = Offset(maxDX, maxDY);
+    Offset topLeft = Offset(minDX, minDY);
+
+    Size _newSize = Size(bottomRight.dx - topLeft.dx, bottomRight.dy - topLeft.dy);
+
+    size = _newSize;
+
+    double individualWidgetWidthChange = maxDX - (size.width/2);
+    double individualWidgetHeightChange = maxDY - (size.height/2);
+
+    for (CreatorWidget widget in widgets) {
+      widget.position = Offset(widget.position.dx - individualWidgetWidthChange, widget.position.dy - individualWidgetHeightChange);
+    }
+
+    if (previousSize != null) position = CreatorWidget.autoPosition(position: position, newSize: _newSize, prevSize: previousSize, horizontalExpandDirection: horizontalExpandDirection, verticalExpandDirection: verticalExpandDirection);
 
     updateListeners(WidgetChange.misc);
   }
@@ -182,13 +341,11 @@ class WidgetGroup extends CreatorWidget {
       page.widgets.delete(this.uid, soft: soft);
       return;
     }
-    for (CreatorWidget widget in widgets) {
-      widget.position = Offset(widget.position.dx + position.dx, widget.position.dy + position.dy);
-    }
-    resizeGroup();
+    resizeBoundaries();
+    calculateDemographics();
     if (!soft) {
-      page.widgets.select(widget);
       page.history.log('Ungroup Widget');
+      page.widgets.selectWithUID(widget.uid);
     }
   }
 
@@ -223,6 +380,8 @@ class WidgetGroup extends CreatorWidget {
 
   late final Group _group;
 
+  late Map<String, dynamic> demographics;
+
   bool keepAspectRatio = true;
   bool isResizable = true;
   bool isDraggable = true;
@@ -256,6 +415,7 @@ class WidgetGroup extends CreatorWidget {
       widget.size = Size(widget.size.width * scale, widget.size.height * scale);
       widget.position = Offset(widget.position.dx * scale, widget.position.dy * scale);
     }
+    calculateDemographics();
     super.onResize(size, type: type);
   }
 
@@ -267,9 +427,7 @@ class WidgetGroup extends CreatorWidget {
           icon: RenderIcons.delete,
           title: 'Ungroup',
           tooltip: 'Ungroup all the widgets',
-          onTap: (context) async {
-            
-          },
+          onTap: (context) async { },
         ),
         ... defaultOptions
       ],
@@ -344,6 +502,10 @@ class WidgetGroup extends CreatorWidget {
     ... super.toJSON(buildInfo: buildInfo),
     'widgets': widgets.map((e) => e.toJSON(buildInfo: buildInfo)).toList(),
     '_group': _group.id,
+    '_demographics': {
+      'version': buildInfo.version,
+      ... demographics
+    },
   };
 
   @override
@@ -354,6 +516,11 @@ class WidgetGroup extends CreatorWidget {
       for (Map widgetData in data['widgets']) {
         CreatorWidget widget = CreatorWidget.fromJSON(widgetData, buildInfo: buildInfo, page: page);
         widgets.add(widget);
+      }
+      if (data.containsKey('_demographics')) demographics = Map<String, dynamic>.from(data['_demographics']);
+      else {
+        demographics = {};
+        calculateDemographics(widgets: widgets);
       }
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'Failed to build widget from JSON', stacktrace: stacktrace);

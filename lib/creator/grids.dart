@@ -153,6 +153,10 @@ extension GridLayoutExtension on GridLayout {
     }
   }
 
+  bool get isHorizontal => this == GridLayout.horizontal;
+
+  bool get isVertical => this == GridLayout.vertical;
+
 }
 
 class PageGridView extends StatefulWidget {

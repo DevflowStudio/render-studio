@@ -13,16 +13,35 @@ class EditorManager extends ChangeNotifier {
     return EditorManager._(page: page);
   }
 
-  Editor? editor;
+  static Size standardSize(BuildContext context) {
+    double verticalPadding = Constants.of(context).bottomPadding;
+    double height = (Theme.of(context).textTheme.bodySmall!.fontSize! * 1.2 * 2) + 6 + 70; // Height of a standard option icon button + padding
+    return Size(double.infinity, height + verticalPadding);
+  }
+
+  Editor? _editor;
+  Editor? _modalEditor;
+
+  Editor get editor => _modalEditor ?? _editor ?? page.widgets.background.editor;
 
   void updateEditor() {
     if (page.widgets.nSelections == 0) {
-      editor = null;
+      _editor = null;
     } else if (page.widgets.nSelections == 1) {
-      editor = page.widgets.selections.single.editor;
+      _editor = page.widgets.selections.single.editor;
     } else {
-      editor = page.widgets.background.editor;
+      _editor = page.widgets.background.editor;
     }
+    notifyListeners();
+  }
+
+  void openModal(Editor editor) {
+    _modalEditor = editor;
+    notifyListeners();
+  }
+
+  void closeModal() {
+    _modalEditor = null;
     notifyListeners();
   }
 

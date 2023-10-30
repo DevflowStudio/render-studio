@@ -62,16 +62,10 @@ class CreatorText extends CreatorWidget {
           tooltip: 'Edit text',
           onTap: (context) async {
             editText(context, text: [
-              "Mountain peaks",
-              "Lazy Sunday morning",
-              "Enchanted forest",
-              "Lost in translation",
-              "Summer vacation memories",
-              "Galactic adventures await",
-              "Coffee shop conversations",
-              "Mysterious ancient artifacts",
-              "Midnight rendezvous by the sea",
-              "Quantum physics theories explored",
+              "One Line",
+              "Two\nLines",
+              "Three\nLines\nHere",
+              "Loooooooong Line",
             ].getRandom());
           },
           icon: RenderIcons.refresh
@@ -201,6 +195,7 @@ class CreatorText extends CreatorWidget {
                 multiSelectionEnabled: false,
                 onSelectionChanged: (align) {
                   this.align = align.first;
+                  adjustHorizontalExpandDirection();
                   updateListeners(WidgetChange.update);
                 },
                 selected: {align}
@@ -436,6 +431,9 @@ class CreatorText extends CreatorWidget {
   bool isDraggable = true;
 
   bool keepAspectRatio = true;
+
+  @override
+  final bool autoChangeHorizontalExpandDirection = false;
   
   /// BackgroundWidget Color
   Color textBackground = Colors.transparent;
@@ -461,7 +459,7 @@ class CreatorText extends CreatorWidget {
 
   double radius = 10;
 
-  double lineHeight = 0.77; // 0.77 alternative
+  double lineHeight = 1; // 0.77 alternative
 
   EdgeInsets padding = EdgeInsets.zero;
 
@@ -575,9 +573,11 @@ class CreatorText extends CreatorWidget {
 
   /// Calculates new height of the widget when the width is changed using ResizeHandler (center)
   void alterHeightOnResize({
-    required ResizeHandler handler,
+    ResizeHandler? handler,
+    Alignment? alignment,
     required Size size
   }) {
+    assert(handler != null || alignment != null);
     double _newSpanWidth = size.width / _widthScale;
     _spanSize = getTextPainter(maxWidth: _newSpanWidth).size;
     Size _newSize = Size(size.width, _spanSize.height * _widthScale);
@@ -585,7 +585,7 @@ class CreatorText extends CreatorWidget {
       position: position,
       newSize: _newSize,
       prevSize: this.size,
-      alignment: handler == ResizeHandler.centerRight ? Alignment.topLeft : Alignment.topRight
+      alignment: alignment != null ? alignment : (handler == ResizeHandler.centerRight ? Alignment.topLeft : Alignment.topRight)
     );
     this.size = _newSize;
   }
@@ -829,6 +829,8 @@ class CreatorText extends CreatorWidget {
     if (!hasChanged) return;
     
     this.align = align;
+    adjustHorizontalExpandDirection();
+
     String new_text = text ?? textCtrl.text;
     if (new_text.trim() != '') this.text = new_text;
 
@@ -852,17 +854,47 @@ class CreatorText extends CreatorWidget {
       }
     }
 
+    position = CreatorWidget.autoPosition(
+      position: position, newSize: nWidgetSize, prevSize: size, verticalExpandDirection: verticalExpandDirection, horizontalExpandDirection: horizontalExpandDirection
+    );
+
     size = nWidgetSize;
     _spanSize = nSpanSize;
     _widthScale = size.width / _spanSize.width;
 
-    if (group != null) group!.findGroup(this).resizeGroup();
+    if (group != null) group!.findGroup(this).onElementsResize();
     if (hasChanged) updateListeners(WidgetChange.update, historyMessage: 'Edit Text');
     else updateListeners(WidgetChange.misc);
     if (_containsSecondaryStyle(new_text) && secondaryStyle == null) Alerts.snackbar(
       context,
       text: 'Please add a secondary style to apply new style to the selected text'
     );
+  }
+
+  void adjustHorizontalExpandDirection() {
+    // final numLines = getTextPainter(maxWidth: _spanSize.width).computeLineMetrics().length;
+    // If there's only a single text line in the text, then the text can be expanded in both directions
+    // A single line does not visibly show the alignment of the text, hence we can expand the text in both directions
+    // if (numLines > 1) {
+      switch (align) {
+        case TextAlign.center:
+          horizontalExpandDirection = HorizontalExpandDirection.both;
+          break;
+        case TextAlign.left:
+          horizontalExpandDirection = HorizontalExpandDirection.right;
+          break;
+        case TextAlign.right:
+          horizontalExpandDirection = HorizontalExpandDirection.left;
+          break;
+        case TextAlign.justify:
+          horizontalExpandDirection = HorizontalExpandDirection.both;
+          break;
+        default:
+          horizontalExpandDirection = HorizontalExpandDirection.both;
+      }
+    // } else {
+    //   horizontalExpandDirection = HorizontalExpandDirection.both;
+    // }
   }
 
   @override

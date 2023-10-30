@@ -2,6 +2,7 @@ import 'package:align_positioned/align_positioned.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:get/utils.dart';
 import 'package:sprung/sprung.dart';
 import '../../rehmat.dart';
 import '../state.dart';
@@ -125,6 +126,26 @@ class WidgetManager extends ChangeNotifier {
     }
     updateGrids();
     page.updateListeners(PageChange.selection);
+  }
+
+  /// Selects the widget with the given [uid].
+  /// Note that nothing will happen if the widget is not found.
+  void selectWithUID(String uid) {
+    CreatorWidget? widget = find(uid);
+    if (widget != null) select(widget);
+  }
+
+  CreatorWidget? find(String uid) {
+    if (_widgets.containsKey(uid)) return _widgets[uid];
+    else {
+      for (CreatorWidget widget in _widgets.values) {
+        if (widget is WidgetGroup) {
+          CreatorWidget? found = widget.widgets.firstWhereOrNull((element) => element.uid == uid);
+          if (found != null) return found;
+        }
+      }
+      return null;
+    }
   }
 
   T? get<T extends CreatorWidget>(String uid) => _widgets[uid] as T?;
@@ -407,12 +428,11 @@ class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
           _selectorStart = _selectorEnd = null;
           for (CreatorWidget widget in widgets.widgets) {
             if (widget is BackgroundWidget) continue;
-            Rect intersect = widget.area.intersect(rect);
-            bool isIntersecting = intersect.size.width > 0 && intersect.size.height > 0;
-            if (isIntersecting) {
+            bool isOverlaping = widget.area.overlaps(rect) || rect.overlaps(widget.area);
+            if (isOverlaping) {
               if (widget is WidgetGroup) {
                 for (CreatorWidget child in widget.widgets) {
-                  widgets.select(child);
+                  if (child.area.overlaps(rect) || rect.overlaps(child.area)) widgets.select(child);
                 }
               } else {
                 widgets.select(widget);

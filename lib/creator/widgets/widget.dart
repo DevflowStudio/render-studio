@@ -203,6 +203,12 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// to make sure that effects like border are not applied
   final bool isBackgroundWidget = false;
 
+  VerticalExpandDirection verticalExpandDirection = VerticalExpandDirection.both;
+  HorizontalExpandDirection horizontalExpandDirection = HorizontalExpandDirection.both;
+
+  final bool autoChangeVerticalExpandDirection = true;
+  final bool autoChangeHorizontalExpandDirection = true;
+
   void onResizeStart({
     DragStartDetails? details,
     ResizeHandler? handler
@@ -268,11 +274,22 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   Offset position = const Offset(0, 0);
   Offset _previousPosition = const Offset(0, 0);
 
-  Rect get area => group != null ? Rect.zero : Rect.fromCenter(
-    center: position,
-    width: size.width,
-    height: size.height,
-  );
+  Rect get area {
+    if (group != null) {
+      Offset center = group!.findGroup(this).position + position;
+      return Rect.fromCenter(
+        center: center,
+        width: size.width,
+        height: size.height,
+      );
+    } else {
+      return Rect.fromCenter(
+        center: position,
+        width: size.width,
+        height: size.height,
+      );
+    }
+  }
 
   /// Set to `false` if you want the widget
   /// to not be draggable.
@@ -484,33 +501,40 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       GridLayout? snappedGridLayout;
       for (Grid grid in page.gridState.grids) {
         bool hasSnapped = false;
+        List<Grid> snappedGrids = [];
         
         if (grid.widget == this) continue;
         else if (snappedGridLayout == grid.layout) continue;
         else if (nSnapGrids >= 2) continue;
         else if (this is WidgetGroup && (this as WidgetGroup).widgets.contains(grid.widget)) continue;
 
-        if (grid.layout == GridLayout.vertical) {
+        if (grid.layout.isVertical) {
           if (isInSnapSensitiveArea(x0, px0, grid) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerVertical) {
             dx = grid.position.dx + size.width/2;
             hasSnapped = true;
+            snappedGrids.add(grid);
           } else if (isInSnapSensitiveArea(x, px, grid) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement == GridWidgetPlacement.centerVertical) {
             dx = grid.position.dx;
             hasSnapped = true;
+            snappedGrids.add(grid);
           } else if (isInSnapSensitiveArea(x1, px1, grid) && isWithinReachableDistance(grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerVertical) {
             dx = grid.position.dx - size.width/2;
             hasSnapped = true;
+            snappedGrids.add(grid);
           }
-        } else if (grid.layout == GridLayout.horizontal) {
+        } else if (grid.layout.isHorizontal) {
           if (isInSnapSensitiveArea(y0, py0, grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerHorizontal) {
             dy = grid.position.dy + size.height/2;
             hasSnapped = true;
+            snappedGrids.add(grid);
           } else if (isInSnapSensitiveArea(y, py, grid) && grid.gridWidgetPlacement == GridWidgetPlacement.centerHorizontal) {
             dy = grid.position.dy;
             hasSnapped = true;
+            snappedGrids.add(grid);
           } else if (isInSnapSensitiveArea(y1, py1, grid) && grid.gridWidgetPlacement != GridWidgetPlacement.centerHorizontal) {
             dy = grid.position.dy - size.height/2;
             hasSnapped = true;
+            snappedGrids.add(grid);
           }
         }
         
@@ -518,10 +542,26 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         // Other conditions in the if statement prevent the feedback from being created multiple times
         if (hasSnapped && !grid.isVisible && preferences.vibrateOnSnap && snap) TapFeedback.light();
 
-        if (hasSnapped) grid.isVisible = true;
-        else grid.isVisible = false;
+        if (hasSnapped) {
+          grid.isVisible = true;
+          snappedGridLayout = grid.layout;
 
-        if (hasSnapped) snappedGridLayout = grid.layout;
+          for (Grid grid in snappedGrids) {
+            if (grid.layout.isHorizontal && autoChangeVerticalExpandDirection) {
+              if (grid.gridWidgetPlacement == GridWidgetPlacement.top) verticalExpandDirection = VerticalExpandDirection.down;
+              else if (grid.gridWidgetPlacement == GridWidgetPlacement.bottom) verticalExpandDirection = VerticalExpandDirection.up;
+              else verticalExpandDirection = VerticalExpandDirection.both;
+            } else if (grid.layout.isVertical && autoChangeHorizontalExpandDirection) {
+              if (grid.gridWidgetPlacement == GridWidgetPlacement.left) horizontalExpandDirection = HorizontalExpandDirection.right;
+              else if (grid.gridWidgetPlacement == GridWidgetPlacement.right) horizontalExpandDirection = HorizontalExpandDirection.left;
+              else horizontalExpandDirection = HorizontalExpandDirection.both;
+            }
+          }
+        } else {
+          grid.isVisible = false;
+          if (autoChangeVerticalExpandDirection) verticalExpandDirection = VerticalExpandDirection.both;
+          else if (autoChangeHorizontalExpandDirection) horizontalExpandDirection = HorizontalExpandDirection.both;
+        }
 
         if (hasSnapped) nSnapGrids++;
       }
@@ -687,7 +727,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         'size': {
           'width': size.width,
           'height': size.height
-        }
+        },
+        'vertical-expand-direction': verticalExpandDirection.name,
+        'horizontal-expand-direction': horizontalExpandDirection.name,
       }
     };
   }
@@ -798,6 +840,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (asset?.history.isEmpty ?? false) {
       asset!.history[page.history.dates.first.version ?? ''] = asset!.file;
     }
+    verticalExpandDirection = VerticalExpandDirectionExtension.fromString(data['properties']['vertical-expand-direction']);
+    horizontalExpandDirection = HorizontalExpandDirectionExtension.fromString(data['properties']['horizontal-expand-direction']);
     if (buildInfo.version != null && asset != null) asset!.restoreVersion(version: buildInfo.version!);
     updateListeners(WidgetChange.misc);
   }
@@ -807,34 +851,59 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     required Offset position,
     required Size newSize,
     required Size prevSize,
-    Alignment alignment = Alignment.center
+    Alignment? alignment,
+    VerticalExpandDirection? verticalExpandDirection,
+    HorizontalExpandDirection? horizontalExpandDirection
   }) {
+    assert(alignment != null || (verticalExpandDirection != null && horizontalExpandDirection != null), 'Alignment or expand direction must be provided');
+
     double changeInHeight = newSize.height - prevSize.height;
     double changeInWidth = newSize.width - prevSize.width;
 
     double dx = position.dx;
     double dy = position.dy;
 
-    if (alignment == Alignment.topLeft) {
-      dx = position.dx + changeInWidth / 2;
-      dy = position.dy + changeInHeight / 2;
-    } else if (alignment == Alignment.topCenter) {
-      dy = position.dy + changeInHeight / 2;
-    } else if (alignment == Alignment.topRight) {
-      dx = position.dx - changeInWidth / 2;
-      dy = position.dy + changeInHeight / 2;
-    } else if (alignment == Alignment.centerLeft) {
-      dx = position.dx + changeInWidth / 2;
-    } else if (alignment == Alignment.centerRight) {
-      dx = position.dx - changeInWidth / 2;
-    } else if (alignment == Alignment.bottomLeft) {
-      dx = position.dx + changeInWidth / 2;
-      dy = position.dy - changeInHeight / 2;
-    } else if (alignment == Alignment.bottomCenter) {
-      dy = position.dy - changeInHeight / 2;
-    } else if (alignment == Alignment.bottomRight) {
-      dx = position.dx - changeInWidth / 2;
-      dy = position.dy - changeInHeight / 2;
+    if (alignment != null) {
+      if (alignment == Alignment.topLeft) {
+        verticalExpandDirection = VerticalExpandDirection.down;
+        horizontalExpandDirection = HorizontalExpandDirection.right;
+      } else if (alignment == Alignment.topCenter) {
+        verticalExpandDirection = VerticalExpandDirection.down;
+        horizontalExpandDirection = HorizontalExpandDirection.both;
+      } else if (alignment == Alignment.topRight) {
+        verticalExpandDirection = VerticalExpandDirection.down;
+        horizontalExpandDirection = HorizontalExpandDirection.left;
+      } else if (alignment == Alignment.centerLeft) {
+        verticalExpandDirection = VerticalExpandDirection.both;
+        horizontalExpandDirection = HorizontalExpandDirection.right;
+      } else if (alignment == Alignment.center) {
+        verticalExpandDirection = VerticalExpandDirection.both;
+        horizontalExpandDirection = HorizontalExpandDirection.both;
+      } else if (alignment == Alignment.centerRight) {
+        verticalExpandDirection = VerticalExpandDirection.both;
+        horizontalExpandDirection = HorizontalExpandDirection.left;
+      } else if (alignment == Alignment.bottomLeft) {
+        verticalExpandDirection = VerticalExpandDirection.up;
+        horizontalExpandDirection = HorizontalExpandDirection.right;
+      } else if (alignment == Alignment.bottomCenter) {
+        verticalExpandDirection = VerticalExpandDirection.up;
+        horizontalExpandDirection = HorizontalExpandDirection.both;
+      } else if (alignment == Alignment.bottomRight) {
+        verticalExpandDirection = VerticalExpandDirection.up;
+        horizontalExpandDirection = HorizontalExpandDirection.left;
+      }
+    }
+
+    if (verticalExpandDirection == VerticalExpandDirection.down) {
+      dy += changeInHeight/2;
+    } else if (verticalExpandDirection == VerticalExpandDirection.up) {
+      dy -= changeInHeight/2;
+    }
+
+    if (horizontalExpandDirection == HorizontalExpandDirection.right) {
+      dx += changeInWidth/2;
+    } else if (horizontalExpandDirection == HorizontalExpandDirection.left) {
+      dx -= changeInWidth/2;
     }
 
     return Offset(dx, dy);
@@ -1113,4 +1182,80 @@ class _CustomGestureDetectorState extends State<_CustomGestureDetector> {
       child: widget.child,
     );
   }
+}
+
+/// Determines the direction in which the widget should expand vertically when resized
+enum VerticalExpandDirection {
+  /// Expand the widget to the top, keeping the bottom position constant
+  up,
+  /// Expand the widget equally to the top and bottom, keeping the center position constant
+  both,
+  /// Expand the widget to the bottom, keeping the top position constant
+  down
+}
+
+/// Determines the direction in which the widget should expand horizontally when resized
+enum HorizontalExpandDirection {
+  /// Expand the widget to the left, keeping the right position constant
+  left,
+  /// Expand the widget equally to the left and right, keeping the center position constant
+  both,
+  /// Expand the widget to the right, keeping the left position constant
+  right
+}
+
+extension VerticalExpandDirectionExtension on VerticalExpandDirection {
+
+  String get name {
+    switch (this) {
+      case VerticalExpandDirection.up:
+        return 'up';
+      case VerticalExpandDirection.both:
+        return 'both';
+      case VerticalExpandDirection.down:
+        return 'down';
+    }
+  }
+
+  static VerticalExpandDirection fromString(String? name) {
+    switch (name) {
+      case 'up':
+        return VerticalExpandDirection.up;
+      case 'both':
+        return VerticalExpandDirection.both;
+      case 'down':
+        return VerticalExpandDirection.down;
+      default:
+        return VerticalExpandDirection.both;
+    }
+  }
+
+}
+
+extension HorizontalExpandDirectionExtension on HorizontalExpandDirection {
+
+  String get name {
+    switch (this) {
+      case HorizontalExpandDirection.left:
+        return 'left';
+      case HorizontalExpandDirection.both:
+        return 'both';
+      case HorizontalExpandDirection.right:
+        return 'right';
+    }
+  }
+
+  static HorizontalExpandDirection fromString(String? name) {
+    switch (name) {
+      case 'left':
+        return HorizontalExpandDirection.left;
+      case 'both':
+        return HorizontalExpandDirection.both;
+      case 'right':
+        return HorizontalExpandDirection.right;
+      default:
+        return HorizontalExpandDirection.both;
+    }
+  }
+
 }

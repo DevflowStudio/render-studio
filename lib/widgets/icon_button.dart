@@ -404,7 +404,7 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                   height: widget.size?.height ?? 70,
                   width: widget.size?.width ?? 70,
                   decoration: BoxDecoration(
-                    color: Palette.of(context).surfaceVariant,
+                    color: widget.backgroundColor ?? Palette.of(context).surfaceVariant,
                     // color: widget.backgroundColor ?? Constants.getThemedObject(context, light: Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.2), dark: Colors.grey[900]),
                     // color: context.isDarkMode ? Colors.grey[900] : null,
                     // gradient: context.isDarkMode ? null : LinearGradient(

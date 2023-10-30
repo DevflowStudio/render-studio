@@ -28,8 +28,8 @@ class History {
   bool get undoEnabled => date > 0;
   bool get redoEnabled => dates.length > date + 1;
 
-  String get undoTooltip => undoEnabled ? 'Undo${dates[date].title != null ? ': ' + dates[date].title!.toTitleCase() : ''}' : 'Nothing to Undo';
-  String get redoTooltip => redoEnabled ? 'Redo${dates[date + 1].title != null ? ': ' + dates[date + 1].title!.toTitleCase() : ''}' : 'Nothing to Redo';
+  String get undoTooltip => undoEnabled ? 'Undo ${dates[date].title != null ? ': ' + dates[date].title!.toTitleCase() : ''}' : 'Nothing to Undo';
+  String get redoTooltip => redoEnabled ? 'Redo ${dates[date + 1].title != null ? ': ' + dates[date + 1].title!.toTitleCase() : ''}' : 'Nothing to Redo';
 
   void _undo() => restore(-1);
 
@@ -39,8 +39,8 @@ class History {
   /// Uses method [create] to create a new history event
   /// The JSON is fetched from the widgets manager and passed to the [create] method
   /// Pass the `title` to set the title of the history event. May be used as a tooltip in the history menu
-  Future<void> log([String? title]) async {
-    HistoryDate event = await HistoryDate.create(page, version: nextVersion, title: title);
+  void log([String? title]) {
+    HistoryDate event = HistoryDate.create(page, version: nextVersion, title: title);
     nextVersion = Constants.generateID();
     if (dates.length >= 20) dates.removeAt(0);
     if (date < dates.length - 1) dates.removeRange(date + 1, dates.length);
