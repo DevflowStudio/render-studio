@@ -45,6 +45,7 @@ class CreativeContainerProvider {
     tab: name,
     options: [
       if (showColor) Option.color(
+        widget,
         selected: color,
         palette: widget.page.palette,
         allowClear: true,
@@ -60,26 +61,28 @@ class CreativeContainerProvider {
         title: 'Gradient',
         onTap: (context) async {
           gradient ??= CreativeGradient.fromPalette(palette: widget.page.palette);
-          await EditorTab.modal(
-            context,
-            actions: [
+          widget.page.editorManager.openModal(
+            actions: (dismiss) => [
               IconButton(
                 onPressed: () {
                   gradient = null;
-                  Navigator.of(context).pop();
+                  dismiss();
                 },
                 icon: Icon(RenderIcons.delete)
               ),
             ],
             tab: (context, setState) => gradient!.getEditor(
+              widget: widget,
               palette: widget.page.palette,
               onChange: (change) {
                 setState(() {});
                 onChange(change);
               },
             ),
+            onDismiss: () {
+              onChange(WidgetChange.update);
+            }
           );
-          onChange(WidgetChange.update);
         },
         icon: RenderIcons.gradient
       ),
@@ -93,9 +96,8 @@ class CreativeContainerProvider {
               offset: Offset(0, 5)
             );
           }
-          await EditorTab.modal(
-            context,
-            actions: [
+          widget.page.editorManager.openModal(
+            actions: (dismiss) => [
               IconButton(
                 onPressed: () {
                   shadow = null;
@@ -105,14 +107,17 @@ class CreativeContainerProvider {
               )
             ],
             tab: (context, setState) => EditorTab.shadow<BoxShadow>(
+              widget: widget,
               shadow: shadow!,
               onChange: (value) {
                 shadow = value;
                 onChange(WidgetChange.misc);
               },
-            )
+            ),
+            onDismiss: () {
+              onChange(WidgetChange.update);
+            }
           );
-          onChange(WidgetChange.update);
         },
         icon: Icons.text_fields,
         tooltip: 'Customize shadow of box'
@@ -121,20 +126,19 @@ class CreativeContainerProvider {
         title: 'Border',
         onTap: (context) async {
           Size originalWidgetSize = widget.size;
-          await EditorTab.modal(
-            context,
-            actions: [
+          widget.page.editorManager.openModal(
+            actions: (dismiss) => [
               IconButton(
                 onPressed: () {
                   borderColor = borderWidth = null;
                   onChange(WidgetChange.update);
-                  Navigator.of(context).pop();
+                  dismiss();
                 },
                 icon: Icon(RenderIcons.delete)
               )
             ],
             tab: (context, setState) => EditorTab(
-              type: EditorTabType.column,
+              type: EditorTabType.single,
               options: [
                 Option.custom(
                   widget: (context) => Padding(
@@ -143,6 +147,7 @@ class CreativeContainerProvider {
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         CustomSlider(
                           value: borderWidth ?? 0,
@@ -157,6 +162,7 @@ class CreativeContainerProvider {
                           },
                           actions: [
                             ColorSelector(
+                              widget: widget,
                               title: 'Color',
                               palette: widget.page.palette,
                               onColorSelect: (color) {
@@ -186,12 +192,14 @@ class CreativeContainerProvider {
                 ),
               ],
               tab: 'Border'
-            )
+            ),
+            onDismiss: () {
+              if ((borderWidth ?? 0) > 0 && borderColor == null) {
+                borderColor = color?.computeTextColor() ?? widget.page.palette.primary;
+              }
+              onChange(WidgetChange.update);
+            },
           );
-          if ((borderWidth ?? 0) > 0 && borderColor == null) {
-            borderColor = color?.computeTextColor() ?? widget.page.palette.primary;
-          }
-          onChange(WidgetChange.update);
         },
         icon: Icons.border_all,
         tooltip: 'Customize the border'
@@ -202,8 +210,7 @@ class CreativeContainerProvider {
         tooltip: 'Add padding to the widget',
         onTap: (context) async {
           Size originalWidgetSize = widget.size;
-          await EditorTab.modal(
-            context,
+          widget.page.editorManager.openModal(
             tab: (context, setState) => EditorTab.paddingEditor(
               padding: padding,
               onChange: (value) {
@@ -218,6 +225,7 @@ class CreativeContainerProvider {
         },
       ),
       if (showBlur) Option.showSlider(
+        widget,
         title: 'Blur',
         icon: RenderIcons.blur,
         value: blur,

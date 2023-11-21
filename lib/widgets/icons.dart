@@ -7,6 +7,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 abstract class RenderIcons {
 
+  static const IconData home = CupertinoIcons.home;
+
   static const IconData text = MaterialSymbols.title;
 
   static const IconData qr = MaterialSymbols.qr_code_2;
@@ -57,13 +59,13 @@ abstract class RenderIcons {
 
   static IconData close = PhosphorIcons.regular.x;
 
-  static const IconData arrow_up = Icons.expand_less;
+  static const IconData arrow_up = CupertinoIcons.chevron_up;
 
-  static const IconData arrow_down = Icons.expand_more;
+  static const IconData arrow_down = CupertinoIcons.chevron_down;
 
-  static const IconData arrow_left = Icons.chevron_left;
+  static const IconData arrow_left = CupertinoIcons.chevron_left;
 
-  static const IconData arrow_right = Icons.chevron_right;
+  static const IconData arrow_right = CupertinoIcons.chevron_right;
 
   static const IconData arrow_right_2 = CupertinoIcons.arrow_right;
 
@@ -109,7 +111,7 @@ abstract class RenderIcons {
 
   static const IconData text_size = MaterialSymbols.text_fields;
 
-  static const IconData search = MaterialSymbols.search;
+  static const IconData search = CupertinoIcons.search;
 
   static const IconData bold = Icons.format_bold;
 

@@ -62,6 +62,7 @@ class CreatorDesignAsset extends CreatorWidget {
           icon: RenderIcons.replace
         ),
         Option.color(
+          this,
           title: 'Color',
           tooltip: 'Tap to select asset color',
           palette: page.palette,

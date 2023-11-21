@@ -181,6 +181,7 @@ class CreatorPage extends PropertyChangeNotifier {
     try {
       CreatorPage page = CreatorPage(project: project, data: data);
       page.palette = ColorPalette.fromJSON(data['palette']);
+      await page.widgets.hasDeletedAssets();
       return page;
     } on WidgetCreationException catch (e, stacktrace) {
       analytics.logError(e, cause: 'error building page', stacktrace: stacktrace);
@@ -194,7 +195,8 @@ class CreatorPage extends PropertyChangeNotifier {
 enum PageChange {
   selection,
   update,
-  misc
+  misc,
+  editor
 }
 
 class PageCreationException implements Exception {

@@ -45,10 +45,8 @@ class Asset {
     }
   }
 
-  Future<void> ensureExists() async {
-    if (!(await file.exists())) {
-      throw Exception("The supporting file for this asset does not exist");
-    }
+  Future<bool> exists() {
+    return file.exists();
   }
 
   static Asset create({

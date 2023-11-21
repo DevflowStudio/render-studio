@@ -45,153 +45,156 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: Icon(RenderIcons.close)
-                )
-              ],
-            ),
-            Expanded(
-              flex: 1,
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                behavior: HitTestBehavior.translucent,
-                child: SizedBox.expand(),
-              ),
-            ),
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.75,
-                maxWidth: MediaQuery.of(context).size.width - 24
-              ),
-              child: Stack(
+      child: Container(
+        color: Palette.of(context).background.withOpacity(0.7),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Column(
+            children: [
+              Row(
                 children: [
-                  Hero(
-                    tag: 'project-${glance.id}',
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
-                      child: OctoImage(
-                        image: FileImage(File(glance.thumbnail!)),
-                        errorBuilder: (context, error, stackTrace) => Material(
-                          color: Colors.transparent,
-                          child: SizedBox(
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.width,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Palette.of(context).background.withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                RenderIcons.error,
-                                color: Palette.of(context).onBackground,
-                                size: 48,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: FadeOut(
-                      delay: Duration(seconds: 3),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Palette.of(context).background.withOpacity(0.2)
-                            ),
-                            child: Center(
-                              child: Text(
-                                '${glance.nPages} Page${glance.nPages > 1 ? 's' : ''}',
-                              )
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icon(RenderIcons.close)
+                  )
                 ],
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                behavior: HitTestBehavior.translucent,
-                child: SizedBox.expand(),
+              Expanded(
+                flex: 1,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  behavior: HitTestBehavior.translucent,
+                  child: SizedBox.expand(),
+                ),
               ),
-            ),
-            AnimatedCrossFade(
-              duration: Duration(milliseconds: 300),
-              crossFadeState: isLoading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-              firstChild: ClipRRect(
-                child: Container(
-                  color: Palette.of(context).background.withOpacity(0.7),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        bottom: Constants.of(context).bottomPadding,
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.75,
+                  maxWidth: MediaQuery.of(context).size.width - 24
+                ),
+                child: Stack(
+                  children: [
+                    Hero(
+                      tag: 'project-${glance.id}',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: OctoImage(
+                          image: FileImage(File(glance.thumbnail!)),
+                          errorBuilder: (context, error, stackTrace) => Material(
+                            color: Colors.transparent,
+                            child: SizedBox(
+                              width: MediaQuery.of(context).size.width,
+                              height: MediaQuery.of(context).size.width,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Palette.of(context).background.withOpacity(0.8),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  RenderIcons.error,
+                                  color: Palette.of(context).onBackground,
+                                  size: 48,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                      child: Row(
-                        children: [
-                          buildIconButton(
-                            icon: RenderIcons.edit,
-                            label: 'Edit',
-                            onPressed: open,
-                            tooltip: 'Edit Project'
+                    ),
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: FadeOut(
+                        delay: Duration(seconds: 3),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Palette.of(context).background.withOpacity(0.2)
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${glance.nPages} Page${glance.nPages > 1 ? 's' : ''}',
+                                )
+                              ),
+                            ),
                           ),
-                          if (glance.images.isNotEmpty) buildIconButton(
-                            icon: RenderIcons.share,
-                            label: 'Share',
-                            onPressed: share,
-                            tooltip: 'Share Project'
-                          ),
-                          buildIconButton(
-                            icon: RenderIcons.duplicate,
-                            label: 'Duplicate',
-                            onPressed: duplicate,
-                            tooltip: 'Duplicate this Project'
-                          ),
-                          buildIconButton(
-                            icon: RenderIcons.delete,
-                            label: 'Delete',
-                            onPressed: delete,
-                            tooltip: 'Delete Project'
-                          ),
-                        ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  behavior: HitTestBehavior.translucent,
+                  child: SizedBox.expand(),
+                ),
+              ),
+              AnimatedCrossFade(
+                duration: Duration(milliseconds: 300),
+                crossFadeState: isLoading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                firstChild: ClipRRect(
+                  child: Container(
+                    color: Palette.of(context).background.withOpacity(0.7),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: Constants.of(context).bottomPadding,
+                        ),
+                        child: Row(
+                          children: [
+                            buildIconButton(
+                              icon: RenderIcons.edit,
+                              label: 'Edit',
+                              onPressed: open,
+                              tooltip: 'Edit Project'
+                            ),
+                            if (glance.images.isNotEmpty) buildIconButton(
+                              icon: RenderIcons.share,
+                              label: 'Share',
+                              onPressed: share,
+                              tooltip: 'Share Project'
+                            ),
+                            buildIconButton(
+                              icon: RenderIcons.duplicate,
+                              label: 'Duplicate',
+                              onPressed: duplicate,
+                              tooltip: 'Duplicate this Project'
+                            ),
+                            buildIconButton(
+                              icon: RenderIcons.delete,
+                              label: 'Delete',
+                              onPressed: delete,
+                              tooltip: 'Delete Project'
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              secondChild: Padding(
-                padding: EdgeInsets.only(
-                  top: 12,
-                  bottom: Constants.of(context).bottomPadding,
+                secondChild: Padding(
+                  padding: EdgeInsets.only(
+                    top: 12,
+                    bottom: Constants.of(context).bottomPadding,
+                  ),
+                  child: Center(
+                    child: SpinKitThreeInOut(
+                      color: MediaQuery.of(context).platformBrightness == Brightness.light ? Colors.grey[800] : Colors.grey[200],
+                      size: 20,
+                    )
+                  ),
                 ),
-                child: Center(
-                  child: SpinKitThreeInOut(
-                    color: MediaQuery.of(context).platformBrightness == Brightness.light ? Colors.grey[800] : Colors.grey[200],
-                    size: 20,
-                  )
-                ),
-              ),
-            )
-          ],
+              )
+            ],
+          ),
         ),
       ),
     );

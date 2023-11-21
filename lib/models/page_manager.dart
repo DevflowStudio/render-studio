@@ -70,7 +70,7 @@ class PageManager extends PropertyChangeNotifier {
 
   void _addListeners() {
     for (var page in pages) {
-      page.addListener(onPageUpdate, [PageChange.update, PageChange.misc, PageChange.selection]);
+      page.addListener(onPageUpdate, [PageChange.update, PageChange.misc, PageChange.selection, PageChange.editor]);
     }
   }
 

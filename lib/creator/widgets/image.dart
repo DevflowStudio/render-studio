@@ -93,6 +93,7 @@ class CreativeImageProvider {
     type: EditorTabType.row,
     options: [
       Option.showSlider(
+        widget,
         icon: RenderIcons.brightness,
         title: 'Brightness',
         max: 0.25,
@@ -106,6 +107,7 @@ class CreativeImageProvider {
         showValueEditor: true
       ),
       Option.showSlider(
+        widget,
         icon: RenderIcons.contrast,
         title: 'Contrast',
         max: 0.25,
@@ -119,6 +121,7 @@ class CreativeImageProvider {
         showValueEditor: true
       ),
       Option.showSlider(
+        widget,
         icon: RenderIcons.exposure,
         title: 'Exposure',
         max: 1,
@@ -132,6 +135,7 @@ class CreativeImageProvider {
         showValueEditor: true
       ),
       Option.showSlider(
+        widget,
         icon: RenderIcons.saturation,
         title: 'Saturation',
         max: 1,
@@ -160,6 +164,7 @@ class CreativeImageProvider {
       //   },
       // ),
       Option.showSlider(
+        widget,
         icon: RenderIcons.hue,
         title: 'Hue',
         max: 1,
@@ -175,8 +180,7 @@ class CreativeImageProvider {
       Option.button(
         title: 'Filters',
         onTap: (context) {
-          EditorTab.modal(
-            context,
+          widget.page.editorManager.openModal(
             padding: EdgeInsets.zero,
             tab: (context, setState) => EditorTab(
               tab: 'Filters',
@@ -277,7 +281,7 @@ class CreativeImageProvider {
         title: 'Flip Vertical',
         value: flipVertical,
         onChange: (value) {
-          flipVertical = value;
+          flipVertical = !flipVertical;
           onChange(WidgetChange.update);
         },
         enabledIcon: RenderIcons.flip_vertical,
@@ -289,7 +293,7 @@ class CreativeImageProvider {
         title: 'Flip Horizontal',
         value: flipHorizontal,
         onChange: (value) {
-          flipHorizontal = value;
+          flipHorizontal = !flipHorizontal;
           onChange(WidgetChange.update);
         },
         enabledIcon: RenderIcons.flip_horizontal,
@@ -315,6 +319,20 @@ class CreativeImageProvider {
         fadeInCurve: Sprung.overDamped,
         fadeInDuration: Constants.animationDuration,
         image: FileImage(asset.file),
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(5)
+            ),
+            child: Center(
+              child: Icon(
+                RenderIcons.error,
+                color: Colors.black
+              ),
+            ),
+          );
+        },
         placeholderBuilder: (context) => ClipRRect(
           child: Stack(
             children: [
@@ -444,6 +462,7 @@ class ImageWidget extends CreatorWidget {
           },
         ),
         Option.showSlider(
+          this,
           icon: RenderIcons.border_radius,
           title: 'Radius',
           max: 100,

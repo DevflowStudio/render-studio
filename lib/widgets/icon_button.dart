@@ -209,6 +209,7 @@ class ColorSelector extends StatefulWidget {
   const ColorSelector({
     Key? key,
     this.title,
+    required this.widget,
     required this.onColorSelect,
     required this.color,
     this.onColorSelectEnd,
@@ -219,6 +220,7 @@ class ColorSelector extends StatefulWidget {
     this.allowOpacity = true
   }) : super(key: key);
 
+  final CreatorWidget widget;
   final String? title;
   final Function(Color color) onColorSelect;
   final Function(Color? color)? onColorSelectEnd;
@@ -259,8 +261,7 @@ class _ColorSelectorState extends State<ColorSelector> {
     return GestureDetector(
       onTap: () async {
         TapFeedback.light();
-        await EditorTab.modal(
-          context,
+        widget.widget.page.editorManager.openModal(
           tab: (context, setState) => EditorTab.color(
             context,
             palette: widget.palette,
@@ -270,9 +271,11 @@ class _ColorSelectorState extends State<ColorSelector> {
               color = _color;
               widget.onColorSelect(_color);
             },
-          )
+          ),
+          onDismiss: () {
+            setState(() { });
+          }
         );
-        setState(() { });
       },
       child: SizedBox.fromSize(
         size: size,

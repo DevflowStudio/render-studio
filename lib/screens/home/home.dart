@@ -45,7 +45,7 @@ class _HomeState extends State<Home> {
               ),
               titleSpacing: 12,
               actions: [
-                IconButton.outlined(
+                if (app.remoteConfig.allowCreateProject) IconButton.outlined(
                   onPressed: () => AppRouter.push(context, page: CreateProject()),
                   icon: Icon(RenderIcons.create),
                 ),
@@ -69,9 +69,9 @@ class _HomeState extends State<Home> {
               pinned: false,
               floating: false,
             ),
-            if (app.remoteConfig.allowCreateProject) SliverToBoxAdapter(
-              child: CreateProjectBanner(),
-            ),
+            // if (app.remoteConfig.allowCreateProject) SliverToBoxAdapter(
+            //   child: CreateProjectBanner(),
+            // ),
             SliverPadding(
               padding: EdgeInsets.only(
                 bottom: Constants.of(context).bottomPadding,
@@ -90,6 +90,26 @@ class _HomeState extends State<Home> {
         //     color: Palette.of(context).onPrimaryContainer,
         //   ),
         //   label: Text('Create Project'),
+        // ),
+        // bottomNavigationBar: NavigationBar(
+        //   destinations: [
+        //     NavigationDestination(
+        //       icon: Icon(RenderIcons.home),
+        //       label: 'Home',
+        //     ),
+        //     NavigationDestination(
+        //       icon: Icon(RenderIcons.search),
+        //       label: 'Discover',
+        //     ),
+        //     NavigationDestination(
+        //       icon: Icon(RenderIcons.settings),
+        //       label: 'Bookmarks',
+        //     ),
+        //     NavigationDestination(
+        //       icon: Icon(RenderIcons.user),
+        //       label: 'Profile',
+        //     ),
+        //   ],
         // ),
       ),
     );
@@ -136,7 +156,7 @@ class __DrawerState extends State<_Drawer> {
               children: [
                 FilledTonalIconButton(
                   onPressed: () => controller.toggleDrawer(),
-                  icon: Icon(RenderIcons.arrow_left),
+                  icon: Icon(RenderIcons.close),
                   secondary: true,
                 ),
               ],
@@ -149,8 +169,7 @@ class __DrawerState extends State<_Drawer> {
               children: [
                 SizedBox.square(
                   dimension: 50,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
+                  child: ClipOval(
                     child: ProfilePhoto(),
                   ),
                 ),

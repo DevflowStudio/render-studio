@@ -95,6 +95,7 @@ class QRWidget extends CreatorWidget {
           icon: RenderIcons.edit
         ),
         Option.color(
+          this,
           title: 'Color',
           tooltip: 'Change the color of QR Code',
           onChange: (_color) {
@@ -107,6 +108,7 @@ class QRWidget extends CreatorWidget {
           },
         ),
         Option.color(
+          this,
           icon: RenderIcons.color,
           title: 'Data Color',
           tooltip: 'Change the color of QR Data',
@@ -129,17 +131,16 @@ class QRWidget extends CreatorWidget {
           title: 'Padding',
           tooltip: 'Customize the padding of QR Code',
           onTap: (context) async {
-            await EditorTab.modal(
-              context,
+            page.editorManager.openModal(
               tab: (context, setState) => EditorTab.paddingEditor(
                 padding: padding,
                 onChange: (value) {
                   padding = value;
                   updateListeners(WidgetChange.misc);
                 },
-              )
+              ),
+              onDismiss: () => updateListeners(WidgetChange.update),
             );
-            updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.padding
         ),
@@ -170,98 +171,7 @@ class QRWidget extends CreatorWidget {
         ),
       ]
     ),
-    EditorTab(
-      tab: 'Adjust',
-      options: [
-        Option.button(
-          title: 'Rotate',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: (context, setState) => EditorTab.rotate(
-                angle: angle,
-                onChange: (value) {
-                  angle = value;
-                  updateListeners(WidgetChange.misc);
-                },
-                onChangeEnd: (value) {
-                  angle = value;
-                  updateListeners(WidgetChange.update);
-                },
-              )
-            );
-          },
-          icon: RenderIcons.refresh,
-          tooltip: 'Tap to open angle adjuster'
-        ),
-        Option.button(
-          title: 'Scale',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: (context, setState) => EditorTab.scale(
-                size: size,
-                minSize: minSize ?? Size(20, 20),
-                maxSize: page.project.contentSize,
-                onChange: (value) {
-                  // angle = value;
-                  size  = value;
-                  updateListeners(WidgetChange.misc);
-                },
-                onChangeEnd: (value) {
-                  // angle = value;
-                  size  = value;
-                  updateListeners(WidgetChange.update);
-                },
-              )
-            );
-          },
-          icon: RenderIcons.scale,
-          tooltip: 'Tap to scale the widget size'
-        ),
-        Option.button(
-          title: 'Opacity',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: (context, setState) => EditorTab.opacity(
-                opacity: opacity,
-                onChange: (value) {
-                  opacity = value;
-                  updateListeners(WidgetChange.misc);
-                },
-                onChangeEnd: (value) {
-                  opacity = value;
-                  updateListeners(WidgetChange.update);
-                },
-              ),
-            );
-          },
-          icon: RenderIcons.opacity,
-          tooltip: 'Opacity'
-        ),
-        Option.button(
-          title: 'Nudge',
-          onTap: (context) {
-            EditorTab.modal(
-              context,
-              tab: (context, setState) => EditorTab.nudge(
-                onDXchange: (dx) {
-                  position = Offset(position.dx + dx, position.dy);
-                  updateListeners(WidgetChange.update);
-                },
-                onDYchange: (dy) {
-                  position = Offset(position.dx, position.dy + dy);
-                  updateListeners(WidgetChange.update);
-                },
-              )
-            );
-          },
-          icon: RenderIcons.nudge,
-          tooltip: 'Nudge'
-        ),
-      ],
-    ),
+    EditorTab.adjustTab(widget: this)
   ];
 
   Color backgroundColor = Colors.white;

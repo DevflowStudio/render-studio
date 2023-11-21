@@ -58,7 +58,7 @@ class _FormGroupState extends State<FormGroup> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.title != null) Label(label: widget.title ?? ''),
+          if (widget.title != null) Label(label: widget.title ?? '', subtitle: true),
           if (widget.description != null) Text(
             widget.description ?? '',
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(

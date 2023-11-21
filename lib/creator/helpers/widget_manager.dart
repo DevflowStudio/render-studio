@@ -156,12 +156,12 @@ class WidgetManager extends ChangeNotifier {
     //   backgroundColor: Palette.of(context).background.withOpacity(0.5),
     //   barrierColor: Colors.transparent,
     //   isScrollControlled: true,
-    //   builder: (context) => WidgetCatalog(page: page),
+    //   builder: (context) => WidgetMenu(page: page),
     //   enableDrag: true
     // );
     await Alerts.showModal(
       context,
-      child: WidgetCatalog(page: page),
+      child: WidgetMenu(page: page),
     );
     // if (id == null) return;
     // await CreatorWidget.create(context, id: id, page: page);
@@ -287,6 +287,75 @@ class WidgetManager extends ChangeNotifier {
     sortedUIDs.insert(index, uid);
     if (log) page.history.log('Reorder');
     page.updateListeners(PageChange.misc);
+  }
+
+  Future<bool> hasDeletedAssets() async {
+    bool result = false;
+    List<String> uids = List.from(_widgets.keys);
+    for (String uid in uids) {
+      CreatorWidget widget = _widgets[uid]!;
+      if (widget is BackgroundWidget) continue;
+      if (widget is WidgetGroup) {
+        for (CreatorWidget child in widget.widgets) {
+          if (child.asset == null) continue;
+          if (!(await child.asset!.exists())) {
+            widget.ungroup(child.uid);
+            result = true;
+          }
+        }
+      } else {
+        if (widget.asset == null) continue;
+        if (!(await widget.asset!.exists())) {
+          result = true;
+          delete(widget.uid, soft: true);
+        }
+      }
+    }
+    return result;
+  }
+
+  List<Map<String, dynamic>> getVariables() {
+    List<Map<String, dynamic>> variables = [];
+    for (CreatorWidget widget in _widgets.values) {
+      if (widget is WidgetGroup) {
+        for (CreatorWidget child in widget.widgets) {
+          Map<String, dynamic>? variable = child.requestVariables();
+          if (variable != null) variables.add({
+            'widget': child.id,
+            'uid': child.uid,
+            ... variable
+          });
+        }
+      } else {
+        Map<String, dynamic>? variable = widget.requestVariables();
+        if (variable != null) variables.add({
+          'widget': widget.id,
+          'uid': widget.uid,
+          ... variable
+        });
+      }
+    }
+    return variables;
+  }
+
+  void readVariableValues(List<Map<String, dynamic>> values) {
+    Map<String, Map<String, dynamic>> mappedValues = {};
+    for (Map<String, dynamic> value in values) {
+      mappedValues[value['uid']] = value;
+    }
+    for (CreatorWidget widget in _widgets.values) {
+      if (widget is WidgetGroup) {
+        for (CreatorWidget child in widget.widgets) {
+          if (mappedValues.containsKey(child.uid)) {
+            child.loadVariables(mappedValues[child.uid]!);
+          }
+        }
+      } else {
+        if (mappedValues.containsKey(widget.uid)) {
+          widget.loadVariables(mappedValues[widget.uid]!);
+        }
+      }
+    }
   }
 
   /// Use this method in `CreatorPage.build` to build material widgets.

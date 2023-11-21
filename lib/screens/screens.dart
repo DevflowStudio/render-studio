@@ -22,5 +22,4 @@ export 'palette/palettes.dart';
 export 'palette/edit.dart';
 export 'palette/color_tool.dart';
 export 'palette/image_color_picker.dart';
-export 'home/landing.dart';
-export 'creator/create_project.dart';
+export 'creator/create_project/create_project.dart';

@@ -1,7 +1,7 @@
 import 'package:align_positioned/align_positioned.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_io/io.dart';
-import 'package:collection/collection.dart';
 import '../../rehmat.dart';
 
 class BackgroundWidget extends CreatorWidget {
@@ -45,12 +45,12 @@ class BackgroundWidget extends CreatorWidget {
         //   widget: (context) => ButtonWithIcon(
         //     onTap: (context) => page.widgets.showAddWidgetModal(context),
         //     icon: RenderIcons.add,
-        //     title: 'Add',
-        //     backgroundColor: Palette.of(context).primary.harmonizeWith(page.palette.background),
-        //     foregroundColor: Palette.of(context).onPrimary,
-        //     showBorder: false,
-        //     animateBorderRadius: false,
-        //     borderRadius: 15,
+        //     title: 'Add Widget',
+        //     tooltip: 'Add a widget to the canvas',
+        //     backgroundColor: Palette.of(context).onSurfaceVariant,
+        //     foregroundColor: Palette.of(context).surfaceVariant,
+        //     showBorder: true,
+        //     animateBorderRadius: false
         //   ),
         // ),
         Option.button(
@@ -59,8 +59,7 @@ class BackgroundWidget extends CreatorWidget {
           tooltip: 'Tap to shuffle palette',
           onTap: (context) async {
             bool hasChanged = false;
-            await EditorTab.modal(
-              context,
+            page.editorManager.openModal(
               tab: (context, setState) => EditorTab.palette(
                 page: page,
                 onSelected: (palette) {
@@ -74,12 +73,15 @@ class BackgroundWidget extends CreatorWidget {
                 right: 6,
                 top: 6,
                 bottom: Constants.of(context).bottomPadding
-              )
+              ),
+              onDismiss: () {
+                if (hasChanged) updateListeners(WidgetChange.update, historyMessage: 'Change Palette');
+              }
             );
-            if (hasChanged) updateListeners(WidgetChange.update, historyMessage: 'Change Palette');
           },
         ),
         Option.color(
+          this,
           palette: page.palette,
           onChange: (color) {
             if (color == null) return;
@@ -101,20 +103,21 @@ class BackgroundWidget extends CreatorWidget {
         Option.button(
           title: 'Gradient',
           onTap: (context) async {
-            gradient ??= CreativeGradient.fromPalette(palette: page.palette);
+            bool startedWithoutGradient = gradient == null;
+            gradient ??= CreativeGradient.fromColors(from: color.harmonizeWith(Colors.white), to: color.harmonizeWith(Colors.black));
             updateListeners(WidgetChange.misc);
-            await EditorTab.modal(
-              context,
-              actions: [
+            page.editorManager.openModal(
+              actions: (dismiss) => [
                 IconButton(
                   onPressed: () {
                     gradient = null;
-                    Navigator.of(context).pop();
+                    dismiss();
                   },
                   icon: Icon(RenderIcons.delete)
                 ),
               ],
               tab: (context, setState) => gradient!.getEditor(
+                widget: this,
                 palette: page.palette,
                 allowOpacity: false,
                 onChange: (change) {
@@ -122,8 +125,15 @@ class BackgroundWidget extends CreatorWidget {
                   updateListeners(change);
                 },
               ),
+              onDismiss: () {
+                if (startedWithoutGradient && gradient == null) {
+                  changeBackgroundType(BackgroundType.color);
+                  updateListeners(WidgetChange.misc);
+                } else {
+                  updateListeners(WidgetChange.update);
+                }
+              },
             );
-            updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.gradient
         ),
@@ -132,9 +142,7 @@ class BackgroundWidget extends CreatorWidget {
           title: (asset != null && imageProvider != null) ? 'Edit Image' : 'Add Image',
           tooltip: (asset != null && imageProvider != null) ? 'Edit background image' : 'Tap to add an image to the background',
           onTap: (context) async {
-            if (asset != null && imageProvider != null) EditorTab.modal(
-              context,
-              height: 90,
+            if (asset != null && imageProvider != null) page.editorManager.openModal(
               tab: (context, setState) => imageProvider!.editor(
                 asset!,
                 onChange: (change) {
@@ -162,7 +170,6 @@ class BackgroundWidget extends CreatorWidget {
                       imageProvider = null;
                       changeBackgroundType(BackgroundType.color);
                       updateListeners(WidgetChange.update);
-                      Navigator.of(context).pop();
                     },
                   ),
                 ]
@@ -185,21 +192,9 @@ class BackgroundWidget extends CreatorWidget {
           icon: RenderIcons.resize,
           title: 'Resize',
           tooltip: 'Tap to resize the project',
-          onTap: (context) async {
-            PostSize currentSize = page.project.size;
-            PostSizePresets? currentPreset = PostSizePresets.values.firstWhereOrNull((preset) => preset.toSize().size == currentSize.size);
-            EditorTab.modal(
-              context,
-              tab: (context, setState) => EditorTab.pickerBuilder(
-                title: 'Resize Project',
-                itemBuilder: (context, index) => Text('${PostSizePresets.values[index].title}'),
-                childCount: PostSizePresets.values.length,
-                initialIndex: currentPreset != null ? PostSizePresets.values.indexOf(currentPreset) : 0,
-                onSelectedItemChanged: (index) {
-                  PostSize size = PostSizePresets.values[index].toSize();
-                  page.project.resize(size);
-                },
-              )
+          onTap: (context) {
+            page.editorManager.openModal(
+              tab: (context, setState) => EditorTab.projectResize(project: page.project),
             );
           },
         ),
@@ -207,8 +202,7 @@ class BackgroundWidget extends CreatorWidget {
           title: 'Padding',
           onTap: (context) async {
             updateGrids(showGridLines: true, hideCenterGrids: true);
-            await EditorTab.modal(
-              context,
+            page.editorManager.openModal(
               tab: (context, setState) => EditorTab.paddingEditor(
                 padding: padding,
                 max: page.project.contentSize.width/8,
@@ -218,10 +212,12 @@ class BackgroundWidget extends CreatorWidget {
                   updateGrids(showGridLines: true, hideCenterGrids: true);
                   updateListeners(WidgetChange.misc);
                 },
-              )
+              ),
+              onDismiss: () {
+                updateGrids(showGridLines: false);
+                updateListeners(WidgetChange.update);
+              },
             );
-            updateGrids(showGridLines: false);
-            updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.padding,
           tooltip: 'Adjust Padding'

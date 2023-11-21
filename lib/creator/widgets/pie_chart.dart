@@ -101,6 +101,7 @@ class CreativePieChart extends CreatorWidget {
                 children: [
                   for (_CreativePieChartSection section in data) ListTile(
                     leading: ColorSelector(
+                      widget: this,
                       title: 'Color',
                       size: Size(40, 40),
                       palette: page.palette,
@@ -292,6 +293,7 @@ class CreativePieChart extends CreatorWidget {
           icon: RenderIcons.pieChart
         ),
         if (chartType == ChartType.ring) Option.showSlider(
+          this,
           title: 'Stroke Width',
           icon: RenderIcons.align_bottom,
           value: strokeWidth,
@@ -304,6 +306,7 @@ class CreativePieChart extends CreatorWidget {
           onChangeEnd: () => updateListeners(WidgetChange.update),
         ),
         Option.showSlider(
+          this,
           title: 'Angle',
           icon: RenderIcons.rotate,
           value: initialAngle,
@@ -326,6 +329,7 @@ class CreativePieChart extends CreatorWidget {
           showValueEditor: true
         ),
         Option.showSlider(
+          this,
           title: 'Legend Spacing',
           icon: RenderIcons.word_spacing,
           value: legendSpacing,
@@ -343,8 +347,7 @@ class CreativePieChart extends CreatorWidget {
         ),
         Option.button(
           title: 'Decimal Places',
-          onTap: (context) => EditorTab.modal(
-            context,
+          onTap: (context) => page.editorManager.openModal(
             tab: (context, setState) => EditorTab.picker(
               title: 'Decimal Places',
               children: [

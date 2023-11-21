@@ -70,7 +70,7 @@ class Option {
     widget: (context) => widget(context),
   );
 
-  static Option color({
+  static Option color(CreatorWidget widget, {
     Color? selected,
     ColorPalette? palette,
     required Function(Color? color) onChange,
@@ -83,10 +83,9 @@ class Option {
   }) => Option.button(
     title: title ?? 'Color',
     onTap: (context) async {
-      await EditorTab.modal(
-        context,
+      widget.page.editorManager.openModal(
         padding: EdgeInsets.zero,
-        actions: [
+        actions: (dismiss) => [
           if (allowClear) IconButton(
             onPressed: () => onChange(null),
             icon: Icon(RenderIcons.delete)
@@ -98,9 +97,11 @@ class Option {
           palette: palette,
           selected: selected,
           allowOpacity: allowOpacity,
-        )
+        ),
+        onDismiss: () {
+          onChangeEnd(null);
+        },
       );
-      onChangeEnd(null);
     },
     icon: icon ?? RenderIcons.color,
     tooltip: tooltip ?? 'Tap to select a color',
@@ -139,8 +140,7 @@ class Option {
   }) => Option.button(
     title: 'Reorder',
     onTap: (context) {
-      EditorTab.modal(
-        context,
+      widget.page.editorManager.openModal(
         tab: (context, setState) => EditorTab.reorder(
           widget: widget,
           onReorder: () {},
@@ -151,7 +151,7 @@ class Option {
     icon: RenderIcons.layers
   );
 
-  static Option showSlider({
+  static Option showSlider(CreatorWidget widget, {
     String? label,
     required String title,
     required IconData icon,
@@ -170,8 +170,7 @@ class Option {
     title: title,
     tooltip: tooltip,
     onTap: (context) async {
-      await EditorTab.modal(
-        context,
+      widget.page.editorManager.openModal(
         tab: (context, setState) => EditorTab(
           tab: title,
           type: EditorTabType.single,
@@ -187,9 +186,11 @@ class Option {
               showValueEditor: showValueEditor,
             )
           ]
-        )
+        ),
+        onDismiss: () {
+          onChangeEnd?.call();
+        }
       );
-      onChangeEnd?.call();
     },
     icon: icon
   );
@@ -238,7 +239,7 @@ class Option {
     )
   );
 
-  static Option font({
+  static Option font(CreatorWidget widget, {
     required String fontFamily,
     required onChange(WidgetChange change, String? font),
     bool isSelected = false
@@ -249,16 +250,14 @@ class Option {
           title: 'Font',
           onTap: (context) async {
             String _initialFont = fontFamily;
-            await EditorTab.modal(
-              context,
-              height: 170,
-              actions: [
+            widget.page.editorManager.openModal(
+              actions: (dismiss) => [
                 IconButton(
                   onPressed: () async {
                     String? _font = await AppRouter.push<String>(context, page: const FontSelector());
                     if (_font != null) fontFamily = _font;
                     onChange(WidgetChange.misc, _font);
-                    Navigator.of(context).pop();
+                    dismiss();
                   },
                   icon: Icon(RenderIcons.search)
                 )
@@ -292,64 +291,83 @@ class Option {
                 if (!fonts.contains(fontFamily)) fonts.insert(0, fontFamily);
                 return EditorTab(
                   tab: 'Fonts',
-                  type: EditorTabType.hGrid,
+                  type: EditorTabType.single,
                   options: [
-                    for (String font in fonts) Option.custom(
+                    Option.custom(
                       widget: (context) => SizedBox(
-                        height: 80,
-                        width: 80,
-                        child: InkWell(
-                          onTap: () {
-                            fontFamily = font;
-                            onChange(WidgetChange.misc, font);
-                            setState(() { });
-                          },
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 100),
-                            padding: EdgeInsets.all(3),
-                            decoration: BoxDecoration(
-                              color: font == fontFamily ? Palette.of(context).surfaceVariant : null,
-                              border: font == fontFamily ? Border.all(
-                                color: Palette.of(context).outline,
-                                width: 2
-                              ) : null,
-                              borderRadius: BorderRadius.circular(12)
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Aa',
-                                  style: GoogleFonts.getFont(font).copyWith(
-                                    fontSize: 40,
-                                    color: Theme.of(context).textTheme.bodySmall?.color,
+                        height: 170,
+                        child: GridView.builder(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 6,
+                            mainAxisSpacing: 6,
+                          ),
+                          shrinkWrap: true,
+                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          scrollDirection: Axis.horizontal,
+                          itemCount: fonts.length,
+                          itemBuilder: (context, index) {
+                            String font = fonts[index];
+                            return SizedBox(
+                              height: 80,
+                              width: 80,
+                              child: InkWell(
+                                onTap: () {
+                                  fontFamily = font;
+                                  onChange(WidgetChange.misc, font);
+                                  setState(() { });
+                                },
+                                child: AnimatedContainer(
+                                  duration: Duration(milliseconds: 100),
+                                  padding: EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    color: font == fontFamily ? Palette.of(context).surfaceVariant : null,
+                                    border: font == fontFamily ? Border.all(
+                                      color: Palette.of(context).outline,
+                                      width: 2
+                                    ) : null,
+                                    borderRadius: BorderRadius.circular(12)
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'Aa',
+                                        style: GoogleFonts.getFont(font).copyWith(
+                                          fontSize: 40,
+                                          color: Theme.of(context).textTheme.bodySmall?.color,
+                                        ),
+                                      ),
+                                      AutoSizeText(
+                                        font,
+                                        minFontSize: 12,
+                                        maxFontSize: 16,
+                                        wrapWords: false,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontFamily: 'Google Sans',
+                                          height: 0.77,
+                                          color: Constants.getThemedObject(context, light: Colors.grey, dark: Colors.grey[400])
+                                        ),
+                                      )
+                                    ],
                                   ),
                                 ),
-                                AutoSizeText(
-                                  font,
-                                  minFontSize: 12,
-                                  maxFontSize: 16,
-                                  wrapWords: false,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontFamily: 'Google Sans',
-                                    height: 0.77,
-                                    color: Constants.getThemedObject(context, light: Colors.grey, dark: Colors.grey[400])
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
+                              ),
+                            );
+                          }
                         ),
-                      )
+                      ),
                     )
                   ],
                 );
-              }
+              },
+              onDismiss: () {
+                if (fontFamily != _initialFont) onChange(WidgetChange.update, null);
+                else onChange(WidgetChange.misc, null);
+              },
             );
-            if (fontFamily != _initialFont) onChange(WidgetChange.update, null);
-            else onChange(WidgetChange.misc, null);
           },
           child: Text(
             'Aa',
@@ -365,15 +383,14 @@ class Option {
   );
 
   static Option rotate({
+    required CreatorWidget widget,
     String title = 'Rotate',
     IconData icon = RenderIcons.refresh,
     String tooltip = 'Tap to open angle adjuster',
-    required CreatorWidget widget,
   }) => Option.button(
     title: 'Rotate',
     onTap: (context) {
-      EditorTab.modal(
-        context,
+      widget.page.editorManager.openModal(
         tab: (context, setState) => EditorTab.rotate(
           angle: widget.angle,
           onChange: (value) {
@@ -392,15 +409,14 @@ class Option {
   );
 
   static Option scale({
+    required CreatorWidget widget,
     String title = 'Scale',
     IconData icon = RenderIcons.scale,
     String tooltip = 'Tap to scale the widget size',
-    required CreatorWidget widget,
   }) => Option.button(
     title: title,
     onTap: (context) {
-      EditorTab.modal(
-        context,
+      widget.page.editorManager.openModal(
         tab: (context, setState) => EditorTab.scale(
           size: widget.size,
           minSize: widget.minSize ?? Size(20, 20),
@@ -421,15 +437,14 @@ class Option {
   );
 
   static Option opacity({
+    required CreatorWidget widget,
     String title = 'Opacity',
     IconData icon = RenderIcons.opacity,
     String tooltip = 'Opacity',
-    required CreatorWidget widget,
   }) => Option.button(
     title: title,
     onTap: (context) {
-      EditorTab.modal(
-        context,
+      widget.page.editorManager.openModal(
         tab: (context, setState) => EditorTab.opacity(
           opacity: widget.opacity,
           onChange: (value) {
@@ -448,16 +463,16 @@ class Option {
   );
 
   static Option nudge({
+    required CreatorWidget widget,
     String title = 'Nudge',
     IconData icon = RenderIcons.nudge,
     String tooltip = 'Nudge',
-    required CreatorWidget widget,
   }) => Option.button(
     title: title,
     onTap: (context) async {
-      await EditorTab.modal(
-        context,
+      widget.page.editorManager.openModal(
         tab: (context, setState) => EditorTab.nudge(
+          widget: widget,
           onDXchange: (dx) {
             widget.position = Offset(widget.position.dx + dx, widget.position.dy);
             widget.updateListeners(WidgetChange.misc);
@@ -475,16 +490,15 @@ class Option {
   );
 
   static Option position({
+    required CreatorWidget widget,
     String title = 'Position',
     IconData? icon,
     String tooltip = 'Position the widget across the page',
-    required CreatorWidget widget,
   }) {
     icon ??= RenderIcons.position;
     return Option.button(
       title: title,
-      onTap: (context) =>  EditorTab.modal(
-        context,
+      onTap: (context) => widget.page.editorManager.openModal(
         tab: (context, setState) => EditorTab.position(
           widget: widget
         )

@@ -53,15 +53,15 @@ class CreatorText extends CreatorWidget {
           title: 'Edit',
           tooltip: 'Edit text',
           onTap: (context) async {
-            await editText(context);
+            await editText(context: context);
           },
           icon: RenderIcons.keyboard
         ),
-        Option.button(
+        if (app.flavor == Flavor.dev) Option.button(
           title: 'Random Text',
           tooltip: 'Edit text',
           onTap: (context) async {
-            editText(context, text: [
+            editText(text: [
               "One Line",
               "Two\nLines",
               "Three\nLines\nHere",
@@ -71,6 +71,7 @@ class CreatorText extends CreatorWidget {
           icon: RenderIcons.refresh
         ),
         Option.font(
+          this,
           fontFamily: fontFamily,
           onChange: (change, font) {
             if (font != null) fontFamily = font;
@@ -83,8 +84,7 @@ class CreatorText extends CreatorWidget {
           onTap: (context) async {
             autoSize = false;
             updateListeners(WidgetChange.misc);
-            await EditorTab.modal(
-              context,
+            page.editorManager.openModal(
               tab: (context, setState) => EditorTab.size(
                 current: fontSize,
                 min: 10,
@@ -94,9 +94,11 @@ class CreatorText extends CreatorWidget {
                   size = calculateSizeForTextStyle(text, style: style, page: page);
                   updateListeners(WidgetChange.misc);
                 }
-              )
+              ),
+              onDismiss: () {
+                updateListeners(WidgetChange.misc);
+              }
             );
-            updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.text_size
         ),
@@ -212,9 +214,9 @@ class CreatorText extends CreatorWidget {
           title: 'Shadow',
           onTap: (context) async {
             if (shadows == null) shadows = [Shadow()];
-            await EditorTab.modal(
-              context,
+            page.editorManager.openModal(
               tab: (context, setState) => EditorTab.shadow<Shadow>(
+                widget: this,
                 shadow: shadows!.first,
                 onChange: (value) {
                   if (value == null) shadows = null;
@@ -222,19 +224,21 @@ class CreatorText extends CreatorWidget {
                   updateListeners(WidgetChange.misc);
                 },
               ),
-              actions: [
+              actions: (dismiss) => [
                 IconButton(
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    dismiss();
                     shadows = null;
                     updateListeners(WidgetChange.update);
                   },
                   icon: Icon(RenderIcons.delete),
                   iconSize: 20,
                 )
-              ]
+              ],
+              onDismiss: () {
+                updateListeners(WidgetChange.update);
+              }
             );
-            updateListeners(WidgetChange.update);
           },
           icon: RenderIcons.shadow,
           tooltip: 'Customize shadow of text'
@@ -363,6 +367,7 @@ class CreatorText extends CreatorWidget {
       type: EditorTabType.row,
       options: [
         Option.showSlider(
+          this,
           icon: RenderIcons.spacing,
           tooltip: 'Adjust Letter Spacing',
           title: 'Letter',
@@ -376,6 +381,7 @@ class CreatorText extends CreatorWidget {
           onChangeEnd: () => updateListeners(WidgetChange.update),
         ),
         Option.showSlider(
+          this,
           icon: RenderIcons.word_spacing,
           tooltip: 'Adjust Word Spacing',
           title: 'Word',
@@ -392,6 +398,7 @@ class CreatorText extends CreatorWidget {
           },
         ),
         Option.showSlider(
+          this,
           icon: RenderIcons.height,
           title: 'Height',
           tooltip: 'Change line height of the text',
@@ -529,7 +536,7 @@ class CreatorText extends CreatorWidget {
 
   @override
   void onDoubleTap(BuildContext context) async {
-    await editText(context);
+    await editText(context: context);
   }
 
   void buildTextSpan({
@@ -636,10 +643,13 @@ class CreatorText extends CreatorWidget {
 
   /// Edits the text of the widget
   /// Provide `text` to edit the text directly, otherwise a modal will be shown to edit the text
-  Future<void> editText(BuildContext context, {
+  Future<void> editText({
+    BuildContext? context,
     /// New text to be set, if null, a modal will be shown to ask user the new text
-    String? text
+    String? text,
+    bool logHistory = true
   }) async {
+    assert(context != null || text != null);
     double scale = size.width / _spanSize.width;
 
     TextEditingController textCtrl = TextEditingController(text: this.text);
@@ -649,7 +659,7 @@ class CreatorText extends CreatorWidget {
 
     if (text == null) {
       await showModalBottomSheet(
-        context: context,
+        context: context!,
         enableDrag: false,
         isScrollControlled: true,
         barrierColor: Colors.transparent,
@@ -712,7 +722,7 @@ class CreatorText extends CreatorWidget {
                                     'Style',
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: Constants.getThemedBlackAndWhite(context).isDark ? Colors.white : Colors.black,
-                                      fontFamily: 'SF Pro',
+                                      fontFamily: 'Geist',
                                       fontWeight: FontWeight.w300,
                                     ),
                                   ),
@@ -727,7 +737,7 @@ class CreatorText extends CreatorWidget {
                                       CupertinoTextSelectionToolbarButton.getButtonLabel(context, buttonItem),
                                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                         color: Constants.getThemedBlackAndWhite(context).isDark ? Colors.white : Colors.black,
-                                        fontFamily: 'SF Pro',
+                                        fontFamily: 'Geist',
                                         fontWeight: FontWeight.w300,
                                       ),
                                     ),
@@ -834,8 +844,13 @@ class CreatorText extends CreatorWidget {
     String new_text = text ?? textCtrl.text;
     if (new_text.trim() != '') this.text = new_text;
 
+    double maxAllowedSpanWidth = page.project.contentSize.width - page.widgets.background.padding.horizontal;
+    if (text != null) {
+      if (_spanSize.width > maxAllowedSpanWidth) maxAllowedSpanWidth = _spanSize.width;
+    }
+
     buildTextSpan();
-    Size nSpanSize = getTextPainter(maxWidth: page.project.contentSize.width - page.widgets.background.padding.horizontal).size;
+    Size nSpanSize = getTextPainter(maxWidth: maxAllowedSpanWidth).size;
     Size nWidgetSize = nSpanSize * scale;
     Size mWidgetSize = Size(
       page.project.contentSize.width - page.widgets.background.padding.horizontal,
@@ -863,9 +878,9 @@ class CreatorText extends CreatorWidget {
     _widthScale = size.width / _spanSize.width;
 
     if (group != null) group!.findGroup(this).onElementsResize();
-    if (hasChanged) updateListeners(WidgetChange.update, historyMessage: 'Edit Text');
+    if (hasChanged && logHistory) updateListeners(WidgetChange.update, historyMessage: 'Edit Text');
     else updateListeners(WidgetChange.misc);
-    if (_containsSecondaryStyle(new_text) && secondaryStyle == null) Alerts.snackbar(
+    if (_containsSecondaryStyle(new_text) && secondaryStyle == null && context != null) Alerts.snackbar(
       context,
       text: 'Please add a secondary style to apply new style to the selected text'
     );
@@ -944,6 +959,12 @@ class CreatorText extends CreatorWidget {
   }
 
   @override
+  Map<String, dynamic>? requestVariables() => {
+    'type': 'string',
+    'value': text,
+  };
+
+  @override
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
   }) => {
@@ -986,6 +1007,13 @@ class CreatorText extends CreatorWidget {
       'letter': letterSpacing,
     },
   };
+
+  @override
+  void loadVariables(Map<String, dynamic> variable) {
+    String newValue = variable['value'];
+    if (newValue == text) return;
+    editText(text: newValue);
+  }
 
   @override
   void buildFromJSON(Map<String, dynamic> json, {
@@ -1161,6 +1189,7 @@ class CreativeTextStyle {
     bool showOverline = true,
   }) => [
     if (showColor) Option.color(
+      widget,
       tooltip: 'Tap to select text color',
       palette: widget.page.palette,
       selected: color,

@@ -83,10 +83,15 @@ class Project extends ChangeNotifier {
     thumbnail = images.firstOrNull;
 
     List<Map<String, dynamic>> pageData = [];
+    List<Map<String, dynamic>> variables = [];
+
     for (CreatorPage page in pages.pages) {
       await page.assetManager.compile();
       pageData.add(page.toJSON(BuildInfo(buildType: BuildType.save)));
+      variables.addAll(page.widgets.getVariables());
     }
+
+    print(variables);
 
     Map<String, dynamic> json = {
       'id': id,
@@ -102,13 +107,15 @@ class Project extends ChangeNotifier {
       'pages': pageData,
       'meta': metadata.toJSON(),
       'is-template': isTemplate,
+      'variables': variables,
     };
 
     return json;
   }
 
   static Future<Project?> fromJSON(Map<String, dynamic> data, {
-    required BuildContext context
+    required BuildContext context,
+    List<Map<String, dynamic>> variableValues = const []
   }) async {
 
     Project project = Project(context, fromSaves: true);
@@ -129,6 +136,10 @@ class Project extends ChangeNotifier {
     }
 
     project.pages.updateListeners();
+
+    if (variableValues.isNotEmpty) for (CreatorPage page in project.pages.pages) {
+      page.widgets.readVariableValues(variableValues);
+    }
 
     // await project.assetManager.precache(context);
 
@@ -153,7 +164,10 @@ class Project extends ChangeNotifier {
     return project;
   }
 
-  Future<void> duplicate(BuildContext context) async {
+  Future<void> duplicate(BuildContext context, {
+    String? title,
+    String? description
+  }) async {
     await manager.save(context, data: {
       ... data!,
       'id': Constants.generateID(),
@@ -161,6 +175,24 @@ class Project extends ChangeNotifier {
       'meta': ProjectMetadata.create().toJSON(),
       'is-template': data!['is-template'] ?? false,
     });
+  }
+
+  static Future<Project?> fromTemplate(BuildContext context, {
+    required String uid,
+    String? title,
+    String? description,
+    List<Map<String, dynamic>> variableValues = const []
+  }) async {
+    ProjectGlance glance = manager.getProjectGlance(uid);
+    Map<String, dynamic> newData = {
+      ... glance.data,
+      'id': Constants.generateID(),
+      'title': title ?? '${glance.title} (copy)',
+      'description': description ?? glance.description,
+      'meta': ProjectMetadata.create().toJSON(),
+      'is-template': false,
+    };
+    return await Project.fromJSON(newData, context: context, variableValues: variableValues);
   }
 
   static void createNewProject(BuildContext context, PostSize size) async {

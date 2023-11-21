@@ -1,5 +1,3 @@
-import 'package:align_positioned/align_positioned.dart';
-import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 
 import '../../rehmat.dart';
@@ -137,14 +135,29 @@ class WidgetGroup extends CreatorWidget {
       List<String> right = [];
       
       for (CreatorWidget widget2 in _widgets) {
+
+        Offset center1 = position + widget.position;
+        Rect widget1Area = Rect.fromCenter(
+          center: center1,
+          width: widget.size.width,
+          height: widget.size.height,
+        );
+
+        Offset center2 = position + widget2.position;
+        Rect widget2Area = Rect.fromCenter(
+          center: center2,
+          width: widget2.size.width,
+          height: widget2.size.height,
+        );
+
         if (widget == widget2) continue;
-        if (widget.area.overlaps(widget2.area) || widget.area.overlaps(widget2.area)) {
+        if (widget1Area.overlaps(widget2Area)) {
           overlaps.add(widget2.uid);
           continue;
         }
         
-        Rect area1 = Rect.fromCenter(center: Offset(0, widget.area.center.dy), width: double.infinity, height: widget.area.height);
-        Rect area2 = Rect.fromCenter(center: Offset(0, widget2.area.center.dy), width: double.infinity, height: widget2.area.height);
+        Rect area1 = Rect.fromCenter(center: Offset(0, widget1Area.center.dy), width: double.infinity, height: widget1Area.height);
+        Rect area2 = Rect.fromCenter(center: Offset(0, widget2Area.center.dy), width: double.infinity, height: widget2Area.height);
         bool isInSameRow = area1.overlaps(area2) || area2.overlaps(area1);
 
         if (isInSameRow) {
@@ -337,10 +350,7 @@ class WidgetGroup extends CreatorWidget {
     widget.group = null;
     widgets.remove(widget);
     page.widgets.add(widget, soft: true);
-    if (widgets.length == 0) {
-      page.widgets.delete(this.uid, soft: soft);
-      return;
-    }
+    page.widgets.selectWithUID(widget.uid);
     resizeBoundaries();
     calculateDemographics();
     if (!soft) {

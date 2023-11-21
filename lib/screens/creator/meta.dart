@@ -157,7 +157,7 @@ class _ProjectMetaState extends State<ProjectMeta> {
     } else {
       widget.project!.title = title;
       widget.project!.description = description;
-      widget.project!.isTemplate = isTemplate;
+      widget.project!.isTemplate = true;
       Navigator.of(context).pop();
     }
   }

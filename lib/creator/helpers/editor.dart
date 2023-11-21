@@ -4,6 +4,8 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:get/utils.dart';
+import 'package:render_studio/creator/helpers/editor_manager.dart';
 import 'package:sprung/sprung.dart';
 
 import '../../rehmat.dart';
@@ -13,13 +15,14 @@ class Editor extends StatefulWidget {
   const Editor({
     Key? key,
     required this.widget,
+    this.isModal = false
   }) : super(key: key);
 
   final CreatorWidget widget;
 
-  Widget get build => this;
-
   static bool isHidden = false;
+
+  final bool isModal;
 
   static Size calculateSize(BuildContext context) {
     double verticalPadding = Constants.of(context).bottomPadding;
@@ -53,6 +56,11 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
   }
 
   @override
+  void didUpdateWidget (Editor old) {
+    super.didUpdateWidget(old);
+  }
+
+  @override
   Widget build(BuildContext context) {
     Size editorSize = Editor.calculateSize(context);
     return Container(
@@ -75,38 +83,41 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
               Stack(
                 alignment: Alignment.centerLeft,
                 children: [
-                  TabBar(
-                    controller: tabController,
-                    enableFeedback: true,
-                    padding: EdgeInsets.only(
-                      right: 50
-                    ),
-                    indicatorSize: TabBarIndicatorSize.label,
-                    indicatorColor: Constants.getThemedBlackAndWhite(context),
-                    labelColor: Constants.getThemedBlackAndWhite(context),
-                    indicator: creatorWidget.tabs.length > 1 ? null : const BoxDecoration(),
-                    unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
-                    isScrollable: true,
-                    labelStyle: Theme.of(context).textTheme.titleSmall,
-                    tabs: List.generate(
-                      creatorWidget.tabs.length,
-                      (index) => Tab(
-                        text: creatorWidget.tabs[index].tab,
-                      )
-                    ),
-                    onTap: (value) {
-                      if (!tabController.indexIsChanging) {
-                        setState(() {
-                          Editor.isHidden = !Editor.isHidden;
-                        });
-                      } else {
-                        if (Editor.isHidden) setState(() {
-                          Editor.isHidden = false;
-                        });
-                      }
-                    },
-                  ),
                   Align(
+                    alignment: Alignment.centerLeft,
+                    child: TabBar(
+                      controller: tabController,
+                      enableFeedback: true,
+                      padding: EdgeInsets.only(
+                        right: 50
+                      ),
+                      indicatorSize: TabBarIndicatorSize.label,
+                      indicatorColor: Constants.getThemedBlackAndWhite(context),
+                      labelColor: Constants.getThemedBlackAndWhite(context),
+                      indicator: creatorWidget.tabs.length > 1 ? null : const BoxDecoration(),
+                      unselectedLabelColor: Constants.getThemedBlackAndWhite(context).withOpacity(0.5),
+                      isScrollable: true,
+                      labelStyle: Theme.of(context).textTheme.titleSmall,
+                      tabs: List.generate(
+                        creatorWidget.tabs.length,
+                        (index) => Tab(
+                          text: creatorWidget.tabs[index].tab,
+                        )
+                      ),
+                      onTap: (value) {
+                        if (!tabController.indexIsChanging) {
+                          setState(() {
+                            Editor.isHidden = !Editor.isHidden;
+                          });
+                        } else {
+                          if (Editor.isHidden) setState(() {
+                            Editor.isHidden = false;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  if (Editor.isHidden) Align(
                     alignment: Alignment.centerRight,
                     child: Container(
                       decoration: BoxDecoration(
@@ -120,15 +131,11 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                       ),
                       child: IconButton(
                         onPressed: () {
-                          if (Editor.isHidden) {
-                            setState(() {
-                              Editor.isHidden = false;
-                            });
-                          } else {
-                            creatorWidget.page.widgets.select();
-                          }
+                          setState(() {
+                            Editor.isHidden = false;
+                          });
                         },
-                        icon: Icon(Editor.isHidden ? RenderIcons.arrow_up : RenderIcons.close),
+                        icon: Icon(RenderIcons.arrow_up),
                         visualDensity: VisualDensity.compact,
                       ),
                     ),
@@ -240,141 +247,23 @@ class EditorTab {
   final EditorTabType type;
   final List<Widget> actions;
 
-  static Future<T?> modal<T>(BuildContext context, {
-    required EditorTab Function(BuildContext context, void Function(void Function()) setState) tab,
-    double? height,
-    Widget Function(BuildContext context, Widget child)? builder,
-    List<Widget> actions = const [],
-    EdgeInsets? padding
-  }) => showModalBottomSheet<T>(
-    context: context,
-    enableDrag: false,
-    isScrollControlled: true,
-    barrierColor: Colors.transparent,
-    backgroundColor: Colors.transparent,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setState) {
-        EditorTab _tab = tab(context, setState);
-        return Container(
-          width: double.infinity,
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          decoration: BoxDecoration(
-            color: Palette.of(context).surface,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 3,
-                spreadRadius: 0,
-              )
-            ]
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 3,
-                  vertical: 3
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        NewBackButton(
-                          size: 20,
-                          secondary: true,
-                        ),
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 6),
-                          child: Text(
-                            _tab.tab,
-                            style: Theme.of(context).textTheme.titleMedium!.copyWith(),
-                          ),
-                        ),
-                      ],
-                    ),
-                    ... actions,
-                  ],
-                ),
-              ),
-              if (builder != null) SizedBox(
-                height: height,
-                child: builder(context, _tab.build(context))
-              )
-              else Container(
-                constraints: BoxConstraints(
-                  minHeight: Editor.calculateSize(context).height,
-                  maxHeight: MediaQuery.of(context).size.height/2.7,
-                ),
-                child: Padding(
-                  padding: padding ?? EdgeInsets.only(
-                    left: 5,
-                    right: 5,
-                    // top: 20,
-                    bottom: Constants.of(context).bottomPadding
-                  ),
-                  child: SizedBox(
-                    height: height,
-                    child: _tab.build(context)
-                  ),
-                ),
-              ),
-            ],
-          )
-        );
-      }
-    ),
-  );
-
   Widget build(BuildContext context) {
     switch (type) {
       case EditorTabType.row:
-        return ListView.separated(
-          shrinkWrap: true,
-          itemCount: options.length,
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          itemBuilder: (context, index) => options[index].build(context),
-          separatorBuilder: (context, index) => const SizedBox(width: 6),
-          physics: const RangeMaintainingScrollPhysics(),
-          scrollDirection: Axis.horizontal,
-        );
-      case EditorTabType.column:
-        return ListView.builder(
-          shrinkWrap: true,
-          itemCount: options.length,
-          itemBuilder: (context, index) => options[index].build(context),
-          physics: const BouncingScrollPhysics(),
-          scrollDirection: Axis.vertical,
-          padding: EdgeInsets.zero,
+        return SizedBox(
+          height: EditorManager.standardSize(context).height,
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: options.length,
+            padding: EdgeInsets.symmetric(horizontal: 12),
+            itemBuilder: (context, index) => options[index].build(context),
+            separatorBuilder: (context, index) => const SizedBox(width: 6),
+            physics: const RangeMaintainingScrollPhysics(),
+            scrollDirection: Axis.horizontal,
+          ),
         );
       case EditorTabType.single:
         return options[0].build(context);
-      case EditorTabType.grid:
-        return StaggeredGrid.count(
-          crossAxisCount: 2,
-          axisDirection: AxisDirection.down,
-          children: List.generate(
-            options.length,
-            (index) => options[index].build(context)
-          ),
-        );
-      case EditorTabType.hGrid:
-        return GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 6,
-            mainAxisSpacing: 6,
-          ),
-          padding: EdgeInsets.symmetric(horizontal: 6),
-          scrollDirection: Axis.horizontal,
-          itemCount: options.length,
-          itemBuilder: (context, index) => options[index].build(context),
-        );
     }
   }
 
@@ -566,109 +455,126 @@ class EditorTab {
   );
 
   static EditorTab nudge({
+    required CreatorWidget widget,
     required Function(double dx) onDXchange,
     required Function(double dy) onDYchange,
-  }) => EditorTab(
-    type: EditorTabType.single,
-    options: [
-      Option.custom(
-        widget: (context) => Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ButtonWithIcon(
-              onTap: (context) {
-                onDYchange(-Constants.nudgeSensitivity);
-                TapFeedback.light();
-              },
-              tooltip: 'Move Up',
-              icon: RenderIcons.arrow_up,
-            ),
-            SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ButtonWithIcon(
-                  onTap: (context) {
-                    onDXchange(-Constants.nudgeSensitivity);
-                  },
-                  tooltip: 'Move Left',
-                  icon: RenderIcons.arrow_left,
-                ),
-                SizedBox(width: 6),
-                ButtonWithIcon(
-                  onTap: (context) {
-                    onDYchange(Constants.nudgeSensitivity);
-                  },
-                  tooltip: 'Move Down',
-                  icon: RenderIcons.arrow_down,
-                ),
-                SizedBox(width: 6),
-                ButtonWithIcon(
-                  onTap: (context) {
-                    onDXchange(Constants.nudgeSensitivity);
-                  },
-                  tooltip: 'Move Right',
-                  icon: RenderIcons.arrow_right,
-                ),
-              ]
-            )
-          ],
-        ),
-      )
-    ],
-    tab: 'Nudge'
-  );
+  }) {
+    double sensitivity = Constants.nudgeSensitivity / widget.page.scale;
+    return EditorTab(
+      type: EditorTabType.single,
+      options: [
+        Option.custom(
+          widget: (context) => Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ButtonWithIcon(
+                onTap: (context) {
+                  onDYchange(-sensitivity);
+                  TapFeedback.light();
+                },
+                tooltip: 'Move Up',
+                icon: RenderIcons.arrow_up,
+              ),
+              SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ButtonWithIcon(
+                    onTap: (context) {
+                      onDXchange(-sensitivity);
+                    },
+                    tooltip: 'Move Left',
+                    icon: RenderIcons.arrow_left,
+                  ),
+                  SizedBox(width: 6),
+                  ButtonWithIcon(
+                    onTap: (context) {
+                      onDYchange(sensitivity);
+                    },
+                    tooltip: 'Move Down',
+                    icon: RenderIcons.arrow_down,
+                  ),
+                  SizedBox(width: 6),
+                  ButtonWithIcon(
+                    onTap: (context) {
+                      onDXchange(sensitivity);
+                    },
+                    tooltip: 'Move Right',
+                    icon: RenderIcons.arrow_right,
+                  ),
+                ]
+              )
+            ],
+          ),
+        )
+      ],
+      tab: 'Nudge'
+    );
+  }
 
   static EditorTab position({
     required CreatorWidget widget
-  }) => EditorTab(
-    tab: 'Position',
-    type: EditorTabType.grid,
-    options: [
-      for (Map data in [
-        {
-          'title': 'Top',
-          'icon': RenderIcons.align_top,
-          'alignment': WidgetAlignment.top
-        },
-        {
-          'title': 'Left',
-          'icon': RenderIcons.align_left,
-          'alignment': WidgetAlignment.left
-        },
-        {
-          'title': 'Middle',
-          'icon': RenderIcons.align_middle,
-          'alignment': WidgetAlignment.middle
-        },
-        {
-          'title': 'Center',
-          'icon': RenderIcons.align_center,
-          'alignment': WidgetAlignment.center
-        },
-        {
-          'title': 'Bottom',
-          'icon': RenderIcons.align_bottom,
-          'alignment': WidgetAlignment.bottom
-        },
-        {
-          'title': 'Right',
-          'icon': RenderIcons.align_right,
-          'alignment': WidgetAlignment.right
-        },
-      ]) Option.custom(
-        widget: (context) => ListTile(
-          title: Text(data['title']),
-          leading: Icon(data['icon']),
-          onTap: () {
-            widget.alignPositioned(data['alignment']);
-          },
+  }) {
+    List<Map> options = [
+      {
+        'title': 'Top',
+        'icon': RenderIcons.align_top,
+        'alignment': WidgetAlignment.top
+      },
+      {
+        'title': 'Left',
+        'icon': RenderIcons.align_left,
+        'alignment': WidgetAlignment.left
+      },
+      {
+        'title': 'Middle',
+        'icon': RenderIcons.align_middle,
+        'alignment': WidgetAlignment.middle
+      },
+      {
+        'title': 'Center',
+        'icon': RenderIcons.align_center,
+        'alignment': WidgetAlignment.center
+      },
+      {
+        'title': 'Bottom',
+        'icon': RenderIcons.align_bottom,
+        'alignment': WidgetAlignment.bottom
+      },
+      {
+        'title': 'Right',
+        'icon': RenderIcons.align_right,
+        'alignment': WidgetAlignment.right
+      },
+    ];
+    return EditorTab(
+      tab: 'Position',
+      type: EditorTabType.single,
+      options: [
+        Option.custom(
+          widget: (context) => StaggeredGrid.count(
+            crossAxisCount: 2,
+            axisDirection: AxisDirection.down,
+            children: List.generate(
+              options.length,
+              (index) {
+                Map data = options[index];
+                return ListTile(
+                  title: Text(data['title']),
+                  leading: Icon(data['icon']),
+                  onTap: () {
+                    widget.alignPositioned(data['alignment']);
+                  },
+                );
+              }
+            ),
+          ),
         )
-      )
-    ],
-  );
+      ],
+    );
+  }
 
   static EditorTab paddingEditor({
     required EdgeInsets padding,
@@ -691,6 +597,7 @@ class EditorTab {
   );
 
   static EditorTab shadow<T>({
+    required CreatorWidget widget,
     required Shadow shadow,
     required void Function(T? value) onChange,
   }) {
@@ -699,6 +606,7 @@ class EditorTab {
       options: [
         Option.custom(
           widget: (context) => _ShadowEditor<T>(
+            widget: widget,
             shadow: shadow,
             onChange: onChange,
           ),
@@ -806,6 +714,20 @@ class EditorTab {
     ]
   );
 
+  static EditorTab projectResize({
+    required Project project,
+  }) => EditorTab(
+    tab: 'Resize',
+    type: EditorTabType.single,
+    options: [
+      Option.custom(
+        widget: (context) => _ProjectResizeTab(
+          project: project,
+        )
+      )
+    ]
+  );
+
 }
 
 class _ReorderEditorTab extends StatefulWidget {
@@ -877,13 +799,13 @@ class __ReorderEditorTabState extends State<_ReorderEditorTab> {
   void reorder(int value, {bool notify = true}) {
     creatorWidget.page.widgets.reorder(creatorWidget.uid, value.toInt(), log: notify);
     setState(() { });
-    creatorWidget.page.updateListeners(PageChange.selection);
+    creatorWidget.page.updateListeners(PageChange.misc);
   }
 
   void reorderByChange(int change) {
     reorder(index + change, notify: true);
     widget.onReorderEnd();
-    creatorWidget.page.updateListeners(PageChange.selection);
+    creatorWidget.page.updateListeners(PageChange.misc);
   }
 
   int get index => creatorWidget.page.widgets.sortedUIDs.indexOf(creatorWidget.uid);
@@ -893,11 +815,6 @@ class __ReorderEditorTabState extends State<_ReorderEditorTab> {
 enum EditorTabType {
   /// Arrange the options in a list
   row,
-  column,
-  /// Arrange the options in a grid
-  grid,
-  /// Arrange the options in a horizontal scrollable grid
-  hGrid,
   /// Center align the single widget
   single
 }
@@ -1044,10 +961,12 @@ class _ShadowEditor<T> extends StatefulWidget {
 
   _ShadowEditor({
     Key? key,
+    required this.widget,
     required this.shadow,
     required this.onChange,
   });
 
+  final CreatorWidget widget;
   final Shadow shadow;
   final void Function(T value) onChange;
 
@@ -1108,6 +1027,7 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
               ),
               SizedBox(width: 12),
               ColorSelector(
+                widget: widget.widget,
                 onColorSelect: (color) {
                   this.opacity = color.opacity;
                   this.color = color.withOpacity(1);
@@ -1338,6 +1258,102 @@ class __PaletteListViewState extends State<_PaletteListView> {
             ),
           )
         ],
+      ),
+    );
+  }
+
+}
+
+class _ProjectResizeTab extends StatefulWidget {
+
+  const _ProjectResizeTab({required this.project});
+
+  final Project project;
+
+  @override
+  State<_ProjectResizeTab> createState() => __ProjectResizeTabState();
+}
+
+class __ProjectResizeTabState extends State<_ProjectResizeTab> {
+
+  late PostSizePresets current;
+
+  @override
+  void initState() {
+    super.initState();
+    PostSize currentSize = widget.project.size;
+    current = PostSizePresets.values.firstWhereOrNull((preset) => preset.toSize().size == currentSize.size) ?? PostSizePresets.square;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double maxHeight = EditorManager.standardOptionHeight(context);
+    double maxPresetSize = PostSizePresets.values.map((e) => e.toSize().size.height).reduce(max);
+    double scaleDown = maxHeight / maxPresetSize;
+    return SizedBox(
+      height: maxHeight + (2 * Theme.of(context).textTheme.bodySmall!.fontSize!) + 6,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: PostSizePresets.values.length,
+        separatorBuilder: (context, index) => SizedBox(width: 9),
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        itemBuilder: (context, index) {
+          PostSizePresets preset = PostSizePresets.values[index];
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: maxHeight
+            ),
+            child: GestureDetector(
+              onTap: () {
+                TapFeedback.light();
+                widget.project.resize(preset.toSize());
+                setState(() {
+                  current = preset;
+                });
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Spacer(),
+                  AnimatedContainer(
+                    height: preset.size.height * scaleDown,
+                    width: preset.size.width * scaleDown,
+                    duration: Duration(milliseconds: 100),
+                    padding: EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: Palette.of(context).surfaceVariant,
+                      border: current == preset ? Border.all(
+                        color: Palette.of(context).outline,
+                        width: 2
+                      ) : null,
+                      borderRadius: BorderRadius.circular(5)
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          preset.icon,
+                          size: 20,
+                          color: Constants.getThemedObject(context, light: Colors.grey, dark: Colors.grey[400])
+                        ),
+                      ],
+                    ),
+                  ),
+                  Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(
+                      preset.title,
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

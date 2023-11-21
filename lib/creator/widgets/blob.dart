@@ -71,6 +71,7 @@ class CreativeBlob extends CreatorWidget {
           icon: RenderIcons.random
         ),
         Option.color(
+          this,
           selected: color,
           palette: page.palette,
           onChange: (color) {

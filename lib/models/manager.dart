@@ -64,6 +64,14 @@ class ProjectManager extends ChangeNotifier {
     });
     return _glances;
   }
+
+  Map<String, dynamic> getProjectData(String id) {
+    return Map.from(box.get(id));
+  }
+
+  ProjectGlance getProjectGlance(String id) {
+    return projects.firstWhere((element) => element.id == id);
+  }
   
   void _sortProjects() {
     projects.sort((project, _project) {

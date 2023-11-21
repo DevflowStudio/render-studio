@@ -82,7 +82,7 @@ class Alerts {
         title: Text(
           title,
           style: TextStyle(
-            fontFamily: 'SF Pro'
+            fontFamily: 'Geist'
           ),
         ),
         content: Text(message),

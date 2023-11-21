@@ -66,6 +66,7 @@ class CreativeProgressWidget extends CreatorWidget {
       tab: 'Progress',
       options: [
         Option.showSlider(
+          this,
           title: 'Progress',
           icon: RenderIcons.progress,
           value: progress,
@@ -81,6 +82,7 @@ class CreativeProgressWidget extends CreatorWidget {
           showValueEditor: true
         ),
         Option.color(
+          this,
           title: 'Ring Color',
           palette: page.palette,
           tooltip: 'Tap to change the color of progress ring',
@@ -95,6 +97,7 @@ class CreativeProgressWidget extends CreatorWidget {
           },
         ),
         Option.color(
+          this,
           title: 'Inactive Color',
           palette: page.palette,
           tooltip: 'Tap to change the color of background',
@@ -117,8 +120,7 @@ class CreativeProgressWidget extends CreatorWidget {
       options: [
         Option.button(
           title: type == _ProgressType.linear ? 'Linear' : 'Circular',
-          onTap: (context) => EditorTab.modal(
-            context,
+          onTap: (context) => page.editorManager.openModal(
             tab: (context, setState) => EditorTab.picker(
               title: 'Type',
               children: [
@@ -159,6 +161,7 @@ class CreativeProgressWidget extends CreatorWidget {
           icon: type == _ProgressType.linear ? RenderIcons.linear : RenderIcons.circular
         ),
         Option.showSlider(
+          this,
           title: 'Stroke',
           icon: RenderIcons.align_bottom,
           value: strokeWidth,
@@ -172,8 +175,7 @@ class CreativeProgressWidget extends CreatorWidget {
         ),
         Option.button(
           title: 'Corners',
-          onTap: (context) => EditorTab.modal(
-            context,
+          onTap: (context) => page.editorManager.openModal(
             tab: (context, setState) => EditorTab.picker(
               title: 'Corners',
               children: [
@@ -203,6 +205,7 @@ class CreativeProgressWidget extends CreatorWidget {
         ),
         if (type == _ProgressType.circular) ... [
           Option.showSlider(
+            this,
             title: 'Start Angle',
             icon: RenderIcons.rotate,
             value: startAngle,
@@ -227,6 +230,7 @@ class CreativeProgressWidget extends CreatorWidget {
             showValueEditor: true
           ),
           Option.showSlider(
+            this,
             title: 'Dash',
             icon: RenderIcons.dash,
             value: backgroundDashSize,
@@ -239,6 +243,7 @@ class CreativeProgressWidget extends CreatorWidget {
             onChangeEnd: () => updateListeners(WidgetChange.update),
           ),
           Option.showSlider(
+            this,
             title: 'Dash Gap',
             icon: RenderIcons.gap,
             value: backgroundGapSize,

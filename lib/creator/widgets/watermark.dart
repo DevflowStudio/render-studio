@@ -47,6 +47,7 @@ class RenderStudioWatermark extends CreatorWidget {
     EditorTab(
       options: [
         Option.font(
+          this,
           fontFamily: fontFamily,
           onChange: (change, font) {
             if (font != null) fontFamily = font;

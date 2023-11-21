@@ -171,8 +171,6 @@ abstract class RenderShapeAbstract {
         return ShapeWave6(canvas: canvas, size: size, shadow: shadow, paint: paint);
       case 'wave7':
         return ShapeWave7(canvas: canvas, size: size, shadow: shadow, paint: paint);
-      case 'triangle':
-        return ShapeTriangle(canvas: canvas, size: size, shadow: shadow, paint: paint);
       case 'diamond':
         return ShapeDiamond(canvas: canvas, size: size, shadow: shadow, paint: paint);
       case 'heart':

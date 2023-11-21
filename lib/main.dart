@@ -48,13 +48,14 @@ class Render extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AuthState auth = Provider.of<AuthState>(context);
     return DynamicColorBuilder(
       builder: (light, dark) {
         return MaterialApp(
           title: app.remoteConfig.appTitle,
           theme: AppTheme.build(brightness: Brightness.light, colorScheme: light),
           darkTheme: AppTheme.build(brightness: Brightness.dark, colorScheme: dark),
-          home: LandingPage(),
+          home: auth.isLoggedIn ? Home() : Onboarding(),
           scrollBehavior: CupertinoScrollBehavior(),
           builder: (context, widget) {
             if (!app.remoteConfig.isAppAvailable) return AppUnavailableScreen();

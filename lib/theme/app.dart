@@ -10,7 +10,7 @@ class AppTheme {
     Color? seed,
     ColorScheme? colorScheme
   }) {
-    seed ??= HexColor.fromHex('#473335');
+    seed ??= HexColor.fromHex('#7EBDC3');
     colorScheme ??= ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
     Color contrastTextColor = brightness == Brightness.light ? Colors.black : Colors.white;
     Color contrastTextColorLight = brightness == Brightness.light ? Colors.grey[700]! : Colors.grey[400]!;
@@ -28,7 +28,7 @@ class AppTheme {
     );
     return ThemeData(
       visualDensity: VisualDensity.adaptivePlatformDensity,
-      fontFamily: 'SF Pro',
+      fontFamily: 'Geist',
       colorScheme: colorScheme,
       useMaterial3: true,
       scaffoldBackgroundColor: background,
@@ -40,7 +40,7 @@ class AppTheme {
         backgroundColor: background,
         titleTextStyle: TextStyle(
           fontSize: 22,
-          fontFamily: 'SF Pro Rounded',
+          fontFamily: 'Geist',
           fontWeight: FontWeight.w500,
           color: colorScheme.onBackground
         ),
@@ -55,7 +55,7 @@ class AppTheme {
           )
         ),
         textStyle: TextStyle(
-          fontFamily: 'SF Pro Rounded',
+          fontFamily: 'Geist Mono',
           color: colorScheme.onSurfaceVariant
         ),
         enableFeedback: true,
@@ -67,7 +67,7 @@ class AppTheme {
         ),
         actionsPadding: EdgeInsets.only(left: 12, right: 12, bottom: 12),
         titleTextStyle: TextStyle(
-          fontFamily: 'SF Pro Rounded',
+          fontFamily: 'Geist Mono',
           fontSize: 25,
           color: contrastTextColor
         ),
@@ -167,15 +167,15 @@ class AppTheme {
       ),
       textTheme: TextTheme(
         displayLarge: TextStyle(
-          fontFamily: 'SF Pro Display',
+          fontFamily: 'Geist',
           color: contrastTextColor
         ),
         displayMedium: TextStyle(
-          fontFamily: 'SF Pro Display',
+          fontFamily: 'Geist',
           color: contrastTextColor
         ),
         displaySmall: TextStyle(
-          fontFamily: 'SF Pro Display',
+          fontFamily: 'Geist',
           color: contrastTextColor
         ),
         titleLarge: TextStyle(
@@ -191,27 +191,27 @@ class AppTheme {
           color: contrastTextColor
         ),
         headlineLarge: TextStyle(
-          fontFamily: 'SF Pro Display',
+          fontFamily: 'Geist',
           color: contrastTextColor
         ),
         headlineMedium: TextStyle(
-          fontFamily: 'SF Pro Display',
+          fontFamily: 'Geist',
           color: contrastTextColor
         ),
         headlineSmall: TextStyle(
-          fontFamily: 'SF Pro Display',
+          fontFamily: 'Geist',
           color: contrastTextColorLight
         ),
         bodyLarge: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Geist',
           color: contrastTextColor
         ),
         bodyMedium: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Geist',
           color: contrastTextColor
         ),
         bodySmall: TextStyle(
-          fontFamily: 'SF Pro',
+          fontFamily: 'Geist',
           color: contrastTextColorLight
         ),
       ),
@@ -242,9 +242,32 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-        border: UnderlineInputBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(10),
+        enabledBorder: CustomOutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(
+            color: colorScheme.onSurfaceVariant.withOpacity(0.05),
+            width: 1.5
+          )
+        ),
+        focusedBorder: CustomOutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(
+            color: colorScheme.onSurfaceVariant.withOpacity(0.2),
+            width: 1.5
+          )
+        ),
+        errorBorder: CustomOutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(
+            color: colorScheme.error.withOpacity(0.05),
+            width: 1.5
+          )
+        ),
+        focusedErrorBorder: CustomOutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(
+            color: colorScheme.error.withOpacity(0.2),
+            width: 1.5
           )
         ),
         hintStyle: TextStyle(

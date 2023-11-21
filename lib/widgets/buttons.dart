@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smooth_corner/smooth_corner.dart';
 import 'package:sprung/sprung.dart';
 import '../rehmat.dart';
 
@@ -101,8 +102,8 @@ class _PrimaryButtonState extends State<PrimaryButton> {
       feedback: widget.feedback,
       onLongPress: widget.onLongPress,
       onPressed: widget.onPressed,
-      backgroundColor: Palette.of(context).primary,
-      textColor: Palette.of(context).onPrimary,
+      backgroundColor: Palette.of(context).onBackground,
+      textColor: Palette.of(context).background,
     );
   }
 
@@ -144,8 +145,12 @@ class _SecondaryButtonState extends State<SecondaryButton> {
       feedback: widget.feedback,
       onLongPress: widget.onLongPress,
       onPressed: widget.onPressed,
-      backgroundColor: Palette.of(context).secondaryContainer,
-      textColor: Palette.of(context).onSecondaryContainer,
+      border: BorderSide(
+        color: Palette.of(context).onBackground.withOpacity(0.1),
+        width: 1
+      ),
+      backgroundColor: Palette.of(context).surfaceVariant,
+      textColor: Palette.of(context).onSurfaceVariant,
     );
   }
 
@@ -178,7 +183,7 @@ class Button extends StatefulWidget {
   final Color? backgroundColor;
   final Color? textColor;
   final BoxShadow? shadow;
-  final Border? border;
+  final BorderSide? border;
 
   @override
   State<Button> createState() => _ButtonState();
@@ -216,7 +221,6 @@ class _RenderButton extends StatefulWidget {
     this.disabled = false,
     required this.backgroundColor,
     required this.textColor,
-    // ignore: unused_element
     this.border,
     this.autoLoading = false,
     this.shadow,
@@ -229,7 +233,7 @@ class _RenderButton extends StatefulWidget {
   final bool disabled;
   final Color backgroundColor;
   final Color textColor;
-  final Border? border;
+  final BorderSide? border;
   final bool autoLoading;
   final BoxShadow? shadow;
 
@@ -256,7 +260,7 @@ class _RenderButtonState extends State<_RenderButton> {
 
   @override
   Widget build(BuildContext context) {
-    TextStyle? textStyle = Theme.of(context).textTheme.titleMedium;
+    TextStyle? textStyle = Theme.of(context).textTheme.titleLarge;
     return GestureDetector(
       onPanDown: (details) => reduceRadius(),
       onTapDown: (details) => reduceRadius(),
@@ -273,9 +277,18 @@ class _RenderButtonState extends State<_RenderButton> {
         child: AnimatedContainer(
           duration: Duration(milliseconds: 500),
           curve: Sprung.criticallyDamped,
-          decoration: BoxDecoration(
+          // decoration: BoxDecoration(
+          //   color: widget.backgroundColor,
+          //   borderRadius: BorderRadius.circular(radius),
+          //   border: widget.border,
+          // ),
+          decoration: ShapeDecoration(
+            shape: SmoothRectangleBorder(
+              borderRadius: BorderRadius.circular(40),
+              smoothness: 0.6,
+              side: widget.border ?? BorderSide.none
+            ),
             color: widget.backgroundColor,
-            borderRadius: BorderRadius.circular(radius)
           ),
           child: DefaultTextStyle(
             style: textStyle!.copyWith(

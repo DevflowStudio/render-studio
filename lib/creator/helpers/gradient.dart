@@ -50,6 +50,7 @@ class CreativeGradient {
   );
 
   EditorTab getEditor({
+    required CreatorWidget widget,
     String name = 'Gradient',
     ColorPalette? palette,
     void Function(WidgetChange change)? onChange,
@@ -71,6 +72,7 @@ class CreativeGradient {
               Row(
                 children: [
                   ColorSelector(
+                    widget: widget,
                     size: Size.square(40),
                     onColorSelect: (color) {
                       from = color;
@@ -96,6 +98,7 @@ class CreativeGradient {
               Row(
                 children: [
                   ColorSelector(
+                    widget: widget,
                     size: Size.square(40),
                     onColorSelect: (color) {
                       to = color;
@@ -193,6 +196,7 @@ Widget _getAlignmentEditorButton(BuildContext context, {
             _alignmentToName(current),
             style: Theme.of(context).textTheme.bodyLarge,
           ),
+          SizedBox(width: 3),
           Icon(
             RenderIcons.arrow_down,
             size: Theme.of(context).textTheme.bodyMedium?.fontSize,

@@ -86,7 +86,6 @@ class _ProjectsViewState extends State<ProjectsView> {
       children: [
         SliverPadding(
           padding: const EdgeInsets.only(
-            top: 24,
             left: 6,
             right: 6,
             bottom: 9

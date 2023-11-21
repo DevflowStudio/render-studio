@@ -704,6 +704,10 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     else page.widgets.delete(this.uid);
   }
 
+  Map<String, dynamic>? requestVariables() => null;
+
+  void loadVariables(Map<String, dynamic> variable) {}
+
   /// Convert the state and properties of the widget to JSON
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
@@ -730,7 +734,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         },
         'vertical-expand-direction': verticalExpandDirection.name,
         'horizontal-expand-direction': horizontalExpandDirection.name,
-      }
+      },
+      'variables': requestVariables(),
     };
   }
 

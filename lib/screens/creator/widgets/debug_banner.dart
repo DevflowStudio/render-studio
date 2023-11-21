@@ -50,7 +50,7 @@ class __DebugModeWidgetState extends State<ProjectDebugBanner> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '[Debug Mode] :: Editor ${page.editorManager.editor?.widget.uid}',
+              '[Debug Mode]',
               style: Theme.of(context).textTheme.bodySmall!.copyWith(
                 color: Colors.red,
                 fontWeight: FontWeight.w500

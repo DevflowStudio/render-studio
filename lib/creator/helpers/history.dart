@@ -53,8 +53,11 @@ class History {
   }
 
   void restore(int change) {
+    // String? selectedWidget = page.widgets.selections.length > 1 ? null : page.widgets.selections.firstOrNull?.uid;
+    page.widgets.select();
     date += change;
     dates[date].restore();
+    // if (selectedWidget != null) page.widgets.selectWithUID(selectedWidget);
   }
 
 }

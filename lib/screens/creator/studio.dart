@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:render_studio/creator/helpers/editor_manager.dart';
 import 'package:render_studio/screens/creator/widgets/debug_banner.dart';
 import 'package:render_studio/screens/creator/widgets/page_indicator.dart';
 import 'package:render_studio/screens/creator/widgets/project_app_bar.dart';
@@ -114,7 +115,7 @@ class _StudioState extends State<Studio> {
         ),
         bottomNavigationBar: AnimatedSize(
           duration: kAnimationDuration * 2,
-          curve: Sprung.underDamped,
+          curve: Sprung(),
           child: _BottomNavBuilder(project: project)
         ),
       ),
@@ -182,16 +183,9 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        CreativeWidgetsShowcase(
-          page: project.pages.current,
-        ),
-        if (project.pages.current.editorManager.editor != null) FadeInUp(
-          duration: kAnimationDuration,
-          child: project.pages.current.editorManager.editor!,
-        ),
-      ],
+    return FadeInUp(
+      duration: kAnimationDuration,
+      child: PageEditorView(manager: project.pages.current.editorManager)
     );
   }
 
