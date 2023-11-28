@@ -42,13 +42,13 @@ extension ResizeHandlerProperties on ResizeHandler {
         );
       case ResizeHandler.centerLeft:
         return Positioned(
-          left: -0.75,
+          left: 0,
           top: size.height / 2,
           child: child
         );
       case ResizeHandler.centerRight:
         return Positioned(
-          right: -0.75,
+          right: 0,
           top: size.height / 2,
           child: child
         );
@@ -60,7 +60,7 @@ extension ResizeHandlerProperties on ResizeHandler {
         );
       case ResizeHandler.bottomCenter:
         return Positioned(
-          bottom: -0.75,
+          bottom: 0,
           left: size.width / 2,
           child: child
         );
@@ -351,8 +351,8 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
                 child: Center(
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: 100),
-                    width: _size.width,
-                    height: _size.height,
+                    width: _size.width / widget.widget.page.scale,
+                    height: _size.height / widget.widget.page.scale,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
                       color: color,
@@ -363,7 +363,7 @@ class _ResizeHandlerBallState extends State<ResizeHandlerBall> {
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.2),
-                          blurRadius: 5,
+                          blurRadius: 1,
                           spreadRadius: 0,
                           offset: const Offset(0, 0)
                         )

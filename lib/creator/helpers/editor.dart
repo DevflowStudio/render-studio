@@ -81,13 +81,13 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Stack(
-                alignment: Alignment.centerLeft,
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
                     child: TabBar(
                       controller: tabController,
                       enableFeedback: true,
+                      tabAlignment: TabAlignment.start,
                       padding: EdgeInsets.only(
                         right: 50
                       ),
@@ -149,7 +149,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
               ),
               AnimatedSize(
                 duration: kAnimationDuration * 2,
-                curve: Sprung.underDamped,
+                curve: Sprung(),
                 child: Editor.isHidden ? SizedBox.fromSize(
                   size: Size.fromHeight(Constants.of(context).bottomPadding),
                 ) : SizedBox.fromSize(
@@ -579,8 +579,10 @@ class EditorTab {
   static EditorTab paddingEditor({
     required EdgeInsets padding,
     required Function(EdgeInsets value) onChange,
-    double? min,
-    double? max,
+    double? minVertical,
+    double? maxVertical,
+    double? minHorizontal,
+    double? maxHorizontal,
   }) => EditorTab(
     type: EditorTabType.single,
     options: [
@@ -588,12 +590,32 @@ class EditorTab {
         widget: (context) => _PaddingEditor(
           padding: padding,
           onChange: onChange,
-          min: min,
-          max: max
+          maxVertical: maxVertical,
+          minVertical: minVertical,
+          maxHorizontal: maxHorizontal,
+          minHorizontal: minHorizontal,
         ),
       )
     ],
     tab: 'Padding'
+  );
+
+  static EditorTab containerSizeEditor({
+    required double widthRatio,
+    required double heightRatio,
+    required Function(double newWidthRatio, double newHeightRatio) onChange,
+  }) => EditorTab(
+    type: EditorTabType.single,
+    options: [
+      Option.custom(
+        widget: (context) => _ContainerSizeEditor(
+          widthRatio: widthRatio,
+          heightRatio: heightRatio,
+          onChange: onChange,
+        ),
+      )
+    ],
+    tab: 'Size'
   );
 
   static EditorTab shadow<T>({
@@ -825,14 +847,18 @@ class _PaddingEditor extends StatefulWidget {
     Key? key,
     required this.padding,
     required this.onChange,
-    this.max,
-    this.min
+    this.maxVertical,
+    this.minVertical,
+    this.maxHorizontal,
+    this.minHorizontal,
   }) : super(key: key);
 
   final EdgeInsets padding;
   final Function(EdgeInsets value) onChange;
-  final double? max;
-  final double? min;
+  final double? maxVertical;
+  final double? minVertical;
+  final double? maxHorizontal;
+  final double? minHorizontal;
 
   @override
   State<_PaddingEditor> createState() => __PaddingEditorState();
@@ -845,7 +871,7 @@ class __PaddingEditorState extends State<_PaddingEditor> {
   double horizontal = 0;
   double vertical = 0;
 
-  bool locked = true;
+  bool locked = false;
 
   @override
   void initState() {
@@ -881,16 +907,15 @@ class __PaddingEditorState extends State<_PaddingEditor> {
                       child: Slider(
                         value: locked ? vertical : horizontal,
                         label: 'Horizontal',
-                        min: widget.min ?? 0,
-                        max: widget.max ?? 24,
+                        min: widget.minHorizontal ?? 0,
+                        max: widget.maxHorizontal ?? 24,
                         onChanged: (value) {
-                          if (locked) {
-                            horizontal = vertical = value;
-                            padding = EdgeInsets.symmetric(vertical: value, horizontal: value);
-                          } else {
-                            horizontal = value;
-                            padding = EdgeInsets.symmetric(horizontal: value, vertical: vertical);
+                          double change = value - horizontal;
+                          horizontal = value;
+                          if (locked && vertical + change <= widget.maxVertical! && vertical + change >= widget.minVertical!) {
+                            vertical += change;
                           }
+                          padding = EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical);
                           setState(() { });
                           widget.onChange(padding);
                         },
@@ -909,18 +934,136 @@ class __PaddingEditorState extends State<_PaddingEditor> {
                       child: Slider(
                         value: vertical,
                         label: 'Vertical',
-                        min: widget.min ?? 0,
-                        max: widget.max ?? 24,
+                        min: widget.minVertical ?? 0,
+                        max: widget.maxVertical ?? 24,
                         onChanged: (value) {
-                          if (locked) {
-                            horizontal = vertical = value;
-                            padding = EdgeInsets.symmetric(vertical: value, horizontal: value);
-                          } else {
-                            vertical = value;
-                            padding = EdgeInsets.symmetric(horizontal: horizontal, vertical: value);
+                          double change = value - vertical;
+                          vertical = value;
+                          if (locked && horizontal + change <= widget.maxHorizontal! && horizontal + change >= widget.minHorizontal!) {
+                            horizontal += change;
                           }
+                          padding = EdgeInsets.symmetric(horizontal: horizontal, vertical: vertical);
                           setState(() { });
                           widget.onChange(padding);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 6),
+          OutlinedIconButtons(
+            onPressed: () {
+              TapFeedback.light();
+              setState(() => locked = !locked);
+            },
+            icon: Icon(
+              locked ? RenderIcons.lock : RenderIcons.unlock,
+            ),
+          )
+        ],
+      ),
+    );
+  }
+  
+}
+
+class _ContainerSizeEditor extends StatefulWidget {
+
+  _ContainerSizeEditor({
+    Key? key,
+    required this.widthRatio,
+    required this.heightRatio,
+    required this.onChange,
+  }) : super(key: key);
+
+  final double widthRatio;
+  final double heightRatio;
+  final Function(double widthRatio, double heightRatio) onChange;
+
+  @override
+  State<_ContainerSizeEditor> createState() => __ContainerSizeEditorState();
+}
+
+class __ContainerSizeEditorState extends State<_ContainerSizeEditor> {
+
+  late double widthRatio;
+  late double heightRatio;
+
+  bool locked = true;
+
+  @override
+  void initState() {
+    widthRatio = widget.widthRatio;
+    heightRatio = widget.heightRatio;
+    if (widthRatio == heightRatio) locked = true;
+    else locked = false;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      RenderIcons.arrow_left_right
+                    ),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Slider(
+                        value: widthRatio,
+                        label: 'Width',
+                        min: 1,
+                        max: 2,
+                        onChanged: (value) {
+                          print(value);
+                          double change = value - widthRatio;
+                          widthRatio = value;
+                          if (locked && heightRatio + change <= 2 && heightRatio + change >= 1) {
+                            heightRatio += change;
+                          }
+                          setState(() { });
+                          widget.onChange(widthRatio, heightRatio);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12,),
+                Row(
+                  children: [
+                    Icon(
+                      RenderIcons.arrow_up_down
+                    ),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Slider(
+                        value: heightRatio,
+                        label: 'Height',
+                        min: 1,
+                        max: 2,
+                        onChanged: (value) {
+                          double change = value - heightRatio;
+                          heightRatio = value;
+                          if (locked && widthRatio + change <= 2 && widthRatio + change >= 1) {
+                            widthRatio += change;
+                          }
+                          setState(() { });
+                          widget.onChange(widthRatio, heightRatio);
                         },
                       ),
                     ),
@@ -1042,6 +1185,12 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
               distance = value;
               onChange();
             },
+            onChangeStart: (value) {
+              widget.widget.setHandlersVisibility(false);
+            },
+            onChangeEnd: (value) {
+              widget.widget.setHandlersVisibility(true);
+            },
           ),
           CustomSlider(
             value: direction,
@@ -1051,6 +1200,12 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
             onChange: (value) {
               direction = value;
               onChange();
+            },
+            onChangeStart: (value) {
+              widget.widget.setHandlersVisibility(false);
+            },
+            onChangeEnd: (value) {
+              widget.widget.setHandlersVisibility(true);
             },
           ),
           SizedBox(height: 12),
@@ -1062,6 +1217,12 @@ class __ShadowEditorState<T> extends State<_ShadowEditor<T>> {
             onChange: (value) {
               blur = value;
               onChange();
+            },
+            onChangeStart: (value) {
+              widget.widget.setHandlersVisibility(false);
+            },
+            onChangeEnd: (value) {
+              widget.widget.setHandlersVisibility(true);
             },
           ),
         ],

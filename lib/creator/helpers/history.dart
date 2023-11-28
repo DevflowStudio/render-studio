@@ -28,8 +28,8 @@ class History {
   bool get undoEnabled => date > 0;
   bool get redoEnabled => dates.length > date + 1;
 
-  String get undoTooltip => undoEnabled ? 'Undo ${dates[date].title != null ? ': ' + dates[date].title!.toTitleCase() : ''}' : 'Nothing to Undo';
-  String get redoTooltip => redoEnabled ? 'Redo ${dates[date + 1].title != null ? ': ' + dates[date + 1].title!.toTitleCase() : ''}' : 'Nothing to Redo';
+  String get undoTooltip => undoEnabled ? 'Undo${dates[date].title != null ? ': ' + dates[date].title!.toTitleCase() : ''}' : 'Nothing to Undo';
+  String get redoTooltip => redoEnabled ? 'Redo${dates[date + 1].title != null ? ': ' + dates[date + 1].title!.toTitleCase() : ''}' : 'Nothing to Redo';
 
   void _undo() => restore(-1);
 

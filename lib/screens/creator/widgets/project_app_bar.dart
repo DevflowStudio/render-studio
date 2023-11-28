@@ -1,9 +1,12 @@
 import 'package:animate_do/animate_do.dart';
-import 'package:badges/badges.dart' as badge;
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card/flip_card_controller.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:pull_down_button/pull_down_button.dart';
 import 'package:sprung/sprung.dart';
 import 'package:supercharged/supercharged.dart';
 
@@ -19,16 +22,16 @@ class ProjectAppBar extends StatefulWidget implements PreferredSizeWidget {
   ProjectAppBar({
     Key? key,
     required this.project,
-    required this.onBackPressed,
-    required this.onSave,
-    this.isLoading = false
+    required this.onLeadingPressed,
+    required this.save,
+    this.isLoading = false,
   }) : super(key: key);
 
   final Project project;
 
-  final void Function() onBackPressed;
+  final void Function() onLeadingPressed;
 
-  final void Function() onSave;
+  final Future<void> Function({ExportQuality quality}) save;
 
   final bool isLoading;
 
@@ -69,7 +72,7 @@ class _AppBarState extends State<ProjectAppBar> {
       leading: widget.isLoading ? Container() : Padding(
         padding: const EdgeInsets.all(6),
         child: FilledTonalIconButton(
-          onPressed: widget.onBackPressed,
+          onPressed: widget.onLeadingPressed,
           icon: Icon(RenderIcons.arrow_back),
         ),
       ),
@@ -80,45 +83,84 @@ class _AppBarState extends State<ProjectAppBar> {
       ),
       centerTitle: false,
       titleSpacing: 0,
-      title: project.pages.current.widgets.nSelections >= 2 ? FadeInDown(
-        from: 10,
-        duration: kAnimationDuration,
-        child: OutlinedButton.icon(
-          style: OutlinedButton.styleFrom(
-            padding: EdgeInsets.symmetric(
-              vertical: 10,
-              horizontal: 20,
-            ),
-            textStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontFamily: 'Google Sans',
-              fontWeight: FontWeight.w500
-            )
-          ),
-          onPressed: project.pages.current.widgets.nSelections.isBetween(2, 10) ? () {
-            WidgetGroup.create(page: project.pages.current);
-          } : null,
-          icon: Icon(
-            RenderIcons.add,
-            size: Theme.of(context).textTheme.bodyLarge?.fontSize,
-          ),
-          label: Text('Group'),
-        ),
-      ) : null,
+      title: title,
       backgroundColor: Colors.transparent,
       actions: [
         _ActionsBuilder(
           project: project,
-          onSave: widget.onSave,
+          save: widget.save,
           isLoading: widget.isLoading,
         ),
       ]
     );
   }
 
-  String? get title {
-    if (project.pages.current.widgets.multiselect) {
-      return 'Multiselect';
-    } else return null;
+  Widget? get title {
+    if (project.pages.current.widgets.nSelections >= 2) {
+      return chip(
+        text: 'Group',
+        icon: RenderIcons.add,
+        onTap: () {
+          WidgetGroup.create(page: project.pages.current);
+        }
+      );
+    }
+    else if (project.pages.current.widgets.multiselect) {
+      return chip(
+        text: 'Multiselect',
+        icon: RenderIcons.close,
+        onTap: () {
+          project.pages.current.widgets.multiselect = false;
+          setState(() { });
+        }
+      );
+    }
+    return null;
+  }
+
+  Widget chip({
+    required String text,
+    required void Function()? onTap,
+    required IconData icon
+  }) {
+    return FadeInDown(
+      from: 10,
+      duration: kAnimationDuration,
+      child: InkWell(
+        onTap: onTap != null ? () {
+          TapFeedback.light();
+          onTap();
+        } : null,
+        borderRadius: BorderRadius.circular(50),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(50),
+            border: Border.all(
+              color: Palette.of(context).outline,
+              width: 1
+            ),
+          ),
+          padding: EdgeInsets.symmetric(
+            horizontal: 15,
+            vertical: 9
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                text,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              SizedBox(width: 9),
+              Icon(
+                icon,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
 }
@@ -127,11 +169,11 @@ class _ActionsBuilder extends StatefulWidget {
 
   const _ActionsBuilder({
     required this.project,
-    required this.onSave,
+    required this.save,
     this.isLoading = false,
   });
 
-  final void Function() onSave;
+  final Future<void> Function({ExportQuality quality}) save;
 
   final Project project;
 
@@ -144,6 +186,8 @@ class _ActionsBuilder extends StatefulWidget {
 class __ActionsBuilderState extends State<_ActionsBuilder> {
 
   late final Project project;
+
+  GlobalKey key = GlobalKey();
 
   @override
   void initState() {
@@ -172,89 +216,80 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
             ),
             tooltip: project.pages.current.history.redoTooltip,
           ),
-          _SaveButton(
-            isLoading: false,
-            onSave: widget.onSave,
-          ),
-          PopupMenuButton(
-            tooltip: 'More',
-            icon: badge.Badge(
-              badgeContent: Text(
-                project.issues.length.toString(),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                ),
+          // _SaveButton(
+          //   isLoading: false,
+          //   onSave: widget.onSave,
+          // ),
+          PullDownButton(
+            key: key,
+            itemBuilder: (context) => [
+              if (project.title != null) PullDownMenuTitle(title: Text(project.title!)),
+              PullDownMenuItem(
+                title: 'Save',
+                icon: RenderIcons.download,
+                onTap: () async {
+                  await showPullDownMenu(
+                    context: context,
+                    items: [
+                      const PullDownMenuTitle(title: Text('Choose Quality')),
+                      for (final quality in ExportQuality.values) PullDownMenuItem(
+                        title: quality.name,
+                        subtitle: quality.getFinalSize(project.size.size),
+                        onTap: () {
+                          widget.save(quality: quality);
+                        },
+                      ),
+                    ],
+                    position: _getRect(context)
+                  );
+                },
               ),
-              showBadge: preferences.debugMode && project.issues.isNotEmpty,
-              position: badge.BadgePosition.topEnd(top: -6, end: -9),
-              child: Icon(RenderIcons.more)
-            ),
-            itemBuilder: (context) => <PopupMenuEntry>[
-              if (preferences.debugMode && project.issues.isNotEmpty) PopupMenuItem(
-                value: 'issues',
-                child: badge.Badge(
-                  badgeContent: Text(
-                    project.issues.length.toString(),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                    ),
-                  ),
-                  child: Text('Issues')
-                ),
-              ),
-              if (project.pages.length < PageManager.maxPages) const PopupMenuItem(
-                child: Text('Add Page'),
-                value: 'page-add',
-              ),
-              const PopupMenuItem(
-                child: Text('Edit Metadata'),
-                value: 'meta',
-              ),
-              PopupMenuItem(
-                child: Text('${preferences.debugMode ? 'Disable' : 'Enable'} Debug Mode'),
-                value: 'toggle-debug',
-              ),
-              PopupMenuItem(
-                child: Text('${project.pages.current.widgets.multiselect ? 'Disable ' : ''}Multiselect'),
-                value: 'toggle-multiselect',
-              ),
-              if (project.pages.current.widgets.nSelections > 1) const PopupMenuItem(
-                child: Text('Create Group'),
-                value: 'create-group',
-              ),
-            ],
-            onSelected: (value) async {
-              switch (value) {
-                case 'issues':
-                  await AppRouter.push(context, page: ProjectIssues(project: project));
-                  setState(() { });
-                  break;
-                case 'meta':
-                  await AppRouter.push(context, page: ProjectMeta(project: project));
-                  break;
-                case 'page-add':
+              PullDownMenuItem(
+                title: 'Add Page',
+                icon: RenderIcons.add,
+                onTap: () {
                   project.pages.add();
                   setState(() { });
-                  break;
-                case 'toggle-debug':
+                },
+              ),
+              PullDownMenuItem(
+                title: 'Edit Metadata',
+                icon: RenderIcons.info,
+                onTap: () {
+                  AppRouter.push(context, page: ProjectMeta(project: project));
+                },
+              ),
+              if (kDebugMode) PullDownMenuItem.selectable(
+                onTap: () {
                   preferences.debugMode = !preferences.debugMode;
                   setState(() { });
-                  break;
-                case 'create-group':
-                  await WidgetGroup.create(page: project.pages.current);
-                  break;
-                case 'toggle-multiselect':
+                },
+                selected: preferences.debugMode,
+                title: 'Debug Mode',
+              ),
+              if (project.pages.current.widgets.nSelections > 1) PullDownMenuItem(
+                title: 'Create Group',
+                icon: RenderIcons.group,
+                onTap: () {
+                  WidgetGroup.create(page: project.pages.current);
+                },
+              ),
+              PullDownMenuItem.selectable(
+                onTap: () {
                   project.pages.current.widgets.multiselect = !project.pages.current.widgets.multiselect;
                   setState(() { });
-                  break;
-                case 'project-info':
-                  AppRouter.push(context, page: ProjectMeta(project: project));
-                  break;
-                default:
-              }
-            },
+                },
+                selected: project.pages.current.widgets.multiselect,
+                icon: RenderIcons.multiselect,
+                title: 'Multiselect',
+              ),
+            ],
+            buttonBuilder: (context, showMenu) => IconButton(
+              onPressed: showMenu,
+              icon: Icon(
+                RenderIcons.more,
+              ),
+            ),
           )
         ],
       ),
@@ -352,4 +387,68 @@ class __SaveButtonState extends State<_SaveButton> {
     });
   }
 
+}
+
+Rect _getRect(BuildContext context) {
+  final renderBoxContainer = context.findRenderObject()! as RenderBox;;
+  final queryData = MediaQuery.of(context);
+  final size = queryData.size;
+
+  final rect = Rect.fromPoints(
+    renderBoxContainer.localToGlobal(
+      renderBoxContainer.paintBounds.topLeft,
+    ),
+    renderBoxContainer.localToGlobal(
+      renderBoxContainer.paintBounds.bottomRight,
+    ),
+  );
+
+  if (rect.size.height > size.height) {
+    return _normalizeLargeRect(rect, size, queryData.padding);
+  }
+
+  return rect;
+}
+
+/// Apply some additional adjustments on [Rect] from [RectExtension.getRect] if
+/// [rect] is bigger than [size].
+Rect _normalizeLargeRect(
+  Rect rect,
+  Size size,
+  EdgeInsets padding,
+) {
+  const minimumAllowedSize = kMinInteractiveDimensionCupertino * 2;
+
+  final topIsNegative = rect.top.isNegative;
+  final height = size.height;
+  final rectBottom = rect.bottom;
+
+  double? top;
+  double? bottom;
+
+  if (topIsNegative && rectBottom > height) {
+    top = height * 0.65;
+    bottom = height * 0.75;
+  } else if (topIsNegative && rectBottom < height) {
+    final diff = height - rectBottom - padding.bottom;
+
+    if (diff < minimumAllowedSize) {
+      top = rectBottom;
+      bottom = height - padding.bottom;
+    }
+  } else {
+    final diff = rect.top - padding.top;
+
+    if (diff < minimumAllowedSize) {
+      top = padding.top;
+      bottom = rect.top;
+    }
+  }
+
+  return Rect.fromLTRB(
+    rect.left,
+    top ?? rect.top,
+    rect.right,
+    bottom ?? rect.bottom,
+  );
 }

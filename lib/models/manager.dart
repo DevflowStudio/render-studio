@@ -22,11 +22,13 @@ class ProjectManager extends ChangeNotifier {
   Future<void> save(BuildContext context, {
     Project? project,
     Map<String, dynamic>? data,
-    bool saveToGallery = false
+    bool saveToGallery = false,
+    /// This is only used when [saveToGallery] is true
+    ExportQuality quality = ExportQuality.onex
   }) async {
     assert(project != null || data != null);
     String id = project?.id ?? data!['id'];
-    Map<String, dynamic> json = data ?? await project!.toJSON(context, saveToGallery: saveToGallery);
+    Map<String, dynamic> json = data ?? await project!.toJSON(context, saveToGallery: saveToGallery, quality: quality);
     await box.delete(id);
     await box.put(id, json);
     if (projects.indexWhere((element) => element.id == id) == -1) {

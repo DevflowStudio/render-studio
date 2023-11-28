@@ -124,16 +124,11 @@ class CreatorPage extends PropertyChangeNotifier {
   /// Enable [saveToGallery] to also save the exported image to the gallery
   Future<String?> save(BuildContext context, {
     bool saveToGallery = false,
-    bool autoExportQuality = true,
+    ExportQuality quality = ExportQuality.onex,
   }) async {
     widgets.select();
     String? _path;
-    double pixelRatio;
-    if (autoExportQuality && preferences.exportQuality.name != 'default') {
-      pixelRatio = preferences.exportQuality.pixelRatio(context);
-    } else {
-      pixelRatio = project.pixelRatio;
-    }
+    double pixelRatio = quality.pixelRatio(context, project);
     try {
       DateTime _start = DateTime.now();
       Uint8List bytes = await screenshotController.captureFromWidget(

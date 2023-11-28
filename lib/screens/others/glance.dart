@@ -347,7 +347,8 @@ class ProjectGlanceCard extends StatelessWidget {
         margin: EdgeInsets.zero,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: Palette.of(context).background,
+          // color: Palette.of(context).background,
+          color: context.isDarkMode ? Palette.of(context).surfaceVariant : Palette.of(context).background,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -398,11 +399,6 @@ class ProjectGlanceCard extends StatelessWidget {
                   )
                 ),
               ),
-            ),
-            Divider(
-              height: 0,
-              endIndent: 0,
-              indent: 0,
             ),
             Padding(
               padding: const EdgeInsets.only(

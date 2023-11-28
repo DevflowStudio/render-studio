@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:align_positioned/align_positioned.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -155,6 +156,7 @@ class CreatorText extends CreatorWidget {
       ],
     ),
     containerProvider.editor(
+      name: 'Shape',
       onChange: (change) {
         updateListeners(change);
       },
@@ -361,7 +363,6 @@ class CreatorText extends CreatorWidget {
         ),
       ],
     ),
-    EditorTab.adjustTab(widget: this),
     EditorTab(
       tab: 'Spacing',
       type: EditorTabType.row,
@@ -415,7 +416,8 @@ class CreatorText extends CreatorWidget {
           },
         ),
       ],
-    )
+    ),
+    EditorTab.adjustTab(widget: this),
   ];
 
   // Inherited
@@ -487,10 +489,23 @@ class CreatorText extends CreatorWidget {
 
   late CreativeContainerProvider containerProvider;
 
-  Widget widget(BuildContext context) => containerProvider.build(
-    child: FittedBox(
-      child: textWidget
-    ),
+  Widget widget(BuildContext context) => Stack(
+    clipBehavior: Clip.none,
+    children: [
+      AlignPositioned(
+        childHeight: size.height + containerProvider.padding.vertical,
+        childWidth: size.width + containerProvider.padding.horizontal,
+        child: containerProvider.build(
+          width: size.width,
+          height: size.height
+        ),
+      ),
+      SizedBox.expand(
+        child: FittedBox(
+          child: textWidget
+        ),
+      ),
+    ],
   );
 
   Widget get textWidget => Container(
@@ -912,14 +927,30 @@ class CreatorText extends CreatorWidget {
     // }
   }
 
+  double _dPaddingVertical = 0;
+  double _dPaddingHorizontal = 0;
+
   @override
   void onResizeStart({DragStartDetails? details, ResizeHandler? handler}) {
+    _dPaddingHorizontal = containerProvider.padding.left + containerProvider.padding.right;
+    _dPaddingVertical = containerProvider.padding.top + containerProvider.padding.bottom;
     _widthScale = size.width / _spanSize.width;
     super.onResizeStart(details: details, handler: handler);
   }
 
   @override
-  void onResize(Size size, {ResizeHandler? type}) {
+  void onResize(Size size, {ResizeHandler? type, bool isScaling = false}) {
+    if (type?.type == ResizeHandlerType.corner || isScaling) {
+      double scale = size.width / this.size.width;
+      _dPaddingHorizontal *= scale;
+      _dPaddingVertical *= scale;
+      containerProvider.padding = EdgeInsets.only(
+        top: _dPaddingVertical / 2,
+        bottom: _dPaddingVertical / 2,
+        left: _dPaddingHorizontal / 2,
+        right: _dPaddingHorizontal / 2,
+      );
+    }
     if (type?.type == ResizeHandlerType.corner) position = CreatorWidget.autoPosition(position: position, newSize: size, prevSize: this.size, alignment: type?.autoPositionAlignment ?? Alignment.center);
     if (type?.type == ResizeHandlerType.center) alterHeightOnResize(handler: type!, size: size);
     else this.size = size;

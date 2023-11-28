@@ -470,6 +470,7 @@ class Option {
   }) => Option.button(
     title: title,
     onTap: (context) async {
+      widget.setHandlersVisibility(false);
       widget.page.editorManager.openModal(
         tab: (context, setState) => EditorTab.nudge(
           widget: widget,
@@ -481,7 +482,10 @@ class Option {
             widget.position = Offset(widget.position.dx, widget.position.dy + dy);
             widget.updateListeners(WidgetChange.misc);
           },
-        )
+        ),
+        onDismiss: () {
+          widget.setHandlersVisibility(true);
+        }
       );
       widget.updateListeners(WidgetChange.update);
     },

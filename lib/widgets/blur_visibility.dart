@@ -60,6 +60,7 @@ class _AnimatedBlurVisibilityState extends State<AnimatedBlurVisibility> with Si
     return Visibility(
       visible: _isChildVisible,
       child: ClipRRect(
+        clipBehavior: Clip.antiAlias,
         child: AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {

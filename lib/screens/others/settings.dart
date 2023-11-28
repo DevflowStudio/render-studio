@@ -25,25 +25,6 @@ class _SettingsState extends State<Settings> {
             delegate: SliverChildListDelegate([
 
               ListTile(
-                title: const Text('Export Quality'),
-                trailing: PopupMenuButton<ExportQuality>(
-                  itemBuilder: (context) => List.generate(
-                    ExportQuality.values.length,
-                    (index) => PopupMenuItem(
-                      value: ExportQuality.values[index],
-                      child: Text(ExportQuality.values[index].name.toTitleCase()),
-                    ),
-                  ),
-                  onSelected: (value) async {
-                    preferences.exportQuality = value;
-                    setState(() { });
-                  },
-                  child: Chip(
-                    label: Text(preferences.exportQuality.name.toTitleCase()),
-                  ),
-                ),
-              ),
-              ListTile(
                 title: const Text('Snap'),
                 subtitle: const Text('Automatically snap widgets to with reference to others'),
                 trailing: Switch.adaptive(

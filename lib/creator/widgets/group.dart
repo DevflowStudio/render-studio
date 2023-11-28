@@ -203,10 +203,10 @@ class WidgetGroup extends CreatorWidget {
   }
 
   static (Size, Offset) _getGroupSizeFromWidgets(List<CreatorWidget> widgets) {
-    double minDY = 0;
-    double maxDY = 0;
-    double minDX = 0;
-    double maxDX = 0;
+    double minDY = double.infinity;
+    double maxDY = double.negativeInfinity;
+    double minDX = double.infinity;
+    double maxDX = double.negativeInfinity;
     for (CreatorWidget widget in widgets) {
       Offset topLeft = Offset(widget.position.dx - widget.size.width/2, widget.position.dy - widget.size.height/2);
       Offset bottomLeft = Offset(widget.position.dx - widget.size.width/2, widget.position.dy + widget.size.height/2);
@@ -410,7 +410,7 @@ class WidgetGroup extends CreatorWidget {
   ];
 
   @override
-  void onResize(Size size, {ResizeHandler? type}) {
+  void onResize(Size size, {ResizeHandler? type, bool isScaling = false}) {
     double scale = size.width / this.size.width;
     bool resizeAllowed = true;
     for (CreatorWidget widget in widgets) {

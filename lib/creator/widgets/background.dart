@@ -205,8 +205,10 @@ class BackgroundWidget extends CreatorWidget {
             page.editorManager.openModal(
               tab: (context, setState) => EditorTab.paddingEditor(
                 padding: padding,
-                max: page.project.contentSize.width/8,
-                min: 5,
+                maxVertical: page.project.contentSize.height/8,
+                minVertical: 0,
+                maxHorizontal: page.project.contentSize.width/8,
+                minHorizontal: 0,
                 onChange: (value) {
                   padding = value;
                   updateGrids(showGridLines: true, hideCenterGrids: true);

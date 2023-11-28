@@ -28,7 +28,7 @@ dependencies:
   align_positioned: ^3.0.0
   animations: ^2.0.2
   app_settings: ^5.0.0
-  cached_network_image: ^3.2.0
+  cached_network_image: ^3.3.0
   cupertino_icons: ^1.0.5
   dio: ^5.1.2
   dotted_border: ^2.0.0+2
@@ -44,7 +44,7 @@ dependencies:
   hive_flutter: ^1.1.0
   image_cropper: ^5.0.0
   image_gallery_saver: ^2.0.3
-  octo_image: ^1.0.1
+  octo_image: ^2.0.0
   palette_generator: ^0.3.0
   path_provider: ^2.0.2
   permission_handler: ^10.2.0
@@ -74,7 +74,7 @@ dependencies:
   colorfilter_generator: ^0.0.8
   image_editor: ^1.3.0
   infinite_scroll_pagination: ^3.2.0
-  flutter_blurhash: ^0.7.0
+  flutter_blurhash: ^0.8.2
   sprung: ^3.0.1
   star_menu: ^3.1.0+1
   badges: ^3.0.2
@@ -126,6 +126,7 @@ dependencies:
   animated_switcher_plus: ^1.1.0
   mesh_gradient: ^1.1.5
   blur: ^3.1.0
+  pull_down_button: ^0.9.3
 
 dev_dependencies:
   flutter_test:

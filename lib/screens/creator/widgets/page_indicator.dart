@@ -38,22 +38,27 @@ class _PageIndicatorState extends State<PageIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    if (project.pages.length > 1) return InkWell(
-      onTap: () {
-        TapFeedback.light();
-        Alerts.showModal(context, child: ProjectPageView(project: project));
-      },
-      borderRadius: BorderRadius.circular(20),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SmoothPageIndicator(
-          controller: widget.project.pages.controller,
-          count: widget.project.pages.length,
-          effect: SwapEffect(
-            activeDotColor: Palette.of(context).onBackground,
-            dotHeight: 8,
-            dotWidth: 8,
-            spacing: 4
+    if (project.pages.length > 1) return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 4
+      ),
+      child: InkWell(
+        onTap: () {
+          TapFeedback.light();
+          Alerts.showModal(context, child: ProjectPageView(project: project));
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SmoothPageIndicator(
+            controller: widget.project.pages.controller,
+            count: widget.project.pages.length,
+            effect: SwapEffect(
+              activeDotColor: Palette.of(context).onBackground,
+              dotHeight: 8,
+              dotWidth: 8,
+              spacing: 4
+            ),
           ),
         ),
       ),

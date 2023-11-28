@@ -280,7 +280,7 @@ class _RenderButtonState extends State<_RenderButton> {
           // decoration: BoxDecoration(
           //   color: widget.backgroundColor,
           //   borderRadius: BorderRadius.circular(radius),
-          //   border: widget.border,
+          //   border: Border.fromBorderSide(widget.border ?? BorderSide.none),
           // ),
           decoration: ShapeDecoration(
             shape: SmoothRectangleBorder(

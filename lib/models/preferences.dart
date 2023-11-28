@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../rehmat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 late Preferences preferences;
@@ -42,9 +41,6 @@ class Preferences extends ChangeNotifier {
     }
     prefs.setString('theme-mode', themeModeString).then((value) => notifyListeners());
   }
-
-  ExportQuality get exportQuality => ExportQualityExtension.fromString(prefs.getString('export-quality'));
-  set exportQuality(ExportQuality quality) => prefs.setString('export-quality', quality.name).then((value) => notifyListeners());
 
   bool get snap => prefs.getBool('snap') ?? true;
   set snap(bool snap) => prefs.setBool('snap', snap).then((value) => notifyListeners());

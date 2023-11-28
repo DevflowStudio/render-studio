@@ -384,7 +384,7 @@ class WidgetManager extends ChangeNotifier {
   }) {
     return ClipRRect(
       child: AnimatedSize(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 400),
         curve: Sprung(),
         child: SizedBox.fromSize(
           size: size,

@@ -190,6 +190,13 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   Size size = const Size(0, 0);
   Size? minSize;
 
+  bool showWidgetHandlers = true;
+
+  void setHandlersVisibility(bool value) {
+    showWidgetHandlers = value;
+    updateListeners(WidgetChange.misc);
+  }
+
   /// Setting this to `true` will allow
   /// resizing but only in the fixed aspect ratio
   bool keepAspectRatio = false;
@@ -218,7 +225,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     // _resizeHandlers = [handler];
   }
 
-  void onResize(Size size, {ResizeHandler? type}) {
+  void onResize(Size size, {ResizeHandler? type, bool isScaling = false}) {
     position = autoPosition(position: position, newSize: size, prevSize: this.size, alignment: type?.autoPositionAlignment ?? Alignment.center);
     this.size = size;
     updateListeners(WidgetChange.resize);
@@ -989,105 +996,110 @@ class _WidgetHandlerBuilderState extends State<WidgetHandlerBuilder> {
     if (creatorWidget != widget.widget) updateWidget();
     bool _isOnlySelected = widget.isInteractive && creatorWidget.isOnlySelected();
     bool _allowDrag = widget.isInteractive && creatorWidget.isDraggable && creatorWidget.group == null && _isOnlySelected && !creatorWidget.isLocked;
-    return GestureDetector(
-      behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
-      // onPanStart: _allowDrag ? (details) => creatorWidget.onGestureStart() : null,
-      // onPanUpdate: _allowDrag ? (details) => creatorWidget._onGestureUpdate(details, context) : null,
-      // onPanEnd: _allowDrag ? (details) => creatorWidget._onDragEnd(context) : null,
-      onScaleStart: (details) {
-        _tempSize = creatorWidget.size;
-        _initPointerCount = details.pointerCount;
-        if (DateTime.now().difference(_lastGestureTime).inMilliseconds < 200) _initPointerCount = 0;
-        if (_initPointerCount == 2) creatorWidget.onResizeStart();
-        else if (_initPointerCount == 1) creatorWidget.onDragStart();
-      },
-      onScaleUpdate: (details) {
-        if (_initPointerCount == 2) {
-          Size _size = Size(_tempSize.width * details.scale, _tempSize.height * details.scale);
-          if (creatorWidget.allowResize(_size)) creatorWidget.onResize(_size);
-        }
-        if (_allowDrag && _initPointerCount == 1) creatorWidget.updatePositionWithOffset(details.focalPointDelta);
-        creatorWidget.updateListeners(WidgetChange.misc);
-      },
-      onScaleEnd: (details) {
-        if (_initPointerCount == 2) creatorWidget.onResizeFinished();
-        else if (_initPointerCount == 1) creatorWidget.onDragFinish(context);
-        _lastGestureTime = DateTime.now();
-      },
-      dragStartBehavior: DragStartBehavior.down,
-      child: Stack(
-        children: [
-
-          _SelectedWidgetHighlighter(widget: creatorWidget),
-
-          if (creatorWidget is WidgetGroup) ... [
-            for (CreatorWidget child in (creatorWidget as WidgetGroup).widgets) if (child.isSelected()) creatorWidget.rotatedWidget(
-              child: _SelectedWidgetHighlighter(
-                widget: child,
-                position: child.position + creatorWidget.position,
-                highlight: true,
-              ),
-            )
-          ],
-
-          if (_isOnlySelected) Visibility(
-            visible: (creatorWidget.isResizable && !creatorWidget.isLocked),
-            child: AlignPositioned(
-              dx: creatorWidget.position.dx,
-              dy: creatorWidget.position.dy,
-              childHeight: creatorWidget.size.height + 40,
-              childWidth: creatorWidget.size.width + 40,
-              // rotateDegrees: angle,
-              child: SizedBox(
-                width: creatorWidget.size.width + 40,
-                height: creatorWidget.size.height + 40,
-                child: creatorWidget.rotatedWidget(
-                  child: Stack(
-                    children: [
-                      for (ResizeHandler handler in creatorWidget.resizeHandlers) ResizeHandlerBall(
-                        type: handler,
-                        widget: creatorWidget,
-                        keepAspectRatio: creatorWidget.keepAspectRatio,
-                        onSizeChange: creatorWidget.onResize,
-                        onResizeEnd: creatorWidget.onResizeFinished,
-                        isResizing: creatorWidget.isResizing,
-                        onResizeStart: creatorWidget.onResizeStart,
-                        isVisible: creatorWidget._getResizeHandlersWRTSize().contains(handler) || creatorWidget._currentResizingHandler == handler,
-                        isMinimized: creatorWidget.isDragging,
-                        // color: creatorWidget.page.palette.isLightBackground ? creatorWidget.page.palette.onBackground : creatorWidget.page.palette.onBackground.harmonizeWith(Colors.white),
-                        color: Colors.white,
-                      ),
-                    ],
+    return AnimatedOpacity(
+      duration: kAnimationDuration,
+      curve: Curves.easeInOut,
+      opacity: creatorWidget.showWidgetHandlers ? 1 : 0,
+      child: GestureDetector(
+        behavior: _isOnlySelected ? HitTestBehavior.translucent : HitTestBehavior.deferToChild,
+        // onPanStart: _allowDrag ? (details) => creatorWidget.onGestureStart() : null,
+        // onPanUpdate: _allowDrag ? (details) => creatorWidget._onGestureUpdate(details, context) : null,
+        // onPanEnd: _allowDrag ? (details) => creatorWidget._onDragEnd(context) : null,
+        onScaleStart: (details) {
+          _tempSize = creatorWidget.size;
+          _initPointerCount = details.pointerCount;
+          if (DateTime.now().difference(_lastGestureTime).inMilliseconds < 200) _initPointerCount = 0;
+          if (_initPointerCount == 2) creatorWidget.onResizeStart();
+          else if (_initPointerCount == 1) creatorWidget.onDragStart();
+        },
+        onScaleUpdate: (details) {
+          if (_initPointerCount == 2) {
+            Size _size = Size(_tempSize.width * details.scale, _tempSize.height * details.scale);
+            if (creatorWidget.allowResize(_size)) creatorWidget.onResize(_size, isScaling: true);
+          }
+          if (_allowDrag && _initPointerCount == 1) creatorWidget.updatePositionWithOffset(details.focalPointDelta);
+          creatorWidget.updateListeners(WidgetChange.misc);
+        },
+        onScaleEnd: (details) {
+          if (_initPointerCount == 2) creatorWidget.onResizeFinished();
+          else if (_initPointerCount == 1) creatorWidget.onDragFinish(context);
+          _lastGestureTime = DateTime.now();
+        },
+        dragStartBehavior: DragStartBehavior.down,
+        child: Stack(
+          children: [
+      
+            _SelectedWidgetHighlighter(widget: creatorWidget),
+      
+            if (creatorWidget is WidgetGroup) ... [
+              for (CreatorWidget child in (creatorWidget as WidgetGroup).widgets) if (child.isSelected()) creatorWidget.rotatedWidget(
+                child: _SelectedWidgetHighlighter(
+                  widget: child,
+                  position: child.position + creatorWidget.position,
+                  highlight: true,
+                ),
+              )
+            ],
+      
+            if (_isOnlySelected) Visibility(
+              visible: (creatorWidget.isResizable && !creatorWidget.isLocked),
+              child: AlignPositioned(
+                dx: creatorWidget.position.dx,
+                dy: creatorWidget.position.dy,
+                childHeight: creatorWidget.size.height + 40,
+                childWidth: creatorWidget.size.width + 40,
+                // rotateDegrees: angle,
+                child: SizedBox(
+                  width: creatorWidget.size.width + 40,
+                  height: creatorWidget.size.height + 40,
+                  child: creatorWidget.rotatedWidget(
+                    child: Stack(
+                      children: [
+                        for (ResizeHandler handler in creatorWidget.resizeHandlers) ResizeHandlerBall(
+                          type: handler,
+                          widget: creatorWidget,
+                          keepAspectRatio: creatorWidget.keepAspectRatio,
+                          onSizeChange: creatorWidget.onResize,
+                          onResizeEnd: creatorWidget.onResizeFinished,
+                          isResizing: creatorWidget.isResizing,
+                          onResizeStart: creatorWidget.onResizeStart,
+                          isVisible: creatorWidget._getResizeHandlersWRTSize().contains(handler) || creatorWidget._currentResizingHandler == handler,
+                          isMinimized: creatorWidget.isDragging,
+                          // color: creatorWidget.page.palette.isLightBackground ? creatorWidget.page.palette.onBackground : creatorWidget.page.palette.onBackground.harmonizeWith(Colors.white),
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-    
-          if (_isOnlySelected) Visibility(
-            visible: !creatorWidget.isDragging,
-            child: Builder(
-              builder: (_) {
-                double dy = creatorWidget.position.dy;
-                double dx = creatorWidget.position.dx;
-                double positionY = dy + creatorWidget.size.height/2 + 20 + 15;
-                double positionX = dx;
-                
-                if ((positionY + 15) > creatorWidget.page.project.contentSize.height/2) {
-                  positionY = dy - creatorWidget.size.height/2 - 20 - 15;
+      
+            if (_isOnlySelected) Visibility(
+              visible: !creatorWidget.isDragging,
+              child: Builder(
+                builder: (_) {
+                  double dy = creatorWidget.position.dy;
+                  double dx = creatorWidget.position.dx;
+                  double positionY = dy + creatorWidget.size.height/2 + 20 + 15;
+                  double positionX = dx;
+                  
+                  if ((positionY + 15) > creatorWidget.page.project.contentSize.height/2) {
+                    positionY = dy - creatorWidget.size.height/2 - 20 - 15;
+                  }
+                  
+                  return AlignPositioned(
+                    dy: positionY,
+                    dx: positionX,
+                    child: WidgetActionButton(
+                      widget: creatorWidget,
+                    ),
+                  );
                 }
-                
-                return AlignPositioned(
-                  dy: positionY,
-                  dx: positionX,
-                  child: WidgetActionButton(
-                    widget: creatorWidget,
-                  ),
-                );
-              }
-            ),
-          )
-        ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -1123,15 +1135,15 @@ class _SelectedWidgetHighlighter extends StatelessWidget {
     return AlignPositioned(
       dx: _position.dx,
       dy: _position.dy,
-      childHeight: widget.size.height + 3,
-      childWidth: widget.size.width + 3,
+      childHeight: widget.size.height + (2 / widget.page.scale),
+      childWidth: widget.size.width + (2 / widget.page.scale),
       child: IgnorePointer(
         child: widget.rotatedWidget(
           child: Container(
             decoration: BoxDecoration(
               border: Border.all(
                 color: (highlight ? Colors.pinkAccent : Palette.of(context).primary).harmonizeWith(widget.page.palette.background),
-                width: 1.5,
+                width: 1 / widget.page.scale,
               ),
               // boxShadow: [
               //   if (!isLightBackground) BoxShadow(

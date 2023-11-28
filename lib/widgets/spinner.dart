@@ -29,10 +29,8 @@ class Spinner extends StatefulWidget {
   ) async {
     showCupertinoDialog(
       context: context,
-      builder: (context) => WillPopScope(
-        onWillPop: () async {
-          return true;
-        },
+      builder: (context) => PopScope(
+        canPop: false,
         child: Container(
           height: double.infinity,
           width: double.infinity,
@@ -75,10 +73,8 @@ class Spinner extends StatefulWidget {
       barrierColor: Palette.of(context).background.withOpacity(0.2),
       isDismissible: false,
       enableDrag: false,
-      builder: (context) => WillPopScope(
-        onWillPop: () async {
-          return true;
-        },
+      builder: (context) => PopScope(
+        canPop: false,
         child: Container(
           height: double.infinity,
           width: double.infinity,

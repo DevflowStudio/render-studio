@@ -101,6 +101,7 @@ class CreativeContainerProvider {
               IconButton(
                 onPressed: () {
                   shadow = null;
+                  dismiss();
                   onChange(WidgetChange.update);
                 },
                 icon: Icon(RenderIcons.delete)
@@ -126,6 +127,7 @@ class CreativeContainerProvider {
         title: 'Border',
         onTap: (context) async {
           Size originalWidgetSize = widget.size;
+          if (borderRadius > widget.size.height * 1.5) borderRadius = widget.size.height * 1.5;
           widget.page.editorManager.openModal(
             actions: (dismiss) => [
               IconButton(
@@ -179,7 +181,7 @@ class CreativeContainerProvider {
                         CustomSlider(
                           value: borderRadius,
                           min: 0,
-                          max: widget.size.width / 2,
+                          max: widget.size.height * 1.5,
                           label: 'Radius',
                           onChange: (value) {
                             borderRadius = value;
@@ -209,18 +211,25 @@ class CreativeContainerProvider {
         icon: RenderIcons.padding,
         tooltip: 'Add padding to the widget',
         onTap: (context) async {
-          Size originalWidgetSize = widget.size;
+          double maxVerticalPadding = widget.size.height;
+          double maxHorizontalPadding = widget.size.width;
+          if (padding.vertical > maxVerticalPadding) padding = EdgeInsets.symmetric(vertical: maxVerticalPadding, horizontal: padding.horizontal);
+          if (padding.horizontal > maxHorizontalPadding) padding = EdgeInsets.symmetric(horizontal: maxHorizontalPadding, vertical: padding.vertical);
           widget.page.editorManager.openModal(
             tab: (context, setState) => EditorTab.paddingEditor(
               padding: padding,
               onChange: (value) {
-                widget.size = Size(originalWidgetSize.width + value.horizontal, originalWidgetSize.height + value.vertical);
                 padding = value;
                 onChange(WidgetChange.misc);
               },
-              min: 0,
-              max: 20,
-            )
+              minVertical: 0,
+              maxVertical: maxVerticalPadding,
+              minHorizontal: 0,
+              maxHorizontal: maxHorizontalPadding,
+            ),
+            onDismiss: () {
+              onChange(WidgetChange.update);
+            }
           );
         },
       ),
@@ -243,21 +252,28 @@ class CreativeContainerProvider {
   );
 
   Widget build({
-    required Widget child
+    Widget? child,
+    double? width,
+    double? height,
   }) => Container(
+    width: width != null ? width + (padding.horizontal * 2) : null,
+    height: height != null ? height + (padding.vertical * 2) : null,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(borderRadius),
       boxShadow: [
         if (shadow != null) shadow!
       ],
     ),
-    child: ClipRRect(
+    child: ClipPath(
       clipBehavior: (shadow != null || blur > 0) ? Clip.hardEdge : Clip.none,
-      borderRadius: BorderRadius.circular(borderRadius),
+      clipper: ShapeBorderClipper(
+        shape: ContinuousRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+      ),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
         child: Container(
-          padding: padding,
           decoration: BoxDecoration(
             color: type == BackgroundType.color ? color : Colors.white,
             gradient: gradient?.gradient,
@@ -280,6 +296,7 @@ class CreativeContainerProvider {
     'border-width': borderWidth,
     'border-radius': borderRadius,
     'blur': blur,
+    'padding': padding.toJSON(),
     'shadow': shadow == null ? null : {
       'color': shadow?.color.toHex(),
       'blur-radius': shadow?.blurRadius,
@@ -318,6 +335,8 @@ class CreativeContainerProvider {
         );
       }
       provider.blur = data['blur'] ?? 0;
+
+      if (data['padding'] != null) provider.padding = PaddingExtension.fromJSON(data['padding']);
     } catch (e) { }
     return provider;
   }

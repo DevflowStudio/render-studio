@@ -71,12 +71,14 @@ class Project extends ChangeNotifier {
   }
 
   Future<Map<String, dynamic>> toJSON(BuildContext context, {
-    bool saveToGallery = false
+    bool saveToGallery = false,
+    /// The quality of the exported image. Only used if [saveToGallery] is true
+    ExportQuality quality = ExportQuality.onex,
   }) async {
 
     images.clear();
     for (CreatorPage page in pages.pages) {
-      String? thumbnail = await page.save(context, saveToGallery: saveToGallery);
+      String? thumbnail = await page.save(context, saveToGallery: saveToGallery, quality: quality);
       if (thumbnail != null) images.add(thumbnail);
       else issues.add(Exception('Failed to render page ${pages.pages.indexOf(page) + 1}'));
     }

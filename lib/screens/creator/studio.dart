@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:render_studio/creator/helpers/editor_manager.dart';
 import 'package:render_studio/screens/creator/widgets/debug_banner.dart';
 import 'package:render_studio/screens/creator/widgets/page_indicator.dart';
@@ -19,7 +20,7 @@ class Studio extends StatefulWidget {
   _StudioState createState() => _StudioState();
 }
 
-class _StudioState extends State<Studio> {
+class _StudioState extends State<Studio> with TickerProviderStateMixin {
 
   late Project project;
 
@@ -56,12 +57,10 @@ class _StudioState extends State<Studio> {
         appBar: ProjectAppBar(
           project: project,
           isLoading: isLoading,
-          onBackPressed: () async {
+          onLeadingPressed: () async {
             if (await canPagePop()) Navigator.of(context).pop();
           },
-          onSave: () async {
-            await save();
-          },
+          save: save,
         ),
         body: Center(
           child: Column(
@@ -73,42 +72,15 @@ class _StudioState extends State<Studio> {
                 child: ProjectDebugBanner(project: project),
               ),
               Expanded(
-                child: Stack(
-                  children: [
-                    Hero(
-                      tag: 'project-${project.id}',
-                      child: creator
-                    ),
-                    AnimatedSwitcher(
-                      duration: kAnimationDuration,
-                      child: isLoading ? BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: SizedBox.expand(
-                          child: Container(
-                            color: Palette.of(context).background.withOpacity(0.25),
-                            child: Center(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Palette.of(context).background,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                padding: const EdgeInsets.all(20),
-                                child: Spinner()
-                              ),
-                            ),
-                          ),
-                        ),
-                      ) : const SizedBox.shrink(),
-                    )
-                  ],
+                child: Hero(
+                  tag: 'project-${project.id}',
+                  child: IgnorePointer(
+                    ignoring: isLoading,
+                    child: creator
+                  )
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 4,
-                ),
-                child: PageIndicator(project: project),
-              ),
+              PageIndicator(project: project),
               // spacer(project.editorVisible ? 1 : 2),
             ],
           ),
@@ -116,7 +88,7 @@ class _StudioState extends State<Studio> {
         bottomNavigationBar: AnimatedSize(
           duration: kAnimationDuration * 2,
           curve: Sprung(),
-          child: _BottomNavBuilder(project: project)
+          child: _BottomNavBuilder(project: project, save: save, isLoading: isLoading)
         ),
       ),
     );
@@ -140,9 +112,14 @@ class _StudioState extends State<Studio> {
     return discard;
   }
 
-  Future<void> save() async {
-    await manager.save(context, project: project, saveToGallery: true);
+  Future<void> save({
+    ExportQuality quality = ExportQuality.onex
+  }) async {
+    setState(() => isLoading = true);
+    project.pages.current.widgets.select();
+    await manager.save(context, project: project, saveToGallery: true, quality: quality);
     _lastSaved = DateTime.now();
+    setState(() => isLoading = false);
   }
 
 }
@@ -152,9 +129,13 @@ class _BottomNavBuilder extends StatefulWidget {
   _BottomNavBuilder({
     Key? key,
     required this.project,
+    this.save,
+    this.isLoading = false
   }) : super(key: key);
 
   final Project project;
+  final Future<void> Function({ExportQuality quality})? save;
+  final bool isLoading;
 
   @override
   State<_BottomNavBuilder> createState() => __BottomNavBuilderState();
@@ -182,10 +163,32 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
   }
 
   @override
+  void setState(VoidCallback fn) {
+    if (mounted) {
+      super.setState(fn);
+    } else {
+      fn();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FadeInUp(
+    return AnimatedSwitcher(
       duration: kAnimationDuration,
-      child: PageEditorView(manager: project.pages.current.editorManager)
+      child: widget.isLoading ? Padding(
+        padding: EdgeInsets.only(
+          bottom: Constants.of(context).bottomPadding
+        ),
+        child: IntrinsicHeight(
+          child: SpinKitThreeInOut(
+            color: context.isDarkMode ? Colors.grey[200] : Colors.grey[800],
+            size: 20,
+          ),
+        ),
+      ) : FadeInUp(
+        duration: kAnimationDuration,
+        child: PageEditorView(manager: project.pages.current.editorManager)
+      )
     );
   }
 
