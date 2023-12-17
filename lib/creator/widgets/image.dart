@@ -5,6 +5,7 @@ import 'package:colorfilter_generator/presets.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:octo_image/octo_image.dart';
+import 'package:smooth_corner/smooth_corner.dart';
 import 'package:sprung/sprung.dart';
 import 'package:universal_io/io.dart';
 import '../../rehmat.dart';
@@ -494,8 +495,9 @@ class ImageWidget extends CreatorWidget {
 
   @override
   Widget widget(BuildContext context) {
-    return ClipRRect(
+    return SmoothClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
+      smoothness: 0.6,
       child: provider.build(
         asset!,
         size: size,
@@ -522,9 +524,13 @@ class ImageWidget extends CreatorWidget {
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
   }) {
+    double _borderRadius = this.borderRadius;
+    if (buildInfo.buildType == BuildType.save) {
+      _borderRadius = page.project.sizeTranslator.getUniversalValue(value: _borderRadius);
+    }
     return {
       ... super.toJSON(buildInfo: buildInfo),
-      'radius': borderRadius,
+      'radius': _borderRadius,
       'provider': provider.toJSON()
     };
   }
@@ -540,8 +546,12 @@ class ImageWidget extends CreatorWidget {
     required BuildInfo buildInfo
   }) {
     super.buildFromJSON(json, buildInfo: buildInfo);
+    bool isBuildingFromUniversalBuild = json['properties']['is-universal-build'] ?? false;
     if (asset == null) throw WidgetCreationException('Could not build Design Asset. File may have been deleted.');
     borderRadius = json['radius'] ?? 0;
+    if (isBuildingFromUniversalBuild) {
+      borderRadius = page.project.sizeTranslator.getLocalValue(value: borderRadius);
+    }
     provider = CreativeImageProvider.fromJSON(json['provider'] ?? {}, widget: this);
   }
 

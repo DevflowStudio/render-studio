@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:smooth_corner/smooth_corner.dart';
 
 import '../../rehmat.dart';
 
@@ -273,41 +274,63 @@ class CreativeContainerProvider {
       ),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: Container(
-          decoration: BoxDecoration(
-            color: type == BackgroundType.color ? color : Colors.white,
-            gradient: gradient?.gradient,
-            border: (borderWidth != null) ? Border.all(
-              color: borderColor ?? color?.computeTextColor() ?? widget.page.palette.primary,
-              width: borderWidth!
-            ) : null,
-            borderRadius: BorderRadius.circular(borderRadius),
+        child: SmoothClipRRect(
+          side: (borderWidth != null) ? BorderSide(
+            color: borderColor ?? color?.computeTextColor() ?? widget.page.palette.primary,
+            width: borderWidth ?? 0
+          ) : BorderSide.none,
+          borderRadius: BorderRadius.circular(borderRadius),
+          smoothness: 0.6,
+          child: Container(
+            decoration: BoxDecoration(
+              color: type == BackgroundType.color ? color : Colors.white,
+              gradient: gradient?.gradient,
+            ),
+            child: child,
           ),
-          child: child,
         ),
       ),
     ),
   );
 
-  Map<String, dynamic> toJSON() => {
-    'color': color?.toHex(),
-    'gradient': gradient?.toJSON(),
-    'border-color': borderColor?.toHex(),
-    'border-width': borderWidth,
-    'border-radius': borderRadius,
-    'blur': blur,
-    'padding': padding.toJSON(),
-    'shadow': shadow == null ? null : {
-      'color': shadow?.color.toHex(),
-      'blur-radius': shadow?.blurRadius,
-      'spread-radius': shadow?.spreadRadius,
-      'offset-x': shadow?.offset.dx,
-      'offset-y': shadow?.offset.dy,
-    },
-  };
+  Map<String, dynamic> toJSON({
+    bool buildToUniversal = false,
+  }) {
+    double? _borderWidth = this.borderWidth;
+    EdgeInsets _padding = this.padding;
+    double _borderRadius = this.borderRadius;
+    double? _spreadRadius = shadow?.spreadRadius;
+    double? _blurRadius = shadow?.blurRadius;
+    Offset? _offset = shadow?.offset;
+    if (buildToUniversal) {
+      if (_borderWidth != null) widget.page.project.sizeTranslator.getUniversalValue(value: _borderWidth);
+      _padding = widget.page.project.sizeTranslator.getUniversalPadding(padding: _padding);
+      // _borderRadius = widget.page.project.sizeTranslator.getUniversalValue(value: _borderRadius);
+      if (_spreadRadius != null) _spreadRadius = widget.page.project.sizeTranslator.getUniversalValue(value: _spreadRadius);
+      if (_blurRadius != null) _blurRadius = widget.page.project.sizeTranslator.getUniversalValue(value: _blurRadius);
+      if (_offset != null) _offset = widget.page.project.sizeTranslator.getUniversalPosition(position: _offset);
+    }
+    return {
+      'color': color?.toHex(),
+      'gradient': gradient?.toJSON(),
+      'border-color': borderColor?.toHex(),
+      'border-width': _borderWidth,
+      'border-radius': _borderRadius,
+      'blur': blur,
+      'padding': _padding.toJSON(),
+      'shadow': shadow == null ? null : {
+        'color': shadow?.color.toHex(),
+        'blur-radius': _blurRadius,
+        'spread-radius': _spreadRadius,
+        'offset-x': _offset?.dx,
+        'offset-y': _offset?.dy,
+      },
+    };
+  }
 
   factory CreativeContainerProvider.fromJSON(Map data, {
-    required CreatorWidget widget
+    required CreatorWidget widget,
+    bool isBuildingFromUniversal = false,
   }) {
     CreativeContainerProvider provider = CreativeContainerProvider._(widget);
     try {
@@ -320,23 +343,41 @@ class CreativeContainerProvider {
       if (data['border-color'] != null) provider.borderColor = HexColor.fromHex(data['border-color']);
 
       provider.borderWidth = data['border-width'];
+      if (isBuildingFromUniversal && provider.borderWidth != null) provider.borderWidth = widget.page.project.sizeTranslator.getLocalValue(value: provider.borderWidth!);
 
-      if (data['border-radius'] != null) provider.borderRadius = data['border-radius'];
+      if (data['border-radius'] != null) {
+        provider.borderRadius = data['border-radius'];
+        // if (isBuildingFromUniversal) provider.borderRadius = widget.page.project.sizeTranslator.getLocalValue(value: provider.borderRadius);
+      }
 
       if (data['shadow'] != null) {
+        double blurRadius = data['shadow']['blur-radius'];
+        double spreadRadius = data['shadow']['spread-radius'];
+        Offset offset = Offset(
+          data['shadow']['offset-x'],
+          data['shadow']['offset-y'],
+        );
+        if (isBuildingFromUniversal) {
+          blurRadius = widget.page.project.sizeTranslator.getLocalValue(value: blurRadius);
+          spreadRadius = widget.page.project.sizeTranslator.getLocalValue(value: spreadRadius);
+          offset = widget.page.project.sizeTranslator.getLocalPosition(position: offset);
+        }
         provider.shadow = BoxShadow(
           color: HexColor.fromHex(data['shadow']['color']),
-          blurRadius: data['shadow']['blur-radius'],
-          spreadRadius: data['shadow']['spread-radius'],
-          offset: Offset(
-            data['shadow']['offset-x'],
-            data['shadow']['offset-y'],
-          )
+          blurRadius: blurRadius,
+          spreadRadius: spreadRadius,
+          offset: offset,
         );
       }
       provider.blur = data['blur'] ?? 0;
+      if (isBuildingFromUniversal) provider.blur = widget.page.project.sizeTranslator.getLocalValue(value: provider.blur);
 
-      if (data['padding'] != null) provider.padding = PaddingExtension.fromJSON(data['padding']);
+      if (data['padding'] != null) {
+        provider.padding = PaddingExtension.fromJSON(data['padding']);
+        if (isBuildingFromUniversal) {
+          provider.padding = widget.page.project.sizeTranslator.getLocalPadding(padding: provider.padding);
+        }
+      }
     } catch (e) { }
     return provider;
   }

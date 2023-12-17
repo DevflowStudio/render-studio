@@ -5,10 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:pull_down_button/pull_down_button.dart';
 import 'package:sprung/sprung.dart';
-import 'package:supercharged/supercharged.dart';
 
 import '../../../rehmat.dart';
 

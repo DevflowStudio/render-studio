@@ -334,6 +334,7 @@ class WidgetGroup extends CreatorWidget {
     }
 
     if (previousSize != null) position = CreatorWidget.autoPosition(position: position, newSize: _newSize, prevSize: previousSize, horizontalExpandDirection: horizontalExpandDirection, verticalExpandDirection: verticalExpandDirection);
+    else position = Offset(position.dx + individualWidgetWidthChange, position.dy + individualWidgetHeightChange);
 
     updateListeners(WidgetChange.misc);
   }
@@ -508,15 +509,18 @@ class WidgetGroup extends CreatorWidget {
   @override
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
-  }) => {
-    ... super.toJSON(buildInfo: buildInfo),
-    'widgets': widgets.map((e) => e.toJSON(buildInfo: buildInfo)).toList(),
-    '_group': _group.id,
-    '_demographics': {
-      'version': buildInfo.version,
-      ... demographics
-    },
-  };
+  }) {
+    // Size universalSize = page.project.sizeTranslator.getUniversalSize(widget: this);
+    return {
+      ... super.toJSON(buildInfo: buildInfo),
+      'widgets': widgets.map((e) => e.toJSON(buildInfo: buildInfo)).toList(),
+      '_group': _group.id,
+      '_demographics': {
+        'version': buildInfo.version,
+        ... demographics
+      },
+    };
+  }
 
   @override
   void buildFromJSON(Map<String, dynamic> data, {required BuildInfo buildInfo}) {

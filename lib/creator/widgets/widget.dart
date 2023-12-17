@@ -722,6 +722,13 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (buildInfo.version != null && asset != null) {
       asset!.logVersion(version: buildInfo.version!, file: asset!.file);
     }
+    Offset position = this.position;
+    Size size = this.size;
+    bool isUniversal = buildInfo.buildType == BuildType.save;
+    if (buildInfo.buildType == BuildType.save) {
+      position = page.project.sizeTranslator.getUniversalPosition(widget: this);
+      size = page.project.sizeTranslator.getUniversalSize(widget: this);
+    }
     return {
       'id': id,
       'uid': uid,
@@ -729,6 +736,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       'asset': asset?.id,
       'group': group?.id,
       'properties': {
+        'is-universal-build': isUniversal,
         'position': {
           'dx': position.dx,
           'dy': position.dy
@@ -843,18 +851,31 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   void buildFromJSON(Map<String, dynamic> data, {
     required BuildInfo buildInfo
   }) {
+    bool isBuildingFromUniversalBuild = data['properties']['is-universal-build'] ?? false;
+
     position = Offset(data['properties']['position']['dx'], data['properties']['position']['dy']);
+    if (isBuildingFromUniversalBuild) position = page.project.sizeTranslator.getLocalPosition(widget: this);
+
     angle = data['properties']['angle'];
+
     opacity = data['properties']['opacity'];
+
     size = Size(data['properties']['size']['width'], data['properties']['size']['height']);
+    if (isBuildingFromUniversalBuild) size = page.project.sizeTranslator.getLocalSize(widget: this);
+
     if (data['group'] != null) group = Group(data['group']);
+
     if (data['asset'] != null) asset = page.assetManager.get(data['asset']);
+
     if (asset?.history.isEmpty ?? false) {
       asset!.history[page.history.dates.first.version ?? ''] = asset!.file;
     }
+
     verticalExpandDirection = VerticalExpandDirectionExtension.fromString(data['properties']['vertical-expand-direction']);
     horizontalExpandDirection = HorizontalExpandDirectionExtension.fromString(data['properties']['horizontal-expand-direction']);
+
     if (buildInfo.version != null && asset != null) asset!.restoreVersion(version: buildInfo.version!);
+    
     updateListeners(WidgetChange.misc);
   }
 

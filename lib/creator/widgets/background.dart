@@ -414,11 +414,15 @@ class BackgroundWidget extends CreatorWidget {
       asset = null;
       imageProvider = null;
     }
+    EdgeInsets _padding = padding;
+    if (buildInfo.buildType == BuildType.save) {
+      _padding = page.project.sizeTranslator.getUniversalPadding(padding: _padding);
+    }
     return {
       ... super.toJSON(buildInfo: buildInfo),
       'color': color.toHex(),
       'gradient': gradient?.toJSON(),
-      'padding': padding.toJSON(),
+      'padding': _padding.toJSON(),
       'image-provider': imageProvider?.toJSON(),
     };
   }
@@ -428,6 +432,7 @@ class BackgroundWidget extends CreatorWidget {
     required BuildInfo buildInfo
   }) {
     super.buildFromJSON(json, buildInfo: buildInfo);
+    bool isBuildingFromUniversalBuild = json['properties']['is-universal-build'] ?? false;
     try {
       color = HexColor.fromHex(json['color']);
       if (asset != null) {
@@ -438,6 +443,9 @@ class BackgroundWidget extends CreatorWidget {
       } catch (e) { }
       if (json['padding'] != null) {
         padding = PaddingExtension.fromJSON(Map.from(json['padding']));
+        if (isBuildingFromUniversalBuild) {
+          padding = page.project.sizeTranslator.getLocalPadding(padding: padding);
+        }
       }
       if (json['image-provider'] != null) {
         imageProvider = CreativeImageProvider.fromJSON(Map.from(json['image-provider']), widget: this);

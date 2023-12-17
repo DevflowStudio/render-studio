@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:render_studio/creator/helpers/universal_size_translator.dart';
+import 'package:supercharged/supercharged.dart';
 
 import '../rehmat.dart';
 
@@ -43,7 +45,7 @@ class Project extends ChangeNotifier {
   /// and will be used to export the image
   Size get contentSize => getActualSizeFromPostSize(size, deviceSize);
 
-  double get pixelRatio => size.size.width / contentSize.width;
+  late UniversalSizeTranslator sizeTranslator;
 
   /// Renders and saves each of the page as a png file to the device gallery
   ///
@@ -112,6 +114,8 @@ class Project extends ChangeNotifier {
       'variables': variables,
     };
 
+    print(json.toJSON());
+
     return json;
   }
 
@@ -131,6 +135,7 @@ class Project extends ChangeNotifier {
     project.data = data;
     project.metadata = ProjectMetadata.fromJSON(data['meta']);
     project.isTemplate = data['is-template'] ?? false;
+    project.sizeTranslator = UniversalSizeTranslator(project: project);
 
     for (Map pageDate in data['pages']) {
       CreatorPage? page = await CreatorPage.fromJSON(Map<String, dynamic>.from(pageDate), project: project);
@@ -163,6 +168,7 @@ class Project extends ChangeNotifier {
     project.title = title;
     if (description != null) project.description = description;
     project.isTemplate = isTemplate;
+    project.sizeTranslator = UniversalSizeTranslator(project: project);
     return project;
   }
 
@@ -173,7 +179,8 @@ class Project extends ChangeNotifier {
     await manager.save(context, data: {
       ... data!,
       'id': Constants.generateID(),
-      'title': '$title (copy)',
+      'title': '${title ?? this.title ?? 'Unnamed'} (copy)',
+      'description': description ?? this.description,
       'meta': ProjectMetadata.create().toJSON(),
       'is-template': data!['is-template'] ?? false,
     });

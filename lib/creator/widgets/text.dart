@@ -998,46 +998,63 @@ class CreatorText extends CreatorWidget {
   @override
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
-  }) => {
-    ... super.toJSON(buildInfo: buildInfo),
-    'text': {
-      'text': text,
-      'font': fontFamily,
-      'auto-size': autoSize,
-      'font-size': fontSize,
-      'line-height': lineHeight
-    },
-    '_span-size': {
-      'width': _spanSize.width,
-      'height': _spanSize.height
-    },
-    'color': {
-      'background': textBackground.toHex()
-    },
-    'primary-style': primaryStyle.toJSON(),
-    'secondary-style': secondaryStyle?.toJSON(),
-    'widget': {
-      'color': widgetColor?.toHex(),
-      'radius': radius,
-    },
-    'container-provider': containerProvider.toJSON(),
-    'alignment': align.index,
-    'shadows': shadows != null ? [
-      for (Shadow shadow in shadows!) {
-        'color': shadow.color.toHex(),
-        'offset': {
-          'dx': shadow.offset.dx,
-          'dy': shadow.offset.dy
-        },
-        'blur': shadow.blurRadius
-      }
-    ] : null,
-    'padding': padding.toJSON(),
-    'spacing': {
-      'word': wordSpacing,
-      'letter': letterSpacing,
-    },
-  };
+  }) {
+    bool isBuildingToUniversal = buildInfo.buildType == BuildType.save;
+    double _fontSize = fontSize;
+    Size __spanSize = _spanSize;
+    double _radius = radius;
+    EdgeInsets _padding = padding;
+    double _wordSpacing = wordSpacing;
+    double _letterSpacing = letterSpacing;
+    if (isBuildingToUniversal) {
+      _fontSize = page.project.sizeTranslator.getUniversalValue(value: fontSize);
+      __spanSize = page.project.sizeTranslator.getUniversalSize(size: _spanSize);
+      _radius = page.project.sizeTranslator.getUniversalValue(value: radius);
+      _padding = page.project.sizeTranslator.getUniversalPadding(padding: padding);
+      _wordSpacing = page.project.sizeTranslator.getUniversalValue(value: wordSpacing);
+      _letterSpacing = page.project.sizeTranslator.getUniversalValue(value: letterSpacing);
+    }
+    return {
+      ... super.toJSON(buildInfo: buildInfo),
+      'text': {
+        'text': text,
+        'font': fontFamily,
+        'auto-size': autoSize,
+        'font-size': _fontSize,
+        'line-height': lineHeight
+      },
+      '_span-size': {
+        'width': __spanSize.width,
+        'height': __spanSize.height
+      },
+      'color': {
+        'background': textBackground.toHex()
+      },
+      'primary-style': primaryStyle.toJSON(),
+      'secondary-style': secondaryStyle?.toJSON(),
+      'widget': {
+        'color': widgetColor?.toHex(),
+        'radius': _radius,
+      },
+      'container-provider': containerProvider.toJSON(buildToUniversal: isBuildingToUniversal),
+      'alignment': align.index,
+      'shadows': shadows != null ? [
+        for (Shadow shadow in shadows!) {
+          'color': shadow.color.toHex(),
+          'offset': {
+            'dx': shadow.offset.dx,
+            'dy': shadow.offset.dy
+          },
+          'blur': shadow.blurRadius
+        }
+      ] : null,
+      'padding': _padding.toJSON(),
+      'spacing': {
+        'word': _wordSpacing,
+        'letter': _letterSpacing,
+      },
+    };
+  }
 
   @override
   void loadVariables(Map<String, dynamic> variable) {
@@ -1051,12 +1068,16 @@ class CreatorText extends CreatorWidget {
     required BuildInfo buildInfo
   }) {
     super.buildFromJSON(json, buildInfo: buildInfo);
+    bool isBuildingFromUniversalBuild = json['properties']['is-universal-build'] ?? false;
+
     try {
       text = json['text']['text'];
       fontFamily = json['text']['font'];
       lineHeight = json['text']['line-height'];
       autoSize = json['text']['auto-size'];
+
       fontSize = json['text']['font-size'];
+      if (isBuildingFromUniversalBuild) fontSize = page.project.sizeTranslator.getLocalValue(value: fontSize);
 
       textBackground = HexColor.fromHex(json['color']['background']);
 
@@ -1064,7 +1085,9 @@ class CreatorText extends CreatorWidget {
       if (json['secondary-style'] != null) secondaryStyle = CreativeTextStyle.fromJSON(json['secondary-style'], widget: this);
 
       if (json['widget']['color'] != null) widgetColor = HexColor.fromHex(json['widget']['color']);
+
       radius = json['widget']['radius'];
+      if (isBuildingFromUniversalBuild) radius = page.project.sizeTranslator.getLocalValue(value: radius);
 
       align = TextAlign.values.where((element) => element.index == json['alignment']).first;
 
@@ -1080,16 +1103,21 @@ class CreatorText extends CreatorWidget {
       }
 
       padding = PaddingExtension.fromJSON(Map.from(json['padding']));
+      if (isBuildingFromUniversalBuild) padding = page.project.sizeTranslator.getLocalPadding(padding: padding);
 
       letterSpacing = json['spacing']['letter'];
+      if (isBuildingFromUniversalBuild) letterSpacing = page.project.sizeTranslator.getLocalValue(value: letterSpacing);
+
       wordSpacing = json['spacing']['word'];
+      if (isBuildingFromUniversalBuild) wordSpacing = page.project.sizeTranslator.getLocalValue(value: wordSpacing);
 
       if (json['container-provider'] != null) {
-        containerProvider = CreativeContainerProvider.fromJSON(json['container-provider'], widget: this);
+        containerProvider = CreativeContainerProvider.fromJSON(json['container-provider'], widget: this, isBuildingFromUniversal: isBuildingFromUniversalBuild);
       }
 
       try {
         _spanSize = Size(json['_span-size']['width'], json['_span-size']['height']);
+        if (isBuildingFromUniversalBuild) _spanSize = page.project.sizeTranslator.getLocalSize(size: _spanSize);
         buildTextSpan(calculateSize: false);
       } catch (e) {
         buildTextSpan(calculateSize: true);

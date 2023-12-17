@@ -41,8 +41,12 @@ class CreatorBoxWidget extends CreatorWidget {
   @override
   List<ResizeHandler> resizeHandlers = [
     ResizeHandler.topLeft,
+    ResizeHandler.topCenter,
     ResizeHandler.topRight,
+    ResizeHandler.centerLeft,
+    ResizeHandler.centerRight,
     ResizeHandler.bottomLeft,
+    ResizeHandler.bottomCenter,
     ResizeHandler.bottomRight
   ];
 
@@ -62,16 +66,14 @@ class CreatorBoxWidget extends CreatorWidget {
   ];
 
   @override
-  Widget widget(BuildContext context) => containerProvider.build(
-    child: Container()
-  );
+  Widget widget(BuildContext context) => containerProvider.build();
 
   @override
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown,
   }) => {
-    ... super.toJSON(),
-    'container-provider': containerProvider.toJSON(),
+    ... super.toJSON(buildInfo: buildInfo),
+    'container-provider': containerProvider.toJSON(buildToUniversal: buildInfo.buildType == BuildType.save),
   };
 
   @override
@@ -79,9 +81,10 @@ class CreatorBoxWidget extends CreatorWidget {
     required BuildInfo buildInfo
   }) {
     super.buildFromJSON(json, buildInfo: buildInfo);
+    bool isBuildingFromUniversalBuild = json['properties']['is-universal-build'] ?? false;
     try {
       if (json['container-provider'] != null) {
-        containerProvider = CreativeContainerProvider.fromJSON(json['container-provider'], widget: this);
+        containerProvider = CreativeContainerProvider.fromJSON(json['container-provider'], widget: this, isBuildingFromUniversal: isBuildingFromUniversalBuild);
       }
       blur = json['blur'] ?? 0;
       return true;

@@ -204,20 +204,27 @@ class QRWidget extends CreatorWidget {
   @override
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
-  }) => {
-    ... super.toJSON(buildInfo: buildInfo),
-    'data': data,
-    'backgroundColor': backgroundColor.toHex(),
-    'dataColor': dataColor.toHex(),
-    'gapless': gapless,
-    'padding': padding.toJSON(),
-  };
+  }) {
+    EdgeInsets _padding = padding;
+    if (buildInfo.buildType == BuildType.save) {
+      _padding = page.project.sizeTranslator.getUniversalPadding(padding: _padding);
+    }
+    return {
+      ... super.toJSON(buildInfo: buildInfo),
+      'data': data,
+      'backgroundColor': backgroundColor.toHex(),
+      'dataColor': dataColor.toHex(),
+      'gapless': gapless,
+      'padding': _padding.toJSON(),
+    };
+  }
 
   @override
   void buildFromJSON(Map<String, dynamic> json, {
     required BuildInfo buildInfo
   }) {
     super.buildFromJSON(json, buildInfo: buildInfo);
+    bool isBuildingFromUniversalBuild = json['properties']['is-universal-build'] ?? false;
 
     try {
       data = json['data'];
@@ -225,6 +232,9 @@ class QRWidget extends CreatorWidget {
       dataColor = HexColor.fromHex(json['dataColor']);
       gapless = json['gapless'];
       padding = PaddingExtension.fromJSON(json['padding']);
+      if (isBuildingFromUniversalBuild) {
+        padding = page.project.sizeTranslator.getLocalPadding(padding: padding);
+      }
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'failed to build QR code', stacktrace: stacktrace);
       throw WidgetCreationException(
