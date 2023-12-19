@@ -242,10 +242,15 @@ class FilePicker {
     BuildContext? context,
     /// Returns the download progress
     void onProgress(double progress)?,
+    String? savePath
   }) async {
     try {
-      var tempFile = await getTemporaryDirectory();
-      String savePath = '${tempFile.path}/${Constants.generateID()}.temp';
+
+      if (savePath == null) {
+        var tempFile = await getTemporaryDirectory();
+        savePath = '${tempFile.path}/${Constants.generateID()}.temp';
+      }
+
       File file = File(savePath);
 
       await Dio().download(

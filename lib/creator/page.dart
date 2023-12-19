@@ -119,11 +119,12 @@ class CreatorPage extends PropertyChangeNotifier {
   /// 
   /// Enable [saveToGallery] to also save the exported image to the gallery
   Future<String?> save(BuildContext context, {
+    required String path,
     bool saveToGallery = false,
     ExportQuality quality = ExportQuality.onex,
   }) async {
     widgets.select();
-    String? _path;
+    String _filename = 'page-${Constants.generateID(3)}.png';
     double pixelRatio = quality.pixelRatio(context, project);
     try {
       DateTime _start = DateTime.now();
@@ -137,9 +138,8 @@ class CreatorPage extends PropertyChangeNotifier {
         context: context,
         pixelRatio: pixelRatio
       );
-      _path = '/Render Projects/${project.id}/page-${Constants.generateID(3)}.png';
-      await pathProvider.saveToDocumentsDirectory(_path, bytes: bytes);
-      if (saveToGallery) await ImageGallerySaver.saveFile(pathProvider.generateRelativePath(_path));
+      await pathProvider.saveToDocumentsDirectory(path + _filename, bytes: bytes);
+      if (saveToGallery) await ImageGallerySaver.saveImage(bytes, quality: 100, name: project.title);
       DateTime _end = DateTime.now();
       analytics.logProcessingTime('page_export', duration: _end.difference(_start));
     } catch (e, stacktrace) {
@@ -147,7 +147,7 @@ class CreatorPage extends PropertyChangeNotifier {
       return null;
     }
     notifyListeners(PageChange.selection);
-    return _path;
+    return _filename;
   }
 
   void onSizeChange(PostSize oldSize, PostSize newSize) {

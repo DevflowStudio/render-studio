@@ -33,8 +33,6 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
 
   bool isLoading = true;
 
-  bool savedToGallery = false;
-
   @override
   void initState() {
     super.initState();
@@ -261,7 +259,7 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
       context,
       task: () async {
         await createOriginalPost();
-        savedToGallery = await project!.saveToGallery(context);
+        await project!.saveToGallery(context);
       }
     );
     setState(() { });

@@ -865,8 +865,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
     if (data['group'] != null) group = Group(data['group']);
 
-    print('Building widget ${data['name']} with asset ${data['asset']}');
-
     if (data['asset'] != null) asset = page.project.assetManager.get(data['asset']);
 
     if (asset?.history.isEmpty ?? false) {

@@ -1,6 +1,4 @@
-import 'dart:convert';
-import 'dart:typed_data';
-
+import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -16,9 +14,9 @@ class AssetX {
 
   final FileType type;
 
-  final Project project;
+  AssetType assetType = AssetType.file;
 
-  Future<void> Function(File file)? onCompile;
+  final Project project;
 
   Map<String, File> history = {};
 
@@ -27,10 +25,11 @@ class AssetX {
   static AssetX create(File file, {
     required Project project,
     FileType type = FileType.image,
-    BuildInfo buildInfo = BuildInfo.unknown
+    BuildInfo buildInfo = BuildInfo.unknown,
+    String? id,
   }) {
     AssetX asset = AssetX._(
-      id: Constants.generateID(4),
+      id: id ?? Constants.generateID(4),
       createdAt: DateTime.now(),
       type: type,
       file: file,
@@ -59,12 +58,19 @@ class AssetX {
   /// Uses the [FilePicker.downloadFile] method to download the file and convert it into an asset
   static Future<AssetX> fromURL(String url, {
     required Project project,
-    required BuildContext context,
+    BuildContext? context,
     Map<String, dynamic>? headers,
     FileType type = FileType.image,
+    String? id
   }) async {
-    File file = await FilePicker.downloadFile(url, headers: headers, type: type, precache: true, context: context);
-    return AssetX.create(file, project: project);
+    File file = await FilePicker.downloadFile(
+      url,
+      headers: headers,
+      type: type,
+      precache: true,
+      context: context
+    );
+    return AssetX.create(file, project: project, id: id);
   }
 
   Future<void> delete() async => await file.delete();
@@ -84,8 +90,9 @@ class AssetX {
   Future<AssetX> duplicate({
     BuildInfo buildInfo = BuildInfo.unknown
   }) async {
-    File _file = await file.copy('${file.path.split('/').sublist(0, file.path.split('/').length - 1).join('/')}/${Constants.generateID()}.${file.path.split('/').last.split('.').last}');
-    AssetX asset = AssetX.create(_file, project: project, buildInfo: buildInfo);
+    String _id = Constants.generateID(4);
+    File _file = await file.copy((await getTemporaryDirectory()).path + '/$_id.temp');
+    AssetX asset = AssetX.create(_file, project: project, buildInfo: buildInfo, id: id);
     return asset;
   }
 
@@ -93,7 +100,6 @@ class AssetX {
     required String version,
     required File file
   }) {
-    print('logging version $version');
     history[version] = file;
     this.file = file;
   }
@@ -113,14 +119,16 @@ class AssetX {
   Future<bool> exists() => file.exists();
 
   Future<Map<String, dynamic>> getCompiled() async {
-    Uint8List fileBytes = await file.readAsBytes();
-    String fileBase64 = base64Encode(fileBytes);
+    String filename = '$id.${file.path.split('.').last}';
+    file = await file.copy(await pathProvider.generateRelativePath(project.assetSavePath) + filename);
 
     return {
       'id': id,
-      'file': fileBase64,
+      'file': filename,
+      'url': null,
       'created-at': createdAt.millisecondsSinceEpoch,
       'type': type.type,
+      'asset-type': assetType.toString().split('.').last
     };
   }
 
@@ -128,16 +136,22 @@ class AssetX {
     required Project project
   }) async {
     try {
-      String base64 = data['file'];
-      Uint8List bytes = base64Decode(base64);
-      File file = File(await FilePicker.getRandomTempPath());
-      await file.writeAsBytes(bytes);
+      AssetType assetType = AssetTypeExtension.fromString(data['asset-type']);
+
+      if (assetType == AssetType.url) {
+        return await AssetX.fromURL(data['url'], project: project, id: data['id']);
+      }
+
+      String savePath = await pathProvider.generateRelativePath(project.assetSavePath + data['file']);
+      File originalFile = File(savePath);
+
+      File copiedFile = await originalFile.copy((await getTemporaryDirectory()).path + '/${Constants.generateID()}.temp');
 
       return AssetX._(
         id: data['id'],
         createdAt: DateTime.fromMillisecondsSinceEpoch(data['created-at']),
         type: FileType.dynamic.fromString(data['type']),
-        file: file,
+        file: copiedFile,
         project: project
       );
     } catch (e, stacktrace) {
@@ -156,5 +170,31 @@ class AssetXException implements Exception {
   final String? details;
 
   AssetXException(this.message, {this.details, this.code});
+
+}
+
+enum AssetType { file, url }
+
+extension AssetTypeExtension on AssetType {
+
+  String get title {
+    switch (this) {
+      case AssetType.file:
+        return 'file';
+      case AssetType.url:
+        return 'url';
+    }
+  }
+
+  static AssetType fromString(String type) {
+    switch (type) {
+      case 'file':
+        return AssetType.file;
+      case 'url':
+        return AssetType.url;
+      default:
+        return AssetType.file;
+    }
+  }
 
 }

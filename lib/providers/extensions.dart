@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:universal_io/io.dart';
+import 'package:path/path.dart' as path;
 
 extension ListsExtension<T> on List<T> {
 
@@ -277,5 +279,56 @@ extension SizeExtension on Size {
 extension BuildContextHelpers on BuildContext {
 
   bool get isDarkMode => MediaQuery.of(this).platformBrightness == Brightness.dark;
+
+}
+
+extension DirectoryHelper on Directory {
+
+  /// Copies the directory to the destination directory, syncronously
+  void copyToSync(
+    final Directory destination, {
+    final List<String> ignoreDirList = const [],
+    final List<String> ignoreFileList = const [],
+  }) => listSync().forEach((final entity) {
+    if (entity is Directory) {
+      if (ignoreDirList.contains(path.basename(entity.path))) {
+        return;
+      }
+      final newDirectory = Directory(
+        path.join(destination.absolute.path, path.basename(entity.path)),
+      )..createSync();
+      entity.absolute.copyToSync(newDirectory);
+    } else if (entity is File) {
+      if (ignoreFileList.contains(path.basename(entity.path))) {
+        return;
+      }
+      entity.copySync(
+        path.join(destination.path, path.basename(entity.path)),
+      );
+    }
+  });
+
+  Future<void> copyTo(Directory destination) async {
+    await for (var entity in list(recursive: false)) {
+      if (entity is Directory) {
+        var newDirectory = Directory(path.join(destination.absolute.path, path.basename(entity.path)));
+        await newDirectory.create();
+        await entity.copyTo(newDirectory);
+      } else if (entity is File) {
+        await entity.copy(path.join(destination.path, path.basename(entity.path)));
+      }
+    }
+  }
+
+  Future<void> printAllFilenames() async {
+    await for (var entity in list(recursive: true)) {
+      if (entity is File) {
+        print('File: ${entity.path}');
+      } else if (entity is Directory) {
+        print('Directory: ${entity.path}');
+        entity.printAllFilenames();
+      }
+    }
+  }
 
 }

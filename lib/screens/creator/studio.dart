@@ -115,7 +115,7 @@ class _StudioState extends State<Studio> with TickerProviderStateMixin {
   }) async {
     setState(() => isLoading = true);
     project.pages.current.widgets.select();
-    await project.save(context, saveToGallery: true, quality: quality);
+    await project.save(context, quality: quality);
     _lastSaved = DateTime.now();
     setState(() => isLoading = false);
   }

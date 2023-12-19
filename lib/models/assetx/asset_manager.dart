@@ -1,3 +1,5 @@
+import 'package:universal_io/io.dart';
+
 import '../../rehmat.dart';
 
 class AssetManagerX {
@@ -23,6 +25,11 @@ class AssetManagerX {
 
     List<AssetX> usedAssets = _getUsedAssets();
 
+    // Delete the project assets folder before compiling
+    // This is done to remove any previous assets
+    // Saves space by deleting unused assets
+    await deleteProjectAssets();
+
     for (AssetX asset in usedAssets) {
       var future = asset.getCompiled()
         .then((compiled) => MapEntry(asset.id, compiled));
@@ -35,6 +42,14 @@ class AssetManagerX {
     results.removeWhere((entry) => entry.value == null);
 
     return Map.fromEntries(results);
+  }
+
+  Future<void> deleteProjectAssets() async {
+    String path = await pathProvider.generateRelativePath(project.assetSavePath);
+    Directory dir = Directory(path);
+    if (await dir.exists()) await dir.delete(recursive: true);
+
+    await dir.create(recursive: true); // Recreate the directory
   }
 
   /// Gets a list of all the assets that are used in the project
@@ -61,7 +76,6 @@ class AssetManagerX {
         AssetX.fromCompiled(_assetData, project: project)
           .then((AssetX asset) {
             _manager.assets[asset.id] = asset;
-            print(asset.file.path);
           })
           .catchError((e, stacktrace) {
             analytics.logError(e, cause: 'asset initialization error', stacktrace: stacktrace);

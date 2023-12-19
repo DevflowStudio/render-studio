@@ -20,13 +20,15 @@ class ProjectGlance {
 
   String get id => data['id'];
 
+  String get imagesRelativePath => pathProvider.generateRelativePath('/Render Projects/$id/images/');
+
   String get title => data['title'];
 
   String? get description => data['description'];
 
-  String? get thumbnail => pathProvider.generateRelativePath(data['thumbnail'] ?? '');
+  String? get thumbnail => imagesRelativePath + data['thumbnail'];
   
-  List<String> get images => List.from(data['images']);
+  List<String> get images => data['images'].map<String>((image) => imagesRelativePath + image).toList();
 
   DateTime? get created => data['meta']['created'] != null ? DateTime.fromMillisecondsSinceEpoch(data['meta']['created']) : DateTime.now();
 
@@ -36,20 +38,14 @@ class ProjectGlance {
 
   bool get isTemplate => data['is-template'] ?? false;
 
-  int get nPages => data['pages'];
+  int get nPages => data['pages'].length;
 
   Map<String, dynamic> get variables => data['variables'];
-
-  String? get savePath => data['save-path'];
-
-  Future<void> duplicateProject() async {
-    // TODO
-  }
 
   /// This function renders full project from the lite (glance) version
   Future<Project?> renderFullProject(BuildContext context) async {
     try {
-      Project? project = await Project.fromSave(path: savePath, context: context);
+      Project? project = await Project.fromSave(data: data, context: context);
       return project;
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'project rendering error', stacktrace: stacktrace);

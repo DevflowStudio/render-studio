@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:universal_io/io.dart';
 import '../../rehmat.dart';
 
 late ProjectManager manager;
@@ -21,18 +22,18 @@ class ProjectManager extends ChangeNotifier {
 
   Future<void> save(BuildContext context, {
     required Project project,
-    required Map<String, dynamic> glance,
+    required Map<String, dynamic> data,
   }) async {
 
     String id = project.id!;
 
     await box.delete(id);
-    await box.put(id, glance);
+    await box.put(id, data);
 
     ProjectGlance _glance;
 
     try {
-      _glance = ProjectGlance.from(glance);
+      _glance = ProjectGlance.from(data);
     } catch (e) {
       analytics.logError(e, cause: 'project glance error');
       rethrow;
@@ -58,8 +59,15 @@ class ProjectManager extends ChangeNotifier {
     assert(project != null || id != null);
     await box.delete(project?.id ?? id);
     projects.removeWhere((element) => element.id == (project?.id ?? id));
+    _deleteProjectDirectory(project?.id! ?? id!);
     _sortProjects();
     notifyListeners();
+  }
+
+  Future<void> _deleteProjectDirectory(String id) async {
+    String path = await pathProvider.generateRelativePath('/Render Studio/$id/');
+    Directory dir = Directory(path);
+    if (await dir.exists()) await dir.delete(recursive: true);
   }
 
   List<ProjectGlance> _getProjects() {
