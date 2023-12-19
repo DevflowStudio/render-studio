@@ -59,6 +59,8 @@ extension ListsExtension<T> on List<T> {
     }
   }
 
+  List<T> toDataType<T>() => this.map((e) => e as T).toList();
+
 }
 
 extension MapExtension<T, V> on Map<T, V> {

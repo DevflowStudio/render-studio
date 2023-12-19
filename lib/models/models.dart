@@ -1,7 +1,7 @@
-export 'project.dart';
-export 'project_glance.dart';
+export 'project/project.dart';
+export 'project/project_glance.dart';
 export 'page_manager.dart';
-export 'manager.dart';
+export 'project/project_manager.dart';
 export 'saves.dart';
 export 'preferences.dart';
 export 'permission_manager.dart';
@@ -13,4 +13,5 @@ export 'export_quality.dart';
 export 'unsplash.dart';
 export 'auth/auth.dart';
 export 'auth/user.dart';
-export 'project_metadata.dart';
+export 'project/project_metadata.dart';
+export 'assetx/provider.dart';

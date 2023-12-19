@@ -17,8 +17,12 @@ class ProjectSaves {
   List<ProjectGlance> get projects {
     List<ProjectGlance> _projects = [];
     for (var id in box.keys) {
-      ProjectGlance? project = ProjectGlance.build(id: id, data: Map.from(box.get(id)));
-      if (project != null) _projects.add(project);
+      try {
+        ProjectGlance? project = ProjectGlance.from(Map.from(box.get(id)));
+        _projects.add(project);
+      } catch (e) {
+        analytics.logError(e, cause: 'project glance error');
+      }
     }
     _projects.sort((project, _project) {
       if (project.edited!.isBefore(_project.edited!)) {

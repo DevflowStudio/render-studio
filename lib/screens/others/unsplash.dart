@@ -215,22 +215,31 @@ class _UnsplashPhotoInfoState extends State<UnsplashPhotoInfo> {
                     height: 40,
                     child: ElevatedButton(
                       onPressed: () async {
-                        // File? file = await UnsplashAPI.download(selected!);
-                        // if (file == null) return;
-                        // Navigator.of(context).pop(file);
                         if (isLoading) return;
                         setState(() {
                           isLoading = true;
                         });
-                        if (widget.onDownload != null) widget.photo.download(
-                          context,
-                          onDownloadComplete: (file) {
-                            if (mounted) setState(() {
+                        if (widget.onDownload != null) {
+                          try {
+                            File photo = await widget.photo.download(context);
+                            widget.onDownload!(photo);
+                            setState(() {
                               isLoading = false;
                             });
-                            widget.onDownload!(file);
+                          } catch (e) {
+                            Alerts.dialog(
+                              context,
+                              title: 'Failed to download',
+                              description: 'Could not download the photo. Please try again later.',
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: Text('OK')
+                                )
+                              ]
+                            );
                           }
-                        );
+                        }
                       },
                       child: isLoading ? SizedBox(
                         width: 13,
@@ -514,12 +523,24 @@ class __UnsplashPhotoBuilderState extends State<UnsplashPhotoBuilder> {
       rippleColor: Palette.of(context).background,
       rippleDuration: kAnimationDuration,
       onTap: () async {
-        if (widget.downloadOnSelect) photo.download(
-          context,
-          onDownloadComplete: (file) {
-            widget.onSelect(file, photo);
-          },
-        );
+        if (widget.downloadOnSelect) {
+          try {
+            File downloaded = await photo.download(context);
+            widget.onSelect(downloaded, photo);
+          } catch (e) {
+            Alerts.dialog(
+              context,
+              title: 'Failed to download',
+              description: 'Could not download the photo. Please try again later.',
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('OK')
+                )
+              ]
+            );
+          }
+        }
         else widget.onSelect(null, photo);
       },
       child: AnimatedSwitcher(

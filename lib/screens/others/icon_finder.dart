@@ -165,28 +165,41 @@ class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
 
   late IconFinderIcon icon;
 
+  bool isLoading = false;
+
   @override
   void initState() {
     icon = widget.icon;
-    icon.addListener(onIconUpdate);
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    icon.removeListener(onIconUpdate);
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () {
-        icon.toFile(
-          context,
-          onDownloadComplete: widget.onSelect
-        );
+      onTap: () async {
+        setState(() {
+          isLoading = true;
+        });
+        try {
+          File file = await icon.download(context);
+          widget.onSelect(file);
+        } catch (e) {
+          Alerts.dialog(
+            context,
+            title: 'Failed to download',
+            description: 'Could not download the icon. Please try again later.',
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('OK')
+              )
+            ]
+          );
+        }
+        setState(() {
+          isLoading = true;
+        });
       },
       child: Container(
         decoration: BoxDecoration(
@@ -195,7 +208,7 @@ class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
         ),
         child: SizedBox.square(
           dimension: MediaQuery.of(context).size.width/5,
-          child: icon.isLoading ? Center(
+          child: isLoading ? Center(
             child: Spinner(
               adaptive: true,
               value: icon.progress,

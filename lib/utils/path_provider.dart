@@ -20,15 +20,18 @@ class PathProvider {
   /// 
   /// **Important: include a leading slash in [path]**
   Future<File> saveToDocumentsDirectory(String path, {
-    required List<int> bytes
+    List<int>? bytes,
+    String? text
   }) async {
+    assert(bytes != null || text != null);
     File file = await new File('$rootPath$path');
     bool exists = await file.exists();
     if (!exists) await file.create(recursive: true);
     // var raf = file.openSync(mode: FileMode.write);
     // raf.writeFromSync(bytes);
     // await raf.close();
-    return await file.writeAsBytes(bytes);
+    if (text != null) return await file.writeAsString(text);
+    else return await file.writeAsBytes(bytes!);
   }
 
   String generateRelativePath(String path) {

@@ -112,28 +112,21 @@ class UnsplashPhoto extends ChangeNotifier {
   bool isLoading = false;
   double? progress;
 
-  void download(BuildContext context, {
-    required Function(File? file) onDownloadComplete
-  }) {
+  Future<File> download(BuildContext context) async {
     isLoading = true;
     notifyListeners();
-    Asset.downloadFile(
-      context,
-      url: data['urls']['full'],
+    File file = await FilePicker.downloadFile(
+      data['urls']['full'],
       headers: {
         'Authorization': 'Client-ID ${environment.unsplashAccessKey}'
       },
-      extension: 'jpg',
-      onDownloadComplete: (asset) {
-        isLoading = false;
-        notifyListeners();
-        onDownloadComplete(asset);
-      },
-      precache: true
-    ).listen((event) {
-      progress = event;
-      notifyListeners();
-    });
+      precache: true,
+      context: context,
+      type: FileType.image
+    );
+    isLoading = false;
+    notifyListeners();
+    return file;
   }
 
   static Future<UnsplashPhoto?> get(String id) async {

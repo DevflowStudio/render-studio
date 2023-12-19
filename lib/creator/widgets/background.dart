@@ -178,7 +178,7 @@ class BackgroundWidget extends CreatorWidget {
               File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
               if (file == null) return;
               if (asset == null) {
-                asset = Asset.create(page: page, file: file);
+                asset = AssetX.create(file, project: page.project);
                 imageProvider = CreativeImageProvider.create(this);
               } else {
                 asset!.logVersion(version: page.history.nextVersion ?? '', file: file);

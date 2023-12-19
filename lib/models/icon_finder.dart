@@ -69,7 +69,7 @@ class IconFinder extends ChangeNotifier {
 
 }
 
-class IconFinderIcon extends ChangeNotifier {
+class IconFinderIcon {
 
   final Map data;
 
@@ -104,30 +104,15 @@ class IconFinderIcon extends ChangeNotifier {
     return result;
   }
 
-  bool isLoading = false;
-
-  void toFile(BuildContext context, {
-    required Function(File? file) onDownloadComplete
-  }) {
-    isLoading = true;
-    notifyListeners();
-    Asset.downloadFile(
-      context,
-      url: downloadURL,
+  Future<File> download(BuildContext context) async {
+    return await FilePicker.downloadFile(
+      downloadURL,
       headers: {
         'accept': 'application/json',
         'Authorization': 'Bearer ${environment.iconFinderToken}'
       },
-      extension: 'svg',
-      onDownloadComplete: (file) {
-        isLoading = false;
-        notifyListeners();
-        onDownloadComplete(file);
-      }
-    ).listen((event) {
-      progress = event;
-      notifyListeners();
-    });
+      type: FileType.svg,
+    );
   }
 
   double? progress;

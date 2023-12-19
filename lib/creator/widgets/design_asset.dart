@@ -17,7 +17,7 @@ class CreatorDesignAsset extends CreatorWidget {
     CreatorDesignAsset designAsset = CreatorDesignAsset(page: page);
     file ??= await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
     if (file == null) return null;
-    designAsset.asset = Asset.create(page: page, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
+    designAsset.asset = AssetX.create(file, project: page.project, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
     page.widgets.add(designAsset);
   }
 

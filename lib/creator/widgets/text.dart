@@ -405,7 +405,7 @@ class CreatorText extends CreatorWidget {
           tooltip: 'Change line height of the text',
           max: 2,
           min: 0.66,
-          value: lineHeight,
+          value: lineHeight ?? 1,
           onChange: (value) {
             lineHeight = value;
             alterHeightToFit();
@@ -468,7 +468,7 @@ class CreatorText extends CreatorWidget {
 
   double radius = 10;
 
-  double lineHeight = 1; // 0.77 alternative
+  double? lineHeight = 1; // 1 or 0.77
 
   EdgeInsets padding = EdgeInsets.zero;
 
@@ -1210,9 +1210,9 @@ class CreativeTextStyle {
 
   TextStyle style({
     required String font,
-    required double lineHeight,
     TextDecorationStyle? decorationStyle,
     List<Shadow>? shadows,
+    double? lineHeight,
     double? wordSpacing,
     double? letterSpacing,
     double? fontSize,

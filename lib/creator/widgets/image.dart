@@ -79,13 +79,13 @@ class CreativeImageProvider {
     provider.filter = data['filter'] != null ? ColorFilterGenerator(
       name: "Custom Filter",
       filters: [
-        if (data['filter'] != null) data['filter'],
+        if (data['filter'] != null) (data['filter'] as List).toDataType<double>(),
       ]
     ) : null;
     return provider;
   }
 
-  EditorTab editor(Asset asset, {
+  EditorTab editor(AssetX asset, {
     required void Function(WidgetChange change) onChange,
     String name = 'Image',
     List<Option> options = const [],
@@ -307,7 +307,7 @@ class CreativeImageProvider {
     ]
   );
 
-  Widget _imageBuilder(Asset asset, {
+  Widget _imageBuilder(AssetX asset, {
     required ColorFilter colorFilter,
     BoxFit fit = BoxFit.cover,
     Size? size
@@ -373,7 +373,7 @@ class CreativeImageProvider {
     ),
   );
 
-  Widget build(Asset asset, {
+  Widget build(AssetX asset, {
     required Size size,
   }) => _imageBuilder(
     asset,
@@ -394,7 +394,7 @@ class ImageWidget extends CreatorWidget {
     ImageWidget image = ImageWidget(page: page);
     file ??= await FilePicker.imagePicker(context, crop: true);
     if (file == null) return;
-    Asset _asset = await Asset.create(page: page, file: file, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
+    AssetX _asset = await AssetX.create(file, project: page.project, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
     image.provider = CreativeImageProvider.create(image);
     image.asset = _asset;
     image.size = page.project.contentSize/2;

@@ -57,7 +57,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Bottom Navigation Bar with editing options
   late final Editor editor;
 
-  Asset? asset;
+  AssetX? asset;
 
   /// Tabs with editing options
   List<EditorTab> get tabs => [ ];
@@ -865,7 +865,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
     if (data['group'] != null) group = Group(data['group']);
 
-    if (data['asset'] != null) asset = page.assetManager.get(data['asset']);
+    print('Building widget ${data['name']} with asset ${data['asset']}');
+
+    if (data['asset'] != null) asset = page.project.assetManager.get(data['asset']);
 
     if (asset?.history.isEmpty ?? false) {
       asset!.history[page.history.dates.first.version ?? ''] = asset!.file;

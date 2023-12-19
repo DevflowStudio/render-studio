@@ -1,11 +1,11 @@
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart';
 import 'package:file_picker/file_picker.dart' as filepicker;
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import '../rehmat.dart';
-
-/// Remove the FilePicker class and migrate to AssetManager
 
 enum FileType {
   dynamic,
@@ -166,7 +166,7 @@ class FilePicker {
     CropAspectRatio? ratio,
     bool forceCrop = true
   }) async {
-    Size? size = await Asset.getDimensions(file);
+    Size? size = await AssetX.getDimensions(file);
     double? _ratio = (ratio != null) ? ratio.ratioX / ratio.ratioY : null;
     double? rectWidth;
     double? rectHeight;
@@ -221,6 +221,61 @@ class FilePicker {
     );
     if (_croppedFile != null) return File(_croppedFile.path);
     else return null;
+  }
+
+  static Future<String> getRandomTempPath({
+    String extension = '.temp'
+  }) async {
+    var tempFile = await getTemporaryDirectory();
+    String savePath = '${tempFile.path}/${Constants.generateID()}.$extension';
+    return savePath;
+  }
+
+  /// Downloads a file from the internet and returns the file path
+  static Future<File> downloadFile(String url, {
+    Map<String, dynamic>? headers,
+    FileType type = FileType.image,
+    /// If `true`, the file will be precached for use in Image widgets
+    /// [context] is required if [precache] is `true`
+    /// Only works for [FileType.image]
+    bool precache = false,
+    BuildContext? context,
+    /// Returns the download progress
+    void onProgress(double progress)?,
+  }) async {
+    try {
+      var tempFile = await getTemporaryDirectory();
+      String savePath = '${tempFile.path}/${Constants.generateID()}.temp';
+      File file = File(savePath);
+
+      await Dio().download(
+        url,
+        savePath,
+        options: Options(
+          headers: headers,
+          responseType: ResponseType.bytes,
+          followRedirects: false,
+          validateStatus: (status) => status != null && status < 500,
+        ),
+        onReceiveProgress: (int received, int total) {
+          double progress = received / total;
+          onProgress?.call(progress);
+        },
+      );
+
+      if (precache && type == FileType.image && context != null) {
+        try {
+          await precacheImage(FileImage(file), context);
+        } catch (e, stacktrace) {
+          analytics.logError(e, cause: 'Failed to precache image', stacktrace: stacktrace);
+        }
+      }
+
+      return file;
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'Failed to download asset', stacktrace: stacktrace);
+      throw Exception('Failed to download asset');
+    }
   }
 
 }

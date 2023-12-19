@@ -29,13 +29,11 @@ class CreatorPage extends PropertyChangeNotifier {
     }
 
     if (data == null) {
-      assetManager = AssetManager.create(this);
       widgets = WidgetManager.create(this, data: data);
       editorManager = EditorManager.create(this);
       buildWidgets();
       history = History.create(this, data: data);
     } else {
-      assetManager = AssetManager.fromJSON(this, data: data['assets']);
       history = History.create(this, data: data);
       widgets = WidgetManager.create(this, data: data);
       editorManager = EditorManager.create(this);
@@ -47,8 +45,6 @@ class CreatorPage extends PropertyChangeNotifier {
   ScreenshotController screenshotController = ScreenshotController();
   
   final Project project;
-
-  late AssetManager assetManager;
 
   /// List of all the widgets in the page
   late WidgetManager widgets;
@@ -164,7 +160,6 @@ class CreatorPage extends PropertyChangeNotifier {
   Map<String, dynamic> toJSON([BuildInfo buildInfo = BuildInfo.unknown]) => {
     ... widgets.toJSON(buildInfo),
     'palette': palette.toJSON(),
-    'assets': assetManager.toJSON(),
   };
 
   /// Builds a page from scratch using the JSON data provided

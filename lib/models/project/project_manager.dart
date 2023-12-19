@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../rehmat.dart';
+import '../../rehmat.dart';
 
 late ProjectManager manager;
 
@@ -20,21 +20,32 @@ class ProjectManager extends ChangeNotifier {
   }
 
   Future<void> save(BuildContext context, {
-    Project? project,
-    Map<String, dynamic>? data,
-    bool saveToGallery = false,
-    /// This is only used when [saveToGallery] is true
-    ExportQuality quality = ExportQuality.onex
+    required Project project,
+    required Map<String, dynamic> glance,
   }) async {
-    assert(project != null || data != null);
-    String id = project?.id ?? data!['id'];
-    Map<String, dynamic> json = data ?? await project!.toJSON(context, saveToGallery: saveToGallery, quality: quality);
+
+    String id = project.id!;
+
     await box.delete(id);
-    await box.put(id, json);
+    await box.put(id, glance);
+
+    ProjectGlance _glance;
+
+    try {
+      _glance = ProjectGlance.from(glance);
+    } catch (e) {
+      analytics.logError(e, cause: 'project glance error');
+      rethrow;
+    }
+
     if (projects.indexWhere((element) => element.id == id) == -1) {
-      projects.add(ProjectGlance.build(id: id, data: json)!);
+      try {
+        projects.add(_glance);
+      } catch (e) {
+        analytics.logError(e, cause: 'project glance error');
+      }
     } else {
-      projects[projects.indexWhere((element) => element.id == id)] = ProjectGlance.build(id: id, data: json)!;
+      projects[projects.indexWhere((element) => element.id == id)] = _glance;
     }
     _sortProjects();
     notifyListeners();
@@ -54,8 +65,12 @@ class ProjectManager extends ChangeNotifier {
   List<ProjectGlance> _getProjects() {
     List<ProjectGlance> _glances = [];
     for (var id in box.keys) {
-      ProjectGlance? glance = ProjectGlance.build(id: id, data: Map.from(box.get(id)));
-      if (glance != null) _glances.add(glance);
+      try {
+        ProjectGlance? glance = ProjectGlance.from(Map.from(box.get(id)));
+        _glances.add(glance);
+      } catch (e) {
+        analytics.logError(e, cause: 'project glance error');
+      }
     }
     _glances.sort((project, _project) {
       if (project.edited!.isBefore(_project.edited!)) {

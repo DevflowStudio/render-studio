@@ -127,6 +127,7 @@ dependencies:
   mesh_gradient: ^1.1.5
   blur: ^3.1.0
   pull_down_button: ^0.9.3
+  encrypt: ^5.0.3
 
 dev_dependencies:
   flutter_test:

@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 
-import '../rehmat.dart';
+import '../../rehmat.dart';
 
 /// Lite version of project to reduce load times and heavy calculations
 class ProjectGlance {
 
-  ProjectGlance(this.id, this.data) {
+  final Map<String, dynamic> data;
+
+  late final ProjectMetadata metadata;
+
+  ProjectGlance._(this.data) {
     metadata = ProjectMetadata.fromJSON(data['meta']);
   }
 
-  final String id;
+  factory ProjectGlance.from(Map<String, dynamic> data) {
+    ProjectGlance glance = ProjectGlance._(Map.of(data));;
+    return glance;
+  }
 
-  final Map<String, dynamic> data;
+  String get id => data['id'];
 
   String get title => data['title'];
 
@@ -29,27 +36,20 @@ class ProjectGlance {
 
   bool get isTemplate => data['is-template'] ?? false;
 
-  int get nPages => data['pages'].length;
+  int get nPages => data['pages'];
 
-  late final ProjectMetadata metadata;
+  Map<String, dynamic> get variables => data['variables'];
 
-  static ProjectGlance? build({
-    required String id,
-    required Map<String, dynamic> data
-  }) {
-    try {
-      ProjectGlance glance = ProjectGlance(id, Map.of(data));;
-      return glance;
-    } catch (e, stacktrace) {
-      analytics.logError(e, cause: 'project glance rendering error', stacktrace: stacktrace);
-      return null;
-    }
+  String? get savePath => data['save-path'];
+
+  Future<void> duplicateProject() async {
+    // TODO
   }
 
   /// This function renders full project from the lite (glance) version
   Future<Project?> renderFullProject(BuildContext context) async {
     try {
-      Project? project = await Project.fromJSON(data, context: context);
+      Project? project = await Project.fromSave(path: savePath, context: context);
       return project;
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'project rendering error', stacktrace: stacktrace);

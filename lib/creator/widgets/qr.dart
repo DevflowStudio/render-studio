@@ -161,10 +161,10 @@ class QRWidget extends CreatorWidget {
           title: 'Image',
           tooltip: 'Tap to add embed an image',
           onTap: (context) async {
-            embeddedImage = await Asset.pick(
-              page,
-              cropRatio: CropAspectRatio(ratioX: 1, ratioY: 1),
-              context: context
+            embeddedImage = await AssetX.pick(
+              context,
+              project: page.project,
+              cropRatio: CropAspectRatio(ratioX: 1, ratioY: 1)
             );
             updateListeners(WidgetChange.update);
           },
@@ -179,7 +179,7 @@ class QRWidget extends CreatorWidget {
   bool gapless = true;
   EdgeInsets padding = EdgeInsets.zero;
 
-  Asset? embeddedImage;
+  AssetX? embeddedImage;
 
   @override
   Widget widget(BuildContext context) => QrImageView(
