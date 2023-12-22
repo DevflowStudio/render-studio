@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sprung/sprung.dart';
 import 'package:universal_io/io.dart';
 
 import '../rehmat.dart';
@@ -78,11 +77,10 @@ class Alerts {
     ); else confirm = await showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        insetAnimationCurve: Sprung(),
         title: Text(
           title,
           style: TextStyle(
-            fontFamily: 'Geist'
+            fontFamily: 'SF Pro'
           ),
         ),
         content: Text(message),
@@ -104,15 +102,38 @@ class Alerts {
 
   static Future<dynamic> dialog(BuildContext context, {
     required String title,
-    String? description,
-    required List<Widget> actions
+    String? content,
+    String okButtonText = 'OK',
   }) async {
-    return await showDialog(
+    if (Platform.isIOS) return await showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(
+          title,
+          style: TextStyle(
+            fontFamily: 'SF Pro'
+          ),
+        ),
+        content: content != null ? Text(content) : null,
+        actions: [
+          CupertinoDialogAction(
+            child: Text(okButtonText),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      )
+    );
+    else return await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
-        content: description != null ? Text(description) : null,
-        actions: actions,
+        content: content != null ? Text(content) : null,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(okButtonText)
+          ),
+        ],
       )
     );
   }
@@ -339,6 +360,72 @@ class Alerts {
       color: Palette.of(context).background.withOpacity(0.2),
     )
   );
+
+  static Future<String?> requestText(BuildContext context, {
+    String title = 'Enter text',
+    String? initialValue,
+    String? hintText,
+    String confirmButtonText = 'Confirm',
+    String cancelButtonText = 'Cancel',
+  }) async {
+    TextEditingController controller = TextEditingController(text: initialValue);
+    if (Platform.isAndroid) await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextFormField(
+          controller: controller,
+          autofocus: true,
+          textInputAction: TextInputAction.done,
+          onFieldSubmitted: (value) => Navigator.of(context).pop(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(cancelButtonText)
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(confirmButtonText),
+          )
+        ],
+      ),
+    ); else await showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: Text(
+          title,
+          style: TextStyle(
+            fontFamily: 'SF Pro'
+          ),
+        ),
+        content: CupertinoTextField(
+          controller: controller,
+          placeholder: hintText,
+          autofocus: true,
+          minLines: 2,
+          maxLines: 5,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (value) => Navigator.of(context).pop(),
+          style: TextStyle(
+            fontFamily: 'SF Pro',
+            color: context.isDarkMode ? Colors.white : Colors.black
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            child: Text(cancelButtonText),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          CupertinoDialogAction(
+            child: Text(confirmButtonText),
+            onPressed: () => Navigator.of(context).pop(),
+          )
+        ],
+      ),
+    );
+    return controller.text;
+  }
 
 }
 

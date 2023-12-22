@@ -314,30 +314,6 @@ class WidgetManager extends ChangeNotifier {
     return result;
   }
 
-  List<Map<String, dynamic>> getVariables() {
-    List<Map<String, dynamic>> variables = [];
-    for (CreatorWidget widget in _widgets.values) {
-      if (widget is WidgetGroup) {
-        for (CreatorWidget child in widget.widgets) {
-          Map<String, dynamic>? variable = child.requestVariables();
-          if (variable != null) variables.add({
-            'widget': child.id,
-            'uid': child.uid,
-            ... variable
-          });
-        }
-      } else {
-        Map<String, dynamic>? variable = widget.requestVariables();
-        if (variable != null) variables.add({
-          'widget': widget.id,
-          'uid': widget.uid,
-          ... variable
-        });
-      }
-    }
-    return variables;
-  }
-
   void readVariableValues(List<Map<String, dynamic>> values) {
     Map<String, Map<String, dynamic>> mappedValues = {};
     for (Map<String, dynamic> value in values) {
@@ -495,19 +471,30 @@ class __MultiselectDragOverlayState extends State<_MultiselectDragOverlay> {
             _selectorSize.height
           );
           _selectorStart = _selectorEnd = null;
+
+          bool wereAllSelected = true;
           for (CreatorWidget widget in widgets.widgets) {
             if (widget is BackgroundWidget) continue;
             bool isOverlaping = widget.area.overlaps(rect) || rect.overlaps(widget.area);
             if (isOverlaping) {
               if (widget is WidgetGroup) {
                 for (CreatorWidget child in widget.widgets) {
-                  if (child.area.overlaps(rect) || rect.overlaps(child.area)) widgets.select(child);
+                  if (child.area.overlaps(rect) || rect.overlaps(child.area)) {
+                    if (!widgets.isSelected(widget: child)) {
+                      wereAllSelected = false;
+                      widgets.select(child);
+                    }
+                  }
                 }
               } else {
-                widgets.select(widget);
+                if (!widgets.isSelected(widget: widget)) {
+                  wereAllSelected = false;
+                  widgets.select(widget);
+                }
               }
             }
           }
+          if (wereAllSelected) widgets.select();
           setState(() { });
         } : null,
         child: SizedBox.fromSize(

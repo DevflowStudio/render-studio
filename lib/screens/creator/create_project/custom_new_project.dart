@@ -16,6 +16,8 @@ class CustomNewProjectPage extends StatelessWidget {
     required this.titleError,
     required this.isTemplate,
     required this.onTemplateChanged,
+    required this.isTemplateX,
+    required this.onTemplateXChanged,
   });
 
   final List<ProjectGlance> templates;
@@ -28,6 +30,9 @@ class CustomNewProjectPage extends StatelessWidget {
   final void Function() onTitleChange;
 
   final bool titleError;
+
+  final bool isTemplateX;
+  final void Function(bool value) onTemplateXChanged;
 
   final bool isTemplate;
   final void Function(bool value) onTemplateChanged;
@@ -83,6 +88,23 @@ class CustomNewProjectPage extends StatelessWidget {
               value: isTemplate,
               onChanged: (value) {
                 onTemplateChanged(value);
+              },
+            ),
+          ),
+          if (isTemplate) ListTile(
+            title: Text(
+              'TemplateX',
+              style: Theme.of(context).textTheme.bodyLarge
+            ),
+            subtitle: Text(
+              'Create AI remixable template',
+              style: Theme.of(context).textTheme.bodyMedium
+            ),
+            contentPadding: EdgeInsets.only(top: 12, left: 12, right: 12, ),
+            trailing: Switch.adaptive(
+              value: isTemplateX,
+              onChanged: (value) {
+                onTemplateXChanged(value);
               },
             ),
           ),

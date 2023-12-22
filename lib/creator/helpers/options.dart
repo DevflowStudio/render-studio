@@ -232,9 +232,10 @@ class Option {
         childCount: childCount,
         itemBuilder: itemBuilder,
         scrollController: FixedExtentScrollController(initialItem: initialIndex),
+        useMagnifier: true,
         magnification: 1.1,
         diameterRatio: 1.3,
-        squeeze: 1,
+        squeeze: 0.9,
       ),
     )
   );

@@ -30,6 +30,9 @@ class Project extends ChangeNotifier {
 
   late bool isTemplate;
 
+  /// A TemplateX is a template that can be used to create posts using AI generated content
+  late bool isTemplateX;
+
   late PostSize size;
 
   late Size deviceSize;
@@ -86,16 +89,12 @@ class Project extends ChangeNotifier {
     thumbnail = images.firstOrNull;
 
     List<Map<String, dynamic>> pageData = [];
-    List<Map<String, dynamic>> variables = [];
 
     for (CreatorPage page in pages.pages) {
       pageData.add(page.toJSON(BuildInfo(buildType: BuildType.save)));
-      variables.addAll(page.widgets.getVariables());
     }
 
     Map<String, dynamic> assets = await assetManager.getCompiled();
-
-    print(variables);
 
     Map<String, dynamic> data = {
       'id': id,
@@ -109,7 +108,7 @@ class Project extends ChangeNotifier {
       'pages': pageData,
       'meta': metadata.toJSON(),
       'is-template': isTemplate,
-      'variables': variables,
+      'is-template-x': isTemplateX,
       'assets': assets,
       'images': images,
       'thumbnail': thumbnail,
@@ -136,6 +135,7 @@ class Project extends ChangeNotifier {
     project.data = data;
     project.metadata = ProjectMetadata.fromJSON(data['meta']);
     project.isTemplate = data['is-template'] ?? false;
+    project.isTemplateX = data['is-template-x'] ?? false;
     project.sizeTranslator = UniversalSizeTranslator(project: project);
 
     project.assetManager = await AssetManagerX.fromCompiled(project, data: data['assets']);
@@ -162,6 +162,7 @@ class Project extends ChangeNotifier {
     PostSize? size,
     String? description,
     bool isTemplate = false,
+    bool isTemplateX = false,
   }) {
     Project project = Project(context);
     project.size = size ?? PostSizePresets.square.toSize();
@@ -169,6 +170,7 @@ class Project extends ChangeNotifier {
     project.title = title;
     if (description != null) project.description = description;
     project.isTemplate = isTemplate;
+    project.isTemplateX = isTemplateX;
     project.sizeTranslator = UniversalSizeTranslator(project: project);
     project.assetManager = AssetManagerX.create(project);
     return project;

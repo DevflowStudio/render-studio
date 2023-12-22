@@ -29,6 +29,13 @@ class EditorManager extends ChangeNotifier {
 
   Editor? get editor => _editor;
 
+  bool isHidden = false;
+
+  void toggleHidden() {
+    isHidden = !isHidden;
+    notifyListeners();
+  }
+
   void updateEditor() {
     if (page.widgets.nSelections == 0) {
       _editor = null;
@@ -186,16 +193,29 @@ class PageEditorView extends StatefulWidget {
 
 class PageEditorViewState extends State<PageEditorView> {
 
+  late EditorManager manager;
+
   @override
   void initState() {
     super.initState();
-    widget.manager.addListener(onUpdate);
+    manager = widget.manager;
+    manager.addListener(onUpdate);
   }
 
   @override
   void dispose() {
-    widget.manager.removeListener(onUpdate);
+    manager.removeListener(onUpdate);
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(PageEditorView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.manager != widget.manager) {
+      manager.removeListener(onUpdate);
+      manager = widget.manager;
+      manager.addListener(onUpdate);
+    }
   }
 
   @override
@@ -203,7 +223,24 @@ class PageEditorViewState extends State<PageEditorView> {
     return Stack(
       alignment: Alignment.bottomCenter,
       children: [
-        CreativeWidgetsShowcase(
+        if (manager.isHidden) SizedBox(
+          height: Constants.of(context).bottomPadding + 48.0,
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: Constants.of(context).bottomPadding,
+            ),
+            child: Center(
+              child: FilledTonalIconButton(
+                onPressed: manager.toggleHidden,
+                secondary: true,
+                icon: Icon(
+                  RenderIcons.arrow_up,
+                  color: Palette.of(context).onSurfaceVariant,
+                )
+              ),
+            ),
+          ),
+        ) else CreativeWidgetsShowcase(
           page: widget.manager.page,
         ),
         if (widget.manager.editor != null) FadeInUp(

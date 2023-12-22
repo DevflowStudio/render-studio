@@ -717,98 +717,81 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
       duration: kAnimationDuration * 2,
       curve: Sprung.underDamped,
       child: SizedBox.fromSize(
-        size: Editor.isHidden ? Size.fromHeight(Constants.of(context).bottomPadding + 48.0) : EditorManager.standardSize(context) + Offset(0, 48.0), // 48.0 (46.0 + 2) is the height calculated to match the size of editor (calculated from _kTabHeight in flutter/material/tabs.dart)
-        child: Editor.isHidden ? Padding(
-            padding: EdgeInsets.only(
-              bottom: Constants.of(context).bottomPadding,
-            ),
-            child: Center(
-              child: FilledTonalIconButton(
-                onPressed: () {
-                  Editor.isHidden = false;
-                  setState(() { });
-                },
-                secondary: true,
-                icon: Icon(
-                  RenderIcons.arrow_up,
-                  color: Palette.of(context).onSurfaceVariant,
-                )
-              ),
-            ),
-          ) : Container(
-            margin: EdgeInsets.only(
-              // top: widget.ad != null ? 0 : 48.0
-            ),
-            decoration: BoxDecoration(
-              color: Palette.of(context).surface,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 3,
-                  spreadRadius: 0,
-                )
-              ],
-            ),
-            child: Column(
-              children: [
-                Expanded(
-                  child: BlurredEdgesView(
-                    controller: _blurredEdgesController,
-                    child: ListView.separated(
-                      controller: _blurredEdgesController.scrollCtrl,
-                      padding: EdgeInsets.only(
-                        left: 20,
-                        right: 20,
-                        top: 12,
-                        bottom: 12 + (widget.ad != null ? 0 : Constants.of(context).bottomPadding),
-                      ),
-                      scrollDirection: Axis.horizontal,
-                      separatorBuilder: (context, index) => SizedBox(width: 1),
-                      itemBuilder: (context, index) {
-                        String key = widgets.keys.elementAt(index);
-                        Map<String, dynamic> cWidget = widgets[key]!;
-                        return Tooltip(
-                          message: cWidget['title'],
-                          child: SizedBox(
-                            width: 80,
-                            child: InkWellButton(
-                              radius: BorderRadius.circular(10),
-                              onTap: () {
-                                TapFeedback.light();
-                                if (cWidget['onTap'] != null) cWidget['onTap']!();
-                                else CreatorWidget.create(context, page: widget.page, id: key,);
-                              },
-                              child: (cWidget['icon'] != null) ? Icon(
-                                cWidget['icon'],
-                                color: Palette.of(context).onSurfaceVariant,
-                                size: 30,
-                              ) : Center(
-                                child: cWidget['widget']
-                              ),
+        size: EditorManager.standardSize(context) + Offset(0, 48.0), // 48.0 (46.0 + 2) is the height calculated to match the size of editor (calculated from _kTabHeight in flutter/material/tabs.dart)
+        child: Container(
+          margin: EdgeInsets.only(
+            // top: widget.ad != null ? 0 : 48.0
+          ),
+          decoration: BoxDecoration(
+            color: Palette.of(context).surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 3,
+                spreadRadius: 0,
+              )
+            ],
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: BlurredEdgesView(
+                  controller: _blurredEdgesController,
+                  child: ListView.separated(
+                    controller: _blurredEdgesController.scrollCtrl,
+                    padding: EdgeInsets.only(
+                      left: 20,
+                      right: 20,
+                      top: 12,
+                      bottom: 12 + (widget.ad != null ? 0 : Constants.of(context).bottomPadding),
+                    ),
+                    scrollDirection: Axis.horizontal,
+                    separatorBuilder: (context, index) => SizedBox(width: 1),
+                    itemBuilder: (context, index) {
+                      String key = widgets.keys.elementAt(index);
+                      Map<String, dynamic> cWidget = widgets[key]!;
+                      return Tooltip(
+                        message: cWidget['title'],
+                        child: SizedBox(
+                          width: 80,
+                          child: InkWellButton(
+                            radius: BorderRadius.circular(10),
+                            onTap: () {
+                              TapFeedback.light();
+                              if (cWidget['onTap'] != null) cWidget['onTap']!();
+                              else CreatorWidget.create(context, page: widget.page, id: key,);
+                            },
+                            child: (cWidget['icon'] != null) ? Icon(
+                              cWidget['icon'],
+                              color: Palette.of(context).onSurfaceVariant,
+                              size: 30,
+                            ) : Center(
+                              child: cWidget['widget']
                             ),
                           ),
-                        );
-                      },
-                      itemCount: widgets.length,
-                    ),
+                        ),
+                      );
+                    },
+                    itemCount: widgets.length,
                   ),
                 ),
-                if (widget.ad != null) Expanded(
-                  child: FadeInUp(
-                    duration: Duration(milliseconds: 300),
-                    child: Container(
-                      width: double.maxFinite,
-                      padding: EdgeInsets.only(
-                        bottom: Constants.of(context).bottomPadding,
-                      ),
-                      alignment: Alignment.center,
-                      child: AdWidget(ad: widget.ad!),
+              ),
+              if (widget.ad != null) Expanded(
+                child: FadeInUp(
+                  duration: Duration(milliseconds: 300),
+                  child: Container(
+                    width: double.maxFinite,
+                    padding: EdgeInsets.only(
+                      bottom: Constants.of(context).bottomPadding,
                     ),
+                    alignment: Alignment.center,
+                    child: AdWidget(ad: widget.ad!),
                   ),
-                )
-              ],
-            ),
+                ),
+              )
+            ],
           ),
+        ),
       ),
     );
   }

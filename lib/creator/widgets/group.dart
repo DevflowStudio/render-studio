@@ -251,7 +251,7 @@ class WidgetGroup extends CreatorWidget {
         double belowHeightDistribution = heightChange / 2;
         double aboveHeightDistribution = heightChange / 2;
         // if (widgetsAbove.isEmpty) belowHeightDistribution = heightChange;
-        // if (widgetsBelow.isEmpty) aboveHeightDistribution = heightChange;
+        if (widgetsBelow.isEmpty) aboveHeightDistribution = heightChange;
 
         for (String uid in widgetsAbove) {
           CreatorWidget widget = widgets.firstWhere((element) => element.uid == uid);

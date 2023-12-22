@@ -55,6 +55,9 @@ class CreatorPage extends PropertyChangeNotifier {
 
   ColorPalette palette = ColorPalette.defaultSet;
 
+  PageType? pageType;
+  String? pageTypeComment;
+
   void updatePalette(ColorPalette palette) {
     this.palette = palette;
     widgets.forEach((widget) => widget.onPaletteUpdate());
@@ -160,6 +163,8 @@ class CreatorPage extends PropertyChangeNotifier {
   Map<String, dynamic> toJSON([BuildInfo buildInfo = BuildInfo.unknown]) => {
     ... widgets.toJSON(buildInfo),
     'palette': palette.toJSON(),
+    'page-type': pageType?.name,
+    'page-type-comment': pageTypeComment,
   };
 
   /// Builds a page from scratch using the JSON data provided
@@ -171,6 +176,8 @@ class CreatorPage extends PropertyChangeNotifier {
     try {
       CreatorPage page = CreatorPage(project: project, data: data);
       page.palette = ColorPalette.fromJSON(data['palette']);
+      if (data['page-type'] != null) page.pageType = PageTypeExtension.fromString(data['page-type']);
+      page.pageTypeComment = data['page-type-comment'];
       await page.widgets.hasDeletedAssets();
       return page;
     } on WidgetCreationException catch (e, stacktrace) {
@@ -265,6 +272,66 @@ class __PageZoomableViewerState extends State<_PageZoomableViewer> {
       },
       child: widget.child,
     );
+  }
+
+}
+
+/// The type of page, used in TemplateX to help AI determine the type of content to generate for the page
+enum PageType {
+  introduction,
+  content,
+  contact,
+  conclusion,
+  image
+}
+
+extension PageTypeExtension on PageType {
+
+  String get name {
+    switch (this) {
+      case PageType.introduction:
+        return 'introduction';
+      case PageType.content:
+        return 'content';
+      case PageType.contact:
+        return 'contact';
+      case PageType.conclusion:
+        return 'conclusion';
+      case PageType.image:
+        return 'image';
+    }
+  }
+
+  String get title {
+    switch (this) {
+      case PageType.introduction:
+        return 'Introduction';
+      case PageType.content:
+        return 'Content';
+      case PageType.contact:
+        return 'Contact';
+      case PageType.conclusion:
+        return 'Conclusion';
+      case PageType.image:
+        return 'Image';
+    }
+  }
+
+  static PageType? fromString(String type) {
+    switch (type) {
+      case 'introduction':
+        return PageType.introduction;
+      case 'content':
+        return PageType.content;
+      case 'contact':
+        return PageType.contact;
+      case 'conclusion':
+        return PageType.conclusion;
+      case 'image':
+        return PageType.image;
+      default:
+        return null;
+    }
   }
 
 }

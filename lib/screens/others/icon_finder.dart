@@ -188,13 +188,7 @@ class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
           Alerts.dialog(
             context,
             title: 'Failed to download',
-            description: 'Could not download the icon. Please try again later.',
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('OK')
-              )
-            ]
+            content: 'Could not download the icon. Please try again later.',
           );
         }
         setState(() {

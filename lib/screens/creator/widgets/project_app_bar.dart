@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pull_down_button/pull_down_button.dart';
+import 'package:render_studio/models/project/templatex.dart';
 import 'package:sprung/sprung.dart';
 
 import '../../../rehmat.dart';
@@ -255,6 +256,30 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                 icon: RenderIcons.info,
                 onTap: () {
                   AppRouter.push(context, page: ProjectMeta(project: project));
+                },
+              ),
+              PullDownMenuItem(
+                title: 'Test TemplateX',
+                onTap: () {
+                  try {
+                    Map<String, dynamic> data = TemplateX.buildTemplateData(project);
+                    print(data);
+                  } catch (e, stacktrace) {
+                    Alerts.dialog(
+                      context,
+                      title: 'Error',
+                      content: e.toString(),
+                    );
+                    print(e);
+                    print(stacktrace);
+                  }
+                },
+              ),
+              PullDownMenuItem(
+                title: 'Publish Template',
+                icon: RenderIcons.upload,
+                onTap: () {
+                  // TODO
                 },
               ),
               if (kDebugMode) PullDownMenuItem.selectable(

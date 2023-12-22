@@ -20,8 +20,6 @@ class Editor extends StatefulWidget {
 
   final CreatorWidget widget;
 
-  static bool isHidden = false;
-
   final bool isModal;
 
   static Size calculateSize(BuildContext context) {
@@ -107,17 +105,17 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                       onTap: (value) {
                         if (!tabController.indexIsChanging) {
                           setState(() {
-                            Editor.isHidden = !Editor.isHidden;
+                            widget.widget.page.editorManager.toggleHidden();
                           });
                         } else {
-                          if (Editor.isHidden) setState(() {
-                            Editor.isHidden = false;
+                          if (widget.widget.page.editorManager.isHidden) setState(() {
+                            widget.widget.page.editorManager.toggleHidden();
                           });
                         }
                       },
                     ),
                   ),
-                  if (Editor.isHidden) Align(
+                  if (widget.widget.page.editorManager.isHidden) Align(
                     alignment: Alignment.centerRight,
                     child: Container(
                       decoration: BoxDecoration(
@@ -131,8 +129,9 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                       ),
                       child: IconButton(
                         onPressed: () {
+                          TapFeedback.light();
                           setState(() {
-                            Editor.isHidden = false;
+                            widget.widget.page.editorManager.toggleHidden();
                           });
                         },
                         icon: Icon(RenderIcons.arrow_up),
@@ -150,7 +149,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
               AnimatedSize(
                 duration: kAnimationDuration * 2,
                 curve: Sprung(),
-                child: Editor.isHidden ? SizedBox.fromSize(
+                child: widget.widget.page.editorManager.isHidden ? SizedBox.fromSize(
                   size: Size.fromHeight(Constants.of(context).bottomPadding),
                 ) : SizedBox.fromSize(
                   size: editorSize,

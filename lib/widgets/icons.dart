@@ -281,4 +281,8 @@ abstract class RenderIcons {
 
   static const IconData google = FontAwesomeIcons.google;
 
+  static const IconData comment = CupertinoIcons.chat_bubble;
+
+  static const IconData variable = MaterialSymbols.code;
+
 }

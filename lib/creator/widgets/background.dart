@@ -8,8 +8,9 @@ class BackgroundWidget extends CreatorWidget {
 
   BackgroundWidget({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
 
-  // Inherited
+  @override
   final String name = 'Background';
+
   @override
   final String id = 'background';
 
@@ -53,6 +54,52 @@ class BackgroundWidget extends CreatorWidget {
         //     animateBorderRadius: false
         //   ),
         // ),
+        if (page.project.isTemplateX && page.project.pages.length > 1) ... [
+          Option.button(
+            title: 'Type',
+            tooltip: 'Label the page type',
+            onTap: (context) async {
+              page.editorManager.openModal(
+                tab: (context, setState) => EditorTab.pickerBuilder(
+                  title: 'Page Type',
+                  childCount: PageType.values.length,
+                  initialIndex: page.pageType != null ? PageType.values.indexOf(page.pageType!) : 0,
+                  itemBuilder: (context, index) {
+                    return Text(
+                      PageType.values[index].title,
+                    );
+                  },
+                  onSelectedItemChanged: (index) {
+                    page.pageType = PageType.values[index];
+                  },
+                ),
+                onDismiss: () {
+                  updateListeners(WidgetChange.update, historyMessage: 'Change Page Type');
+                }
+              );
+            },
+            icon: RenderIcons.arrow_down
+          ),
+          Option.button(
+            title: 'Comment',
+            tooltip: 'Add a comment to specify page type',
+            onTap: (context) async {
+              String? comment = await Alerts.requestText(
+                context,
+                confirmButtonText: variableComments != null ? 'Update' : 'Add',
+                hintText: 'Add a comment to briefly describe the role of this page',
+                initialValue: variableComments,
+                title: 'Page Type Comment',
+              );
+              if (comment != null && comment.isEmpty) comment = null;
+              if (page.pageTypeComment != comment) {
+                page.pageTypeComment = comment;
+                updateListeners(WidgetChange.update, historyMessage: 'Add Variable Comment');
+              }
+            },
+            icon: RenderIcons.comment
+          ),
+        ],
         Option.button(
           icon: RenderIcons.palette,
           title: 'Palette',
@@ -137,6 +184,29 @@ class BackgroundWidget extends CreatorWidget {
           },
           icon: RenderIcons.gradient
         ),
+        if (asset != null && imageProvider != null && page.project.isTemplateX) Option.button(
+          icon: RenderIcons.variable,
+          title: 'Variable',
+          onTap: (context) async {
+            page.editorManager.openModal(
+              tab: (context, setState) => EditorTab.picker(
+                title: 'Image Variablilty',
+                children: [
+                  Text('Dynamic'),
+                  Text('Constant'),
+                ],
+                initialIndex: isVariableWidget ? 0 : 1,
+                onSelectedItemChanged: (index) {
+                  isVariableWidget = index == 0;
+                },
+              ),
+              onDismiss: () {
+                updateListeners(WidgetChange.update, historyMessage: 'Change Variable');
+              },
+            );
+          },
+          tooltip: 'Toggle variablility of background image',
+        ),
         Option.button(
           icon: RenderIcons.image,
           title: (asset != null && imageProvider != null) ? 'Edit Image' : 'Add Image',
@@ -168,6 +238,7 @@ class BackgroundWidget extends CreatorWidget {
                     onTap: (context) async {
                       asset = null;
                       imageProvider = null;
+                      isVariableWidget = false;
                       changeBackgroundType(BackgroundType.color);
                       updateListeners(WidgetChange.update);
                     },
@@ -175,6 +246,10 @@ class BackgroundWidget extends CreatorWidget {
                 ]
               )
             ); else {
+              if (page.project.isTemplateX) {
+                isVariableWidget = true;
+                Alerts.snackbar(context, text: 'You have added an image to the background. The asset will be treated as a variable. You can change this in the "Variable" button.');
+              }
               File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
               if (file == null) return;
               if (asset == null) {
@@ -261,15 +336,14 @@ class BackgroundWidget extends CreatorWidget {
     if (asset == null) type = BackgroundType.color;
     return GestureDetector(
       onTap: () => page.widgets.select(this),
-      child: Container(
+      child: (asset != null && imageProvider != null) ? imageProvider!.build(
+        asset!,
+        size: size,
+      ) : Container(
         decoration: BoxDecoration(
-          color: type == BackgroundType.color ? color : Colors.white,
+          color: type == BackgroundType.color ? color : Colors.transparent,
           gradient: gradient?.gradient
         ),
-        child: (asset != null && imageProvider != null) ? imageProvider!.build(
-          asset!,
-          size: size,
-        ) : null,
       ),
     );
   }
@@ -390,9 +464,11 @@ class BackgroundWidget extends CreatorWidget {
       case BackgroundType.color:
         asset = null;
         imageProvider = null;
+        isVariableWidget = false;
         break;
       case BackgroundType.image:
         gradient = null;
+        isVariableWidget = page.project.isTemplateX;
         break;
       default:
     }
@@ -406,6 +482,30 @@ class BackgroundWidget extends CreatorWidget {
   }
 
   @override
+  List<String>? getFeatures() {
+    if (isVariableWidget) return ['background-image'];
+    return null;
+  }
+
+  @override
+  void loadVariables(Map<String, dynamic> variable) {
+    AssetX? _asset = variable['asset'];
+    if (_asset != null) {
+      this.asset = asset;
+      this.imageProvider = CreativeImageProvider.create(this);
+      this.isVariableWidget = true;
+      this.type = BackgroundType.image;
+    }
+  }
+
+  @override
+  Map<String, dynamic> getVariables() => {
+    ... super.getVariables(),
+    'type': 'asset',
+    'asset-type': 'image',
+  };
+
+  @override
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
   }) {
@@ -413,6 +513,7 @@ class BackgroundWidget extends CreatorWidget {
       asset!.delete();
       asset = null;
       imageProvider = null;
+      isVariableWidget = false;
     }
     EdgeInsets _padding = padding;
     if (buildInfo.buildType == BuildType.save) {

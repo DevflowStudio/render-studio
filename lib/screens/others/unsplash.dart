@@ -230,13 +230,7 @@ class _UnsplashPhotoInfoState extends State<UnsplashPhotoInfo> {
                             Alerts.dialog(
                               context,
                               title: 'Failed to download',
-                              description: 'Could not download the photo. Please try again later.',
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: Text('OK')
-                                )
-                              ]
+                              content: 'Could not download the photo. Please try again later.',
                             );
                           }
                         }
@@ -531,13 +525,7 @@ class __UnsplashPhotoBuilderState extends State<UnsplashPhotoBuilder> {
             Alerts.dialog(
               context,
               title: 'Failed to download',
-              description: 'Could not download the photo. Please try again later.',
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('OK')
-                )
-              ]
+              content: 'Could not download the photo. Please try again later.'
             );
           }
         }

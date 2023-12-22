@@ -320,6 +320,8 @@ class CreativeImageProvider {
         fadeInCurve: Sprung.overDamped,
         fadeInDuration: Constants.animationDuration,
         image: FileImage(asset.file),
+        width: size?.width,
+        height: size?.height,
         errorBuilder: (context, error, stackTrace) {
           return Container(
             decoration: BoxDecoration(
@@ -403,9 +405,15 @@ class ImageWidget extends CreatorWidget {
   }
 
   // Inherited
+  @override
   final String name = 'Image';
+
   @override
   final String id = 'image';
+
+  bool isVariableWidget = true;
+
+  _ImageVariableType imageVariableType = _ImageVariableType.dynamic;
 
   bool keepAspectRatio = true;
   bool isResizable = true;
@@ -449,6 +457,36 @@ class ImageWidget extends CreatorWidget {
           },
           icon: RenderIcons.replace,
           tooltip: 'Replace Image'
+        ),
+        Option.button(
+          title: 'Variable',
+          tooltip: 'Change text variable type',
+          onTap: (context) async {
+            page.editorManager.openModal(
+              tab: (context, setState) => EditorTab.pickerBuilder(
+                title: 'Variability',
+                childCount: _ImageVariableType.values.length,
+                initialIndex: _ImageVariableType.values.indexOf(imageVariableType),
+                itemBuilder: (context, index) {
+                  return Text(
+                    _ImageVariableType.values[index].title,
+                  );
+                },
+                onSelectedItemChanged: (index) {
+                  imageVariableType = _ImageVariableType.values[index];
+                },
+              ),
+              onDismiss: () {
+                if (imageVariableType == _ImageVariableType.constant) {
+                  isVariableWidget = false;
+                  Alerts.snackbar(context, text: 'This widget has been updated to use static image, it will be excluded from project variables. Comment box disabled');
+                } else isVariableWidget = true;
+                updateListeners(WidgetChange.update, historyMessage: 'Change Variable Type');
+                if (imageVariableType == _ImageVariableType.dynamic) Alerts.snackbar(context, text: 'AI generated image might be used for this widget, consider adding a comment to help the AI generate better images.');
+              }
+            );
+          },
+          icon: RenderIcons.variable
         ),
         Option.button(
           icon: RenderIcons.crop,
@@ -521,6 +559,22 @@ class ImageWidget extends CreatorWidget {
   }
 
   @override
+  void loadVariables(Map<String, dynamic> variable) {
+    AssetX? _asset = variable['asset'];
+    if (_asset != null) {
+      this.asset = asset;
+      provider = CreativeImageProvider.create(this);
+    }
+  }
+
+  @override
+  Map<String, dynamic> getVariables() => {
+    ... super.getVariables(),
+    'type': 'asset',
+    'asset-type': 'image',
+  };
+
+  @override
   Map<String, dynamic> toJSON({
     BuildInfo buildInfo = BuildInfo.unknown
   }) {
@@ -531,7 +585,8 @@ class ImageWidget extends CreatorWidget {
     return {
       ... super.toJSON(buildInfo: buildInfo),
       'radius': _borderRadius,
-      'provider': provider.toJSON()
+      'provider': provider.toJSON(),
+      'variable-image-type': imageVariableType.name,
     };
   }
 
@@ -552,7 +607,49 @@ class ImageWidget extends CreatorWidget {
     if (isBuildingFromUniversalBuild) {
       borderRadius = page.project.sizeTranslator.getLocalValue(value: borderRadius);
     }
+    if (json['variable-image-type'] != null) {
+      imageVariableType = _ImageVariableTypeHelpers.fromName(json['variable-image-type']);
+    }
     provider = CreativeImageProvider.fromJSON(json['provider'] ?? {}, widget: this);
+  }
+
+}
+
+/// Used by TemplateX AI to generate images for this widget, if the selected type is dynamic
+enum _ImageVariableType {
+  dynamic,
+  constant
+}
+
+extension _ImageVariableTypeHelpers on _ImageVariableType {
+
+  String get title {
+    switch (this) {
+      case _ImageVariableType.dynamic:
+        return 'Dynamic';
+      case _ImageVariableType.constant:
+        return 'Constant';
+    }
+  }
+
+  String get name {
+    switch (this) {
+      case _ImageVariableType.dynamic:
+        return 'dynamic';
+      case _ImageVariableType.constant:
+        return 'constant';
+    }
+  }
+
+  static _ImageVariableType fromName(String name) {
+    switch (name) {
+      case 'dynamic':
+        return _ImageVariableType.dynamic;
+      case 'constant':
+        return _ImageVariableType.constant;
+      default:
+        throw ArgumentError('Invalid name');
+    }
   }
 
 }

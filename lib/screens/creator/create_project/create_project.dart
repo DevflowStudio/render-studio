@@ -25,6 +25,8 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
 
   bool isTemplate = false;
 
+  bool isTemplateX = true;
+
   int page = 0;
 
   PostSizePresets sizePreset = PostSizePresets.square;
@@ -147,6 +149,13 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
                       setTitle();
                     });
                   },
+                  isTemplateX: isTemplateX,
+                  onTemplateXChanged: (value) {
+                    TapFeedback.light();
+                    setState(() {
+                      isTemplateX = value;
+                    });
+                  },
                 ),
               ],
             ),
@@ -235,7 +244,7 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
         return;
       }
       if (isTemplate || selectedTemplate == null) {
-        project = Project.create(context, title: title, description: description, isTemplate: isTemplate);
+        project = Project.create(context, title: title, description: description, isTemplate: isTemplate, isTemplateX: isTemplateX && isTemplate);
       } else {
         project = await Project.fromTemplate(context, uid: selectedTemplate!, title: title, description: description);
       }

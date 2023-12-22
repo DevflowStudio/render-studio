@@ -107,6 +107,7 @@ class _StudioState extends State<Studio> with TickerProviderStateMixin {
       confirmButtonText: 'Discard',
       isDestructive: true
     );
+    
     return discard;
   }
 
@@ -118,6 +119,13 @@ class _StudioState extends State<Studio> with TickerProviderStateMixin {
     await project.save(context, quality: quality);
     _lastSaved = DateTime.now();
     setState(() => isLoading = false);
+    Alerts.snackbar(context, text: [
+      'Woohoo! The images have been saved to your gallery.',
+      'The images have been saved to your gallery.',
+      'Project saved!',
+      'Project saved! The images have been added to your gallery.',
+      if (quality == ExportQuality.fourx) 'High quality images have been saved to your gallery.'
+    ].getRandom());
   }
 
 }
@@ -143,7 +151,13 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
 
   late Project project;
 
-  void onUpdate() => setState(() { });
+  late CreatorPage current;
+
+  void onUpdate() {
+    if (current != project.pages.current) {
+      setState(() => current = project.pages.current);
+    }
+  }
 
   late Editor editor;
 
@@ -151,6 +165,7 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
   void initState() {
     project = widget.project;
     project.pages.addListener(onUpdate);
+    current = project.pages.current;
     super.initState();
   }
 
@@ -185,7 +200,7 @@ class __BottomNavBuilderState extends State<_BottomNavBuilder> {
         ),
       ) : FadeInUp(
         duration: kAnimationDuration,
-        child: PageEditorView(manager: project.pages.current.editorManager)
+        child: PageEditorView(manager: current.editorManager)
       )
     );
   }

@@ -71,6 +71,36 @@ class CreatorText extends CreatorWidget {
           },
           icon: RenderIcons.refresh
         ),
+        Option.button(
+          title: 'Variable',
+          tooltip: 'Change text variable type',
+          onTap: (context) async {
+            page.editorManager.openModal(
+              tab: (context, setState) => EditorTab.pickerBuilder(
+                title: 'Variable',
+                childCount: _VariableTextType.values.length,
+                initialIndex: variableTextType != null ? _VariableTextType.values.indexOf(variableTextType!) : 0,
+                itemBuilder: (context, index) {
+                  return Text(
+                    _VariableTextType.values[index].title,
+                  );
+                },
+                onSelectedItemChanged: (index) {
+                  variableTextType = _VariableTextType.values[index];
+                },
+              ),
+              onDismiss: () {
+                if (variableTextType == _VariableTextType.constant) {
+                  isVariableWidget = false;
+                  Alerts.snackbar(context, text: 'This widget has been updated to constant data, it will be excluded from project variables. Comment box disabled');
+                } else isVariableWidget = true;
+                updateListeners(WidgetChange.update, historyMessage: 'Change Variable Type');
+                if (variableTextType == _VariableTextType.custom) Alerts.snackbar(context, text: 'Custom variable type declared. Remember to add a comment to the variable type.');
+              }
+            );
+          },
+          icon: RenderIcons.variable
+        ),
         Option.font(
           this,
           fontFamily: fontFamily,
@@ -424,6 +454,8 @@ class CreatorText extends CreatorWidget {
   final String name = 'Text';
   final String id = 'text';
 
+  bool isVariableWidget = true;
+
   late Size fitSize;
 
   @override
@@ -464,7 +496,7 @@ class CreatorText extends CreatorWidget {
 
   double fontSize = 100;
 
-  String fontFamily = 'Inter';
+  String fontFamily = 'Roboto';
 
   double radius = 10;
 
@@ -484,6 +516,8 @@ class CreatorText extends CreatorWidget {
   double borderRadius = 0;
 
   BoxShadow? boxShadow;
+
+  _VariableTextType? variableTextType;
 
   late TextSpan textSpan;
 
@@ -704,7 +738,11 @@ class CreatorText extends CreatorWidget {
                         focusNode: focusNode,
                         decoration: InputDecoration(
                           hintText: 'Type something ...',
-                          border: OutlineInputBorder(
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide.none
+                          ),
+                          focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(20),
                             borderSide: BorderSide.none
                           ),
@@ -721,47 +759,6 @@ class CreatorText extends CreatorWidget {
                           fontFamily: fontFamily,
                           fontSize: 20
                         ),
-                        contextMenuBuilder: (BuildContext context, EditableTextState editableTextState) {
-                          return AdaptiveTextSelectionToolbar(
-                            anchors: editableTextState.contextMenuAnchors,
-                            children: [
-                              if (!editableTextState.currentTextEditingValue.selection.isCollapsed) Container(
-                                color: Constants.getThemedBlackAndWhite(context),
-                                child: TextButton(
-                                  onPressed: () {
-                                    String text = editableTextState.currentTextEditingValue.selection.textInside(textCtrl.text);
-                                    textCtrl.text = textCtrl.text.replaceFirst(text, '*$text*');
-                                    textCtrl.selection = TextSelection.collapsed(offset: textCtrl.text.indexOf('*$text*') + text.length + 1);
-                                  },
-                                  child: Text(
-                                    'Style',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Constants.getThemedBlackAndWhite(context).isDark ? Colors.white : Colors.black,
-                                      fontFamily: 'Geist',
-                                      fontWeight: FontWeight.w300,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              ... editableTextState.contextMenuButtonItems.map((ContextMenuButtonItem buttonItem) {
-                                return Container(
-                                  color: Constants.getThemedBlackAndWhite(context),
-                                  child: TextButton(
-                                    onPressed: buttonItem.onPressed,
-                                    child: Text(
-                                      CupertinoTextSelectionToolbarButton.getButtonLabel(context, buttonItem),
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: Constants.getThemedBlackAndWhite(context).isDark ? Colors.white : Colors.black,
-                                        fontFamily: 'Geist',
-                                        fontWeight: FontWeight.w300,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }).toList()
-                            ],
-                          );
-                        },
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -990,10 +987,25 @@ class CreatorText extends CreatorWidget {
   }
 
   @override
-  Map<String, dynamic>? requestVariables() => {
-    'type': 'string',
-    'value': text,
-  };
+  void loadVariables(Map<String, dynamic> variable) {
+    String newValue = variable['value'];
+    if (newValue == text) return;
+    editText(text: newValue, logHistory: false);
+  }
+
+  @override
+  Map<String, dynamic> getVariables() {
+    if (variableTextType == null) throw 'Did not declare variable type';
+    return {
+      ... super.getVariables(),
+      'type': 'string',
+      'value': text,
+      'variable-type': variableTextType?.name
+    };
+  }
+
+  @override
+  List<String>? getFeatures() => variableTextType != null ? [variableTextType!.name] : null;
 
   @override
   Map<String, dynamic> toJSON({
@@ -1053,14 +1065,8 @@ class CreatorText extends CreatorWidget {
         'word': _wordSpacing,
         'letter': _letterSpacing,
       },
+      'variable-type': variableTextType?.name,
     };
-  }
-
-  @override
-  void loadVariables(Map<String, dynamic> variable) {
-    String newValue = variable['value'];
-    if (newValue == text) return;
-    editText(text: newValue);
   }
 
   @override
@@ -1121,6 +1127,10 @@ class CreatorText extends CreatorWidget {
         buildTextSpan(calculateSize: false);
       } catch (e) {
         buildTextSpan(calculateSize: true);
+      }
+
+      if (json['variable-type'] != null) {
+        variableTextType = VariableTextTypeExtension.fromName(json['variable-type']);
       }
 
     } catch (e, stacktrace) {
@@ -1395,3 +1405,117 @@ Size calculateSizeForTextStyle(String text, {
   ) ..layout(minWidth: 0, maxWidth: maxWidth ?? page.project.contentSize.width - 20);
   return textPainter.size;
 }
+
+enum _VariableTextType {
+  heading,
+  subtitle,
+  body,
+  caption,
+  callout,
+  callToAction,
+  hashTag,
+  date,
+  pageNumber,
+  footer,
+  emoji,
+  constant,
+  custom,
+}
+
+extension VariableTextTypeExtension on _VariableTextType {
+
+  String get name {
+    switch (this) {
+      case _VariableTextType.heading:
+        return 'heading';
+      case _VariableTextType.subtitle:
+        return 'subtitle';
+      case _VariableTextType.body:
+        return 'body';
+      case _VariableTextType.caption:
+        return 'caption';
+      case _VariableTextType.callout:
+        return 'callout';
+      case _VariableTextType.callToAction:
+        return 'call-to-action';
+      case _VariableTextType.hashTag:
+        return 'hash-tag';
+      case _VariableTextType.date:
+        return 'date';
+      case _VariableTextType.pageNumber:
+        return 'page-number';
+      case _VariableTextType.footer:
+        return 'footer';
+      case _VariableTextType.emoji:
+        return 'emoji';
+      case _VariableTextType.constant:
+        return 'constant';
+      case _VariableTextType.custom:
+        return 'custom';
+    }
+  }
+
+  String get title {
+    switch (this) {
+      case _VariableTextType.heading:
+        return 'Heading';
+      case _VariableTextType.subtitle:
+        return 'Subtitle';
+      case _VariableTextType.body:
+        return 'Body';
+      case _VariableTextType.caption:
+        return 'Caption';
+      case _VariableTextType.callout:
+        return 'Callout';
+      case _VariableTextType.callToAction:
+        return 'Call to Action';
+      case _VariableTextType.hashTag:
+        return 'Hash Tag';
+      case _VariableTextType.date:
+        return 'Date';
+      case _VariableTextType.pageNumber:
+        return 'Page Number';
+      case _VariableTextType.footer:
+        return 'Footer';
+      case _VariableTextType.emoji:
+        return 'Emoji';
+      case _VariableTextType.constant:
+        return 'Constant';
+      case _VariableTextType.custom:
+        return 'Custom';
+    }
+  }
+
+  static _VariableTextType? fromName(String name) {
+    switch (name) {
+      case 'heading':
+        return _VariableTextType.heading;
+      case 'subtitle':
+        return _VariableTextType.subtitle;
+      case 'body':
+        return _VariableTextType.body;
+      case 'caption':
+        return _VariableTextType.caption;
+      case 'callout':
+        return _VariableTextType.callout;
+      case 'call-to-action':
+        return _VariableTextType.callToAction;
+      case 'hash-tag':
+        return _VariableTextType.hashTag;
+      case 'date':
+        return _VariableTextType.date;
+      case 'page-number':
+        return _VariableTextType.pageNumber;
+      case 'footer':
+        return _VariableTextType.footer;
+      case 'emoji':
+        return _VariableTextType.emoji;
+      case 'constant':
+        return _VariableTextType.constant;
+      case 'custom':
+        return _VariableTextType.custom;
+      default:
+        return null;
+    }
+  }
+}     

@@ -59,10 +59,31 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   AssetX? asset;
 
+  String? variableComments;
+
   /// Tabs with editing options
   List<EditorTab> get tabs => [ ];
 
   List<Option> get defaultOptions => [
+    if (isVariableWidget && page.project.isTemplateX) Option.button(
+      title: 'Comment',
+      tooltip: 'Add a comment to the text variable',
+      onTap: (context) async {
+        String? comment = await Alerts.requestText(
+          context,
+          confirmButtonText: variableComments != null ? 'Update' : 'Add',
+          hintText: 'Add a comment to briefly specify the role of this widget',
+          initialValue: variableComments,
+          title: 'Variable Comment',
+        );
+        if (comment != null && comment.isEmpty) comment = null;
+        if (variableComments != comment) {
+          variableComments = comment;
+          updateListeners(WidgetChange.update, historyMessage: 'Add Variable Comment');
+        }
+      },
+      icon: RenderIcons.comment
+    ),
     if (group != null) Option.button(
       icon: RenderIcons.ungroup,
       title: 'Ungroup',
@@ -209,6 +230,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   /// Set to `true` for widgets like background
   /// to make sure that effects like border are not applied
   final bool isBackgroundWidget = false;
+
+  /// Set to `true` for widgets like text and image that accept variables from AI generated content
+  bool isVariableWidget = false;
 
   VerticalExpandDirection verticalExpandDirection = VerticalExpandDirection.both;
   HorizontalExpandDirection horizontalExpandDirection = HorizontalExpandDirection.both;
@@ -711,9 +735,15 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     else page.widgets.delete(this.uid);
   }
 
-  Map<String, dynamic>? requestVariables() => null;
+  Map<String, dynamic> getVariables() => isVariableWidget ? {
+    'uid': uid,
+    'widget': id,
+    'comments': variableComments
+  } : {};
 
   void loadVariables(Map<String, dynamic> variable) {}
+
+  List<String>? getFeatures() => null;
 
   /// Convert the state and properties of the widget to JSON
   Map<String, dynamic> toJSON({
@@ -750,7 +780,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         'vertical-expand-direction': verticalExpandDirection.name,
         'horizontal-expand-direction': horizontalExpandDirection.name,
       },
-      'variables': requestVariables(),
+      'variable-comment': variableComments,
     };
   }
 
@@ -873,6 +903,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
     verticalExpandDirection = VerticalExpandDirectionExtension.fromString(data['properties']['vertical-expand-direction']);
     horizontalExpandDirection = HorizontalExpandDirectionExtension.fromString(data['properties']['horizontal-expand-direction']);
+
+    if (data['variable-comment'] != null) variableComments = data['variable-comment'];
 
     if (buildInfo.version != null && asset != null) asset!.restoreVersion(version: buildInfo.version!);
     
