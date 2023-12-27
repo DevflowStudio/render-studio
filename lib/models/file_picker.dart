@@ -14,7 +14,7 @@ enum FileType {
   svg
 }
 
-extension FileTypeString on FileType {
+extension FileTypeExtension on FileType {
 
   String get type {
     switch (this) {
@@ -29,7 +29,7 @@ extension FileTypeString on FileType {
     }
   }
 
-  FileType fromString(String type) {
+  static FileType fromString(String type) {
     switch (type) {
       case 'image':
         return FileType.image;

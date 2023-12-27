@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
@@ -8,34 +10,43 @@ class AssetX {
 
   final String id;
 
-  late File file;
+  File? file;
+
+  String? url;
 
   final DateTime createdAt;
 
-  final FileType type;
+  final FileType fileType;
 
   AssetType assetType = AssetType.file;
 
   final Project project;
 
-  Map<String, File> history = {};
+  Map<String, AssetHistory> history = {};
 
-  AssetX._({required this.id, required this.createdAt, required this.type, required this.file, required this.project});
+  AssetX._({required this.id, required this.createdAt, required this.fileType, this.file, this.url, required this.project}) {
+    if (file != null) assetType = AssetType.file;
+    else assetType = AssetType.url;
+  }
 
-  static AssetX create(File file, {
+  static AssetX create({
     required Project project,
-    FileType type = FileType.image,
+    File? file,
+    String? url,
+    FileType fileType = FileType.image,
     BuildInfo buildInfo = BuildInfo.unknown,
     String? id,
   }) {
+    assert(file != null || url != null, 'Either file or url must be provided');
     AssetX asset = AssetX._(
       id: id ?? Constants.generateID(4),
       createdAt: DateTime.now(),
-      type: type,
+      fileType: fileType,
       file: file,
+      url: url,
       project: project
     );
-    if (buildInfo.version != null) asset.history = {buildInfo.version!: file};
+    if (buildInfo.version != null) asset.history = {buildInfo.version!: AssetHistory(version: buildInfo.version!, file: file, url: url, type: asset.assetType)};
     project.assetManager.add(asset);
     return asset;
   }
@@ -50,7 +61,7 @@ class AssetX {
   }) async {
     File? _file = await FilePicker.pick(type: type, crop: crop, cropRatio: cropRatio, context: context);
     if (_file == null) return null;
-    AssetX? asset = AssetX.create(_file, project: project, buildInfo: buildInfo);
+    AssetX? asset = AssetX.create(file: _file, project: project, buildInfo: buildInfo);
     return asset;
   }
   
@@ -70,12 +81,10 @@ class AssetX {
       precache: true,
       context: context
     );
-    return AssetX.create(file, project: project, id: id);
+    return AssetX.create(file: file, project: project, id: id);
   }
 
-  Future<void> delete() async => await file.delete();
-
-  Future<Size?> get dimensions => getDimensions(file);
+  Future<Size?> get dimensions => file != null ? getDimensions(file!) : getDimensionsFromUrl(url!);
 
   static Future<Size?> getDimensions(File file) async {
     try {
@@ -87,49 +96,107 @@ class AssetX {
     }
   }
 
+  static Future<Size?> getDimensionsFromUrl(String imageUrl) async {
+    try {
+      Completer<Size> completer = Completer();
+      ImageStreamListener listener;
+
+      // Define an ImageStreamListener
+      listener = ImageStreamListener((ImageInfo info, bool _) {
+        var myImage = info.image;
+        Size size = Size(myImage.width.toDouble(), myImage.height.toDouble());
+        completer.complete(size);
+      }, onError: (dynamic exception, StackTrace? stackTrace) {
+        completer.completeError(exception, stackTrace);
+      });
+
+      // Load the image
+      var image = Image.network(imageUrl);
+      image.image.resolve(const ImageConfiguration()).addListener(listener);
+
+      return completer.future;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<AssetX> duplicate({
     BuildInfo buildInfo = BuildInfo.unknown
   }) async {
     String _id = Constants.generateID(4);
-    File _file = await file.copy((await getTemporaryDirectory()).path + '/$_id.temp');
-    AssetX asset = AssetX.create(_file, project: project, buildInfo: buildInfo, id: id);
+    AssetX asset;
+    File? _file;
+    if (file != null) {
+      _file = await file!.copy((await getTemporaryDirectory()).path + '/$_id.temp');
+    }
+    asset = AssetX.create(file: _file, url: url, project: project, buildInfo: buildInfo, id: id);
     return asset;
   }
 
   void logVersion({
     required String version,
-    required File file
+    File? file,
+    String? url
   }) {
-    history[version] = file;
+    if (file == null && url == null) return;
+
+    if (file != null) assetType = AssetType.file;
+    else assetType = AssetType.url;
+
     this.file = file;
+    this.url = url;
+
+    history[version] = AssetHistory(
+      version: version,
+      file: file,
+      url: url,
+      type: assetType
+    );
   }
 
   void restoreVersion({
     required String version
   }) {
     if (history.containsKey(version)) {
-      file = history[version]!;
+      file = history[version]!.file;
+      url = history[version]!.url;
     } else if (history.isNotEmpty) {
-      file = history.values.last;
+      file = history.values.last.file;
+      url = history.values.last.url;
     } else {
       return;
     }
   }
 
-  Future<bool> exists() => file.exists();
+  // Future<bool> exists() => file.exists();
 
   Future<Map<String, dynamic>> getCompiled() async {
-    String filename = '$id.${file.path.split('.').last}';
-    file = await file.copy(await pathProvider.generateRelativePath(project.assetSavePath) + filename);
+    await convertToFileType();
+
+    String filename = '$id.${file!.path.split('.').last}';
+    file = await file!.copy(await pathProvider.generateRelativePath(project.assetSavePath) + filename);
 
     return {
       'id': id,
       'file': filename,
-      'url': null,
+      'url': url,
       'created-at': createdAt.millisecondsSinceEpoch,
-      'type': type.type,
+      'file-type': fileType.type,
       'asset-type': assetType.toString().split('.').last
     };
+  }
+
+  Future<void> convertToFileType() async {
+    if (assetType == AssetType.file) return;
+    file = await FilePicker.downloadFile(url!, type: fileType, precache: true);
+    // replace all previous versions with the new file
+    for (String version in history.keys) {
+      if (history[version]!.type == AssetType.url && history[version]!.url == url) {
+        history[version]!.file = file;
+        history[version]!.type = AssetType.file;
+      }
+    }
+    assetType = AssetType.file;
   }
 
   static Future<AssetX> fromCompiled(Map data, {
@@ -150,7 +217,7 @@ class AssetX {
       return AssetX._(
         id: data['id'],
         createdAt: DateTime.fromMillisecondsSinceEpoch(data['created-at']),
-        type: FileType.dynamic.fromString(data['type']),
+        fileType: FileTypeExtension.fromString(data['file-type']),
         file: copiedFile,
         project: project
       );
@@ -196,5 +263,24 @@ extension AssetTypeExtension on AssetType {
         return AssetType.file;
     }
   }
+
+}
+
+class AssetHistory {
+
+  final String version;
+
+  File? file;
+
+  String? url;
+
+  AssetType type;
+
+  AssetHistory({
+    required this.version,
+    this.file,
+    this.url,
+    required this.type
+  });
 
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
+import 'package:provider/provider.dart';
 import '../../../../rehmat.dart';
 
 class Home extends StatefulWidget {
@@ -21,6 +22,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    AuthState authState = Provider.of<AuthState>(context);
     return AdvancedDrawer(
       controller: drawerCtrl,
       backdropColor: Theme.of(context).drawerTheme.backgroundColor,
@@ -48,6 +50,12 @@ class _HomeState extends State<Home> {
                 if (app.remoteConfig.allowCreateProject) IconButton.outlined(
                   onPressed: () => AppRouter.push(context, page: CreateProject()),
                   icon: Icon(RenderIcons.create),
+                ),
+                IconButton.outlined(
+                  onPressed: () async {
+                    print(await authState.user?.getIdToken());
+                  },
+                  icon: Icon(RenderIcons.lab),
                 ),
                 SizedBox(width: 6,),
                 GestureDetector(

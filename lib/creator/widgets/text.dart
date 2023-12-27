@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:align_positioned/align_positioned.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../rehmat.dart';
@@ -75,6 +74,7 @@ class CreatorText extends CreatorWidget {
           title: 'Variable',
           tooltip: 'Change text variable type',
           onTap: (context) async {
+            if (variableTextType == null) variableTextType = _VariableTextType.values.first;
             page.editorManager.openModal(
               tab: (context, setState) => EditorTab.pickerBuilder(
                 title: 'Variable',
@@ -656,7 +656,8 @@ class CreatorText extends CreatorWidget {
       position: position,
       newSize: _newSize,
       prevSize: size,
-      alignment: Alignment.topLeft
+      verticalExpandDirection: verticalExpandDirection,
+      horizontalExpandDirection: horizontalExpandDirection
     );
     size = _newSize;
     _spanSize = _newSpanSize;
@@ -1000,7 +1001,7 @@ class CreatorText extends CreatorWidget {
       ... super.getVariables(),
       'type': 'string',
       'value': text,
-      'variable-type': variableTextType?.name
+      'text-type': variableTextType?.name
     };
   }
 

@@ -147,9 +147,6 @@ class EditorManager extends ChangeNotifier {
                 ),
                 child: Padding(
                   padding: editor.padding ?? EdgeInsets.only(
-                    left: 5,
-                    right: 5,
-                    // top: 20,
                     bottom: Constants.of(context).bottomPadding
                   ),
                   child: _tab.build(context),

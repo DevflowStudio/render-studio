@@ -1,5 +1,4 @@
 import '../../rehmat.dart';
-import 'package:collection/collection.dart';
 
 class History {
 
@@ -44,11 +43,8 @@ class History {
     nextVersion = Constants.generateID();
     if (dates.length >= 20) dates.removeAt(0);
     if (date < dates.length - 1) dates.removeRange(date + 1, dates.length);
-    Function eq =  const DeepCollectionEquality().equals;
-    if (!eq(event, dates.last)) {
-      dates.add(event);
-      date = dates.length - 1;
-    }
+    dates.add(event);
+    date = dates.length - 1;
     page.updateListeners(PageChange.misc);
   }
 

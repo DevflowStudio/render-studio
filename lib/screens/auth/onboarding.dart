@@ -99,7 +99,11 @@ class _OnboardingState extends State<Onboarding> {
                               try {
                                 await AuthState.of(context).signInWithApple();
                               } catch (e) {
-                                Alerts.snackbar(context, text: 'There was an error signing in with Apple.');
+                                Alerts.dialog(
+                                  context,
+                                  title: 'Error',
+                                  content: 'There was an error signing in. Please try again later'
+                                );
                               }
                             },
                           ),
@@ -124,7 +128,11 @@ class _OnboardingState extends State<Onboarding> {
                             try {
                               await AuthState.of(context).signInWithGoogle();
                             } catch (e) {
-                              Alerts.snackbar(context, text: 'There was an error signing in with Google.');
+                              Alerts.dialog(
+                                context,
+                                title: 'Error',
+                                content: 'There was an error signing in. Please try again later'
+                              );
                             }
                           },
                         ),
@@ -137,7 +145,11 @@ class _OnboardingState extends State<Onboarding> {
                               try {
                                 await AuthState.of(context).signInAnonymously();
                               } catch (e) {
-                                Alerts.snackbar(context, text: 'There was an error signing in anonymously.');
+                                Alerts.dialog(
+                                  context,
+                                  title: 'Error',
+                                  content: 'There was an error signing in. Please try again later'
+                                );
                               }
                             },
                             child: Text('Work Anonymously'),

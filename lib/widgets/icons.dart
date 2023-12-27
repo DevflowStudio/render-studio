@@ -37,7 +37,7 @@ abstract class RenderIcons {
 
   static const IconData templates = MaterialSymbols.explore;
 
-  static const IconData lab = Iconsax.shapes;
+  static const IconData lab = CupertinoIcons.lab_flask_solid;
 
   static const IconData sharing = Iconsax.share;
 

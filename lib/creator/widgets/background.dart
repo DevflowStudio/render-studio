@@ -231,20 +231,20 @@ class BackgroundWidget extends CreatorWidget {
                       updateListeners(WidgetChange.update);
                     },
                   ),
-                  Option.button(
-                    icon: RenderIcons.delete,
-                    title: 'Remove Image',
-                    tooltip: 'Tap to remove image',
-                    onTap: (context) async {
-                      asset = null;
-                      imageProvider = null;
-                      isVariableWidget = false;
-                      changeBackgroundType(BackgroundType.color);
-                      updateListeners(WidgetChange.update);
-                    },
-                  ),
-                ]
-              )
+                ],
+              ),
+              actions: (dismiss) => [
+                IconButton(
+                  onPressed: () {
+                    asset = null;
+                    imageProvider = null;
+                    isVariableWidget = false;
+                    changeBackgroundType(BackgroundType.color);
+                    dismiss();
+                  },
+                  icon: Icon(RenderIcons.delete)
+                )
+              ],
             ); else {
               if (page.project.isTemplateX) {
                 isVariableWidget = true;
@@ -253,7 +253,7 @@ class BackgroundWidget extends CreatorWidget {
               File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
               if (file == null) return;
               if (asset == null) {
-                asset = AssetX.create(file, project: page.project);
+                asset = AssetX.create(file: file, project: page.project);
                 imageProvider = CreativeImageProvider.create(this);
               } else {
                 asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
@@ -510,7 +510,6 @@ class BackgroundWidget extends CreatorWidget {
     BuildInfo buildInfo = BuildInfo.unknown
   }) {
     if (asset != null && type != BackgroundType.image && buildInfo.buildType == BuildType.save) {
-      asset!.delete();
       asset = null;
       imageProvider = null;
       isVariableWidget = false;

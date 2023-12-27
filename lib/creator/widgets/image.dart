@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:colorfilter_generator/addons.dart';
 import 'package:colorfilter_generator/presets.dart';
 import 'package:flutter/material.dart';
@@ -319,7 +320,7 @@ class CreativeImageProvider {
       child: OctoImage(
         fadeInCurve: Sprung.overDamped,
         fadeInDuration: Constants.animationDuration,
-        image: FileImage(asset.file),
+        image: asset.assetType == AssetType.file ? FileImage(asset.file!) : CachedNetworkImageProvider(asset.url!) as ImageProvider,
         width: size?.width,
         height: size?.height,
         errorBuilder: (context, error, stackTrace) {
@@ -391,17 +392,70 @@ class ImageWidget extends CreatorWidget {
 
   static Future<void> create(BuildContext context, {
     required CreatorPage page,
-    File? file
+    File? file,
+    AssetX? asset,
   }) async {
     ImageWidget image = ImageWidget(page: page);
-    file ??= await FilePicker.imagePicker(context, crop: true);
-    if (file == null) return;
-    AssetX _asset = await AssetX.create(file, project: page.project, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
+    if (asset == null && file == null) {
+      file = await FilePicker.imagePicker(context, crop: true, forceCrop: false);
+      if (file == null) return;
+      if (page.project.isTemplateX) file = await _templateXCropper(context, file);
+    }
+    if (asset == null) asset = await AssetX.create(file: file, project: page.project, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));;
     image.provider = CreativeImageProvider.create(image);
-    image.asset = _asset;
+    image.asset = asset;
     image.size = page.project.contentSize/2;
     await image.resizeByImage();
     page.widgets.add(image);
+  }
+
+  /// Used to suggest user to crop the image to ratio supported by AI Image Generators (DALL-E 3)
+  static Future<File> _templateXCropper(BuildContext context, File file) async {
+    Size? size = await AssetX.getDimensions(file);
+    if (size == null) return file;
+    double ratio = size.width / size.height;
+    List<double> recommendedRatios = [1, 1024/1792, 1792/1024];
+    if (recommendedRatios.contains(ratio)) return file;
+    Map<String, Map> options = {
+      'Square': {
+        'ratio': 1.0,
+        'ex_size': '1024x1024'
+      },
+      'Portrait': {
+        'ratio': 1024/1792,
+        'ex_size': '1024x1792'
+      },
+      'Landscape': {
+        'ratio': 1792/1024,
+        'ex_size': '1792x1024'
+      }
+    };
+
+    bool crop = await Alerts.showConfirmationDialog(
+      context,
+      title: 'Image Ratio',
+      message: 'Render recommends square, tall or wide ratios for using images in TemplateX. AI generated images are only supported in these ratios. Using other ratios might result in chopped images.',
+      cancelButtonText: 'Use Original',
+      confirmButtonText: 'Crop'
+    );
+    if (!crop) return file;
+
+    String? newRatioString = await Alerts.optionsBuilder(
+      context,
+      title: 'Image Ratio',
+      options: [
+        for (String key in options.keys) AlertOption(
+          title: '$key (${options[key]!['ex_size']})',
+          id: key
+        )
+      ]
+    );
+    if (newRatioString == null) return file;
+
+    double newRatio = options[newRatioString]!['ratio'];
+    File? cropped = await FilePicker.crop(context, file: file, forceCrop: true, ratio: CropAspectRatio(ratioX: newRatio, ratioY: 1));
+
+    return cropped ?? file;
   }
 
   // Inherited
@@ -413,7 +467,7 @@ class ImageWidget extends CreatorWidget {
 
   bool isVariableWidget = true;
 
-  _ImageVariableType imageVariableType = _ImageVariableType.dynamic;
+  _ImageVariableType? imageVariableType;
 
   bool keepAspectRatio = true;
   bool isResizable = true;
@@ -451,6 +505,7 @@ class ImageWidget extends CreatorWidget {
               ),
             );
             if (file == null) return;
+            if (page.project.isTemplateX) file = await _templateXCropper(context, file);
             asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
             await resizeByImage();
             updateListeners(WidgetChange.update, historyMessage: 'Replace Image');
@@ -462,11 +517,12 @@ class ImageWidget extends CreatorWidget {
           title: 'Variable',
           tooltip: 'Change text variable type',
           onTap: (context) async {
+            if (imageVariableType == null) imageVariableType = _ImageVariableType.values.first;
             page.editorManager.openModal(
               tab: (context, setState) => EditorTab.pickerBuilder(
                 title: 'Variability',
                 childCount: _ImageVariableType.values.length,
-                initialIndex: _ImageVariableType.values.indexOf(imageVariableType),
+                initialIndex: _ImageVariableType.values.indexOf(imageVariableType!),
                 itemBuilder: (context, index) {
                   return Text(
                     _ImageVariableType.values[index].title,
@@ -493,11 +549,15 @@ class ImageWidget extends CreatorWidget {
           title: 'Crop',
           tooltip: 'Tap to crop image',
           onTap: (context) async {
-            File? cropped = await FilePicker.crop(context, file: asset!.file);
-            if (cropped == null) return;
-            asset!.logVersion(version: page.history.nextVersion ?? '', file: cropped);
-            await resizeByImage();
-            updateListeners(WidgetChange.update, historyMessage: 'Crop');
+            if (asset!.assetType == AssetType.url) await asset!.convertToFileType();
+            try {
+              File? cropped = await FilePicker.crop(context, file: asset!.file!);
+              if (cropped == null) return;
+              asset!.logVersion(version: page.history.nextVersion ?? '', file: cropped);
+              await resizeByImage();
+              updateListeners(WidgetChange.update, historyMessage: 'Crop');
+            } catch (e) {
+            }
           },
         ),
         Option.showSlider(
@@ -568,11 +628,17 @@ class ImageWidget extends CreatorWidget {
   }
 
   @override
-  Map<String, dynamic> getVariables() => {
-    ... super.getVariables(),
-    'type': 'asset',
-    'asset-type': 'image',
-  };
+  Map<String, dynamic> getVariables() {
+    if (imageVariableType == null) throw 'Image variability not declared';
+    return {
+      ... super.getVariables(),
+      'type': 'asset',
+      'asset-type': 'image',
+    };
+  }
+
+  @override
+  List<String>? getFeatures() => imageVariableType != null ? ['image'] : null;
 
   @override
   Map<String, dynamic> toJSON({
@@ -586,7 +652,7 @@ class ImageWidget extends CreatorWidget {
       ... super.toJSON(buildInfo: buildInfo),
       'radius': _borderRadius,
       'provider': provider.toJSON(),
-      'variable-image-type': imageVariableType.name,
+      'variable-image-type': imageVariableType?.name,
     };
   }
 

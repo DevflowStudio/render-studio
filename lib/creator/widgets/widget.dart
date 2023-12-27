@@ -898,7 +898,12 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     if (data['asset'] != null) asset = page.project.assetManager.get(data['asset']);
 
     if (asset?.history.isEmpty ?? false) {
-      asset!.history[page.history.dates.first.version ?? ''] = asset!.file;
+      asset!.history[page.history.dates.first.version ?? ''] = AssetHistory(
+        version: page.history.dates.first.version ?? '',
+        type: asset!.assetType,
+        file: asset!.file,
+        url: asset!.url,
+      );
     }
 
     verticalExpandDirection = VerticalExpandDirectionExtension.fromString(data['properties']['vertical-expand-direction']);

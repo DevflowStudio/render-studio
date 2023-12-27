@@ -17,7 +17,7 @@ class CreatorDesignAsset extends CreatorWidget {
     CreatorDesignAsset designAsset = CreatorDesignAsset(page: page);
     file ??= await CreatorDesignAsset.buildOptionsForAsset(context, page: page);
     if (file == null) return null;
-    designAsset.asset = AssetX.create(file, project: page.project, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
+    designAsset.asset = AssetX.create(file: file, project: page.project, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));
     page.widgets.add(designAsset);
   }
 
@@ -85,10 +85,13 @@ class CreatorDesignAsset extends CreatorWidget {
   @override
   Widget widget(BuildContext context) => MeasureSize(
     onChange: (size) { },
-    child: SvgPicture.file(
-      asset!.file,
+    child: asset!.assetType == AssetType.file ? SvgPicture.file(
+      asset!.file!,
       colorFilter: color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
-    )
+    ) : SvgPicture.network(
+      asset!.url!,
+      colorFilter: color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null,
+    ),
   );
 
   @override

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -195,7 +196,7 @@ class QRWidget extends CreatorWidget {
     ),
     gapless: gapless,
     padding: padding,
-    embeddedImage: embeddedImage != null ? FileImage(embeddedImage!.file) : null,
+    embeddedImage: embeddedImage != null ? ((embeddedImage!.assetType == AssetType.file ? FileImage(embeddedImage!.file!) : CachedNetworkImageProvider(embeddedImage!.url!)) as ImageProvider) : null,
     embeddedImageStyle: QrEmbeddedImageStyle(
       size: size/5
     ),

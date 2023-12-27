@@ -646,41 +646,14 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
         'title': 'Image',
         'icon': RenderIcons.image,
         'onTap': () async {
-          File? file = await FilePicker.imagePicker(context, crop: true, forceCrop: false);
-          if (file == null) return;
-          await ImageWidget.create(context, page: widget.page, file: file);
+          await ImageWidget.create(context, page: widget.page);
         }
       },
       'design_asset': {
         'title': 'Design Asset',
         'icon': RenderIcons.design_asset,
         'onTap': () async {
-          String? option = await Alerts.optionsBuilder(
-            context,
-            title: 'Design Asset',
-            options: [
-              AlertOption(
-                title: 'Upload SVG',
-                id: 'svg'
-              ),
-              if (app.remoteConfig.enableIconFinder) AlertOption(
-                title: 'Browse Design Assets',
-                id: 'browse'
-              ),
-            ]
-          );
-          File? file;
-          switch (option) {
-            case 'svg':
-              file = await FilePicker.pick(context: context, type: FileType.svg);
-              break;
-            case 'browse':
-              file = await AppRouter.push(context, page: IconFinderScreen(project: widget.page.project));
-              break;
-            default:
-          }
-          if (file == null) return;
-          await CreatorDesignAsset.create(context, page: widget.page, file: file);
+          await CreatorDesignAsset.create(context, page: widget.page);
         }
       },
       'pie-chart': {

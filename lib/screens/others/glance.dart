@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:smooth_corner/smooth_corner.dart';
 import 'package:universal_io/io.dart';
 import '../../../rehmat.dart';
 
@@ -74,8 +75,9 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
                   children: [
                     Hero(
                       tag: 'project-${glance.id}',
-                      child: ClipRRect(
+                      child: SmoothClipRRect(
                         borderRadius: BorderRadius.circular(6),
+                        smoothness: 0.6,
                         child: OctoImage(
                           image: FileImage(File(glance.thumbnail!)),
                           errorBuilder: (context, error, stackTrace) => Material(
@@ -104,8 +106,9 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
                       right: 12,
                       child: FadeOut(
                         delay: Duration(seconds: 3),
-                        child: ClipRRect(
+                        child: SmoothClipRRect(
                           borderRadius: BorderRadius.circular(20),
+                          smoothness: 0.6,
                           child: BackdropFilter(
                             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                             child: Container(

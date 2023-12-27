@@ -289,31 +289,6 @@ class WidgetManager extends ChangeNotifier {
     page.updateListeners(PageChange.misc);
   }
 
-  Future<bool> hasDeletedAssets() async {
-    bool result = false;
-    List<String> uids = List.from(_widgets.keys);
-    for (String uid in uids) {
-      CreatorWidget widget = _widgets[uid]!;
-      if (widget is BackgroundWidget) continue;
-      if (widget is WidgetGroup) {
-        for (CreatorWidget child in widget.widgets) {
-          if (child.asset == null) continue;
-          if (!(await child.asset!.exists())) {
-            widget.ungroup(child.uid);
-            result = true;
-          }
-        }
-      } else {
-        if (widget.asset == null) continue;
-        if (!(await widget.asset!.exists())) {
-          result = true;
-          delete(widget.uid, soft: true);
-        }
-      }
-    }
-    return result;
-  }
-
   void readVariableValues(List<Map<String, dynamic>> values) {
     Map<String, Map<String, dynamic>> mappedValues = {};
     for (Map<String, dynamic> value in values) {

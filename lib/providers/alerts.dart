@@ -88,10 +88,18 @@ class Alerts {
           CupertinoDialogAction(
             child: Text(cancelButtonText),
             onPressed: () => Navigator.of(context).pop(false),
+            textStyle: TextStyle(
+              fontFamily: 'SF Pro',
+              color: Palette.of(context).onBackground
+            ),
           ),
           CupertinoDialogAction(
             child: Text(confirmButtonText),
             onPressed: () => Navigator.of(context).pop(true),
+            textStyle: isDestructive ? null : TextStyle(
+              fontFamily: 'SF Pro',
+              color: Palette.of(context).onBackground
+            ),
             isDestructiveAction: isDestructive,
           )
         ].maybeReverse(isDestructive),
@@ -118,6 +126,10 @@ class Alerts {
         actions: [
           CupertinoDialogAction(
             child: Text(okButtonText),
+            textStyle: TextStyle(
+              fontFamily: 'SF Pro',
+              color: Palette.of(context).onBackground
+            ),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -415,10 +427,18 @@ class Alerts {
         actions: [
           CupertinoDialogAction(
             child: Text(cancelButtonText),
+            textStyle: TextStyle(
+              fontFamily: 'SF Pro',
+              color: Palette.of(context).onBackground
+            ),
             onPressed: () => Navigator.of(context).pop(),
           ),
           CupertinoDialogAction(
             child: Text(confirmButtonText),
+            textStyle: TextStyle(
+              fontFamily: 'SF Pro',
+              color: Palette.of(context).onBackground
+            ),
             onPressed: () => Navigator.of(context).pop(),
           )
         ],

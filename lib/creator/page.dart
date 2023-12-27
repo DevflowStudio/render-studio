@@ -178,7 +178,6 @@ class CreatorPage extends PropertyChangeNotifier {
       page.palette = ColorPalette.fromJSON(data['palette']);
       if (data['page-type'] != null) page.pageType = PageTypeExtension.fromString(data['page-type']);
       page.pageTypeComment = data['page-type-comment'];
-      await page.widgets.hasDeletedAssets();
       return page;
     } on WidgetCreationException catch (e, stacktrace) {
       analytics.logError(e, cause: 'error building page', stacktrace: stacktrace);
