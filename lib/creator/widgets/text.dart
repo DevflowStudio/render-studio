@@ -1006,7 +1006,7 @@ class CreatorText extends CreatorWidget {
   }
 
   @override
-  List<String>? getFeatures() => variableTextType != null ? [variableTextType!.name] : null;
+  List<String>? getFeatures() => variableTextType != null && variableTextType != _VariableTextType.constant && variableTextType != _VariableTextType.custom ? [variableTextType!.name] : null;
 
   @override
   Map<String, dynamic> toJSON({

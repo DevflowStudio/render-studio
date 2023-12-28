@@ -1,7 +1,13 @@
+import 'dart:ui';
+
+import 'package:animate_do/animate_do.dart';
+import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:smooth_corner/smooth_corner.dart';
 import 'package:universal_io/io.dart';
-
+import 'package:pro_animated_blur/pro_animated_blur.dart';
 import '../rehmat.dart';
 
 class Alerts {
@@ -307,20 +313,17 @@ class Alerts {
       backgroundColor: Colors.transparent,
       // barrierColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => ClipRRect(
+      builder: (context) => SmoothClipRRect(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
+        smoothness: 0.6,
         child: StatefulBuilder(
           builder: (context, setState) {
             return Container(
               decoration: BoxDecoration(
                 color: Palette.of(context).background,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
               ),
               constraints: BoxConstraints(
                 minHeight: MediaQuery.of(context).size.height * 0.2,
@@ -365,12 +368,23 @@ class Alerts {
   }
 
   static Future<void> showModal(BuildContext context, {
-    required Widget child
-  }) => Navigator.of(context).push(
-    RenderModalRoute(
-      builder: (context) => child,
-      color: Palette.of(context).background.withOpacity(0.2),
-    )
+    required Widget child,
+    bool isDismissible = true,
+  }) => showGeneralDialog(
+    context: context,
+    pageBuilder: (context, animation, secondaryAnimation) => Material(
+      color: Colors.transparent,
+      child: child
+    ),
+    barrierDismissible: isDismissible,
+    barrierLabel: 'Dismiss',
+    transitionBuilder: (context, animation, animation2, child) => BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 20 * animation.value, sigmaY: 20 * animation.value),
+      child: FadeTransition(
+        child: child,
+        opacity: animation,
+      ),
+    ),
   );
 
   static Future<String?> requestText(BuildContext context, {
@@ -445,6 +459,52 @@ class Alerts {
       ),
     );
     return controller.text;
+  }
+
+  static Future<void> showSuccess(BuildContext context, {
+    Duration duration = const Duration(seconds: 3),
+    String? message
+  }) async {
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PopScope(
+        canPop: false,
+        child: ProAnimatedBlur(
+          blur: 20,
+          duration: kAnimationDuration,
+          child: Container(
+            height: double.infinity,
+            width: double.infinity,
+            color: Palette.of(context).background.withOpacity(0.5),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Lottie.asset(
+                    'assets/animations/success.json',
+                  ),
+                  if (message != null) Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: FadeInUp(
+                      child: Text(
+                        message,
+                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.bold
+                        )
+                      ),
+                    ),
+                  )
+                ],
+              )
+            ),
+          ),
+        ),
+      ),
+    );
+    await Future.delayed(duration, () {
+      Navigator.of(context).pop();
+    });
   }
 
 }

@@ -1,3 +1,5 @@
+import 'package:pro_animated_blur/pro_animated_blur.dart';
+import 'package:smooth_corner/smooth_corner.dart';
 import 'package:universal_io/io.dart';
 import 'dart:ui';
 
@@ -27,27 +29,30 @@ class Spinner extends StatefulWidget {
       Function? onComplete
     }
   ) async {
-    showCupertinoDialog(
+    showGeneralDialog(
       context: context,
-      builder: (context) => PopScope(
+      pageBuilder: (context, animation, secondaryAnimation) => PopScope(
         canPop: false,
         child: Container(
           height: double.infinity,
           width: double.infinity,
           color: Palette.of(context).background.withOpacity(0.25),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Palette.of(context).background,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: const EdgeInsets.all(20),
-                child: Spinner()
-              ),
+          child: Center(
+            child: SmoothContainer(
+              color: Palette.of(context).background,
+              borderRadius: BorderRadius.circular(10),
+              smoothness: 0.6,
+              padding: const EdgeInsets.all(20),
+              child: Spinner()
             ),
           ),
+        ),
+      ),
+      transitionBuilder: (context, animation, animation2, child) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20 * animation.value, sigmaY: 20 * animation.value),
+        child: FadeTransition(
+          child: child,
+          opacity: animation,
         ),
       ),
     );

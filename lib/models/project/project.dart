@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:render_studio/creator/helpers/universal_size_translator.dart';
 import 'package:universal_io/io.dart';
@@ -83,10 +84,32 @@ class Project extends ChangeNotifier {
   Future<void> save(BuildContext context, {
     /// The quality of the exported image. Only used if [saveToGallery] is true
     ExportQuality quality = ExportQuality.onex,
+    /// If `true`, the assets and thumbnails will be uploaded to the cloud and the cloud url will be used instead of the file path
+    bool publish = false,
   }) async {
-    await saveToGallery(context, quality: quality);
+    Map<String, dynamic> data = await getJSON(context: context, publish: publish, quality: quality);
+
+    await manager.save(context, project: this, data: data);
+  }
+
+  Future<Map<String, dynamic>> getJSON({
+    bool publish = false,
+    BuildContext? context,
+    ExportQuality? quality
+  }) async {
+    Future? gallerySaveFuture;
+    if (context != null && quality != null) gallerySaveFuture = saveToGallery(context, quality: quality);
+    
+    Future<Map<String, dynamic>> assetsFuture = assetManager.getCompiled(upload: publish);
+
+    if (gallerySaveFuture != null) {
+      await Future.wait([gallerySaveFuture, assetsFuture]);
+    } else {
+      await assetsFuture;
+    }
 
     thumbnail = images.firstOrNull;
+    Map<String, dynamic> assets = await assetsFuture;
 
     List<Map<String, dynamic>> pageData = [];
 
@@ -94,9 +117,7 @@ class Project extends ChangeNotifier {
       pageData.add(page.toJSON(BuildInfo(buildType: BuildType.save)));
     }
 
-    Map<String, dynamic> assets = await assetManager.getCompiled();
-
-    Map<String, dynamic> data = {
+    return {
       'id': id,
       'title': title,
       'description': description,
@@ -113,9 +134,6 @@ class Project extends ChangeNotifier {
       'images': images,
       'thumbnail': thumbnail,
     };
-
-    await manager.save(context, project: this, data: data);
-    
   }
 
   static Future<Project?> fromSave({

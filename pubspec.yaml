@@ -128,6 +128,7 @@ dependencies:
   blur: ^3.1.0
   pull_down_button: ^0.9.3
   encrypt: ^5.0.3
+  pro_animated_blur: ^0.0.2+1
 
 dev_dependencies:
   flutter_test:

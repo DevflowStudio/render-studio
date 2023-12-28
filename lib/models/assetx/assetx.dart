@@ -170,15 +170,20 @@ class AssetX {
 
   // Future<bool> exists() => file.exists();
 
-  Future<Map<String, dynamic>> getCompiled() async {
-    await convertToFileType();
+  Future<Map<String, dynamic>> getCompiled({
+    bool returnFile = true
+  }) async {
+    String? filename;
 
-    String filename = '$id.${file!.path.split('.').last}';
-    file = await file!.copy(await pathProvider.generateRelativePath(project.assetSavePath) + filename);
+    if (returnFile) {
+      await convertToFileType();
+      filename = '$id.${file!.path.split('.').last}';
+      file = await file!.copy(await pathProvider.generateRelativePath(project.assetSavePath) + filename);
+    }
 
     return {
       'id': id,
-      'file': filename,
+      if (returnFile) 'file': filename,
       'url': url,
       'created-at': createdAt.millisecondsSinceEpoch,
       'file-type': fileType.type,
@@ -197,6 +202,14 @@ class AssetX {
       }
     }
     assetType = AssetType.file;
+  }
+
+  Future<File> getFile() async {
+    if (file != null) return file!;
+    else {
+      await convertToFileType();
+      return file!;
+    }
   }
 
   static Future<AssetX> fromCompiled(Map data, {

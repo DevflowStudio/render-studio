@@ -152,6 +152,12 @@ class AppTheme {
           ),
         )
       ),
+      checkboxTheme: CheckboxThemeData(
+        visualDensity: VisualDensity.compact,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+      ),
       buttonTheme: ButtonThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(kBorderRadius)

@@ -286,9 +286,11 @@ class _RenderButtonState extends State<_RenderButton> {
             shape: SmoothRectangleBorder(
               borderRadius: BorderRadius.circular(40),
               smoothness: 0.6,
-              side: widget.border ?? BorderSide.none
+              side: widget.border?.copyWith(
+                color: widget.border?.color.withOpacity(widget.disabled ? 0.5 : 1)
+              ) ?? BorderSide.none
             ),
-            color: widget.backgroundColor,
+            color: widget.backgroundColor.withOpacity(widget.disabled ? 0.5 : 1),
           ),
           child: DefaultTextStyle(
             style: textStyle!.copyWith(

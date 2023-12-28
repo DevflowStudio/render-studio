@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:render_studio/models/cloud.dart';
 import 'package:universal_io/io.dart';
 
 import '../../rehmat.dart';
@@ -20,7 +22,10 @@ class AssetManagerX {
   }
 
   /// Compiles each asset from the [assets] map into a JSON object, parallelly
-  Future<Map<String, dynamic>> getCompiled() async {
+  Future<Map<String, dynamic>> getCompiled({
+    /// Uploads the assets to the cloud and returns the cloud url instead of the file path
+    bool upload = false
+  }) async {
     List<Future<MapEntry<String, dynamic>>> futures = [];
 
     List<AssetX> usedAssets = _getUsedAssets();
@@ -30,8 +35,29 @@ class AssetManagerX {
     // Saves space by deleting unused assets
     await deleteProjectAssets();
 
+    if (upload) {
+      Map<String, dynamic> formDataMap = {
+        'id': project.id,
+        'files': []
+      };
+      
+      for (AssetX asset in usedAssets) {
+        String filePath = (await asset.getFile()).path;
+        String fileName = '${asset.id}';
+
+        formDataMap['files'].add(await MultipartFile.fromFile(filePath, filename: fileName));
+      }
+
+      Response response = await Cloud.post('template/upload-assets', data: FormData.fromMap(formDataMap));
+      print(response.data);
+      for (String url in response.data['assets']) {
+        String id = url.split('/').last.split('.').first;
+        assets[id]!.url = url;
+      }
+    }
+
     for (AssetX asset in usedAssets) {
-      var future = asset.getCompiled()
+      var future = asset.getCompiled(returnFile: !upload)
         .then((compiled) => MapEntry(asset.id, compiled));
       futures.add(future);
     }

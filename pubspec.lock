@@ -1592,6 +1592,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0+2"
+  pro_animated_blur:
+    dependency: "direct main"
+    description:
+      name: pro_animated_blur
+      sha256: "2a4506266b743939758425a6ac28d249365ccdf3d7fc159675832c3c156d8300"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2+1"
   property_change_notifier:
     dependency: "direct main"
     description:
