@@ -1,4 +1,3 @@
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:smooth_corner/smooth_corner.dart';
@@ -102,27 +101,21 @@ class _ProjectPageViewState extends State<ProjectPageView> {
                         ),
                       ),
                     ),
-                    if (selections.contains(index)) Positioned(
+                    Positioned(
                       top: 12,
                       right: 12,
-                      child: FadeInUp(
-                        from: 20,
-                        duration: Duration(milliseconds: 150),
+                      child: Visibility(
+                        visible: selections.contains(index),
                         child: Container(
+                          padding: EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             color: Palette.of(context).primary,
                             borderRadius: BorderRadius.circular(20)
                           ),
-                          child: SizedBox(
-                            width: 25,
-                            height: 25,
-                            child: Center(
-                              child: Icon(
-                                RenderIcons.done,
-                                color: Palette.of(context).onPrimary,
-                                size: 15,
-                              ),
-                            ),
+                          child: Icon(
+                            RenderIcons.done,
+                            color: Palette.of(context).onPrimary,
+                            size: 15,
                           )
                         ),
                       ),

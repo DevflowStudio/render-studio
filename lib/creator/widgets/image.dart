@@ -399,7 +399,14 @@ class ImageWidget extends CreatorWidget {
     if (asset == null && file == null) {
       file = await FilePicker.imagePicker(context, crop: true, forceCrop: false);
       if (file == null) return;
-      if (page.project.isTemplateX) file = await _templateXCropper(context, file);
+      if (page.project.isTemplateKit) {
+        String? matchedSize = await matchToRecommenedRatio(file);
+        if (matchedSize == null) {
+          file = await _templateKitCropper(context, file);
+          matchedSize = await matchToRecommenedRatio(file);
+        }
+        image.imageVariableSize = matchedSize;
+      }
     }
     if (asset == null) asset = await AssetX.create(file: file, project: page.project, buildInfo: BuildInfo(buildType: BuildType.unknown, version: page.history.nextVersion));;
     image.provider = CreativeImageProvider.create(image);
@@ -409,13 +416,22 @@ class ImageWidget extends CreatorWidget {
     page.widgets.add(image);
   }
 
-  /// Used to suggest user to crop the image to ratio supported by AI Image Generators (DALL-E 3)
-  static Future<File> _templateXCropper(BuildContext context, File file) async {
+  static Future<String?> matchToRecommenedRatio(File file) async {
     Size? size = await AssetX.getDimensions(file);
-    if (size == null) return file;
+    if (size == null) return null;
     double ratio = size.width / size.height;
-    List<double> recommendedRatios = [1, 1024/1792, 1792/1024];
-    if (recommendedRatios.contains(ratio)) return file;
+    Map<double, String> ratioMap = {
+      1: '1024x1024',
+      1024/1792: '1024x1792',
+      1792/1024: '1792x1024'
+    };
+    if (ratioMap.containsKey(ratio)) return ratioMap[ratio];
+    return null;
+  }
+
+  /// Used to suggest user to crop the image to ratio supported by AI Image Generators (DALL-E 3)
+  static Future<File> _templateKitCropper(BuildContext context, File file) async {
+    if (await matchToRecommenedRatio(file) != null) return file;
     Map<String, Map> options = {
       'Square': {
         'ratio': 1.0,
@@ -434,7 +450,7 @@ class ImageWidget extends CreatorWidget {
     bool crop = await Alerts.showConfirmationDialog(
       context,
       title: 'Image Ratio',
-      message: 'Render recommends square, tall or wide ratios for using images in TemplateX. AI generated images are only supported in these ratios. Using other ratios might result in chopped images.',
+      message: 'Render recommends square, tall or wide ratios for using images in Template Kit. AI generated images are only supported in these ratios. Using other ratios might result in chopped images.',
       cancelButtonText: 'Use Original',
       confirmButtonText: 'Crop'
     );
@@ -468,6 +484,7 @@ class ImageWidget extends CreatorWidget {
   bool isVariableWidget = true;
 
   _ImageVariableType? imageVariableType;
+  String? imageVariableSize;
 
   bool keepAspectRatio = true;
   bool isResizable = true;
@@ -505,7 +522,10 @@ class ImageWidget extends CreatorWidget {
               ),
             );
             if (file == null) return;
-            if (page.project.isTemplateX) file = await _templateXCropper(context, file);
+            if (page.project.isTemplateKit) {
+              file = await _templateKitCropper(context, file);
+              imageVariableSize = await matchToRecommenedRatio(file);
+            }
             asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
             await resizeByImage();
             updateListeners(WidgetChange.update, historyMessage: 'Replace Image');
@@ -517,7 +537,10 @@ class ImageWidget extends CreatorWidget {
           title: 'Variable',
           tooltip: 'Change text variable type',
           onTap: (context) async {
-            if (imageVariableType == null) imageVariableType = _ImageVariableType.values.first;
+            if (imageVariableType == null) {
+              imageVariableType = _ImageVariableType.constant;
+              isVariableWidget = false;
+            }
             page.editorManager.openModal(
               tab: (context, setState) => EditorTab.pickerBuilder(
                 title: 'Variability',
@@ -634,11 +657,12 @@ class ImageWidget extends CreatorWidget {
       ... super.getVariables(),
       'type': 'asset',
       'asset-type': 'image',
+      'size': imageVariableSize ?? '1012x1024',
     };
   }
 
   @override
-  List<String>? getFeatures() => imageVariableType != null ? ['image'] : null;
+  List<String>? getFeatures() => imageVariableType != null && imageVariableType != _ImageVariableType.constant ? ['image'] : null;
 
   @override
   Map<String, dynamic> toJSON({
@@ -681,7 +705,7 @@ class ImageWidget extends CreatorWidget {
 
 }
 
-/// Used by TemplateX AI to generate images for this widget, if the selected type is dynamic
+/// Used by Template Kit AI to generate images for this widget, if the selected type is dynamic
 enum _ImageVariableType {
   dynamic,
   constant

@@ -1,4 +1,3 @@
-import 'package:pro_animated_blur/pro_animated_blur.dart';
 import 'package:smooth_corner/smooth_corner.dart';
 import 'package:universal_io/io.dart';
 import 'dart:ui';

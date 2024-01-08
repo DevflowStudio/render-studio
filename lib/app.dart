@@ -65,6 +65,13 @@ class App {
     }
   }
 
+  /// Executes a list of async functions parallely and returns a list of their results
+  static Future<List<T>> executeAsyncFunctions<T>(List<Future<T> Function()> asyncFunctions) async {
+    var futures = asyncFunctions.map((asyncFunc) => asyncFunc()).toList();
+
+    return await Future.wait(futures);
+  }
+
 }
 
 enum Flavor {

@@ -9,9 +9,10 @@ extension ListsExtension<T> on List<T> {
     if (item != null) this.add(item);
   }
 
-  T getRandom() {
+  T getRandom({T? avoid}) {
     int lth = length;
     int random = Random().nextInt(lth);
+    if (avoid != null && this[random] == avoid) return getRandom(avoid: avoid);
     return this[random];
   }
 

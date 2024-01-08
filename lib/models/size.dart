@@ -6,21 +6,25 @@ import '../rehmat.dart';
 
 class PostSize {
 
-  PostSize(this.size, this.title, this.icon);
+  PostSize(this.size, this.type, this.icon);
 
   final Size size;
-  final String title;
+  final PostSizePresets type;
   final IconData icon;
 
   CropAspectRatio get cropRatio {
     return CropAspectRatio(ratioY: 1 / size.width, ratioX: 1 / size.height);
   }
 
-  static PostSize custom({
-    required double width,
-    required double height,
-  }) {
-    return PostSize(Size(width, height), 'Custom', FontAwesomeIcons.square);
+  Map<String, dynamic> toJSON() => {
+    'width': size.width,
+    'height': size.height,
+    'type': type.name
+  };
+
+  factory PostSize.fromJSON(Map data) {
+    PostSizePresets preset = PostSizePresetsExtension.fromName(data['type']);
+    return PostSize(Size(data['width'], data['height']), preset, preset.icon);
   }
 
 }
@@ -135,8 +139,70 @@ extension PostSizePresetsExtension on PostSizePresets {
     }
   }
 
+  String get name {
+    switch (this) {
+      case PostSizePresets.square:
+        return 'square';
+      case PostSizePresets.landscape:
+        return 'landscape';
+      case PostSizePresets.instagram:
+        return 'instagram';
+      case PostSizePresets.instagramStory:
+        return 'instagram-story';
+      case PostSizePresets.instagramPortrait:
+        return 'instagram-portrait';
+      case PostSizePresets.instagramLandscape:
+        return 'instagram-landscape';
+      case PostSizePresets.facebook:
+        return 'facebook';
+      case PostSizePresets.pinterest:
+        return 'pinterest';
+      case PostSizePresets.youtubeThumbnail:
+        return 'youtube-thumbnail';
+      case PostSizePresets.linkedInPost:
+        return 'linkedin-post';
+      case PostSizePresets.linkedInPostMobile:
+        return 'linkedin-post-mobile';
+      case PostSizePresets.snapchatStory:
+        return 'snapchat-story';
+      default:
+        return 'rectangle';
+    }
+  }
+
+  static PostSizePresets fromName(String name) {
+    switch (name) {
+      case 'square':
+        return PostSizePresets.square;
+      case 'landscape':
+        return PostSizePresets.landscape;
+      case 'instagram':
+        return PostSizePresets.instagram;
+      case 'instagram-story':
+        return PostSizePresets.instagramStory;
+      case 'instagram-portrait':
+        return PostSizePresets.instagramPortrait;
+      case 'instagram-landscape':
+        return PostSizePresets.instagramLandscape;
+      case 'facebook':
+        return PostSizePresets.facebook;
+      case 'pinterest':
+        return PostSizePresets.pinterest;
+      case 'youtube-thumbnail':
+        return PostSizePresets.youtubeThumbnail;
+      case 'linkedin-post':
+        return PostSizePresets.linkedInPost;
+      case 'linkedin-post-mobile':
+        return PostSizePresets.linkedInPostMobile;
+      case 'snapchat-story':
+        return PostSizePresets.snapchatStory;
+      default:
+        return PostSizePresets.landscape;
+    }
+  }
+
   PostSize toSize() {
-    return PostSize(size, title, icon);
+    return PostSize(size, this, icon);
   }
 
 }

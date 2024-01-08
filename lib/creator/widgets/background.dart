@@ -21,9 +21,6 @@ class BackgroundWidget extends CreatorWidget {
   @override
   bool allowClipboard = false;
 
-  // New to BackgroundWidget
-
-  /// Color of the page background
   Color color = Colors.white;
 
   CreativeGradient? gradient;
@@ -54,7 +51,90 @@ class BackgroundWidget extends CreatorWidget {
         //     animateBorderRadius: false
         //   ),
         // ),
-        if (page.project.isTemplateX && page.project.pages.length > 1) ... [
+        Option.button(
+          icon: RenderIcons.palette,
+          title: 'Palette',
+          tooltip: 'Tap to shuffle palette',
+          onTap: (context) async {
+            bool hasChanged = false;
+            page.editorManager.openModal(
+              tab: (context, setState) => EditorTab.palette(
+                page: page,
+                onSelected: (palette) {
+                  page.updatePalette(palette);
+                  hasChanged = true;
+                  updateListeners(WidgetChange.misc);
+                },
+              ),
+              padding: EdgeInsets.only(
+                left: 6,
+                right: 6,
+                top: 6,
+                bottom: Constants.of(context).bottomPadding
+              ),
+              onDismiss: () {
+                if (hasChanged) updateListeners(WidgetChange.update, historyMessage: 'Change Palette');
+              }
+            );
+          },
+        ),
+        Option.button(
+          icon: RenderIcons.image,
+          title: (asset != null && imageProvider != null) ? 'Edit Image' : 'Add Image',
+          tooltip: (asset != null && imageProvider != null) ? 'Edit background image' : 'Tap to add an image to the background',
+          onTap: (context) async {
+            if (asset != null && imageProvider != null) page.editorManager.openModal(
+              tab: (context, setState) => imageProvider!.editor(
+                asset!,
+                onChange: (change) {
+                  updateListeners(change);
+                },
+                name: 'Image Editor',
+                options: [
+                  Option.button(
+                    icon: RenderIcons.image,
+                    title: 'Replace',
+                    tooltip: 'Tap to replace image',
+                    onTap: (context) async {
+                      File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
+                      if (file == null) return;
+                      asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
+                      updateListeners(WidgetChange.update);
+                    },
+                  ),
+                ],
+              ),
+              actions: (dismiss) => [
+                IconButton(
+                  onPressed: () {
+                    asset = null;
+                    imageProvider = null;
+                    isVariableWidget = false;
+                    changeBackgroundType(BackgroundType.color);
+                    dismiss();
+                  },
+                  icon: Icon(RenderIcons.delete)
+                )
+              ],
+            ); else {
+              if (page.project.isTemplateKit) {
+                isVariableWidget = true;
+                Alerts.snackbar(context, text: 'You have added an image to the background. The asset will be treated as a variable. You can change this in the "Variable" button.');
+              }
+              File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
+              if (file == null) return;
+              if (asset == null) {
+                asset = AssetX.create(file: file, project: page.project);
+                imageProvider = CreativeImageProvider.create(this);
+              } else {
+                asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
+              }
+              changeBackgroundType(BackgroundType.image);
+              updateListeners(WidgetChange.update);
+            }
+          },
+        ),
+        if (page.project.isTemplateKit && page.project.pages.length > 1) ... [
           Option.button(
             title: 'Type',
             tooltip: 'Label the page type',
@@ -100,33 +180,6 @@ class BackgroundWidget extends CreatorWidget {
             icon: RenderIcons.comment
           ),
         ],
-        Option.button(
-          icon: RenderIcons.palette,
-          title: 'Palette',
-          tooltip: 'Tap to shuffle palette',
-          onTap: (context) async {
-            bool hasChanged = false;
-            page.editorManager.openModal(
-              tab: (context, setState) => EditorTab.palette(
-                page: page,
-                onSelected: (palette) {
-                  page.updatePalette(palette);
-                  hasChanged = true;
-                  updateListeners(WidgetChange.misc);
-                },
-              ),
-              padding: EdgeInsets.only(
-                left: 6,
-                right: 6,
-                top: 6,
-                bottom: Constants.of(context).bottomPadding
-              ),
-              onDismiss: () {
-                if (hasChanged) updateListeners(WidgetChange.update, historyMessage: 'Change Palette');
-              }
-            );
-          },
-        ),
         Option.color(
           this,
           palette: page.palette,
@@ -184,7 +237,7 @@ class BackgroundWidget extends CreatorWidget {
           },
           icon: RenderIcons.gradient
         ),
-        if (asset != null && imageProvider != null && page.project.isTemplateX) Option.button(
+        if (asset != null && imageProvider != null && page.project.isTemplateKit) Option.button(
           icon: RenderIcons.variable,
           title: 'Variable',
           onTap: (context) async {
@@ -206,62 +259,6 @@ class BackgroundWidget extends CreatorWidget {
             );
           },
           tooltip: 'Toggle variablility of background image',
-        ),
-        Option.button(
-          icon: RenderIcons.image,
-          title: (asset != null && imageProvider != null) ? 'Edit Image' : 'Add Image',
-          tooltip: (asset != null && imageProvider != null) ? 'Edit background image' : 'Tap to add an image to the background',
-          onTap: (context) async {
-            if (asset != null && imageProvider != null) page.editorManager.openModal(
-              tab: (context, setState) => imageProvider!.editor(
-                asset!,
-                onChange: (change) {
-                  updateListeners(change);
-                },
-                name: 'Image Editor',
-                options: [
-                  Option.button(
-                    icon: RenderIcons.image,
-                    title: 'Replace',
-                    tooltip: 'Tap to replace image',
-                    onTap: (context) async {
-                      File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
-                      if (file == null) return;
-                      asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
-                      updateListeners(WidgetChange.update);
-                    },
-                  ),
-                ],
-              ),
-              actions: (dismiss) => [
-                IconButton(
-                  onPressed: () {
-                    asset = null;
-                    imageProvider = null;
-                    isVariableWidget = false;
-                    changeBackgroundType(BackgroundType.color);
-                    dismiss();
-                  },
-                  icon: Icon(RenderIcons.delete)
-                )
-              ],
-            ); else {
-              if (page.project.isTemplateX) {
-                isVariableWidget = true;
-                Alerts.snackbar(context, text: 'You have added an image to the background. The asset will be treated as a variable. You can change this in the "Variable" button.');
-              }
-              File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
-              if (file == null) return;
-              if (asset == null) {
-                asset = AssetX.create(file: file, project: page.project);
-                imageProvider = CreativeImageProvider.create(this);
-              } else {
-                asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
-              }
-              changeBackgroundType(BackgroundType.image);
-              updateListeners(WidgetChange.update);
-            }
-          },
         ),
         Option.button(
           icon: RenderIcons.resize,
@@ -468,7 +465,7 @@ class BackgroundWidget extends CreatorWidget {
         break;
       case BackgroundType.image:
         gradient = null;
-        isVariableWidget = page.project.isTemplateX;
+        isVariableWidget = page.project.isTemplateKit;
         break;
       default:
     }
@@ -483,7 +480,7 @@ class BackgroundWidget extends CreatorWidget {
 
   @override
   List<String>? getFeatures() {
-    if (isVariableWidget) return ['background-image'];
+    if (isVariableWidget) return ['image'];
     return null;
   }
 
@@ -499,11 +496,20 @@ class BackgroundWidget extends CreatorWidget {
   }
 
   @override
-  Map<String, dynamic> getVariables() => {
-    ... super.getVariables(),
-    'type': 'asset',
-    'asset-type': 'image',
-  };
+  Map<String, dynamic> getVariables() {
+    List<String> availableSizes = ['1024x1024', '1024x1792', '1792x1024'];
+    Size size = page.project.size.size;
+    String sizeString = '${size.width.toInt()}x${size.height.toInt()}';
+    if (!availableSizes.contains(sizeString)) {
+      sizeString = '1024x1024';
+    }
+    return {
+      ... super.getVariables(),
+      'type': 'asset',
+      'asset-type': 'image',
+      'size': sizeString,
+    };
+  }
 
   @override
   Map<String, dynamic> toJSON({

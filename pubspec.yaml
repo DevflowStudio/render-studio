@@ -138,11 +138,11 @@ dev_dependencies:
   # flutter_lints: ^1.0.0
 
 ## Generate app icons for Android and iOS
-## Run command: flutter pub run flutter_launcher_icons:main
-flutter_icons:
+## Run command: flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icon.png"
+  image_path: "assets/icons/starry.png"
   remove_alpha_ios: true
   min_sdk_android: 21
 
@@ -160,7 +160,7 @@ flutter:
   assets:
     - assets/render.env
     - assets/images/
-    - assets/icon.png
+    - assets/icons/
     - assets/fonts/
     - assets/animations/
 

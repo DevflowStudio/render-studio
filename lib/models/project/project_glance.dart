@@ -34,7 +34,7 @@ class ProjectGlance {
 
   DateTime? get edited => data['meta']['edited'] != null ? DateTime.fromMillisecondsSinceEpoch(data['meta']['edited']) : DateTime.now();
 
-  PostSize get size => PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
+  PostSize get size => PostSize.fromJSON(data['size']);
 
   bool get isTemplate => data['is-template'] ?? false;
 

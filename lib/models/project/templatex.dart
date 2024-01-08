@@ -7,12 +7,11 @@ import 'package:sprung/sprung.dart';
 
 import '../../rehmat.dart';
 
-class TemplateX {
+class TemplateKit {
 
   static (List<Map<String, dynamic>>, List<String>) buildTemplateData(Project project) {
     List<Map<String, dynamic>> pageData = [];
     List<String> projectFeatures = [];
-
 
     for (CreatorPage page in project.pages.pages) {
 
@@ -46,9 +45,12 @@ class TemplateX {
           _handleWidget(widget);
         }
       }
+
+      features.addAll([project.size.type.name, '${project.size.size.width.toInt()}x${project.size.size.height.toInt()}']);
       
       projectFeatures.addAll(features);
       pageData.add({
+        'id': page.id,
         'type': page.pageType?.name,
         'features': features,
         'variables': variables,
@@ -71,9 +73,22 @@ class TemplateX {
       task: () async {
         try {
           var (pageData, features) = buildTemplateData(project);
-          Map<String, dynamic> data = await project.getJSON(publish: true, context: context, quality: ExportQuality.twox);
+          Map<String, dynamic> rawData = await project.getJSON(publish: true, context: context, quality: ExportQuality.twox);
+          await project.save(context, exportImages: false);
+
+          Map<String, dynamic> data = Map.from(rawData);
+          data['assets'] = AssetManagerX.cleanFileFromAssets(data['assets']);
+
           data['features'] = features;
-          data['template-x'] = pageData;
+          data['template-kit'] = {
+            'id': project.id,
+            'size': {
+              'width': project.size.size.width,
+              'height': project.size.size.height,
+              'name': '${project.size.size.width}x${project.size.size.height}'
+            },
+            'pages': pageData
+          };
 
           Map<String, dynamic> formData = {
             "template": json.encode(data),
@@ -84,8 +99,6 @@ class TemplateX {
             String path = await pathProvider.generateRelativePath('${project.imagesSavePath}$_path');
             formData['images'].add(await MultipartFile.fromFile(path, filename: 'image-${Constants.generateID()}.png'));
           }
-
-          print(formData);
 
           await Cloud.post(
             'template/publish',
@@ -120,7 +133,7 @@ class TemplateX {
 }
 
 class _ConfirmationDialog extends StatefulWidget {
-  const _ConfirmationDialog({super.key});
+  const _ConfirmationDialog();
 
   @override
   State<_ConfirmationDialog> createState() => __ConfirmationDialogState();

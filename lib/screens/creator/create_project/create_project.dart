@@ -25,7 +25,7 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
 
   bool isTemplate = false;
 
-  bool isTemplateX = true;
+  bool isTemplateKit = true;
 
   int page = 0;
 
@@ -149,11 +149,11 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
                       setTitle();
                     });
                   },
-                  isTemplateX: isTemplateX,
-                  onTemplateXChanged: (value) {
+                  isTemplateKit: isTemplateKit,
+                  onTemplateKitChanged: (value) {
                     TapFeedback.light();
                     setState(() {
-                      isTemplateX = value;
+                      isTemplateKit = value;
                     });
                   },
                 ),
@@ -244,7 +244,7 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
         return;
       }
       if (isTemplate || selectedTemplate == null) {
-        project = Project.create(context, title: title, description: description, isTemplate: isTemplate, isTemplateX: isTemplateX && isTemplate);
+        project = Project.create(context, title: title, description: description, isTemplate: isTemplate, isTemplateKit: isTemplateKit && isTemplate);
       } else {
         project = await Project.fromTemplate(context, uid: selectedTemplate!, title: title, description: description);
       }

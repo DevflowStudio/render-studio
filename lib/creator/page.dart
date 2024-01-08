@@ -29,6 +29,7 @@ class CreatorPage extends PropertyChangeNotifier {
     }
 
     if (data == null) {
+      id = generateID();
       widgets = WidgetManager.create(this, data: data);
       editorManager = EditorManager.create(this);
       buildWidgets();
@@ -45,6 +46,8 @@ class CreatorPage extends PropertyChangeNotifier {
   ScreenshotController screenshotController = ScreenshotController();
   
   final Project project;
+
+  late final String id;
 
   /// List of all the widgets in the page
   late WidgetManager widgets;
@@ -161,6 +164,7 @@ class CreatorPage extends PropertyChangeNotifier {
   }
 
   Map<String, dynamic> toJSON([BuildInfo buildInfo = BuildInfo.unknown]) => {
+    'id': id,
     ... widgets.toJSON(buildInfo),
     'palette': palette.toJSON(),
     'page-type': pageType?.name,
@@ -175,6 +179,8 @@ class CreatorPage extends PropertyChangeNotifier {
   }) async {
     try {
       CreatorPage page = CreatorPage(project: project, data: data);
+      if (data['id'] != null) page.id = data['id'];
+      else page.id = generateID();
       page.palette = ColorPalette.fromJSON(data['palette']);
       if (data['page-type'] != null) page.pageType = PageTypeExtension.fromString(data['page-type']);
       page.pageTypeComment = data['page-type-comment'];
@@ -185,6 +191,8 @@ class CreatorPage extends PropertyChangeNotifier {
       return null;
     }
   }
+
+  static String generateID() => 'page#${Constants.generateID(4)}';
 
 }
 
@@ -275,7 +283,7 @@ class __PageZoomableViewerState extends State<_PageZoomableViewer> {
 
 }
 
-/// The type of page, used in TemplateX to help AI determine the type of content to generate for the page
+/// The type of page, used in TemplateKit to help AI determine the type of content to generate for the page
 enum PageType {
   introduction,
   content,

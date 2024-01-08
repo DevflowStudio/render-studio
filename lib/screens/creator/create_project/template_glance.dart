@@ -45,26 +45,20 @@ class TemplateGlance extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(3.0),
             child: SmoothClipRRect(
-              smoothness: 0.5,
+              smoothness: 0.6,
               borderRadius: BorderRadius.circular(15),
               child: glance != null ? OctoImage(
                 image: FileImage(File(glance!.thumbnail ?? '')),
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Material(
+                  color: Palette.of(context).surfaceVariant,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 20,
                       horizontal: 20
                     ),
                     child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(RenderIcons.warning),
-                          SizedBox(height: 3),
-                          const Text('Preview Unavailable'),
-                        ],
-                      ),
+                      child: const Icon(RenderIcons.warning),
                     ),
                   ),
                 ),
@@ -169,7 +163,7 @@ class EmptyTemplateGlance extends StatelessWidget {
             Positioned(
               right: 5,
               top: 5,
-              child: AnimatedBlurVisibility(
+              child: Visibility(
                 visible: isSelected,
                 child: Container(
                   decoration: BoxDecoration(

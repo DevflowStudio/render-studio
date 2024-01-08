@@ -57,16 +57,17 @@ class CreatorText extends CreatorWidget {
           },
           icon: RenderIcons.keyboard
         ),
-        if (app.flavor == Flavor.dev) Option.button(
-          title: 'Random Text',
-          tooltip: 'Edit text',
+        if (page.project.isTemplateKit) Option.button(
+          title: 'Test New Text',
+          tooltip: 'Test alignment by randomizing text value',
           onTap: (context) async {
             editText(text: [
-              "One Line",
-              "Two\nLines",
-              "Three\nLines\nHere",
-              "Loooooooong Line",
-            ].getRandom());
+              'Hello World',
+              'This is a test',
+              'This is a long text to test the alignment of the text widget',
+              'Single line text',
+              'Multi line text\nThis is a new line',
+            ].getRandom(avoid: text));
           },
           icon: RenderIcons.refresh
         ),
@@ -1000,7 +1001,7 @@ class CreatorText extends CreatorWidget {
     return {
       ... super.getVariables(),
       'type': 'string',
-      'value': text,
+      // 'value': text,
       'text-type': variableTextType?.name
     };
   }
@@ -1519,4 +1520,4 @@ extension VariableTextTypeExtension on _VariableTextType {
         return null;
     }
   }
-}     
+}

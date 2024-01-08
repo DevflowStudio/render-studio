@@ -119,13 +119,7 @@ class _StudioState extends State<Studio> with TickerProviderStateMixin {
     await project.save(context, quality: quality);
     _lastSaved = DateTime.now();
     setState(() => isLoading = false);
-    Alerts.snackbar(context, text: [
-      'Woohoo! The images have been saved to your gallery.',
-      'The images have been saved to your gallery.',
-      'Project saved!',
-      'Project saved! The images have been added to your gallery.',
-      if (quality == ExportQuality.fourx) 'High quality images have been saved to your gallery.'
-    ].getRandom());
+    Alerts.showSuccess(context, message: 'Saved', asset: 'assets/animations/success-2.json');
   }
 
 }

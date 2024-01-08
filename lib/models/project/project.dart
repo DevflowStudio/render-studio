@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:render_studio/creator/helpers/universal_size_translator.dart';
 import 'package:universal_io/io.dart';
@@ -31,8 +30,8 @@ class Project extends ChangeNotifier {
 
   late bool isTemplate;
 
-  /// A TemplateX is a template that can be used to create posts using AI generated content
-  late bool isTemplateX;
+  /// A Template Kit is a template that can be used to create posts using AI generated content
+  late bool isTemplateKit;
 
   late PostSize size;
 
@@ -84,10 +83,9 @@ class Project extends ChangeNotifier {
   Future<void> save(BuildContext context, {
     /// The quality of the exported image. Only used if [saveToGallery] is true
     ExportQuality quality = ExportQuality.onex,
-    /// If `true`, the assets and thumbnails will be uploaded to the cloud and the cloud url will be used instead of the file path
-    bool publish = false,
+    bool exportImages = true,
   }) async {
-    Map<String, dynamic> data = await getJSON(context: context, publish: publish, quality: quality);
+    Map<String, dynamic> data = await getJSON(context: context, quality: quality, exportImages: exportImages);
 
     await manager.save(context, project: this, data: data);
   }
@@ -95,11 +93,12 @@ class Project extends ChangeNotifier {
   Future<Map<String, dynamic>> getJSON({
     bool publish = false,
     BuildContext? context,
-    ExportQuality? quality
+    ExportQuality? quality,
+    bool exportImages = true,
   }) async {
     Future? gallerySaveFuture;
-    if (context != null && quality != null) gallerySaveFuture = saveToGallery(context, quality: quality);
-    
+    if (context != null && quality != null && exportImages) gallerySaveFuture = saveToGallery(context, quality: quality);
+
     Future<Map<String, dynamic>> assetsFuture = assetManager.getCompiled(upload: publish);
 
     if (gallerySaveFuture != null) {
@@ -121,15 +120,11 @@ class Project extends ChangeNotifier {
       'id': id,
       'title': title,
       'description': description,
-      'size': {
-        'type': size.title,
-        'height': size.size.height,
-        'width': size.size.width,
-      },
+      'size': size.toJSON(),
       'pages': pageData,
       'meta': metadata.toJSON(),
-      'is-template': isTemplate,
-      'is-template-x': isTemplateX,
+      'is_template': isTemplate,
+      'is_template_kit': isTemplateKit,
       'assets': assets,
       'images': images,
       'thumbnail': thumbnail,
@@ -148,12 +143,12 @@ class Project extends ChangeNotifier {
     project.title = data['title'];
     project.description = data['description'];
     project.images = [];
-    project.size = PostSize.custom(width: data['size']['width'], height: data['size']['height'],);
+    project.size = PostSize.fromJSON(data['size']);
     project.thumbnail = null;
     project.data = data;
     project.metadata = ProjectMetadata.fromJSON(data['meta']);
-    project.isTemplate = data['is-template'] ?? false;
-    project.isTemplateX = data['is-template-x'] ?? false;
+    project.isTemplate = data['is_template'] ?? false;
+    project.isTemplateKit = data['is_template_kit'] ?? false;
     project.sizeTranslator = UniversalSizeTranslator(project: project);
 
     project.assetManager = await AssetManagerX.fromCompiled(project, data: data['assets']);
@@ -180,7 +175,7 @@ class Project extends ChangeNotifier {
     PostSize? size,
     String? description,
     bool isTemplate = false,
-    bool isTemplateX = false,
+    bool isTemplateKit = false,
   }) {
     Project project = Project(context);
     project.size = size ?? PostSizePresets.square.toSize();
@@ -188,7 +183,7 @@ class Project extends ChangeNotifier {
     project.title = title;
     if (description != null) project.description = description;
     project.isTemplate = isTemplate;
-    project.isTemplateX = isTemplateX;
+    project.isTemplateKit = isTemplateKit;
     project.sizeTranslator = UniversalSizeTranslator(project: project);
     project.assetManager = AssetManagerX.create(project);
     return project;

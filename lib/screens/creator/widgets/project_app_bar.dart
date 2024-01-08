@@ -1,5 +1,4 @@
 import 'package:animate_do/animate_do.dart';
-import 'package:dio/dio.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card/flip_card_controller.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pull_down_button/pull_down_button.dart';
-import 'package:render_studio/models/cloud.dart';
 import 'package:render_studio/models/project/templatex.dart';
 import 'package:sprung/sprung.dart';
 
@@ -224,7 +222,11 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
           PullDownButton(
             key: key,
             itemBuilder: (context) => [
-              if (project.title != null) PullDownMenuTitle(title: Text(project.title!)),
+              if (project.title != null) PullDownMenuTitle(
+                title: Text(
+                  project.title! + (project.isTemplate && !project.isTemplateKit ? ' - Template' : '') + (project.isTemplateKit ? ' - Template Kit' : '')
+                )
+              ),
               PullDownMenuItem(
                 title: 'Save',
                 icon: RenderIcons.download,
@@ -249,6 +251,14 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                 title: 'Add Page',
                 icon: RenderIcons.add,
                 onTap: () {
+                  if (project.isTemplateKit) {
+                    Alerts.dialog(
+                      context,
+                      title: 'Coming Soon',
+                      content: 'Multi-page templates are not yet supported. Stay tuned!',
+                    );
+                    return;
+                  }
                   project.pages.add();
                   setState(() { });
                 },
@@ -261,10 +271,11 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                 },
               ),
               PullDownMenuItem(
-                title: 'Test TemplateX',
-                onTap: () {
+                title: 'Test Template Kit',
+                onTap: () async {
+                  print(project.id);
                   try {
-                    var data = TemplateX.buildTemplateData(project);
+                    var data = TemplateKit.buildTemplateData(project);
                     print(data);
                   } catch (e, stacktrace) {
                     Alerts.dialog(
@@ -281,17 +292,7 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                 title: 'Publish Template',
                 icon: RenderIcons.upload,
                 onTap: () async {
-                  TemplateX.publish(context, project: project);
-                  // String path = project.assetManager.assets.values.first.file!.path;
-                  // print(path);
-                  // FormData formData = FormData.fromMap({
-                  //   'file': await MultipartFile.fromFile(path),
-                  // });
-                  // Response response = await Cloud.post(
-                  //   'template/upload-file',
-                  //   data: formData,
-                  // );
-                  // print(response.data);
+                  await TemplateKit.publish(context, project: project);
                 },
               ),
               if (kDebugMode) PullDownMenuItem.selectable(

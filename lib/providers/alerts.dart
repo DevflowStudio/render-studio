@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:animate_do/animate_do.dart';
-import 'package:assorted_layout_widgets/assorted_layout_widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -378,10 +377,16 @@ class Alerts {
     ),
     barrierDismissible: isDismissible,
     barrierLabel: 'Dismiss',
+    barrierColor: Palette.of(context).background.withOpacity(0.5),
+    transitionDuration: Duration(milliseconds: 250),
     transitionBuilder: (context, animation, animation2, child) => BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 20 * animation.value, sigmaY: 20 * animation.value),
       child: FadeTransition(
-        child: child,
+        child: UnblurTransition(
+          animation: animation,
+          isReverse: true,
+          child: child
+        ),
         opacity: animation,
       ),
     ),
@@ -463,7 +468,8 @@ class Alerts {
 
   static Future<void> showSuccess(BuildContext context, {
     Duration duration = const Duration(seconds: 3),
-    String? message
+    String? message,
+    String asset = 'assets/animations/success.json',
   }) async {
     showCupertinoDialog(
       context: context,
@@ -482,7 +488,8 @@ class Alerts {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Lottie.asset(
-                    'assets/animations/success.json',
+                    asset,
+                    frameRate: FrameRate.max,
                   ),
                   if (message != null) Padding(
                     padding: const EdgeInsets.only(top: 12),

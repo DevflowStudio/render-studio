@@ -16,8 +16,8 @@ class CustomNewProjectPage extends StatelessWidget {
     required this.titleError,
     required this.isTemplate,
     required this.onTemplateChanged,
-    required this.isTemplateX,
-    required this.onTemplateXChanged,
+    required this.isTemplateKit,
+    required this.onTemplateKitChanged,
   });
 
   final List<ProjectGlance> templates;
@@ -31,8 +31,8 @@ class CustomNewProjectPage extends StatelessWidget {
 
   final bool titleError;
 
-  final bool isTemplateX;
-  final void Function(bool value) onTemplateXChanged;
+  final bool isTemplateKit;
+  final void Function(bool value) onTemplateKitChanged;
 
   final bool isTemplate;
   final void Function(bool value) onTemplateChanged;
@@ -93,7 +93,7 @@ class CustomNewProjectPage extends StatelessWidget {
           ),
           if (isTemplate) ListTile(
             title: Text(
-              'TemplateX',
+              'Template Kit',
               style: Theme.of(context).textTheme.bodyLarge
             ),
             subtitle: Text(
@@ -102,9 +102,9 @@ class CustomNewProjectPage extends StatelessWidget {
             ),
             contentPadding: EdgeInsets.only(top: 12, left: 12, right: 12, ),
             trailing: Switch.adaptive(
-              value: isTemplateX,
+              value: isTemplateKit,
               onChanged: (value) {
-                onTemplateXChanged(value);
+                onTemplateKitChanged(value);
               },
             ),
           ),

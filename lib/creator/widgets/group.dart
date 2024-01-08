@@ -231,6 +231,7 @@ class WidgetGroup extends CreatorWidget {
 
   void onElementsResize() {
     Size _prevSize = size;
+    print(demographics);
     for (CreatorWidget widget in widgets) {
       Size newSize = widget.size;
       Size prevSize = Size(demographics[widget.uid]!['original-size']['width'], demographics[widget.uid]!['original-size']['height']);
@@ -246,7 +247,21 @@ class WidgetGroup extends CreatorWidget {
       List<String> widgetsRight = demographics[widget.uid]!['right'];
 
       if (hasSizeChanged) {
+
+        print(widget.uid);
+        print(newSize);
+        print(prevSize);
+        print('Size Changed: $hasSizeChanged');
+        print('Width Change: $widthChange');
+        print('Height Change: $heightChange');
+        print('Above: $widgetsAbove');
+        print('Below: $widgetsBelow');
+        print('Group Size: $size');
+
         if (widgetsAbove.isNotEmpty || widgetsBelow.isNotEmpty) size = Size(size.width, size.height + heightChange);
+
+        print('Group Size (New): $size');
+        print('----');
 
         double belowHeightDistribution = heightChange / 2;
         double aboveHeightDistribution = heightChange / 2;

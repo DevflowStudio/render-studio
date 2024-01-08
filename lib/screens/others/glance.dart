@@ -69,11 +69,11 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
             ),
             child: Stack(
               children: [
-                Hero(
-                  tag: 'project-${glance.id}',
-                  child: SmoothClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    smoothness: 0.6,
+                SmoothClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  smoothness: 0.6,
+                  child: Hero(
+                    tag: 'project-${glance.id}',
                     child: OctoImage(
                       image: FileImage(File(glance.thumbnail!)),
                       errorBuilder: (context, error, stackTrace) => Material(
@@ -358,8 +358,9 @@ class ProjectGlanceCard extends StatelessWidget {
           children: [
             Hero(
               tag: 'project-${glance.id}',
-              child: ClipRRect(
+              child: SmoothClipRRect(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                smoothness: 0.6,
                 child: OctoImage(
                   image: FileImage(File(glance.thumbnail ?? '')),
                   fit: BoxFit.cover,

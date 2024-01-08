@@ -30,12 +30,7 @@ class AssetManagerX {
 
     List<AssetX> usedAssets = _getUsedAssets();
 
-    // Delete the project assets folder before compiling
-    // This is done to remove any previous assets
-    // Saves space by deleting unused assets
-    await deleteProjectAssets();
-
-    if (upload) {
+    if (upload && usedAssets.isNotEmpty) {
       Map<String, dynamic> formDataMap = {
         'id': project.id,
         'files': []
@@ -49,15 +44,20 @@ class AssetManagerX {
       }
 
       Response response = await Cloud.post('template/upload-assets', data: FormData.fromMap(formDataMap));
-      print(response.data);
+      
       for (String url in response.data['assets']) {
         String id = url.split('/').last.split('.').first;
         assets[id]!.url = url;
       }
     }
 
+    // Delete the project assets folder before compiling
+    // This is done to remove any previous assets
+    // Saves space by deleting unused assets
+    await deleteProjectAssets();
+
     for (AssetX asset in usedAssets) {
-      var future = asset.getCompiled(returnFile: !upload)
+      var future = asset.getCompiled()
         .then((compiled) => MapEntry(asset.id, compiled));
       futures.add(future);
     }
@@ -68,6 +68,15 @@ class AssetManagerX {
     results.removeWhere((entry) => entry.value == null);
 
     return Map.fromEntries(results);
+  }
+
+  static Map<String, dynamic> cleanFileFromAssets(Map<String, dynamic> data) {
+    Map<String, dynamic> _data = Map.from(data);
+    for (String asset in _data.keys) {
+      _data[asset]['file'] = null;
+      _data[asset]['asset-type'] = AssetType.url.title;
+    }
+    return _data;
   }
 
   Future<void> deleteProjectAssets() async {

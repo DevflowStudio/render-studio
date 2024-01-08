@@ -23,7 +23,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     Map? data,
     BuildInfo buildInfo = BuildInfo.unknown,
   }) {
-    uid = Constants.generateID(6);
+    uid = generateUID();
     stateCtrl = WidgetStateController(this);
     onInitialize();
     onPaletteUpdate();
@@ -45,12 +45,11 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     }
   }
 
+  static String generateUID() => 'widget#${Constants.generateID(6)}';
+
   late WidgetStateController stateCtrl;
 
   late String uid;
-  void regenerateUID() {
-    uid = Constants.generateID(6);
-  }
 
   final CreatorPage page;
 
@@ -65,7 +64,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   List<EditorTab> get tabs => [ ];
 
   List<Option> get defaultOptions => [
-    if (isVariableWidget && page.project.isTemplateX) Option.button(
+    if (isVariableWidget && page.project.isTemplateKit) Option.button(
       title: 'Comment',
       tooltip: 'Add a comment to the text variable',
       onTap: (context) async {
@@ -719,7 +718,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       return group!.findGroup(this).duplicate();
     }
     CreatorWidget widget = CreatorWidget.fromJSON(toJSON(), page: page, buildInfo: BuildInfo(buildType: BuildType.unknown));
-    widget.uid = Constants.generateID();
+    widget.uid = CreatorWidget.generateUID();
     widget.position = Offset(position.dx + 10, position.dy + 10);
     await widget.onDuplicate();
     widget._locked = false;
@@ -781,6 +780,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
         'horizontal-expand-direction': horizontalExpandDirection.name,
       },
       'variable-comment': variableComments,
+      'is-variable-widget': isVariableWidget
     };
   }
 
@@ -910,6 +910,8 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     horizontalExpandDirection = HorizontalExpandDirectionExtension.fromString(data['properties']['horizontal-expand-direction']);
 
     if (data['variable-comment'] != null) variableComments = data['variable-comment'];
+
+    if (data['is-variable-widget'] != null) isVariableWidget = data['is-variable-widget'];
 
     if (buildInfo.version != null && asset != null) asset!.restoreVersion(version: buildInfo.version!);
     

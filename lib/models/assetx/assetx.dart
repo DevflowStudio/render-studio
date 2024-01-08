@@ -81,7 +81,14 @@ class AssetX {
       precache: true,
       context: context
     );
-    return AssetX.create(file: file, project: project, id: id);
+    return AssetX._(
+      id: id ?? Constants.generateID(4),
+      createdAt: DateTime.now(),
+      fileType: type,
+      file: file,
+      url: url,
+      project: project
+    );
   }
 
   Future<Size?> get dimensions => file != null ? getDimensions(file!) : getDimensionsFromUrl(url!);
@@ -170,24 +177,20 @@ class AssetX {
 
   // Future<bool> exists() => file.exists();
 
-  Future<Map<String, dynamic>> getCompiled({
-    bool returnFile = true
-  }) async {
+  Future<Map<String, dynamic>> getCompiled() async {
     String? filename;
+    filename = '$id.${file!.path.split('.').last}';
 
-    if (returnFile) {
-      await convertToFileType();
-      filename = '$id.${file!.path.split('.').last}';
-      file = await file!.copy(await pathProvider.generateRelativePath(project.assetSavePath) + filename);
-    }
+    await convertToFileType();
+    await file!.copy(await pathProvider.generateRelativePath(project.assetSavePath) + filename);
 
     return {
       'id': id,
-      if (returnFile) 'file': filename,
+      'file': filename,
       'url': url,
       'created-at': createdAt.millisecondsSinceEpoch,
       'file-type': fileType.type,
-      'asset-type': assetType.toString().split('.').last
+      'asset-type': assetType.title
     };
   }
 
