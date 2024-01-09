@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:render_studio/screens/creator/create_project/template_glance.dart';
 
 import '../../../rehmat.dart';
 
 class MagicDesignPage extends StatelessWidget {
 
-  const MagicDesignPage({super.key, required this.templates, this.selectedTemplate, required this.onSelect, required this.promptCtrl, this.promptError, required this.prompts});
+  const MagicDesignPage({super.key, required this.onSelect, required this.promptCtrl, this.promptError, required this.prompts});
 
-  final List<ProjectGlance> templates;
-  final String? selectedTemplate;
   final Function(String uid) onSelect;
   final TextEditingController promptCtrl;
   final String? promptError;
@@ -63,35 +60,6 @@ class MagicDesignPage extends StatelessWidget {
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(
-              bottom: 6,
-              left: 12,
-              right: 12,
-              top: 12
-            ),
-            child: Text(
-              'Choose a template',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-          ),
-          SizedBox(
-            height: MediaQuery.of(context).size.width / 3,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(
-                horizontal: 7
-              ),
-              itemBuilder: (context, index) => TemplateGlance(
-                key: ValueKey(templates[index].id),
-                glance: templates[index],
-                isSelected: selectedTemplate == templates[index].id,
-                onTap: () => onSelect(templates[index].id),
-              ),
-              itemCount: templates.length,
-              shrinkWrap: true,
-            ),
-          )
         ]
       ),
     );

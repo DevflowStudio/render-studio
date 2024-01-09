@@ -21,7 +21,7 @@ abstract class RenderIcons {
 
   static const IconData image = CupertinoIcons.photo;
 
-  static const IconData add = CupertinoIcons.add;
+  static const IconData add = Icons.add;
 
   static const IconData resize = CupertinoIcons.resize;
 

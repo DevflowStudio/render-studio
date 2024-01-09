@@ -9,6 +9,33 @@ import '../../rehmat.dart';
 
 class TemplateKit {
 
+  static Future<List<Project>> generate(BuildContext context, {
+    required String prompt
+  }) async {
+    List<Project> projects = [];
+
+    Response response = await Cloud.post(
+      'template/generate',
+      data: FormData.fromMap({
+        'prompt': prompt
+      })
+    );
+
+    List<Map> templates = List.from(response.data['templates']).toDataType<Map>();
+
+    for (Map data in templates) {
+      Project? project = await Project.fromTemplateKit(
+        context: context,
+        data: data.toDataType<String, dynamic>(),
+      );
+      if (project != null) {
+        projects.add(project);
+      }
+    }
+
+    return projects;
+  }
+
   static (List<Map<String, dynamic>>, List<String>) buildTemplateData(Project project) {
     List<Map<String, dynamic>> pageData = [];
     List<String> projectFeatures = [];

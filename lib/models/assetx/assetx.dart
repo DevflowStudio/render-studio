@@ -222,7 +222,13 @@ class AssetX {
       AssetType assetType = AssetTypeExtension.fromString(data['asset-type']);
 
       if (assetType == AssetType.url) {
-        return await AssetX.fromURL(data['url'], project: project, id: data['id']);
+        return AssetX._(
+          url: data['url'],
+          project: project,
+          id: data['id'],
+          createdAt: DateTime.fromMillisecondsSinceEpoch(data['created-at']),
+          fileType: FileTypeExtension.fromString(data['file-type'])
+        );
       }
 
       String savePath = await pathProvider.generateRelativePath(project.assetSavePath + data['file']);

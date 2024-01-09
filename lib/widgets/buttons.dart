@@ -77,7 +77,8 @@ class PrimaryButton extends StatefulWidget {
     this.feedback = true,
     this.disabled = false,
     /// If true, the button will show a loading indicator when pressed until the onPressed function finishes
-    this.autoLoading = false
+    this.autoLoading = false,
+    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 24)
   }) : super(key: key);
 
   final Widget child;
@@ -86,6 +87,7 @@ class PrimaryButton extends StatefulWidget {
   final bool feedback;
   final bool disabled;
   final bool autoLoading;
+  final EdgeInsetsGeometry padding;
 
   @override
   State<PrimaryButton> createState() => _PrimaryButtonState();
@@ -95,7 +97,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
 
   @override
   Widget build(BuildContext context) {
-    return _RenderButton(
+    return RawButton(
       child: widget.child,
       autoLoading: widget.autoLoading,
       disabled: widget.disabled,
@@ -104,6 +106,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
       onPressed: widget.onPressed,
       backgroundColor: Palette.of(context).onBackground,
       textColor: Palette.of(context).background,
+      padding: widget.padding,
     );
   }
 
@@ -119,7 +122,8 @@ class SecondaryButton extends StatefulWidget {
     this.feedback = true,
     this.disabled = false,
     /// If true, the button will show a loading indicator when pressed until the onPressed function finishes
-    this.autoLoading = false
+    this.autoLoading = false,
+    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 24)
   }) : super(key: key);
 
   final Widget child;
@@ -128,6 +132,7 @@ class SecondaryButton extends StatefulWidget {
   final bool feedback;
   final bool disabled;
   final bool autoLoading;
+  final EdgeInsetsGeometry padding;
 
   @override
   State<SecondaryButton> createState() => _SecondaryButtonState();
@@ -138,7 +143,7 @@ class _SecondaryButtonState extends State<SecondaryButton> {
 
   @override
   Widget build(BuildContext context) {
-    return _RenderButton(
+    return RawButton(
       child: widget.child,
       autoLoading: widget.autoLoading,
       disabled: widget.disabled,
@@ -151,6 +156,7 @@ class _SecondaryButtonState extends State<SecondaryButton> {
       ),
       backgroundColor: Palette.of(context).surfaceVariant,
       textColor: Palette.of(context).onSurfaceVariant,
+      padding: widget.padding,
     );
   }
 
@@ -194,7 +200,7 @@ class _ButtonState extends State<Button> {
 
   @override
   Widget build(BuildContext context) {
-    return _RenderButton(
+    return RawButton(
       child: widget.child,
       autoLoading: widget.autoLoading,
       disabled: widget.disabled,
@@ -210,9 +216,9 @@ class _ButtonState extends State<Button> {
 
 }
 
-class _RenderButton extends StatefulWidget {
+class RawButton extends StatefulWidget {
 
-  const _RenderButton({
+  const RawButton({
     Key? key,
     required this.child,
     this.onPressed,
@@ -224,6 +230,7 @@ class _RenderButton extends StatefulWidget {
     this.border,
     this.autoLoading = false,
     this.shadow,
+    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 24)
   }) : super(key: key);
 
   final Widget child;
@@ -236,12 +243,13 @@ class _RenderButton extends StatefulWidget {
   final BorderSide? border;
   final bool autoLoading;
   final BoxShadow? shadow;
+  final EdgeInsetsGeometry padding;
 
   @override
-  State<_RenderButton> createState() => _RenderButtonState();
+  State<RawButton> createState() => RawButtonState();
 }
 
-class _RenderButtonState extends State<_RenderButton> {
+class RawButtonState extends State<RawButton> {
 
   double radius = 60;
 
@@ -302,7 +310,7 @@ class _RenderButtonState extends State<_RenderButton> {
             ),
             child: Center(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                padding: widget.padding,
                 child: isLoading ? SizedBox(
                   height: 19,
                   width: 19,

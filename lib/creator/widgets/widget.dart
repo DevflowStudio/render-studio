@@ -740,7 +740,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     'comments': variableComments
   } : {};
 
-  void loadVariables(Map<String, dynamic> variable) {}
+  void loadVariables(Map<String, dynamic> variable) {
+    if (!isVariableWidget) return;
+  }
 
   List<String>? getFeatures() => null;
 

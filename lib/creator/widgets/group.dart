@@ -241,10 +241,10 @@ class WidgetGroup extends CreatorWidget {
       double heightChange = newSize.height - prevSize.height;
 
       // List<String> overlaps = demographics[widget.uid]!['overlaps'];
-      List<String> widgetsAbove = demographics[widget.uid]!['above'];
-      List<String> widgetsBelow = demographics[widget.uid]!['below'];
-      List<String> widgetsLeft = demographics[widget.uid]!['left'];
-      List<String> widgetsRight = demographics[widget.uid]!['right'];
+      List<String> widgetsAbove = List.from(demographics[widget.uid]!['above']).toDataType<String>();
+      List<String> widgetsBelow = List.from(demographics[widget.uid]!['below']).toDataType<String>();
+      List<String> widgetsLeft = List.from(demographics[widget.uid]!['left']).toDataType<String>();
+      List<String> widgetsRight = List.from(demographics[widget.uid]!['right']).toDataType<String>();
 
       if (hasSizeChanged) {
 

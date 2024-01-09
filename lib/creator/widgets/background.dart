@@ -486,12 +486,16 @@ class BackgroundWidget extends CreatorWidget {
 
   @override
   void loadVariables(Map<String, dynamic> variable) {
-    AssetX? _asset = variable['asset'];
-    if (_asset != null) {
-      this.asset = asset;
+    super.loadVariables(variable);
+    String? url = variable['url'];
+    if (url != null) {
+      this.asset = AssetX.create(
+        project: page.project,
+        url: url,
+        fileType: FileType.image
+      );
       this.imageProvider = CreativeImageProvider.create(this);
-      this.isVariableWidget = true;
-      this.type = BackgroundType.image;
+      this.type = BackgroundType.image;;
     }
   }
 

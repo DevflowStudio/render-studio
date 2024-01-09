@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/utils.dart';
 import 'package:render_studio/creator/helpers/universal_size_translator.dart';
 import 'package:universal_io/io.dart';
-
 import '../../rehmat.dart';
 
 class Project extends ChangeNotifier {
@@ -163,6 +163,59 @@ class Project extends ChangeNotifier {
     if (variableValues.isNotEmpty) for (CreatorPage page in project.pages.pages) {
       page.widgets.readVariableValues(variableValues);
     }
+
+    return project;
+  }
+
+  static Future<Project?> fromTemplateKit({
+    required Map<String, dynamic> data,
+    required BuildContext context
+  }) async {
+
+    Project project = Project(context, fromSaves: true);
+
+    project.id = data['id'];
+    project.title = data['title'];
+    project.description = data['description'];
+    project.images = List.from(data['images']).toDataType<String>();
+    project.size = PostSize.fromJSON(data['size']);
+    project.thumbnail = data['thumbnail'];
+    project.data = data;
+    project.metadata = ProjectMetadata.fromJSON(data['meta']);
+    project.isTemplate = data['is_template'] ?? false;
+    project.isTemplateKit = data['is_template_kit'] ?? false;
+    project.sizeTranslator = UniversalSizeTranslator(project: project);
+
+    project.assetManager = await AssetManagerX.fromCompiled(project, data: data['assets']);
+
+    for (Map pageKit in data['template-kit']['pages']) {
+      String pageID = pageKit['id'];
+      Map pageData = data['pages'].firstWhere((page) => page['id'] == pageID);
+
+      CreatorPage? page = await CreatorPage.fromJSON(Map<String, dynamic>.from(pageData), project: project);
+      if (page == null) continue;
+
+      project.pages.pages.add(page);
+    }
+
+    for (CreatorPage page in project.pages.pages) {
+      Map pageKit = data['template-kit']['pages'].firstWhere((pageKit) => pageKit['id'] == page.id);
+      for (CreatorWidget widget in page.widgets.widgets) {
+        if (widget is WidgetGroup) {
+          for (CreatorWidget child in widget.widgets) {
+            Map? variable = List.from(pageKit['variables']).firstWhereOrNull((variable) => variable['uid'] == child.uid);
+            if (variable == null) continue;
+            child.loadVariables(variable.toDataType<String, dynamic>());
+          }
+        } else {
+          Map? variable = List.from(pageKit['variables']).firstWhereOrNull((variable) => variable['uid'] == widget.uid);
+          if (variable == null) continue;
+          widget.loadVariables(variable.toDataType<String, dynamic>());
+        }
+      }
+    }
+
+    project.pages.updateListeners();
 
     return project;
   }

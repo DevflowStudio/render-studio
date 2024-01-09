@@ -990,8 +990,11 @@ class CreatorText extends CreatorWidget {
 
   @override
   void loadVariables(Map<String, dynamic> variable) {
-    String newValue = variable['value'];
-    if (newValue == text) return;
+    print('Loading variable: $isVariableWidget');
+    super.loadVariables(variable);
+    print(variable);
+    String? newValue = variable['value'];
+    if (newValue == text || newValue == null) return;
     editText(text: newValue, logHistory: false);
   }
 

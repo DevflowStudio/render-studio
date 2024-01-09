@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
 import 'package:provider/provider.dart';
+import 'package:smooth_corner/smooth_corner.dart';
 import '../../../../rehmat.dart';
 
 class Home extends StatefulWidget {
@@ -22,7 +23,6 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    AuthState authState = Provider.of<AuthState>(context);
     return AdvancedDrawer(
       controller: drawerCtrl,
       backdropColor: Theme.of(context).drawerTheme.backgroundColor,
@@ -47,16 +47,6 @@ class _HomeState extends State<Home> {
               ),
               titleSpacing: 12,
               actions: [
-                if (app.remoteConfig.allowCreateProject) IconButton.outlined(
-                  onPressed: () => AppRouter.push(context, page: CreateProject()),
-                  icon: Icon(RenderIcons.create),
-                ),
-                IconButton.outlined(
-                  onPressed: () async {
-                    print(await authState.user?.getIdToken());
-                  },
-                  icon: Icon(RenderIcons.lab),
-                ),
                 SizedBox(width: 6,),
                 GestureDetector(
                   onTap: () => drawerCtrl.toggleDrawer(),
@@ -90,15 +80,70 @@ class _HomeState extends State<Home> {
             ),
           ],
         ),
-        // floatingActionButton: FloatingActionButton.extended(
-        //   onPressed: () => Project.create(context),
-        //   tooltip: 'Create Project',
-        //   icon: Icon(
-        //     RenderIcons.add,
-        //     color: Palette.of(context).onPrimaryContainer,
+        // extendBody: true,
+        // bottomNavigationBar: IntrinsicHeight(
+        //   child: Stack(
+        //     children: [
+        //       Container(
+        //         decoration: BoxDecoration(
+        //           gradient: LinearGradient(
+        //             begin: Alignment.topCenter,
+        //             end: Alignment.bottomCenter,
+        //             colors: [
+        //               Palette.of(context).background.withOpacity(0.0),
+        //               Palette.of(context).background.withOpacity(1),
+        //             ]
+        //           )
+        //         ),
+        //       ),
+        //       Padding(
+        //         padding: EdgeInsets.only(
+        //           bottom: Constants.of(context).bottomPadding,
+        //           top: 12
+        //         ),
+        //         child: Row(
+        //           mainAxisAlignment: MainAxisAlignment.center,
+        //           children: [
+        //             IntrinsicHeight(
+        //               child: PrimaryButton(
+        //                 child: Text(
+        //                   'Create Project',
+        //                   style: TextStyle(
+        //                     fontWeight: FontWeight.w600
+        //                   ),
+        //                 ),
+        //                 padding: EdgeInsets.symmetric(vertical: 24, horizontal: 48),
+        //               ),
+        //             )
+        //           ],
+        //         ),
+        //       )
+        //     ],
         //   ),
-        //   label: Text('Create Project'),
         // ),
+        floatingActionButton: (app.remoteConfig.allowCreateProject) ? FloatingActionButton.extended(
+          onPressed: () => AppRouter.push(context, page: CreateProject()),
+          tooltip: 'Create Project',
+          icon: Icon(
+            RenderIcons.add,
+            color: Palette.of(context).background,
+            size: 20,
+          ),
+          label: Text(
+            'Create Project',
+            style: TextStyle(
+              fontFamily: 'SF Pro Rounded',
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          backgroundColor: Palette.of(context).onBackground,
+          foregroundColor: Palette.of(context).background,
+          shape: SmoothRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+            smoothness: 0.6,
+          ),
+        ) : null,
         // bottomNavigationBar: NavigationBar(
         //   destinations: [
         //     NavigationDestination(

@@ -81,6 +81,8 @@ extension MapExtension<T, V> on Map<T, V> {
     return updated;
   }
 
+  Map<X, Y> toDataType<X, Y>() => this.map((key, value) => MapEntry(key as X, value as Y));
+
 }
 
 extension MapExtensions<T> on Map<T, num> {
