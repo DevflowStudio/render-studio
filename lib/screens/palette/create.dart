@@ -1,4 +1,3 @@
-import 'package:flip_card/flip_card_controller.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:sprung/sprung.dart';
@@ -87,7 +86,8 @@ class _CreatePaletteState extends State<CreatePalette> {
                   flex: 2,
                   child: Padding(
                     padding: const EdgeInsets.only(left: 6),
-                    child: _SaveButton(
+                    child: SecondaryButton(
+                      child: Text('Save'),
                       onPressed: () async {
                         if (palette.colors.length < 3) {
                           Alerts.snackbar(context, text: 'Palette must have at least 3 colors.');
@@ -223,68 +223,6 @@ class _PaletteViewModal extends StatelessWidget {
         ),
       ),
     );
-  }
-
-}
-
-class _SaveButton extends StatefulWidget {
-
-  _SaveButton({
-    Key? key,
-    required this.onPressed,
-  }) : super(key: key);
-
-  final Future<bool> Function() onPressed;
-
-  @override
-  State<_SaveButton> createState() => __SaveButtonState();
-}
-
-class __SaveButtonState extends State<_SaveButton> {
-
-  FlipCardController controller = FlipCardController();
-
-  bool showingIcon = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return SecondaryButton(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedSize(
-            duration: kAnimationDuration,
-            child: showingIcon ? Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Icon(RenderIcons.done, size: 18,),
-                ),
-                SizedBox(width: 6),
-              ],
-            ) : SizedBox(),
-          ),
-          AnimatedSize(
-            duration: kAnimationDuration,
-            child: showingIcon ? Text('Saved') : Text('Save'),
-          ),
-        ],
-      ),
-      onPressed: onPressed,
-    );
-  }
-
-  Future<void> onPressed() async {
-    bool result = await widget.onPressed();
-    if (!result) return;
-    setState(() {
-      showingIcon = true;
-    });
-    await Future.delayed(Duration(seconds: 2));
-    setState(() {
-      showingIcon = false;
-    });
   }
 
 }

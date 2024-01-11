@@ -1,4 +1,3 @@
-import 'package:animate_do/animate_do.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card/flip_card_controller.dart';
 import 'package:flutter/cupertino.dart';

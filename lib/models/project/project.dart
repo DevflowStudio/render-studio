@@ -53,8 +53,7 @@ class Project extends ChangeNotifier {
   late UniversalSizeTranslator sizeTranslator;
 
   /// Renders and saves each of the page as a png file to the device gallery
-  ///
-  /// Returns false if an issue is encountered in any of the pages
+  /// Saves the path of images to `images` list
   Future<void> saveToGallery(BuildContext context, {
     ExportQuality quality = ExportQuality.onex,
     bool saveToGallery = true,
@@ -174,7 +173,7 @@ class Project extends ChangeNotifier {
 
     Project project = Project(context, fromSaves: true);
 
-    project.id = data['id'];
+    project.id = Constants.generateID();
     project.title = data['title'];
     project.description = data['description'];
     project.images = List.from(data['images']).toDataType<String>();
@@ -182,8 +181,8 @@ class Project extends ChangeNotifier {
     project.thumbnail = data['thumbnail'];
     project.data = data;
     project.metadata = ProjectMetadata.fromJSON(data['meta']);
-    project.isTemplate = data['is_template'] ?? false;
-    project.isTemplateKit = data['is_template_kit'] ?? false;
+    project.isTemplate = false;
+    project.isTemplateKit = false;
     project.sizeTranslator = UniversalSizeTranslator(project: project);
 
     project.assetManager = await AssetManagerX.fromCompiled(project, data: data['assets']);
@@ -273,19 +272,31 @@ class Project extends ChangeNotifier {
   }
 
   static Future<Project?> fromTemplate(BuildContext context, {
-    required String uid,
-    String? title,
+    required String id,
+    required String title,
     String? description,
     List<Map<String, dynamic>> variableValues = const []
   }) async {
-    ProjectGlance glance = manager.getProjectGlance(uid);
+    ProjectGlance glance = manager.getProjectGlance(id);
+    String _newID = Constants.generateID();
+
+    String path = await pathProvider.generateRelativePath('/Render Projects/$id/');
+    Directory dir = Directory(path);
+    if (await dir.exists()) {
+      String newPath = await pathProvider.generateRelativePath('/Render Projects/${_newID}/');
+      Directory newDir = Directory(newPath);
+      await newDir.create(recursive: true);
+      await dir.copyTo(Directory(newPath));
+    }
+
     Map<String, dynamic> newData = {
       ... glance.data,
-      'id': Constants.generateID(),
-      'title': title ?? '${glance.title} (copy)',
+      'id': _newID,
+      'title': title,
       'description': description ?? glance.description,
       'meta': ProjectMetadata.create().toJSON(),
       'is-template': false,
+      'is-template-kit': false,
     };
     return await Project.fromSave(data: newData, context: context, variableValues: variableValues);
   }

@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -382,11 +381,7 @@ class Alerts {
     transitionBuilder: (context, animation, animation2, child) => BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 20 * animation.value, sigmaY: 20 * animation.value),
       child: FadeTransition(
-        child: UnblurTransition(
-          animation: animation,
-          isReverse: true,
-          child: child
-        ),
+        child: child,
         opacity: animation,
       ),
     ),

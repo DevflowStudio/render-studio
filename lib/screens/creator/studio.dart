@@ -1,4 +1,3 @@
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:render_studio/creator/helpers/editor_manager.dart';
@@ -70,12 +69,9 @@ class _StudioState extends State<Studio> with TickerProviderStateMixin {
                 child: ProjectDebugBanner(project: project),
               ),
               Expanded(
-                child: Hero(
-                  tag: 'project-${project.id}',
-                  child: IgnorePointer(
-                    ignoring: isLoading,
-                    child: creator
-                  )
+                child: IgnorePointer(
+                  ignoring: isLoading,
+                  child: creator
                 ),
               ),
               PageIndicator(project: project),

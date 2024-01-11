@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
-import 'package:provider/provider.dart';
 import 'package:smooth_corner/smooth_corner.dart';
 import '../../../../rehmat.dart';
 
@@ -47,7 +46,6 @@ class _HomeState extends State<Home> {
               ),
               titleSpacing: 12,
               actions: [
-                SizedBox(width: 6,),
                 GestureDetector(
                   onTap: () => drawerCtrl.toggleDrawer(),
                   child: Padding(

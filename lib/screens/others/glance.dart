@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:octo_image/octo_image.dart';
@@ -70,10 +69,10 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
             child: Stack(
               children: [
                 SmoothClipRRect(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(20),
                   smoothness: 0.6,
-                  child: Hero(
-                    tag: 'project-${glance.id}',
+                  child: FadeIn(
+                    scale: false,
                     child: OctoImage(
                       image: FileImage(File(glance.thumbnail!)),
                       errorBuilder: (context, error, stackTrace) => Material(
@@ -100,23 +99,20 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
                 Positioned(
                   top: 12,
                   right: 12,
-                  child: FadeOut(
-                    delay: Duration(seconds: 3),
-                    child: SmoothClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      smoothness: 0.6,
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Palette.of(context).background.withOpacity(0.2)
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${glance.nPages} Page${glance.nPages > 1 ? 's' : ''}',
-                            )
-                          ),
+                  child: SmoothClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    smoothness: 0.6,
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Palette.materialDark
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${glance.nPages} Page${glance.nPages > 1 ? 's' : ''}',
+                          )
                         ),
                       ),
                     ),
@@ -138,12 +134,14 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
             crossFadeState: isLoading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
             firstChild: ClipRRect(
               child: Container(
-                color: Palette.of(context).background.withOpacity(0.7),
+                color: Palette.materialDark,
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                   child: Padding(
                     padding: EdgeInsets.only(
                       bottom: Constants.of(context).bottomPadding,
+                      left: 12,
+                      right: 12
                     ),
                     child: Row(
                       children: [
@@ -299,7 +297,7 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
                 SizedBox(height: 4,),
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.labelLarge,
+                  style: Theme.of(context).textTheme.labelMedium,
                 )
               ],
             ),

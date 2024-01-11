@@ -731,17 +731,17 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
         });
         return;
       }
-      // try {
+      try {
         List<Project> projects = await TemplateKit.generate(context, prompt: prompt);
         AppRouter.push(context, page: GeneratedTemplatesView(templates: projects));
-      // } catch (e) {
-      //   print(e);
-      //   Alerts.dialog(
-      //     context,
-      //     title: 'Error',
-      //     content: 'Failed to generate templates. Please try again later'
-      //   );
-      // }
+      } catch (e) {
+        print(e);
+        Alerts.dialog(
+          context,
+          title: 'Error',
+          content: 'Failed to generate templates. Please try again later'
+        );
+      }
     } else {
       if (title.isEmpty) {
         setState(() {
@@ -752,7 +752,7 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
       if (isTemplate || selectedTemplate == null) {
         project = Project.create(context, title: title, description: description, isTemplate: isTemplate, isTemplateKit: isTemplateKit && isTemplate);
       } else {
-        project = await Project.fromTemplate(context, uid: selectedTemplate!, title: title, description: description);
+        project = await Project.fromTemplate(context, id: selectedTemplate!, title: title, description: description);
       }
       if (project != null) {
         AppRouter.replace(context, page: Studio(project: project));

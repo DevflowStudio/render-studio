@@ -187,7 +187,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                 creatorWidget.unlock();
               },
               child: Container(
-                color: Palette.of(context).background.withOpacity(0.25),
+                color: Palette.materialDark,
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                   child: Center(
@@ -1339,12 +1339,12 @@ class __PaletteViewModalState extends State<_PaletteViewModal> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: widget.page.palette.colors.middle.computeTextColor().withOpacity(0.25)
+                          color: Palette.materialDark
                         ),
                         child: Icon(
                           CupertinoIcons.shuffle,
                           size: 18,
-                          color: widget.page.palette.colors.middle.computeTextColor(),
+                          color: Palette.onMaterialDark
                         )
                       ),
                     ),

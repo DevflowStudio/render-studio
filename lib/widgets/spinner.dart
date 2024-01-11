@@ -73,8 +73,8 @@ class Spinner extends StatefulWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Palette.of(context).background.withOpacity(0.2),
-      barrierColor: Palette.of(context).background.withOpacity(0.2),
+      backgroundColor: Palette.materialDark,
+      barrierColor: Palette.materialDark,
       isDismissible: false,
       enableDrag: false,
       builder: (context) => PopScope(
