@@ -239,6 +239,15 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
   final bool autoChangeVerticalExpandDirection = true;
   final bool autoChangeHorizontalExpandDirection = true;
 
+  bool allowResize(Size _size) {
+    if (isLocked) return false;
+    if (_size.width < (minSize?.width ?? 10)) return false;
+    if (_size.height < (minSize?.height ?? 10)) return false;
+    if (_size.width > page.project.deviceSize.width * 2) return false;
+    if (_size.height > page.project.deviceSize.height * 2) return false;
+    return true;
+  }
+
   void onResizeStart({
     DragStartDetails? details,
     ResizeHandler? handler
@@ -288,14 +297,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
       __handlers = List.from(resizeHandlers);
     }
     return __handlers;
-  }
-
-  bool allowResize(Size _size) {
-    if (_size.width < (minSize?.width ?? 10)) return false;
-    if (_size.height < (minSize?.height ?? 10)) return false;
-    if (_size.width > page.project.deviceSize.width * 2) return false;
-    if (_size.height > page.project.deviceSize.height * 2) return false;
-    return true;
   }
 
 

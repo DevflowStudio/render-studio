@@ -489,6 +489,7 @@ class WidgetGroup extends CreatorWidget {
       if (!widget.isLocked) widget.lock();
       widget.updateListeners(WidgetChange.lock);
     }
+    updateListeners(WidgetChange.lock);
   }
 
   void unlock() {
@@ -496,6 +497,7 @@ class WidgetGroup extends CreatorWidget {
       if (widget.isLocked) widget.unlock();
       widget.updateListeners(WidgetChange.lock);
     }
+    updateListeners(WidgetChange.lock);
   }
 
   @override
