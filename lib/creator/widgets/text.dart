@@ -708,6 +708,8 @@ class CreatorText extends CreatorWidget {
     TextAlign align = this.align;
     var focusNode = FocusNode();
 
+    Size _oldSize = size;
+
     if (text == null) {
       await showModalBottomSheet(
         context: context!,
@@ -883,6 +885,8 @@ class CreatorText extends CreatorWidget {
       }
     }
 
+    Offset _oldPosition = position;
+
     position = CreatorWidget.autoPosition(
       position: position, newSize: nWidgetSize, prevSize: size, verticalExpandDirection: verticalExpandDirection, horizontalExpandDirection: horizontalExpandDirection
     );
@@ -891,7 +895,11 @@ class CreatorText extends CreatorWidget {
     _spanSize = nSpanSize;
     _widthScale = size.width / _spanSize.width;
 
-    if (group != null) group!.findGroup(this).onElementsResize();
+    if (group != null) group!.findGroup(this).onElementResize(
+      this,
+      prevSize: _oldSize,
+      prevPosition: _oldPosition,
+    );
     if (hasChanged && logHistory) updateListeners(WidgetChange.update, historyMessage: 'Edit Text');
     else updateListeners(WidgetChange.misc);
     if (_containsSecondaryStyle(new_text) && secondaryStyle == null && context != null) Alerts.snackbar(
