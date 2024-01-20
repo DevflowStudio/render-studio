@@ -81,6 +81,7 @@ class CreativePieChart extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
+      name: 'Pie Chart',
       options: [
         Option.button(
           title: 'Data',
@@ -366,7 +367,6 @@ class CreativePieChart extends CreatorWidget {
         ),
         ... defaultOptions,
       ],
-      tab: 'Pie Chart',
     ),
     EditorTab.adjustTab(
       widget: this,

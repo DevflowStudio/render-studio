@@ -27,10 +27,6 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     stateCtrl = WidgetStateController(this);
     onInitialize();
     onPaletteUpdate();
-    editor = Editor(
-      key: ValueKey(uid),
-      widget: this
-    );
     if (data != null) try {
       uid = data['uid'];
       buildFromJSON(Map.from(data), buildInfo: buildInfo);
@@ -53,8 +49,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
 
   final CreatorPage page;
 
-  /// Bottom Navigation Bar with editing options
-  late final Editor editor;
+  TabController? editorTabCtrl;
 
   AssetX? asset;
 

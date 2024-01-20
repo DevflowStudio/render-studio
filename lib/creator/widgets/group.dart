@@ -265,19 +265,13 @@ class WidgetGroup extends CreatorWidget {
     if (prevSize == currSize) return;
 
     Map<String, List<CreatorWidget>> relativeWidgets;
-    List<CreatorWidget> overlaps;
     List<CreatorWidget> above;
     List<CreatorWidget> below;
-    List<CreatorWidget> left;
-    List<CreatorWidget> right;
 
     try {
       relativeWidgets = getRelativeWidgets(widget, widgets: widgets, position: prevPosition, size: prevSize);
-      overlaps = relativeWidgets['overlaps']!;
       above = relativeWidgets['above']!;
       below = relativeWidgets['below']!;
-      left = relativeWidgets['left']!;
-      right = relativeWidgets['right']!;
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'Failed to get relative widgets', stacktrace: stacktrace);
       return;
@@ -434,6 +428,7 @@ class WidgetGroup extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
+      name: 'Group',
       options: [
         Option.button(
           icon: RenderIcons.delete,
@@ -443,7 +438,6 @@ class WidgetGroup extends CreatorWidget {
         ),
         ... defaultOptions
       ],
-      tab: 'Group',
     )
   ];
 

@@ -8,11 +8,14 @@ class ProjectsView extends StatefulWidget {
   const ProjectsView({
     Key? key,
     this.showWelcomeMessage = true,
-    this.limit
+    this.limit,
+    this.showOnlyTemplates = false
   }) : super(key: key);
 
   /// When true, a welcome message will be shown if there are no projects.
   final bool showWelcomeMessage;
+
+  final bool showOnlyTemplates;
 
   /// Limit the number of projects displayed.
   final int? limit;
@@ -25,11 +28,13 @@ class _ProjectsViewState extends State<ProjectsView> {
 
   final Key key = GlobalKey();
   final ScrollController scrollController = ScrollController();
+  late bool isShowingOnlyTemplates;
 
   @override
   void initState() {
     manager.addListener(onProjectsUpdate);
     super.initState();
+    isShowingOnlyTemplates = widget.showOnlyTemplates;
   }
 
   @override
@@ -38,8 +43,28 @@ class _ProjectsViewState extends State<ProjectsView> {
     super.dispose();
   }
 
+  didUpdateWidget(ProjectsView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.showOnlyTemplates != widget.showOnlyTemplates) {
+      setState(() {
+        isShowingOnlyTemplates = widget.showOnlyTemplates;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    List<ProjectGlance> projects = manager.projects;
+    if (isShowingOnlyTemplates) {
+      projects = projects.where((glance) => glance.isTemplate).toList();
+    }
+
+    int count;
+    if (widget.limit != null) {
+      if (widget.limit! < projects.length) count = widget.limit!;
+      else count = projects.length;
+    } else count = projects.length;
+
     if (manager.projects.isEmpty && widget.showWelcomeMessage) return SliverToBoxAdapter(
       child: Container(
         padding: EdgeInsets.symmetric(
@@ -92,7 +117,7 @@ class _ProjectsViewState extends State<ProjectsView> {
           ),
           sliver: SliverToBoxAdapter(
             child: Text(
-              'Projects',
+              isShowingOnlyTemplates ? 'Templates' : 'Projects',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 height: 1,
                 color: Palette.of(context).onSurfaceVariant
@@ -105,8 +130,8 @@ class _ProjectsViewState extends State<ProjectsView> {
           sliver: SliverMasonryGrid(
             delegate: SliverChildBuilderDelegate(
               (context, index) => ProjectGlanceCard(
-                key: ValueKey(manager.projects[index].id),
-                glance: manager.projects[index]
+                key: ValueKey(projects[index].id),
+                glance: projects[index]
               ),
               childCount: count,
             ),
@@ -119,14 +144,6 @@ class _ProjectsViewState extends State<ProjectsView> {
         ),
       ],
     );
-  }
-
-  int get count {
-    if (widget.limit != null) {
-      if (widget.limit! < manager.projects.length) widget.limit;
-      else manager.projects.length;
-    }
-    return manager.projects.length;
   }
 
   void onProjectsUpdate() {

@@ -36,7 +36,9 @@ class ProjectGlance {
 
   PostSize get size => PostSize.fromJSON(data['size']);
 
-  bool get isTemplate => data['is-template'] ?? false;
+  bool get isTemplate => data['is_template'] ?? false;
+
+  bool get isTemplateKit => data['is_template_kit'] ?? false;
 
   int get nPages => data['pages'].length;
 

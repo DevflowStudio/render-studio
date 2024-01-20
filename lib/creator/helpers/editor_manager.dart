@@ -40,10 +40,10 @@ class EditorManager extends ChangeNotifier {
       _editor = null;
       closeAllModals();
     } else if (page.widgets.nSelections == 1) {
-      _editor = page.widgets.selections.single.editor;
+      _editor = Editor(key: UniqueKey(), widget: page.widgets.selections.single);
       closeAllModals();
     } else {
-      _editor = page.widgets.background.editor;
+      _editor = Editor(key: UniqueKey(), widget: page.widgets.background);
     }
     notifyListeners();
   }
@@ -126,7 +126,7 @@ class EditorManager extends ChangeNotifier {
                         Container(
                           margin: const EdgeInsets.symmetric(horizontal: 6),
                           child: Text(
-                            _tab.tab,
+                            _tab.name,
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                         ),

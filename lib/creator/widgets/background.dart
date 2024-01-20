@@ -1,6 +1,7 @@
 import 'package:align_positioned/align_positioned.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+import 'package:render_studio/creator/helpers/image_provider.dart';
 import 'package:universal_io/io.dart';
 import '../../rehmat.dart';
 
@@ -37,7 +38,7 @@ class BackgroundWidget extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
-      tab: 'Page',
+      name: 'Page',
       options: [
         // Option.custom(
         //   widget: (context) => ButtonWithIcon(
@@ -78,60 +79,25 @@ class BackgroundWidget extends CreatorWidget {
             );
           },
         ),
-        Option.button(
+        if (imageProvider == null && asset == null) Option.button(
           icon: RenderIcons.image,
-          title: (asset != null && imageProvider != null) ? 'Edit Image' : 'Add Image',
-          tooltip: (asset != null && imageProvider != null) ? 'Edit background image' : 'Tap to add an image to the background',
+          title: 'Add Image',
+          tooltip: 'Tap to add an image to the background',
           onTap: (context) async {
-            if (asset != null && imageProvider != null) page.editorManager.openModal(
-              tab: (context, setState) => imageProvider!.editor(
-                asset!,
-                onChange: (change) {
-                  updateListeners(change);
-                },
-                name: 'Image Editor',
-                options: [
-                  Option.button(
-                    icon: RenderIcons.image,
-                    title: 'Replace',
-                    tooltip: 'Tap to replace image',
-                    onTap: (context) async {
-                      File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
-                      if (file == null) return;
-                      asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
-                      updateListeners(WidgetChange.update);
-                    },
-                  ),
-                ],
-              ),
-              actions: (dismiss) => [
-                IconButton(
-                  onPressed: () {
-                    asset = null;
-                    imageProvider = null;
-                    isVariableWidget = false;
-                    changeBackgroundType(BackgroundType.color);
-                    dismiss();
-                  },
-                  icon: Icon(RenderIcons.delete)
-                )
-              ],
-            ); else {
-              if (page.project.isTemplateKit) {
-                isVariableWidget = true;
-                Alerts.snackbar(context, text: 'You have added an image to the background. The asset will be treated as a variable. You can change this in the "Variable" button.');
-              }
-              File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
-              if (file == null) return;
-              if (asset == null) {
-                asset = AssetX.create(file: file, project: page.project);
-                imageProvider = CreativeImageProvider.create(this);
-              } else {
-                asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
-              }
-              changeBackgroundType(BackgroundType.image);
-              updateListeners(WidgetChange.update);
+            if (page.project.isTemplateKit) {
+              isVariableWidget = true;
+              Alerts.snackbar(context, text: 'You have added an image to the background. The asset will be treated as a variable. You can change this in the "Variable" button.');
             }
+            File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
+            if (file == null) return;
+            if (asset == null) {
+              asset = AssetX.create(file: file, project: page.project);
+              imageProvider = CreativeImageProvider.create(this);
+            } else {
+              asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
+            }
+            changeBackgroundType(BackgroundType.image);
+            updateListeners(WidgetChange.update);
           },
         ),
         if (page.project.isTemplateKit && page.project.pages.length > 1) ... [
@@ -312,6 +278,38 @@ class BackgroundWidget extends CreatorWidget {
               page.project.pages.delete();
               Alerts.snackbar(context, text: 'Deleted page');
             }
+          },
+        ),
+      ],
+    ),
+    if (imageProvider != null && asset != null) imageProvider!.editor(
+      asset!,
+      onChange: (change, {historyMessage}) {
+        updateListeners(change, historyMessage: historyMessage);
+      },
+      name: 'Image',
+      options: [
+        Option.button(
+          icon: RenderIcons.image,
+          title: 'Replace',
+          tooltip: 'Tap to replace image',
+          onTap: (context) async {
+            File? file = await FilePicker.imagePicker(context, crop: true, cropRatio: page.project.size.cropRatio);
+            if (file == null) return;
+            asset!.logVersion(version: page.history.nextVersion ?? '', file: file);
+            updateListeners(WidgetChange.update);
+          },
+        ),
+        Option.button(
+          icon: RenderIcons.delete,
+          title: 'Delete',
+          tooltip: 'Remove background image',
+          onTap: (context) async {
+            asset = null;
+            imageProvider = null;
+            isVariableWidget = false;
+            changeBackgroundType(BackgroundType.color);
+            updateListeners(WidgetChange.update);
           },
         ),
       ],

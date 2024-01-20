@@ -285,4 +285,6 @@ abstract class RenderIcons {
 
   static const IconData variable = MaterialSymbols.code;
 
+  static const IconData flag = CupertinoIcons.flag;
+
 }

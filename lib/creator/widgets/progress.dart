@@ -63,7 +63,7 @@ class CreativeProgressWidget extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
-      tab: 'Progress',
+      name: 'Progress',
       options: [
         Option.showSlider(
           this,
@@ -116,7 +116,7 @@ class CreativeProgressWidget extends CreatorWidget {
       ],
     ),
     EditorTab(
-      tab: 'Customize',
+      name: 'Customize',
       options: [
         Option.button(
           title: type == _ProgressType.linear ? 'Linear' : 'Circular',

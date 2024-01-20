@@ -82,7 +82,7 @@ class QRWidget extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
-      tab: 'QR Code',
+      name: 'QR Code',
       options: [
         Option.button(
           title: 'Data',
@@ -126,7 +126,7 @@ class QRWidget extends CreatorWidget {
       ],
     ),
     EditorTab(
-      tab: 'Customize',
+      name: 'Customize',
       options: [
         Option.button(
           title: 'Padding',

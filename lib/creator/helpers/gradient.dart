@@ -56,7 +56,7 @@ class CreativeGradient {
     void Function(WidgetChange change)? onChange,
     bool allowOpacity = true,
   }) => EditorTab(
-    tab: name,
+    name: name,
     type: EditorTabType.single,
     options: [
       Option.custom(

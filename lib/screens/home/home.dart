@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_advanced_drawer/flutter_advanced_drawer.dart';
+import 'package:pull_down_button/pull_down_button.dart';
 import 'package:smooth_corner/smooth_corner.dart';
 import '../../../../rehmat.dart';
 
@@ -13,7 +13,7 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
-  final AdvancedDrawerController drawerCtrl = AdvancedDrawerController();
+  bool isViewingTemplates = false;
   
   @override
   void initState() {
@@ -22,404 +22,121 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return AdvancedDrawer(
-      controller: drawerCtrl,
-      backdropColor: Theme.of(context).drawerTheme.backgroundColor,
-      animateChildDecoration: true,
-      openRatio: 0.75,
-      openScale: 1,
-      drawer: _Drawer(
-        controller: drawerCtrl,
-      ),
-      rtlOpening: true,
-      child: Scaffold(
-        body: CustomScrollView(
-          cacheExtent: MediaQuery.of(context).size.height * 3,
-          slivers: [
-            RenderAppBar(
-              title: Text(
-                app.remoteConfig.appTitle,
-                style: TextStyle(
-                  fontFamily: 'Helvetica',
-                  fontWeight: FontWeight.w800,
+    return Scaffold(
+      body: CustomScrollView(
+        cacheExtent: MediaQuery.of(context).size.height * 3,
+        slivers: [
+          RenderAppBar(
+            title: PullDownButton(
+              itemBuilder: (context) => [
+                PullDownMenuItem.selectable(
+                  selected: !isViewingTemplates,
+                  onTap: () {
+                    setState(() {
+                      isViewingTemplates = false;
+                    });
+                  },
+                  title: 'Projects',
                 ),
-              ),
-              titleSpacing: 12,
-              actions: [
-                GestureDetector(
-                  onTap: () => drawerCtrl.toggleDrawer(),
-                  child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 12,
-                      bottom: 12,
-                      right: 12
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(40),
-                      child: ProfilePhoto()
-                    ),
-                  ),
-                ),
-              ],
-              isExpandable: false,
-              pinned: false,
-              floating: false,
-            ),
-            // if (app.remoteConfig.allowCreateProject) SliverToBoxAdapter(
-            //   child: CreateProjectBanner(),
-            // ),
-            SliverPadding(
-              padding: EdgeInsets.only(
-                bottom: Constants.of(context).bottomPadding,
-                left: 6,
-                right: 6,
-              ),
-              sliver: ProjectsView()
-            ),
-          ],
-        ),
-        // extendBody: true,
-        // bottomNavigationBar: IntrinsicHeight(
-        //   child: Stack(
-        //     children: [
-        //       Container(
-        //         decoration: BoxDecoration(
-        //           gradient: LinearGradient(
-        //             begin: Alignment.topCenter,
-        //             end: Alignment.bottomCenter,
-        //             colors: [
-        //               Palette.of(context).background.withOpacity(0.0),
-        //               Palette.of(context).background.withOpacity(1),
-        //             ]
-        //           )
-        //         ),
-        //       ),
-        //       Padding(
-        //         padding: EdgeInsets.only(
-        //           bottom: Constants.of(context).bottomPadding,
-        //           top: 12
-        //         ),
-        //         child: Row(
-        //           mainAxisAlignment: MainAxisAlignment.center,
-        //           children: [
-        //             IntrinsicHeight(
-        //               child: PrimaryButton(
-        //                 child: Text(
-        //                   'Create Project',
-        //                   style: TextStyle(
-        //                     fontWeight: FontWeight.w600
-        //                   ),
-        //                 ),
-        //                 padding: EdgeInsets.symmetric(vertical: 24, horizontal: 48),
-        //               ),
-        //             )
-        //           ],
-        //         ),
-        //       )
-        //     ],
-        //   ),
-        // ),
-        floatingActionButton: (app.remoteConfig.allowCreateProject) ? FloatingActionButton.extended(
-          onPressed: () => AppRouter.push(context, page: CreateProject()),
-          tooltip: 'Create Project',
-          icon: Icon(
-            RenderIcons.add,
-            color: Palette.of(context).background,
-            size: 20,
-          ),
-          label: Text(
-            'Create Project',
-            style: TextStyle(
-              fontFamily: 'SF Pro Rounded',
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          backgroundColor: Palette.of(context).onBackground,
-          foregroundColor: Palette.of(context).background,
-          shape: SmoothRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            smoothness: 0.6,
-          ),
-        ) : null,
-        // bottomNavigationBar: NavigationBar(
-        //   destinations: [
-        //     NavigationDestination(
-        //       icon: Icon(RenderIcons.home),
-        //       label: 'Home',
-        //     ),
-        //     NavigationDestination(
-        //       icon: Icon(RenderIcons.search),
-        //       label: 'Discover',
-        //     ),
-        //     NavigationDestination(
-        //       icon: Icon(RenderIcons.settings),
-        //       label: 'Bookmarks',
-        //     ),
-        //     NavigationDestination(
-        //       icon: Icon(RenderIcons.user),
-        //       label: 'Profile',
-        //     ),
-        //   ],
-        // ),
-      ),
-    );
-  }
-
-}
-
-class _Drawer extends StatefulWidget {
-
-  const _Drawer({
-    required this.controller
-  });
-
-  final AdvancedDrawerController controller;
-
-  @override
-  State<_Drawer> createState() => __DrawerState();
-}
-
-class __DrawerState extends State<_Drawer> {
-
-  late final AdvancedDrawerController controller;
-
-  @override
-  void initState() {
-    super.initState();
-    controller = widget.controller;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).drawerTheme.backgroundColor,
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(
-              top: AppBar().preferredSize.height,
-              left: 6
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                FilledTonalIconButton(
-                  onPressed: () => controller.toggleDrawer(),
-                  icon: Icon(RenderIcons.close),
-                  secondary: true,
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 6,),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                SizedBox.square(
-                  dimension: 50,
-                  child: ClipOval(
-                    child: ProfilePhoto(),
-                  ),
-                ),
-                SizedBox(width: 9),
-                Flexible(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        AuthState.of(context).user!.displayName ?? 'Me',
-                        style: Theme.of(context).textTheme.titleMedium,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (AuthState.of(context).user!.email != null) Text(
-                        AuthState.of(context).user!.email!,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-          SizedBox(height: 18),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _DrawerItemBuilder(
-                  leadingIcon: RenderIcons.templates,
+                PullDownMenuItem.selectable(
+                  selected: isViewingTemplates,
+                  onTap: () {
+                    setState(() {
+                      isViewingTemplates = true;
+                    });
+                  },
                   title: 'Templates',
-                  subtitle: 'Coming Soon',
-                ),
-                SizedBox(height: 6,),
-                _DrawerItemBuilder(
-                  leadingIcon: RenderIcons.palette,
-                  title: 'Palettes',
-                  onTap: () => AppRouter.push(context, page: MyPalettes()),
-                ),
-                SizedBox(height: 6,),
-                _DrawerItemBuilder(
-                  leadingIcon: RenderIcons.calendar,
-                  title: 'Planner',
-                  subtitle: 'Coming Soon',
-                ),
-                SizedBox(height: 6,),
-                _DrawerItemBuilder(
-                  leadingIcon: RenderIcons.settings,
-                  title: 'Settings',
-                  onTap: () => AppRouter.push(context, page: Settings())
                 ),
               ],
-            ),
-          ),
-          SizedBox(height: 12,),
-          Spacer(),
-          Divider(
-            indent: 24,
-            endIndent: 24,
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(height: 6,),
-                _SecondaryDrawerItemBuilder(
-                  leadingIcon: RenderIcons.help,
-                  title: 'Help Center'
-                ),
-                SizedBox(height: 6,),
-                _SecondaryDrawerItemBuilder(
-                  leadingIcon: RenderIcons.error,
-                  title: 'Report Issue'
-                ),
-                SizedBox(height: 6,),
-                _SecondaryDrawerItemBuilder(
-                  leadingIcon: RenderIcons.signOut,
-                  title: 'Sign Out',
-                  onTap: () => AuthState.of(context).signOut(),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: Constants.of(context).bottomPadding)
-        ],
-      ),
-    );
-  }
-}
-
-class _DrawerItemBuilder extends StatefulWidget {
-
-  const _DrawerItemBuilder({
-    required this.title,
-    this.subtitle,
-    this.leadingIcon,
-    this.onTap
-  });
-
-  final String title;
-  final String? subtitle;
-  final IconData? leadingIcon;
-  final void Function()? onTap;
-
-  @override
-  State<_DrawerItemBuilder> createState() => __DrawerItemBuilderState();
-}
-
-class __DrawerItemBuilderState extends State<_DrawerItemBuilder> {
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        TapFeedback.light();
-        widget.onTap?.call();
-      },
-      child: Card(
-        color: Palette.of(context).background,
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(
-            children: [
-              if (widget.leadingIcon != null) ... [
-                Icon(widget.leadingIcon),
-                SizedBox(width: 12,),
-              ],
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.title,
-                    style: Theme.of(context).textTheme.titleMedium
+              buttonBuilder: (context, showMenu) {
+                return GestureDetector(
+                  onTap: showMenu,
+                  child: Text(
+                    app.remoteConfig.appTitle,
+                    style: TextStyle(
+                      fontFamily: 'Helvetica',
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                  if (widget.subtitle != null) Text(
-                    widget.subtitle!.toUpperCase(),
-                    style: Theme.of(context).textTheme.bodySmall,
+                );
+              }
+            ),
+            titleSpacing: 12,
+            actions: [
+              PullDownButton(
+                itemBuilder: (context) => [
+                  PullDownMenuItem(
+                    onTap: () => AppRouter.push(context, page: MyPalettes()),
+                    title: 'My Palettes',
+                    icon: RenderIcons.palette,
+                  ),
+                  PullDownMenuItem(
+                    onTap: () => AppRouter.push(context, page: Settings()),
+                    title: 'Settings',
+                    icon: RenderIcons.settings,
                   ),
                 ],
+                buttonBuilder: (context, showMenu) {
+                  return GestureDetector(
+                    onTap: showMenu,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        top: 12,
+                        bottom: 12,
+                        right: 12
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(40),
+                        child: ProfilePhoto()
+                      ),
+                    ),
+                  );
+                }
               ),
-              Spacer(),
-              Icon(RenderIcons.arrow_right)
             ],
+            isExpandable: false,
+            pinned: false,
+            floating: false,
           ),
-        )
-      ),
-    );
-  }
-}
-
-class _SecondaryDrawerItemBuilder extends StatefulWidget {
-
-  const _SecondaryDrawerItemBuilder({
-    required this.title,
-    this.leadingIcon,
-    this.onTap
-  });
-
-  final String title;
-  final IconData? leadingIcon;
-  final void Function()? onTap;
-
-  @override
-  State<_SecondaryDrawerItemBuilder> createState() => __SecondaryDrawerItemBuilderState();
-}
-
-class __SecondaryDrawerItemBuilderState extends State<_SecondaryDrawerItemBuilder> {
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        widget.onTap?.call();
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 9
-        ),
-        child: Row(
-          children: [
-            if (widget.leadingIcon != null) ... [
-              Icon(
-                widget.leadingIcon,
-              ),
-              SizedBox(width: 9),
-            ],
-            Text(
-              widget.title,
-              style: Theme.of(context).textTheme.titleSmall
+          // if (app.remoteConfig.allowCreateProject) SliverToBoxAdapter(
+          //   child: CreateProjectBanner(),
+          // ),
+          SliverPadding(
+            padding: EdgeInsets.only(
+              bottom: Constants.of(context).bottomPadding,
+              left: 6,
+              right: 6,
             ),
-          ],
-        ),
+            sliver: ProjectsView(
+              showOnlyTemplates: isViewingTemplates,
+            )
+          ),
+        ],
       ),
+      floatingActionButton: (app.remoteConfig.allowCreateProject) ? FloatingActionButton.extended(
+        onPressed: () => AppRouter.push(context, page: CreateProject()),
+        tooltip: 'Create Project',
+        icon: Icon(
+          RenderIcons.add,
+          color: Palette.of(context).background,
+          size: 20,
+        ),
+        label: Text(
+          'Create Project',
+          style: TextStyle(
+            fontFamily: 'SF Pro Rounded',
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: Palette.of(context).onBackground,
+        foregroundColor: Palette.of(context).background,
+        shape: SmoothRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          smoothness: 0.6,
+        ),
+      ) : null,
     );
   }
+
 }

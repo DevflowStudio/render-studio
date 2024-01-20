@@ -48,6 +48,7 @@ class CreatorDesignAsset extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
+      name: 'Design Asset',
       options: [
         Option.button(
           title: 'Replace',
@@ -77,7 +78,6 @@ class CreatorDesignAsset extends CreatorWidget {
         ),
         ... defaultOptions,
       ],
-      tab: 'Design Asset',
     ),
     EditorTab.adjustTab(widget: this)
   ];

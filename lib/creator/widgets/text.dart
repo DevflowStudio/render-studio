@@ -47,7 +47,7 @@ class CreatorText extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
-      tab: 'Text',
+      name: 'Text',
       options: [
         Option.button(
           title: 'Edit',
@@ -138,13 +138,13 @@ class CreatorText extends CreatorWidget {
       ],
     ),
     EditorTab(
-      tab: 'Style',
+      name: 'Style',
       options: [
         ... primaryStyle.getOptions()
       ],
     ),
     EditorTab(
-      tab: 'Secondary Style',
+      name: 'Secondary Style',
       options: [
         Option.button(
           title: 'Info',
@@ -193,7 +193,7 @@ class CreatorText extends CreatorWidget {
       },
     ),
     EditorTab(
-      tab: 'Alignment',
+      name: 'Alignment',
       type: EditorTabType.single,
       options: [
         Option.custom(
@@ -241,7 +241,7 @@ class CreatorText extends CreatorWidget {
       ],
     ),
     EditorTab(
-      tab: 'Effects',
+      name: 'Effects',
       options: [
         Option.button(
           title: 'Shadow',
@@ -395,7 +395,7 @@ class CreatorText extends CreatorWidget {
       ],
     ),
     EditorTab(
-      tab: 'Spacing',
+      name: 'Spacing',
       type: EditorTabType.row,
       options: [
         Option.showSlider(

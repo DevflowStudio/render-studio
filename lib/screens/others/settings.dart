@@ -68,6 +68,25 @@ class _SettingsState extends State<Settings> {
                 ),
               ),
 
+              ListTile(
+                title: const Text(
+                  'Sign Out',
+                  style: TextStyle(
+                    color: Colors.red
+                  ),
+                ),
+                onTap: () async {
+                  bool signout = await Alerts.showConfirmationDialog(
+                    context,
+                    title: 'Sign Out',
+                    message: 'Are you sure you want to sign out?',
+                    confirmButtonText: 'Sign Out',
+                    isDestructive: true
+                  );
+                  if (signout) AuthState.of(context).signOut();
+                },
+              ),
+
               Divider(),
               ListTile(
                 title: const Text('About Us'),

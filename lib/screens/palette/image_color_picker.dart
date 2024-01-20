@@ -95,7 +95,7 @@ class _ImageColorPickerState extends State<ImageColorPicker> {
                                 width: 50,
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: Palette.materialDark
+                                  color: Palette.blurBackground(context)
                                 ),
                                 child: Center(
                                   child: Container(

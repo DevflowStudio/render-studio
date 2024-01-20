@@ -58,6 +58,7 @@ class CreativeBlob extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
+      name: 'Blob',
       options: [
         Option.button(
           title: 'Random',
@@ -85,7 +86,6 @@ class CreativeBlob extends CreatorWidget {
         ),
         ... defaultOptions,
       ],
-      tab: 'Blob',
     ),
     EditorTab.adjustTab(widget: this)
   ];

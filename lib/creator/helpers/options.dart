@@ -172,7 +172,7 @@ class Option {
     onTap: (context) async {
       widget.page.editorManager.openModal(
         tab: (context, setState) => EditorTab(
-          tab: title,
+          name: title,
           type: EditorTabType.single,
           options: [
             Option.slider(
@@ -291,7 +291,7 @@ class Option {
                 ];
                 if (!fonts.contains(fontFamily)) fonts.insert(0, fontFamily);
                 return EditorTab(
-                  tab: 'Fonts',
+                  name: 'Fonts',
                   type: EditorTabType.single,
                   options: [
                     Option.custom(
@@ -488,7 +488,7 @@ class Option {
           widget.setHandlersVisibility(true);
         }
       );
-      widget.updateListeners(WidgetChange.update);
+      widget.updateListeners(WidgetChange.update, historyMessage: 'Nudge');
     },
     icon: icon,
     tooltip: tooltip

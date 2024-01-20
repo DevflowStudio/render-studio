@@ -50,7 +50,7 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
               IconButton(
                 onPressed: () => Navigator.of(context).pop(),
                 icon: Icon(RenderIcons.close)
-              )
+              ),
             ],
           ),
           Expanded(
@@ -99,23 +99,51 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
                 Positioned(
                   top: 12,
                   right: 12,
-                  child: SmoothClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    smoothness: 0.6,
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Palette.materialDark
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${glance.nPages} Page${glance.nPages > 1 ? 's' : ''}',
-                          )
+                  child: Row(
+                    children: [
+                      if (glance.isTemplate || glance.isTemplateKit) Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: SmoothClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          smoothness: 0.6,
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Palette.blurBackground(context)
+                              ),
+                              child: Center(
+                                child: Text(
+                                  glance.isTemplateKit ? 'Template Kit' : 'Template',
+                                  style: TextStyle(
+                                    color: Palette.onBlurBackground(context)
+                                  ),
+                                )
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      SmoothClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        smoothness: 0.6,
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Palette.blurBackground(context)
+                            ),
+                            child: Center(
+                              child: Text(
+                                '${glance.nPages} Page${glance.nPages > 1 ? 's' : ''}',
+                              )
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -134,43 +162,40 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
             crossFadeState: isLoading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
             firstChild: ClipRRect(
               child: Container(
-                color: Palette.materialDark,
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                  child: Padding(
-                    padding: EdgeInsets.only(
-                      bottom: Constants.of(context).bottomPadding,
-                      left: 12,
-                      right: 12
-                    ),
-                    child: Row(
-                      children: [
-                        buildIconButton(
-                          icon: RenderIcons.edit,
-                          label: 'Edit',
-                          onPressed: open,
-                          tooltip: 'Edit Project'
-                        ),
-                        if (glance.images.isNotEmpty) buildIconButton(
-                          icon: RenderIcons.share,
-                          label: 'Share',
-                          onPressed: share,
-                          tooltip: 'Share Project'
-                        ),
-                        buildIconButton(
-                          icon: RenderIcons.duplicate,
-                          label: 'Duplicate',
-                          onPressed: duplicate,
-                          tooltip: 'Duplicate this Project'
-                        ),
-                        buildIconButton(
-                          icon: RenderIcons.delete,
-                          label: 'Delete',
-                          onPressed: delete,
-                          tooltip: 'Delete Project'
-                        ),
-                      ],
-                    ),
+                color: Palette.blurBackground(context),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: Constants.of(context).bottomPadding,
+                    left: 12,
+                    right: 12
+                  ),
+                  child: Row(
+                    children: [
+                      buildIconButton(
+                        icon: RenderIcons.edit,
+                        label: 'Edit',
+                        onPressed: open,
+                        tooltip: 'Edit Project'
+                      ),
+                      if (glance.images.isNotEmpty) buildIconButton(
+                        icon: RenderIcons.share,
+                        label: 'Share',
+                        onPressed: share,
+                        tooltip: 'Share Project'
+                      ),
+                      buildIconButton(
+                        icon: RenderIcons.duplicate,
+                        label: 'Duplicate',
+                        onPressed: duplicate,
+                        tooltip: 'Duplicate this Project'
+                      ),
+                      buildIconButton(
+                        icon: RenderIcons.delete,
+                        label: 'Delete',
+                        onPressed: delete,
+                        tooltip: 'Delete Project'
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -354,44 +379,41 @@ class ProjectGlanceCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Hero(
-              tag: 'project-${glance.id}',
-              child: SmoothClipRRect(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                smoothness: 0.6,
-                child: OctoImage(
-                  image: FileImage(File(glance.thumbnail ?? '')),
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Material(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 20,
-                        horizontal: 20
-                      ),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(RenderIcons.warning),
-                            SizedBox(height: 3),
-                            const Text('Preview Unavailable'),
-                          ],
-                        ),
+            SmoothClipRRect(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              smoothness: 0.6,
+              child: OctoImage(
+                image: FileImage(File(glance.thumbnail ?? '')),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Material(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 20,
+                      horizontal: 20
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(RenderIcons.warning),
+                          SizedBox(height: 3),
+                          const Text('Preview Unavailable'),
+                        ],
                       ),
                     ),
                   ),
-                  placeholderBuilder: (context) => LayoutBuilder(
-                    builder: (context, constraints) {
-                      Size parentSize = constraints.biggest;
-                      return SizedBox(
-                        width: parentSize.width,
-                        height: parentSize.width / glance.size.size.aspectRatio,
-                        child: Center(
-                        ),
-                      );
-                    }
-                  )
                 ),
+                placeholderBuilder: (context) => LayoutBuilder(
+                  builder: (context, constraints) {
+                    Size parentSize = constraints.biggest;
+                    return SizedBox(
+                      width: parentSize.width,
+                      height: parentSize.width / glance.size.size.aspectRatio,
+                      child: Center(
+                      ),
+                    );
+                  }
+                )
               ),
             ),
             Padding(

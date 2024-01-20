@@ -43,7 +43,7 @@ class CreativeContainerProvider {
     bool showBlur = true,
     bool showColor = true,
   }) => EditorTab(
-    tab: name,
+    name: name,
     options: [
       if (showColor) Option.color(
         widget,
@@ -141,6 +141,7 @@ class CreativeContainerProvider {
               )
             ],
             tab: (context, setState) => EditorTab(
+              name: 'Border',
               type: EditorTabType.single,
               options: [
                 Option.custom(
@@ -194,7 +195,6 @@ class CreativeContainerProvider {
                   ),
                 ),
               ],
-              tab: 'Border'
             ),
             onDismiss: () {
               if ((borderWidth ?? 0) > 0 && borderColor == null) {

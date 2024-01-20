@@ -83,6 +83,7 @@ class ShapeWidget extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
+      name: 'Shape',
       options: [
         Option.button(
           title: 'Replace',
@@ -110,7 +111,6 @@ class ShapeWidget extends CreatorWidget {
         ),
         ... defaultOptions,
       ],
-      tab: 'Shape',
     ),
     EditorTab.adjustTab(widget: this)
   ];

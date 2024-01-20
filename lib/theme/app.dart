@@ -40,8 +40,8 @@ class AppTheme {
         backgroundColor: background,
         titleTextStyle: TextStyle(
           fontSize: 22,
-          fontFamily: 'SF Pro Rounded',
-          fontWeight: FontWeight.w600,
+          fontFamily: 'SF Pro',
+          fontWeight: FontWeight.w500,
           color: colorScheme.onBackground
         ),
         surfaceTintColor: colorScheme.surfaceVariant

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/utils.dart';
+import 'package:pull_down_button/pull_down_button.dart';
 import 'package:smooth_corner/smooth_corner.dart';
 import 'package:sprung/sprung.dart';
+import 'package:universal_io/io.dart';
 import '../rehmat.dart';
 
 class TextIconButton extends StatefulWidget {
@@ -300,27 +303,24 @@ class RawButtonState extends State<RawButton> {
             ),
             color: widget.backgroundColor.withOpacity(widget.disabled ? 0.5 : 1),
           ),
+          padding: widget.padding,
           child: DefaultTextStyle(
             style: textStyle!.copyWith(
               color: widget.textColor,
               fontSize: 19,
               fontFamily: 'SF Pro Rounded',
               fontWeight: FontWeight.w500,
-              height: 1
+              height: 1,
             ),
-            child: Center(
-              child: Padding(
-                padding: widget.padding,
-                child: isLoading ? SizedBox(
-                  height: 19,
-                  width: 19,
-                  child: Spinner(
-                    valueColor: widget.textColor,
-                    strokeWidth: 2,
-                  )
-                ) : widget.child,
-              ),
-            ),
+            textAlign: TextAlign.center,
+            child: isLoading ? SizedBox(
+              height: 19,
+              width: 19,
+              child: Spinner(
+                valueColor: widget.textColor,
+                strokeWidth: 2,
+              )
+            ) : widget.child,
           ),
         ),
       ),
@@ -372,4 +372,182 @@ class InkWellButton extends StatelessWidget {
     );
   }
 
+}
+
+class RenderDropdownButton<T> extends StatefulWidget {
+
+  const RenderDropdownButton({super.key, required this.items, this.value, this.onChanged});
+
+  final List<RenderDropdownMenuItem<T>> items;
+
+  final T? value;
+
+  final Function(T?)? onChanged;
+
+  @override
+  State<RenderDropdownButton<T>> createState() => _RenderDropdownButtonState<T>();
+}
+
+class _RenderDropdownButtonState<T> extends State<RenderDropdownButton<T>> {
+
+  @override
+  Widget build(BuildContext context) {
+    if (Platform.isAndroid) {
+      List<DropdownMenuItem<T>> items = widget.items.map<DropdownMenuItem<T>>((e) => e.toDropdownMenuItem()).toList();
+      return DropdownButton<T>(
+        items: items,
+        value: widget.value,
+        onChanged: widget.onChanged,
+        elevation: 2,
+        borderRadius: BorderRadius.circular(8),
+        icon: Icon(
+          RenderIcons.arrow_down,
+          size: 18,
+        ),
+        enableFeedback: true,
+        underline: Container(),
+        dropdownColor: Palette.of(context).surfaceVariant,
+      );
+    } else {
+      return _IOSRenderDropdownButton<T>(
+        items: widget.items,
+        value: widget.value,
+        onChanged: widget.onChanged,
+      );
+    }
+  }
+
+}
+
+class _IOSRenderDropdownButton<T> extends StatefulWidget {
+
+  const _IOSRenderDropdownButton({super.key, required this.items, this.value, this.onChanged});
+
+  final List<RenderDropdownMenuItem<T>> items;
+
+  final T? value;
+
+  final Function(T?)? onChanged;
+
+  @override
+  State<_IOSRenderDropdownButton<T>> createState() => _IOSRenderDropdownButtonState<T>();
+}
+
+class _IOSRenderDropdownButtonState<T> extends State<_IOSRenderDropdownButton<T>> {
+
+  late T? value;
+
+  late List<RenderDropdownMenuItem<T>> items;
+
+  @override
+  void initState() {
+    super.initState();
+    value = widget.value;
+    items = widget.items;
+  }
+
+  @override
+  void didUpdateWidget(covariant _IOSRenderDropdownButton<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      setState(() {
+        value = widget.value;
+      });
+    }
+    if (oldWidget.items != widget.items) {
+      setState(() {
+        items = widget.items;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    RenderDropdownMenuItem? selected;
+    if (value != null) selected = items.firstWhereOrNull((e) => e.value == value);
+
+    return Container(
+      child: PullDownButton(
+        itemBuilder: (context) => items.map((e) => PullDownMenuItem.selectable(
+          title: e.title,
+          enabled: e.enabled,
+          selected: e.value == value,
+          onTap: () {
+            if (e.onTap != null) e.onTap!();
+            if (widget.onChanged != null) widget.onChanged!(e.value);
+            setState(() {
+              value = e.value;
+            });
+          },
+        )).toList(),
+        buttonBuilder: (context, showMenu) => AnimatedSize(
+          duration: kAnimationDuration,
+          child: RawButton(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 3),
+                  child: Text(
+                    selected?.title ?? 'Select',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Palette.of(context).onSurfaceVariant
+                    ),
+                  ),
+                ),
+                Icon(
+                  RenderIcons.arrow_down,
+                  color: Palette.of(context).onSurfaceVariant,
+                  size: Theme.of(context).textTheme.labelLarge?.fontSize,
+                )
+              ],
+            ),
+            backgroundColor: Palette.of(context).surfaceVariant,
+            textColor: Palette.of(context).onSurfaceVariant,
+            onPressed: showMenu,
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        )
+      )
+    );
+  }
+
+}
+
+class RenderDropdownMenuItem<T> {
+  /// Creates an item for a dropdown menu.
+  ///
+  /// The [child] argument is required.
+  const RenderDropdownMenuItem({
+    this.key,
+    required this.title,
+    this.onTap,
+    this.value,
+    this.enabled = true,
+  });
+
+  final Key? key;
+
+  final String title;
+
+  /// Called when the dropdown menu item is tapped.
+  final VoidCallback? onTap;
+
+  /// The value to return if the user selects this menu item.
+  ///
+  /// Eventually returned in a call to [DropdownButton.onChanged].
+  final T? value;
+
+  /// Whether or not a user can select this menu item.
+  ///
+  /// Defaults to `true`.
+  final bool enabled;
+
+  DropdownMenuItem<T> toDropdownMenuItem() => DropdownMenuItem<T>(
+    key: key,
+    child: Text(title),
+    onTap: onTap,
+    value: value,
+    enabled: enabled,
+  );
 }

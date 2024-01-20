@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pull_down_button/pull_down_button.dart';
 import 'package:smooth_corner/smooth_corner.dart';
 
 import '../../../rehmat.dart';
@@ -71,22 +72,53 @@ class _GeneratedTemplatesViewState extends State<GeneratedTemplatesView> {
         ),
         child: Row(
           children: [
+            IconButton.filledTonal(
+              onPressed: () {},
+              tooltip: 'Save to gallery',
+              icon: Icon(
+                RenderIcons.download,
+              ),
+            ),
+            PullDownButton(
+              itemBuilder: (context) => [
+                PullDownMenuItem(
+                  title: 'Report',
+                  icon: RenderIcons.flag,
+                  onTap: () {
+                    
+                  },
+                ),
+                PullDownMenuItem(
+                  title: 'Delete',
+                  icon: RenderIcons.delete,
+                  isDestructive: true,
+                  onTap: () {
+                    
+                  },
+                ),
+              ],
+              buttonBuilder: (context, showMenu) {
+                return IconButton.filledTonal(
+                  onPressed: showMenu,
+                  tooltip: 'View more options',
+                  icon: Icon(
+                    RenderIcons.more,
+                  ),
+                );
+              }
+            ),
             Spacer(),
             IntrinsicHeight(
               child: PrimaryButton(
                 padding: EdgeInsets.symmetric(
-                  horizontal: 36,
-                  vertical: 24
+                  horizontal: 24,
+                  vertical: 12
                 ),
                 child: Row(
                   children: [
-                    Icon(
-                      RenderIcons.edit,
-                      color: Palette.of(context).background,
-                      size: 20,
-                    ),
-                    Container(width: 6),
-                    Text('Edit')
+                    Text(
+                      'Edit',
+                    )
                   ],
                 ),
                 onPressed: () {

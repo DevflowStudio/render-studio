@@ -15,12 +15,9 @@ class Editor extends StatefulWidget {
   const Editor({
     Key? key,
     required this.widget,
-    this.isModal = false
   }) : super(key: key);
 
   final CreatorWidget widget;
-
-  final bool isModal;
 
   static Size calculateSize(BuildContext context) {
     double verticalPadding = Constants.of(context).bottomPadding;
@@ -36,31 +33,33 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
 
   late CreatorWidget creatorWidget;
 
-  late TabController tabController;
+  void setNewTabCtrl() {
+    creatorWidget.editorTabCtrl = TabController(length: creatorWidget.tabs.length, vsync: this);
+  }
 
   @override
   void initState() {
     creatorWidget = widget.widget;
     creatorWidget.addListener(onPropertyChange, [WidgetChange.update, WidgetChange.lock]);
-    tabController = TabController(length: creatorWidget.tabs.length, vsync: this);
+    if (creatorWidget.editorTabCtrl == null) setNewTabCtrl();
     super.initState();
   }
 
   @override
   void dispose() {
     creatorWidget.removeListener(onPropertyChange, [WidgetChange.update, WidgetChange.lock]);
-    tabController.dispose();
     super.dispose();
   }
 
   @override
-  void didUpdateWidget (Editor old) {
+  void didUpdateWidget(Editor old) {
     super.didUpdateWidget(old);
   }
 
   @override
   Widget build(BuildContext context) {
     Size editorSize = Editor.calculateSize(context);
+    TabController tabController = creatorWidget.editorTabCtrl!;
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
@@ -83,7 +82,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: TabBar(
-                      controller: tabController,
+                      controller: creatorWidget.editorTabCtrl,
                       enableFeedback: true,
                       tabAlignment: TabAlignment.start,
                       padding: EdgeInsets.only(
@@ -99,7 +98,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                       tabs: List.generate(
                         creatorWidget.tabs.length,
                         (index) => Tab(
-                          text: creatorWidget.tabs[index].tab,
+                          text: creatorWidget.tabs[index].name,
                         )
                       ),
                       onTap: (value) {
@@ -187,7 +186,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                 creatorWidget.unlock();
               },
               child: Container(
-                color: Palette.materialDark,
+                color: Palette.blurBackground(context),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                   child: Center(
@@ -206,13 +205,13 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                           Icon(
                             CupertinoIcons.lock_fill,
                             size: Theme.of(context).textTheme.titleLarge?.fontSize,
-                            color: Palette.of(context).background
+                            color: Palette.onBlurBackground(context)
                           ),
                           const SizedBox(width: 6),
                           Text(
                             'Locked',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Palette.of(context).background
+                              color: Palette.onBlurBackground(context)
                             ),
                           ),
                         ],
@@ -228,23 +227,24 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
     );
   }
 
-  void onPropertyChange() => setState(() { });
+  void onPropertyChange() {
+    if (creatorWidget.tabs.length != creatorWidget.editorTabCtrl!.length) setNewTabCtrl();
+    setState(() { });
+  }
 
 }
 
 class EditorTab {
 
   EditorTab({
-    required this.tab,
+    required this.name,
     required this.options,
     this.type = EditorTabType.row,
-    this.actions = const [],
   });
 
   final List<Option> options;
-  final String tab;
+  final String name;
   final EditorTabType type;
-  final List<Widget> actions;
 
   Widget build(BuildContext context) {
     switch (type) {
@@ -272,6 +272,7 @@ class EditorTab {
     Function(double value)? onChangeEnd,
     Function(double value)? onChangeStart,
   }) => EditorTab(
+    name: 'Opacity',
     type: EditorTabType.single,
     options: [
       Option.slider(
@@ -283,7 +284,6 @@ class EditorTab {
         onChangeEnd: onChangeEnd,
       )
     ],
-    tab: 'Opacity'
   );
 
   static EditorTab rotate({
@@ -292,6 +292,7 @@ class EditorTab {
     Function(double value)? onChangeEnd,
     Function(double value)? onChangeStart,
   }) => EditorTab(
+    name: 'Rotate',
     type: EditorTabType.single,
     options: [
       Option.slider(
@@ -310,7 +311,6 @@ class EditorTab {
         ],
       )
     ],
-    tab: 'Rotate'
   );
 
   static EditorTab scale({
@@ -338,8 +338,8 @@ class EditorTab {
     if (value <= min) value = min;
 
     return EditorTab(
+      name: 'Scale',
       type: EditorTabType.single,
-      tab: 'Scale',
       options: [
         Option.slider(
           value: value,
@@ -366,6 +366,7 @@ class EditorTab {
     Function(double value)? onChangeEnd,
     Function(double value)? onChangeStart,
   }) => EditorTab(
+    name: 'Size',
     type: EditorTabType.single,
     options: [
       Option.slider(
@@ -378,7 +379,6 @@ class EditorTab {
         showValueEditor: true
       )
     ],
-    tab: 'Size'
   );
 
   static EditorTab picker({
@@ -388,6 +388,7 @@ class EditorTab {
     double itemExtent = 30,
     int initialIndex = 0
   }) => EditorTab(
+    name: title,
     type: EditorTabType.single,
     options: [
       Option.picker(
@@ -397,7 +398,6 @@ class EditorTab {
         initialIndex: initialIndex
       )
     ],
-    tab: title
   );
 
   static EditorTab pickerBuilder({
@@ -408,6 +408,7 @@ class EditorTab {
     double itemExtent = 30,
     int initialIndex = 0
   }) => EditorTab(
+    name: title,
     type: EditorTabType.single,
     options: [
       Option.pickerBuilder(
@@ -418,7 +419,6 @@ class EditorTab {
         itemExtent: itemExtent
       )
     ],
-    tab: title
   );
 
   static EditorTab adjustTab({
@@ -430,7 +430,7 @@ class EditorTab {
     bool position = true,
     bool order = true,
   }) => EditorTab(
-    tab: 'Adjust',
+    name: 'Adjust',
     options: [
       if (rotate) Option.rotate(
         widget: widget.widgetOrGroup,
@@ -460,6 +460,7 @@ class EditorTab {
   }) {
     double sensitivity = Constants.nudgeSensitivity / widget.page.scale;
     return EditorTab(
+      name: 'Nudge',
       type: EditorTabType.single,
       options: [
         Option.custom(
@@ -509,7 +510,6 @@ class EditorTab {
           ),
         )
       ],
-      tab: 'Nudge'
     );
   }
 
@@ -549,7 +549,7 @@ class EditorTab {
       },
     ];
     return EditorTab(
-      tab: 'Position',
+      name: 'Position',
       type: EditorTabType.single,
       options: [
         Option.custom(
@@ -583,6 +583,7 @@ class EditorTab {
     double? minHorizontal,
     double? maxHorizontal,
   }) => EditorTab(
+    name: 'Padding',
     type: EditorTabType.single,
     options: [
       Option.custom(
@@ -596,7 +597,6 @@ class EditorTab {
         ),
       )
     ],
-    tab: 'Padding'
   );
 
   static EditorTab containerSizeEditor({
@@ -604,6 +604,7 @@ class EditorTab {
     required double heightRatio,
     required Function(double newWidthRatio, double newHeightRatio) onChange,
   }) => EditorTab(
+    name: 'Size',
     type: EditorTabType.single,
     options: [
       Option.custom(
@@ -614,7 +615,6 @@ class EditorTab {
         ),
       )
     ],
-    tab: 'Size'
   );
 
   static EditorTab shadow<T>({
@@ -623,6 +623,7 @@ class EditorTab {
     required void Function(T? value) onChange,
   }) {
     return EditorTab(
+      name: 'Shadow Editor',
       type: EditorTabType.single,
       options: [
         Option.custom(
@@ -633,7 +634,6 @@ class EditorTab {
           ),
         )
       ],
-      tab: 'Shadow Editor'
     );
   }
 
@@ -641,7 +641,7 @@ class EditorTab {
     required CreatorPage page,
     required void Function(ColorPalette palette) onSelected
   }) => EditorTab(
-    tab: 'Palette',
+    name: 'Palette',
     type: EditorTabType.single,
     options: [
       Option.custom(
@@ -703,7 +703,7 @@ class EditorTab {
     bool allowOpacity = true,
     Color? selected
   }) => EditorTab(
-    tab: 'Color',
+    name: 'Color',
     type: EditorTabType.single,
     options: [
       Option.custom(
@@ -722,7 +722,7 @@ class EditorTab {
     required void Function() onReorder,
     required void Function() onReorderEnd,
   }) => EditorTab(
-    tab: 'Reorder',
+    name: 'Reorder',
     type: EditorTabType.single,
     options: [
       Option.custom(
@@ -738,7 +738,7 @@ class EditorTab {
   static EditorTab projectResize({
     required Project project,
   }) => EditorTab(
-    tab: 'Resize',
+    name: 'Resize',
     type: EditorTabType.single,
     options: [
       Option.custom(
@@ -1339,12 +1339,12 @@ class __PaletteViewModalState extends State<_PaletteViewModal> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Palette.materialDark
+                          color: Palette.blurBackground(context)
                         ),
                         child: Icon(
                           CupertinoIcons.shuffle,
                           size: 18,
-                          color: Palette.onMaterialDark
+                          color: Palette.onBlurBackground(context)
                         )
                       ),
                     ),

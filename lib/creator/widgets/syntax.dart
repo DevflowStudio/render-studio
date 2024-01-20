@@ -37,10 +37,10 @@ class CreatorWidgetSyntax extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
+      name: 'Example Widget',
       options: [
         ... defaultOptions,
       ],
-      tab: 'Example Widget',
     ),
     EditorTab.adjustTab(widget: this)
   ];

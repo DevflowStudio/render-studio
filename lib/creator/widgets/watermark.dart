@@ -45,6 +45,7 @@ class RenderStudioWatermark extends CreatorWidget {
   @override
   List<EditorTab> get tabs => [
     EditorTab(
+      name: 'Watermark',
       options: [
         Option.font(
           this,
@@ -66,7 +67,6 @@ class RenderStudioWatermark extends CreatorWidget {
           icon: RenderIcons.delete
         )
       ],
-      tab: 'Watermark',
     ),
   ];
 

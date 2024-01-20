@@ -136,7 +136,7 @@ class _UnsplashPhotoInfoState extends State<UnsplashPhotoInfo> {
       borderRadius: BorderRadius.circular(32),
       child: Container(
         decoration: BoxDecoration(
-          color: Palette.materialDark,
+          color: Palette.blurBackground(context),
           borderRadius: BorderRadius.circular(32),
         ),
         child: Padding(
@@ -547,7 +547,7 @@ class __UnsplashPhotoBuilderState extends State<UnsplashPhotoBuilder> {
                   height: 40,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Palette.materialDark
+                      color: Palette.blurBackground(context)
                     ),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -582,7 +582,7 @@ class __UnsplashPhotoBuilderState extends State<UnsplashPhotoBuilder> {
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Palette.materialDark
+                      color: Palette.blurBackground(context)
                     ),
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
