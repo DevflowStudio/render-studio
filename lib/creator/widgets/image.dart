@@ -153,7 +153,7 @@ class ImageWidget extends CreatorWidget {
           icon: RenderIcons.replace,
           tooltip: 'Replace Image'
         ),
-        Option.button(
+        if (page.project.isTemplateKit) Option.button(
           title: 'Variable',
           tooltip: 'Change text variable type',
           onTap: (context) async {

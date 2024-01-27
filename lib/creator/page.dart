@@ -188,6 +188,7 @@ class CreatorPage extends PropertyChangeNotifier {
     } on WidgetCreationException catch (e, stacktrace) {
       analytics.logError(e, cause: 'error building page', stacktrace: stacktrace);
       project.issues.add(Exception('Failed to build page.'));
+      print('Failed to build page. Error: $e');
       return null;
     }
   }

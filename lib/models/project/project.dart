@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/utils.dart';
 import 'package:render_studio/creator/helpers/universal_size_translator.dart';
@@ -6,12 +7,11 @@ import '../../rehmat.dart';
 
 class Project extends ChangeNotifier {
 
-  Project(BuildContext context, {
-    this.id,
+  Project._(BuildContext context, {
     this.fromSaves = false
   }) {
     pages = PageManager(this);
-    id ??= Constants.generateID(6);
+    id = Constants.generateID(6);
     deviceSize = MediaQuery.of(context).size;
   }
 
@@ -20,7 +20,7 @@ class Project extends ChangeNotifier {
 
   late final ProjectMetadata metadata;
 
-  String? id;
+  late String id;
 
   /// Headline of the project
   String? title;
@@ -54,7 +54,7 @@ class Project extends ChangeNotifier {
 
   /// Renders and saves each of the page as a png file to the device gallery
   /// Saves the path of images to `images` list
-  Future<void> saveToGallery(BuildContext context, {
+  Future<void> generateImages(BuildContext context, {
     ExportQuality quality = ExportQuality.onex,
     bool saveToGallery = true,
   }) async {
@@ -69,6 +69,8 @@ class Project extends ChangeNotifier {
       String? _image = await page.save(context, saveToGallery: saveToGallery, quality: quality, path: imagesSavePath);
       if (_image != null) images.add(_image);
     }
+
+    thumbnail = images.firstOrNull;
   }
 
   void resize(PostSize size) {
@@ -96,7 +98,7 @@ class Project extends ChangeNotifier {
     bool exportImages = true,
   }) async {
     Future? gallerySaveFuture;
-    if (context != null && quality != null && exportImages) gallerySaveFuture = saveToGallery(context, quality: quality);
+    if (context != null && quality != null && exportImages) gallerySaveFuture = generateImages(context, quality: quality);
 
     Future<Map<String, dynamic>> assetsFuture = assetManager.getCompiled(upload: publish);
 
@@ -136,7 +138,7 @@ class Project extends ChangeNotifier {
     List<Map<String, dynamic>> variableValues = const []
   }) async {
 
-    Project project = Project(context, fromSaves: true);
+    Project project = Project._(context, fromSaves: true);
 
     project.id = data['id'];
     project.title = data['title'];
@@ -171,7 +173,7 @@ class Project extends ChangeNotifier {
     required BuildContext context
   }) async {
 
-    Project project = Project(context, fromSaves: true);
+    Project project = Project._(context, fromSaves: true);
 
     project.id = Constants.generateID();
     project.title = data['title'];
@@ -192,29 +194,43 @@ class Project extends ChangeNotifier {
       Map pageData = data['pages'].firstWhere((page) => page['id'] == pageID);
 
       CreatorPage? page = await CreatorPage.fromJSON(Map<String, dynamic>.from(pageData), project: project);
-      if (page == null) continue;
+      if (page == null) {
+        print('Got null page for pageID: $pageID, projectID: ${project.id}');
+        return null;
+      }
 
       project.pages.pages.add(page);
     }
 
     for (CreatorPage page in project.pages.pages) {
       Map pageKit = data['template-kit']['pages'].firstWhere((pageKit) => pageKit['id'] == page.id);
+      
+      Future<void> handleWidgetVariableLoad(CreatorWidget widget) async {
+        Map? variable = List.from(pageKit['variables']).firstWhereOrNull((variable) => variable['uid'] == widget.uid);
+        if (variable == null) return;
+        widget.loadVariables(variable.toDataType<String, dynamic>());
+        if (widget is ImageWidget || widget is BackgroundWidget) {
+          await precacheImage(CachedNetworkImageProvider(variable['url']), context);
+        }
+      }
+
       for (CreatorWidget widget in page.widgets.widgets) {
         if (widget is WidgetGroup) {
-          for (CreatorWidget child in widget.widgets) {
-            Map? variable = List.from(pageKit['variables']).firstWhereOrNull((variable) => variable['uid'] == child.uid);
-            if (variable == null) continue;
-            child.loadVariables(variable.toDataType<String, dynamic>());
-          }
+          for (CreatorWidget child in widget.widgets) handleWidgetVariableLoad(child);
         } else {
-          Map? variable = List.from(pageKit['variables']).firstWhereOrNull((variable) => variable['uid'] == widget.uid);
-          if (variable == null) continue;
-          widget.loadVariables(variable.toDataType<String, dynamic>());
+          handleWidgetVariableLoad(widget);
         }
       }
     }
 
+    print('\$\$ Project fromTemplateKit ${project.id}');
+    print('Received Template Kit data: ${data['template-kit']}');
+    print('-------\n\n\n');
+
     project.pages.updateListeners();
+
+    await project.assetManager.precache(context);
+    await project.generateImages(context, saveToGallery: false);
 
     return project;
   }
@@ -229,7 +245,7 @@ class Project extends ChangeNotifier {
     bool isTemplate = false,
     bool isTemplateKit = false,
   }) {
-    Project project = Project(context);
+    Project project = Project._(context);
     project.size = size ?? PostSizePresets.square.toSize();
     project.metadata = ProjectMetadata.create();
     project.title = title;

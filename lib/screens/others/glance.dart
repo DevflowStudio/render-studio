@@ -279,7 +279,7 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
       context,
       task: () async {
         await createOriginalPost();
-        await project!.saveToGallery(context);
+        await project!.generateImages(context);
       }
     );
     setState(() { });

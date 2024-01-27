@@ -230,20 +230,29 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                 title: 'Save',
                 icon: RenderIcons.download,
                 onTap: () async {
-                  await showPullDownMenu(
-                    context: context,
-                    items: [
-                      const PullDownMenuTitle(title: Text('Choose Quality')),
-                      for (final quality in ExportQuality.values) PullDownMenuItem(
-                        title: quality.name,
-                        subtitle: quality.getFinalSize(project.size.size),
-                        onTap: () {
-                          widget.save(quality: quality);
-                        },
-                      ),
-                    ],
-                    position: _getRect(context)
-                  );
+                  try {
+                    await showPullDownMenu(
+                      context: context,
+                      items: [
+                        const PullDownMenuTitle(title: Text('Choose Quality')),
+                        for (final quality in ExportQuality.values) PullDownMenuItem(
+                          title: quality.name,
+                          subtitle: quality.getFinalSize(project.size.size),
+                          onTap: () {
+                            widget.save(quality: quality);
+                          },
+                        ),
+                      ],
+                      position: _getRect(context)
+                    );
+                  } catch (e) {
+                    analytics.logError(e, cause: 'save error');
+                    Alerts.dialog(
+                      context,
+                      title: 'Failed to Save',
+                      content: 'Oh no! An error occurred while saving the project. Please try again later.'
+                    );
+                  }
                 },
               ),
               PullDownMenuItem(

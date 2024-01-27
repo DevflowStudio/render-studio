@@ -14,27 +14,35 @@ class TemplateKit {
   }) async {
     List<Project> projects = [];
 
+    DateTime start = DateTime.now();
     Response response = await Cloud.post(
       'template/generate',
-      data: FormData.fromMap({
-        'prompt': prompt
-      })
+      data: FormData.fromMap({'prompt': prompt})
     );
+    print('Template generation took ${DateTime.now().difference(start).inSeconds} seconds');
 
     List<Map> templates = List.from(response.data['templates']).toDataType<Map>();
 
-    for (Map data in templates) {
-      Project? project = await Project.fromTemplateKit(
+    // Create a list of Futures for each project generation
+    List<Future<Project?>> projectFutures = templates.map((Map data) {
+      return Project.fromTemplateKit(
         context: context,
         data: data.toDataType<String, dynamic>(),
       );
-      if (project != null) {
-        projects.add(project);
-      }
+    }).toList();
+
+    // Wait for all project generation tasks to complete
+    List<Project?> projectResults = await Future.wait(projectFutures);
+
+    print('Project compilation took ${DateTime.now().difference(start).inSeconds} seconds');
+
+    for (Project? project in projectResults) {
+      if (project != null) projects.add(project);
     }
 
     return projects;
   }
+
 
   static (List<Map<String, dynamic>>, List<String>) buildTemplateData(Project project) {
     List<Map<String, dynamic>> pageData = [];

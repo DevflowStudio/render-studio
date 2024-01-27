@@ -25,7 +25,7 @@ class ProjectManager extends ChangeNotifier {
     required Map<String, dynamic> data,
   }) async {
 
-    String id = project.id!;
+    String id = project.id;
 
     await box.delete(id);
     await box.put(id, data);
@@ -59,7 +59,7 @@ class ProjectManager extends ChangeNotifier {
     assert(project != null || id != null);
     await box.delete(project?.id ?? id);
     projects.removeWhere((element) => element.id == (project?.id ?? id));
-    _deleteProjectDirectory(project?.id! ?? id!);
+    _deleteProjectDirectory(project?.id ?? id!);
     _sortProjects();
     notifyListeners();
   }

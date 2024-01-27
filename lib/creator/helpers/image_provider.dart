@@ -199,16 +199,16 @@ class CreativeImageProvider {
                           ],
                         ),
                       ),
-                      SwitchListTile.adaptive(
-                        title: Text('Smooth Blur'),
-                        value: blurFade,
-                        onChanged: (value) {
-                          setState(() {
-                            blurFade = value;
-                          });
-                          onChange(WidgetChange.misc);
-                        },
-                      ),
+                      // SwitchListTile.adaptive(
+                      //   title: Text('Smooth Blur'),
+                      //   value: blurFade,
+                      //   onChanged: (value) {
+                      //     setState(() {
+                      //       blurFade = value;
+                      //     });
+                      //     onChange(WidgetChange.misc);
+                      //   },
+                      // ),
                     ],
                   ),
                 ),

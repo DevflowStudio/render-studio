@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_io/io.dart';
 import 'package:flutter/material.dart';
@@ -178,10 +179,11 @@ class AssetX {
   // Future<bool> exists() => file.exists();
 
   Future<Map<String, dynamic>> getCompiled() async {
+    await convertToFileType();
+
     String? filename;
     filename = '$id.${file!.path.split('.').last}';
 
-    await convertToFileType();
     await file!.copy(await pathProvider.generateRelativePath(project.assetSavePath) + filename);
 
     return {
@@ -213,6 +215,11 @@ class AssetX {
       await convertToFileType();
       return file!;
     }
+  }
+
+  Future<void> precache(BuildContext context) async {
+    if (url != null) await precacheImage(CachedNetworkImageProvider(url!), context);
+    if (file != null) await precacheImage(FileImage(file!), context);
   }
 
   static Future<AssetX> fromCompiled(Map data, {

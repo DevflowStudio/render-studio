@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:render_studio/models/project/templatex.dart';
 import 'package:render_studio/screens/creator/create_project/custom_new_project.dart';
 import 'package:render_studio/screens/creator/create_project/generated_templates_view.dart';
 import 'package:render_studio/screens/creator/create_project/magic_design_page.dart';
@@ -183,17 +182,18 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
         });
         return;
       }
-      try {
-        List<Project> projects = await TemplateKit.generate(context, prompt: prompt);
-        AppRouter.push(context, page: GeneratedTemplatesView(templates: projects));
-      } catch (e) {
-        print(e);
-        Alerts.dialog(
-          context,
-          title: 'Error',
-          content: 'Failed to generate templates. Please try again later'
-        );
-      }
+      AppRouter.push(context, page: GeneratedTemplatesView(prompt: prompt));
+      // try {
+      //   List<Project> projects = await TemplateKit.generate(context, prompt: prompt);
+      //   AppRouter.push(context, page: GeneratedTemplatesView(templates: projects));
+      // } catch (e) {
+      //   print(e);
+      //   Alerts.dialog(
+      //     context,
+      //     title: 'Error',
+      //     content: 'Failed to generate templates. Please try again later'
+      //   );
+      // }
     } else {
       if (title.isEmpty) {
         setState(() {

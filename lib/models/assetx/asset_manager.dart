@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'package:render_studio/models/cloud.dart';
 import 'package:universal_io/io.dart';
 
@@ -19,6 +20,12 @@ class AssetManagerX {
 
   AssetX? get(String id) {
     return assets[id];
+  }
+
+  Future<void> precache(BuildContext context) async {
+    for (AssetX asset in assets.values) {
+      await asset.precache(context);
+    }
   }
 
   /// Compiles each asset from the [assets] map into a JSON object, parallelly

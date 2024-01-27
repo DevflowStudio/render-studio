@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:octo_image/octo_image.dart';
 import 'package:pull_down_button/pull_down_button.dart';
-import 'package:smooth_corner/smooth_corner.dart';
+import 'package:render_studio/models/project/templatex.dart';
+import 'package:universal_io/io.dart';
 
 import '../../../rehmat.dart';
 
@@ -8,10 +11,10 @@ class GeneratedTemplatesView extends StatefulWidget {
 
   const GeneratedTemplatesView({
     super.key,
-    required this.templates
+    required this.prompt
   });
 
-  final List<Project> templates;
+  final String prompt;
 
   @override
   State<GeneratedTemplatesView> createState() => _GeneratedTemplatesViewState();
@@ -19,13 +22,34 @@ class GeneratedTemplatesView extends StatefulWidget {
 
 class _GeneratedTemplatesViewState extends State<GeneratedTemplatesView> {
 
-  late final List<Project> projects;
+  late final String prompt;
+
+  bool isLoading = true;
+
+  List<Project> projects = [];
 
   PageController controller = PageController();
 
+  Future<void> generateTemplates() async {
+    try {
+      projects = await TemplateKit.generate(context, prompt: prompt);
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e, stacktrace) {
+      analytics.logError(e, cause: 'template generation error', stacktrace: stacktrace);
+      Alerts.dialog(
+        context,
+        title: 'Error',
+        content: 'Failed to generate templates. Please try again later'
+      );
+    }
+  }
+
   @override
   void initState() {
-    projects = widget.templates;
+    prompt = widget.prompt;
+    generateTemplates();
     super.initState();
   }
 
@@ -35,26 +59,58 @@ class _GeneratedTemplatesViewState extends State<GeneratedTemplatesView> {
       appBar: AppBar(
         leading: NewBackButton(
           confirm: true,
-          confirmTitle: 'Discard',
-          confirmMessage: 'Are you sure you want to discard these templates?',
+          confirmTitle: isLoading ? 'Cancel' : 'Discard',
+          confirmMessage: isLoading ? 'Are you sure you want to cancel generating templates?' : 'Are you sure you want to discard these templates?',
+          icon: isLoading ? RenderIcons.close : RenderIcons.arrow_back,
         ),
-        title: Text('Templates'),
+        title: isLoading ? null : Text('Templates')
       ),
-      body: PageView.builder(
-        controller: controller,
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) => SmoothClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          smoothness: 0.6,
-          child: SizedBox(
-            width: projects[index].contentSize.width,
-            height: projects[index].contentSize.height,
-            child: CreatorView(project: projects[index]),
+      extendBodyBehindAppBar: isLoading,
+      body: AnimatedSwitcher(
+        duration: kAnimationDuration,
+        child: isLoading ? Center(
+          child: Lottie.asset(
+            'assets/animations/loading.json',
+            frameRate: FrameRate.max,
+          ),
+        ) : FadeIn(
+          child: PageView.builder(
+            controller: controller,
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) => OctoImage(
+              width: projects[index].contentSize.width,
+              height: projects[index].contentSize.height,
+              image: FileImage(File(pathProvider.generateRelativePath(projects[index].imagesSavePath + (projects[index].images.firstOrNull ?? '')))),
+              errorBuilder: (context, error, stackTrace) => Center(
+                child: Container(
+                  width: projects[index].contentSize.width,
+                  height: projects[index].contentSize.height,
+                  decoration: BoxDecoration(
+                    color: Palette.of(context).surfaceVariant,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        RenderIcons.error,
+                        color: Palette.of(context).onSurfaceVariant,
+                        size: Theme.of(context).textTheme.titleLarge?.fontSize,
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        'Image Not Found',
+                        style: Theme.of(context).textTheme.titleLarge
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            itemCount: projects.length,
           ),
         ),
-        itemCount: projects.length,
       ),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: isLoading ? null : Container(
         decoration: BoxDecoration(
           color: Palette.of(context).surfaceVariant,
           border: Border(
@@ -72,13 +128,6 @@ class _GeneratedTemplatesViewState extends State<GeneratedTemplatesView> {
         ),
         child: Row(
           children: [
-            IconButton.filledTonal(
-              onPressed: () {},
-              tooltip: 'Save to gallery',
-              icon: Icon(
-                RenderIcons.download,
-              ),
-            ),
             PullDownButton(
               itemBuilder: (context) => [
                 PullDownMenuItem(
@@ -106,6 +155,27 @@ class _GeneratedTemplatesViewState extends State<GeneratedTemplatesView> {
                   ),
                 );
               }
+            ),
+            IconButton.filledTonal(
+              onPressed: () {},
+              tooltip: 'Save to gallery',
+              icon: Icon(
+                RenderIcons.download,
+              ),
+            ),
+            IconButton.filledTonal(
+              onPressed: () {},
+              tooltip: 'Mark the generation as helpful',
+              icon: Icon(
+                RenderIcons.thums_up,
+              ),
+            ),
+            IconButton.filledTonal(
+              onPressed: () {},
+              tooltip: 'Mark the generation as unhelpful',
+              icon: Icon(
+                RenderIcons.thums_down,
+              ),
             ),
             Spacer(),
             IntrinsicHeight(

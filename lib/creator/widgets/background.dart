@@ -492,8 +492,8 @@ class BackgroundWidget extends CreatorWidget {
         url: url,
         fileType: FileType.image
       );
-      this.imageProvider = CreativeImageProvider.create(this);
-      this.type = BackgroundType.image;;
+      this.imageProvider ??= CreativeImageProvider.create(this);
+      this.type = BackgroundType.image;
     }
   }
 

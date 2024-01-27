@@ -71,7 +71,7 @@ class CreatorText extends CreatorWidget {
           },
           icon: RenderIcons.refresh
         ),
-        Option.button(
+        if (page.project.isTemplateKit) Option.button(
           title: 'Variable',
           tooltip: 'Change text variable type',
           onTap: (context) async {
@@ -860,10 +860,7 @@ class CreatorText extends CreatorWidget {
     String new_text = text ?? textCtrl.text;
     if (new_text.trim() != '') this.text = new_text;
 
-    double maxAllowedSpanWidth = page.project.contentSize.width - page.widgets.background.padding.horizontal;
-    if (text != null) {
-      if (_spanSize.width > maxAllowedSpanWidth) maxAllowedSpanWidth = _spanSize.width;
-    }
+    double maxAllowedSpanWidth = (page.project.contentSize.width - page.widgets.background.padding.horizontal) / scale;
 
     buildTextSpan();
     Size nSpanSize = getTextPainter(maxWidth: maxAllowedSpanWidth).size;

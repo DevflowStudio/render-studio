@@ -287,4 +287,8 @@ abstract class RenderIcons {
 
   static const IconData flag = CupertinoIcons.flag;
 
+  static const IconData thums_down = CupertinoIcons.hand_thumbsdown;
+
+  static const IconData thums_up = CupertinoIcons.hand_thumbsup;
+
 }
