@@ -5,7 +5,7 @@ import '../rehmat.dart';
 
 class Cloud {
 
-  static final String baseUrl = 'http://10.0.0.233:8000/'; // 'https://render-studio-cloud-production.up.railway.app/';
+  static final String baseUrl = 'https://render-studio-cloud-production.up.railway.app/'; // 'http://10.0.0.233:8000/';
 
   static Future<String?> get token => AuthState.instance.user!.getIdToken();
 

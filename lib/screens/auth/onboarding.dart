@@ -1,9 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:mesh_gradient/mesh_gradient.dart';
-import 'package:smooth_corner/smooth_corner.dart';
-import 'package:universal_io/io.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:octo_image/octo_image.dart';
 import '../../../rehmat.dart';
 
 class Onboarding extends StatefulWidget {
@@ -28,145 +27,174 @@ class _OnboardingState extends State<Onboarding> {
     return Scaffold(
       body: Stack(
         children: [
-          SizedBox.expand(
-            child: AnimatedMeshGradient(
-              colors: [
-                HexColor.fromHex('#C6DEA6'),
-                HexColor.fromHex('#7EBDC3'),
-                HexColor.fromHex('#CED097'),
-                HexColor.fromHex('#DFF2D8'),
-              ],
-              options: AnimatedMeshGradientOptions(),
-            ),
+          OctoImage(
+            image: AssetImage('assets/images/onboarding-light.jpg'),
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            fit: BoxFit.cover,
+            imageBuilder: (context, child) {
+              return Stack(
+                children: [
+                  child,
+                  ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: ShaderMask(
+                      shaderCallback: (rect) {
+                        return LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.black, Colors.black.withOpacity(0)],
+                          stops: [0.4, 0.65]
+                        ).createShader(rect);
+                      },
+                      blendMode: BlendMode.dstOut,
+                      child: child
+                    )
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black
+                        ],
+                        stops: [
+                          0, 1
+                        ]
+                      )
+                    ),
+                  )
+                ],
+              );
+            },
           ),
           Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Spacer(),
               Text(
                 'Render Studio',
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  fontFamily: 'SF Pro Rounded',
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black
+                style: GoogleFonts.instrumentSerif(
+                  fontSize: 48,
+                  color: Colors.white,
+                  height: 0.77
                 ),
               ),
-              Spacer(),
-              SmoothClipRRect(
-                borderRadius: BorderRadius.circular(46),
-                smoothness: 0.6,
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                    sigmaX: 12,
-                    sigmaY: 12
-                  ),
-                  child: Container(
-                    padding: EdgeInsets.only(
-                      left: 12,
-                      right: 12,
-                      top: 12,
-                      bottom: Constants.of(context).bottomPadding
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.5)
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (Platform.isIOS) Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: 9
-                          ),
-                          child: Button(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Icon(
-                                  RenderIcons.apple,
-                                  color: Colors.white,
-                                  size: 19
-                                ),
-                                SizedBox(width: 12),
-                                Text('Continue with Apple', style: TextStyle(height: 0.77),)
-                              ],
-                            ),
-                            backgroundColor: Colors.black,
-                            textColor: Colors.white,
-                            autoLoading: true,
-                            onPressed: () async {
-                              try {
-                                await AuthState.of(context).signInWithApple();
-                              } catch (e) {
-                                Alerts.dialog(
-                                  context,
-                                  title: 'Error',
-                                  content: 'There was an error signing in. Please try again later'
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                        Button(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                RenderIcons.google,
-                                color: Colors.white,
-                                size: 19
-                              ),
-                              SizedBox(width: 12),
-                              Text('Continue with Google')
-                            ],
-                          ),
-                          backgroundColor: Colors.blue,
-                          textColor: Colors.white,
-                          autoLoading: true,
-                          onPressed: () async {
-                            try {
-                              await AuthState.of(context).signInWithGoogle();
-                            } catch (e) {
-                              Alerts.dialog(
-                                context,
-                                title: 'Error',
-                                content: 'There was an error signing in. Please try again later'
-                              );
-                            }
-                          },
-                        ),
-                        if (app.flavor == Flavor.dev) Padding(
-                          padding: const EdgeInsets.only(
-                            top: 9
-                          ),
-                          child: Button(
-                            onPressed: () async {
-                              try {
-                                await AuthState.of(context).signInAnonymously();
-                              } catch (e) {
-                                Alerts.dialog(
-                                  context,
-                                  title: 'Error',
-                                  content: 'There was an error signing in. Please try again later'
-                                );
-                              }
-                            },
-                            child: Text('Work Anonymously'),
-                            autoLoading: true,
-                            backgroundColor: Colors.white,
-                            textColor: Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 18
+                ),
+                child: Text(
+                  'Create beautifully designed social media posts, stories, and more with AI powered design tools',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Colors.white,
+                    fontFamily: 'SF Pro Rounded'
                   ),
                 ),
-              )
+              ),
+              buttonBuilder(
+                label: 'Continue with Apple',
+                backgroundColor: Colors.black,
+                textColor: Colors.white,
+                icon: RenderIcons.apple,
+                onPressed: () async {
+                  try {
+                    await AuthState.of(context).signInWithApple();
+                  } catch (e) {
+                    Alerts.dialog(
+                      context,
+                      title: 'Error',
+                      content: 'There was an error signing in. Please try again later'
+                    );
+                  }
+                }
+              ),
+              SizedBox(
+                height: 12
+              ),
+              buttonBuilder(
+                label: 'Continue with Google',
+                backgroundColor: Colors.blue,
+                textColor: Colors.white,
+                icon: RenderIcons.google,
+                onPressed: () async {
+                  try {
+                    await AuthState.of(context).signInWithGoogle();
+                  } catch (e) {
+                    Alerts.dialog(
+                      context,
+                      title: 'Unable to sign in',
+                      content: 'There was an error signing in with Google. Please try again later'
+                    );
+                  }
+                },
+              ),
+              SizedBox(
+                height: 12
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24
+                ),
+                child: Text(
+                  'By continuing, you agree to our Terms of Service and Privacy Policy',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey,
+                    fontFamily: 'SF Pro Rounded'
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: Constants.of(context).bottomPadding
+              ),
             ],
-          ),
+          )
         ],
       ),
+      extendBodyBehindAppBar: true,
+      extendBody: true,
     );
   }
+
+  Widget buttonBuilder({
+    required String label,
+    required Color backgroundColor,
+    required Color textColor,
+    required IconData icon,
+    required void Function() onPressed
+  }) => Padding(
+    padding: const EdgeInsets.symmetric(
+      horizontal: 12
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: RawButton(
+            onPressed: onPressed,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  icon,
+                  color: textColor,
+                  size: 18,
+                ),
+                SizedBox(width: 6),
+                Text(label),
+              ],
+            ),
+            backgroundColor: backgroundColor,
+            textColor: textColor,
+            autoLoading: true,
+          ),
+        )
+      ],
+    ),
+  );
+
 }
