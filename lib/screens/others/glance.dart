@@ -150,7 +150,7 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
             ),
           ),
           Expanded(
-            flex: 2,
+            flex: 1,
             child: GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               behavior: HitTestBehavior.translucent,

@@ -237,6 +237,13 @@ extension StringExtension on String {
     return this.split(' ').map((str) => str[0].toUpperCase() + str.substring(1)).join();
   }
 
+  String toDashSeparated({
+    bool lowerCase = true
+  }) {
+    var value = this.split(' ').join('-');
+    return lowerCase ? value.toLowerCase() : value;
+  }
+
 }
 
 extension SizeExtension on Size {

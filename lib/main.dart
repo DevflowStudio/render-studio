@@ -16,9 +16,15 @@ Future<void> run(Flavor flavor) async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
+  DateTime start = DateTime.now();
+
   await Firebase.initializeApp();
 
+  print('Firebase initialization took ${DateTime.now().difference(start).inSeconds} seconds');
+
   app = await App.build(flavor);
+
+  print('App initialization took ${DateTime.now().difference(start).inMilliseconds} milliseconds');
 
   /// Adds a license for fonts used from fonts.google.com. This prevents copyright problems
   /// when publishing the app

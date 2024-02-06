@@ -165,6 +165,8 @@ abstract class RenderIcons {
 
   static const IconData open = MaterialSymbols.open_in_new;
 
+  static const IconData openInFullscreen = CupertinoIcons.arrow_up_left_arrow_down_right;
+
   static IconData openInBrowser = PhosphorIcons.arrowUpRight(PhosphorIconsStyle.regular);
 
   static const IconData share = CupertinoIcons.share;

@@ -113,7 +113,7 @@ dependencies:
   extended_icon_button: ^1.0.0
   animated_splash_screen: ^1.3.0
   zwidget: ^0.0.2
-  flutter_native_splash: ^2.2.16
+  flutter_native_splash: ^2.3.10
   lottie: ^2.2.0
   google_mobile_ads: ^3.0.0
   package_info_plus: ^4.0.0
@@ -149,9 +149,7 @@ flutter_launcher_icons:
 ## Generate splash screen for Android and iOS
 ## Run command: flutter pub run flutter_native_splash:create
 flutter_native_splash:
-  color: "#ffffff"
-  color_dark: "#0b0d0f"
-  image: assets/icon.png
+  background_image: "assets/images/splash.png"
 
 flutter:
 

@@ -294,6 +294,9 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: surfaceVariant,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30)
+        ),
       ),
       sliderTheme: SliderThemeData(
         showValueIndicator: ShowValueIndicator.always,

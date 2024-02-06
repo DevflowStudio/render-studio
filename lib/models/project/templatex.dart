@@ -120,7 +120,7 @@ class TemplateKit {
             'size': {
               'width': project.size.size.width,
               'height': project.size.size.height,
-              'name': '${project.size.size.width}x${project.size.size.height}'
+              'name': '${project.size.size.width.toInt()}x${project.size.size.height.toInt()}'
             },
             'pages': pageData
           };

@@ -23,7 +23,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     Map? data,
     BuildInfo buildInfo = BuildInfo.unknown,
   }) {
-    uid = generateUID();
+    uid = generateUID(prefix: id);
     stateCtrl = WidgetStateController(this);
     onInitialize();
     onPaletteUpdate();
@@ -41,7 +41,9 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     }
   }
 
-  static String generateUID() => 'widget#${Constants.generateID(6)}';
+  static String generateUID({
+    String prefix = 'widget#'
+  }) => '$prefix${Constants.generateID(6)}';
 
   late WidgetStateController stateCtrl;
 

@@ -223,10 +223,6 @@ class Project extends ChangeNotifier {
       }
     }
 
-    print('\$\$ Project fromTemplateKit ${project.id}');
-    print('Received Template Kit data: ${data['template-kit']}');
-    print('-------\n\n\n');
-
     project.pages.updateListeners();
 
     await project.assetManager.precache(context);

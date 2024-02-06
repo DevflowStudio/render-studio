@@ -125,21 +125,18 @@ class CustomNewProjectPage extends StatelessWidget {
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.symmetric(
-                horizontal: 7,
+                horizontal: 8,
               ),
               itemBuilder: (context, index) {
-                if (index == 0) return TemplateGlance(
-                  isSelected: selectedTemplate == null,
-                  onTap: () => onSelect(null),
-                );
-                else return TemplateGlance(
-                  key: ValueKey(templates[index - 1].id),
-                  glance: templates[index - 1],
-                  isSelected: selectedTemplate == templates[index - 1].id,
-                  onTap: () => onSelect(templates[index - 1].id),
+                bool isSelected = selectedTemplate == templates[index].id;
+                return TemplateGlance(
+                  key: ValueKey(templates[index].id),
+                  glance: templates[index],
+                  isSelected: isSelected,
+                  onTap: () => onSelect(isSelected ? null : templates[index].id),
                 );
               },
-              itemCount: templates.length + 1,
+              itemCount: templates.length,
               shrinkWrap: true,
             ),
           )

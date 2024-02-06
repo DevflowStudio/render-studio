@@ -38,11 +38,12 @@ class _GeneratedTemplatesViewState extends State<GeneratedTemplatesView> {
       });
     } catch (e, stacktrace) {
       analytics.logError(e, cause: 'template generation error', stacktrace: stacktrace);
-      Alerts.dialog(
+      await Alerts.dialog(
         context,
         title: 'Error',
         content: 'Failed to generate templates. Please try again later'
       );
+      Navigator.of(context).pop();
     }
   }
 
@@ -70,7 +71,7 @@ class _GeneratedTemplatesViewState extends State<GeneratedTemplatesView> {
         duration: kAnimationDuration,
         child: isLoading ? Center(
           child: Lottie.asset(
-            'assets/animations/loading.json',
+            'assets/animations/cube-loading-${context.isDarkMode ? 'dark' : 'light'}.json',
             frameRate: FrameRate.max,
           ),
         ) : FadeIn(

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:get/utils.dart';
 import 'package:pull_down_button/pull_down_button.dart';
@@ -63,6 +65,42 @@ class _TextIconButtonState extends State<TextIconButton> {
                 ),
               )
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class BlurredIconButton extends StatelessWidget {
+
+  const BlurredIconButton({
+    super.key,
+    required this.icon,
+    this.onPressed
+  });
+
+  final IconData icon;
+  final Function()? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        TapFeedback.light();
+        onPressed?.call();
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(50),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            color: Palette.blurBackground(context),
+            padding: EdgeInsets.all(10),
+            child: Icon(
+              icon,
+              color: Palette.onBlurBackground(context),
+            ),
           ),
         ),
       ),

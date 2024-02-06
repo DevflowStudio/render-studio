@@ -278,6 +278,7 @@ class FilePicker {
 
       return file;
     } catch (e, stacktrace) {
+      print('Failed to download asset: $e');
       analytics.logError(e, cause: 'Failed to download asset', stacktrace: stacktrace);
       throw Exception('Failed to download asset');
     }

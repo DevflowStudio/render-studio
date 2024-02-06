@@ -1,3 +1,4 @@
+import 'package:render_studio/models/cloud.dart';
 import 'package:universal_io/io.dart';
 
 import 'package:dio/dio.dart';
@@ -6,16 +7,16 @@ import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../rehmat.dart';
 
-class UnsplashAPI extends ChangeNotifier {
-
-  static String get baseURL => 'https://api.unsplash.com';
+class UnsplashSearchAPI extends ChangeNotifier {
 
   final PagingController<int, UnsplashPhoto> controller = PagingController(firstPageKey: 0);
 
-  UnsplashAPI({
-    String? query
+  UnsplashSearchAPI({
+    String? query,
+    UnsplashTopic? topic
   }) {
     this.searchTerm = query;
+    this.topic = topic;
     controller.addPageRequestListener((pageKey) {
       get(pageKey);
     });
@@ -23,8 +24,10 @@ class UnsplashAPI extends ChangeNotifier {
 
   String? searchTerm;
 
+  UnsplashTopic? topic;
+
   Future<void> get(int page) async {
-    List<UnsplashPhoto>? photos = await query(page: page, searchTerm: searchTerm);
+    List<UnsplashPhoto>? photos = await query(page: page, searchTerm: searchTerm, topic: topic);
     if (photos == null) {
       controller.error = 'There seems to be an error.';
       return;
@@ -37,18 +40,21 @@ class UnsplashAPI extends ChangeNotifier {
     }
   }
 
-  static Future<List<UnsplashPhoto>?> query({String? searchTerm, int? page}) async {
+  static Future<List<UnsplashPhoto>?> query({String? searchTerm, int? page, UnsplashTopic? topic}) async {
+    assert(searchTerm != null || topic != null);
+    String path;
+    if (searchTerm != null) {
+      path = 'photos/search';
+    } else {
+      path = 'photos/topics/${topic!.slug}/photos';
+    }
+    print(path);
     try {
-      Response response = await Dio().get(
-        searchTerm != null ? '$baseURL/search/photos' : '$baseURL/photos',
-        options: Options(
-          headers: {
-            'Authorization': 'Client-ID ${environment.unsplashAccessKey}'
-          }
-        ),
+      Response response = await Cloud.get(
+        path,
         queryParameters: {
           'page': page != null ? ((page/30) + 1).toInt() : null,
-          'query': searchTerm,
+          if (searchTerm != null) 'query': searchTerm,
           'per_page': 30,
           'order_by': searchTerm != null ? 'relevant' : 'latest',
         }
@@ -86,7 +92,66 @@ class UnsplashAPI extends ChangeNotifier {
 
 }
 
-class UnsplashPhoto extends ChangeNotifier {
+class UnsplashTopicAPI extends ChangeNotifier {
+
+  final PagingController<int, UnsplashTopic> controller = PagingController(firstPageKey: 0);
+
+  UnsplashTopicAPI() {
+    get(0);
+    controller.addPageRequestListener((pageKey) {
+      get(pageKey);
+    });
+  }
+
+  Future<void> get(int page) async {
+    print('Fetching topics ... ');
+    List<UnsplashTopic>? topics = await getTopics(page: page);
+    if (topics == null) {
+      controller.error = 'There seems to be an error.';
+      return;
+    }
+    controller.error = null;
+    if (topics.isEmpty || topics.length < 30) {
+      controller.appendLastPage(topics);
+    } else {
+      controller.appendPage(topics, page + topics.length);
+    }
+  }
+
+  static Future<List<UnsplashTopic>?> getTopics({int? page}) async {
+    print('Fetching topics');
+    try {
+      Response response = await Cloud.get(
+        'photos/topics',
+        queryParameters: {
+          'page': page != null ? ((page/30) + 1).toInt() : null,
+          'per_page': 30,
+        }
+      );
+      if (response.statusCode != 200) {
+        await analytics.logError('Status code ${response.statusCode} with message: ${response.statusMessage}', cause: 'Failed to fetch Unsplash photo e1');
+      } else {
+        try {
+          List<UnsplashTopic> _topics = [];
+          for (Map topicData in response.data) {
+            UnsplashTopic topic = UnsplashTopic(topicData);
+            _topics.add(topic);
+          }
+          return _topics;
+        } catch (e, stacktrace) {
+          analytics.logError(e, stacktrace: stacktrace, cause: 'Failed to parse Unsplash photos');
+        }
+      }
+      return null;
+    } catch (e, stacktrace) {
+      await analytics.logError(e, stacktrace: stacktrace, cause: 'Failed to fetch Unsplash photos e2');
+      return null;
+    }
+  }
+
+}
+
+class UnsplashPhoto {
 
   UnsplashPhoto(this.data);
   final Map data;
@@ -109,45 +174,17 @@ class UnsplashPhoto extends ChangeNotifier {
 
   double get ratio => size.width / size.height;
 
-  bool isLoading = false;
   double? progress;
 
   Future<File> download(BuildContext context) async {
-    isLoading = true;
-    notifyListeners();
     File file = await FilePicker.downloadFile(
       data['urls']['full'],
-      headers: {
-        'Authorization': 'Client-ID ${environment.unsplashAccessKey}'
-      },
       precache: true,
       context: context,
       type: FileType.image
     );
-    isLoading = false;
-    notifyListeners();
+    print('Downloaded file: ${file.path}');
     return file;
-  }
-
-  static Future<UnsplashPhoto?> get(String id) async {
-    Response response = await Dio().get(
-      '${UnsplashAPI.baseURL}/photos/$id',
-      options: Options(
-        headers: {
-          'accept': 'application/json',
-          'Authorization': 'Client-ID ${environment.unsplashAccessKey}'
-        },
-      ),
-      queryParameters: {
-        'client_id': environment.unsplashAccessKey
-      }
-    );
-    if (response.statusCode != 200) {
-      await analytics.logError('Status code ${response.statusCode} with message: ${response.statusMessage} when fetching Unsplash photo $id', cause: 'Failed to fetch Unsplash photo e3');
-      return null;
-    } else {
-      return UnsplashPhoto(response.data);
-    }
   }
 
 }
@@ -169,5 +206,25 @@ class UnsplashUser {
 
   String get portfolioURL => data['portfolio_url'];
 
+}
+
+class UnsplashTopic {
+
+  UnsplashTopic(this.data);
+  final Map data;
+
+  String get id => data['id'];
+
+  String get slug => data['slug'];
+
+  String get title => data['title'];
+
+  String get description => data['description'];
+
+  String get coverPhotoURL => data['cover_photo']['urls']['regular'];
+
+  String? get blurHash => data['cover_photo']['blur_hash'];
+
+  Size get size => Size(data['cover_photo']['width'].toDouble(), data['cover_photo']['height'].toDouble());
 
 }

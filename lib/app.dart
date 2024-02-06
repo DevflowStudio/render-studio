@@ -26,14 +26,12 @@ class App {
     App app = App._(flavor: flavor);
     app.auth = AuthState.instance;
     try {
-      app.info = await PackageInfo.fromPlatform();
-      app.remoteConfig = await RemoteConfig.initialize(flavor: flavor);
-      await initialize();
+      await app.initialize();
     } catch (e) { }
     return app;
   }
 
-  static Future<void> initialize() async {
+  Future<void> initialize() async {
     DateTime start = DateTime.now();
 
     MobileAds.instance.initialize();
@@ -45,24 +43,36 @@ class App {
 
     await Hive.initFlutter();
 
-    environment = await Environment.instance;
-    device = await DeviceInfo.instance;
-    preferences = await Preferences.instance;
-    analytics = await Analytics.instance;
-    manager = await ProjectManager.instance;
-    paletteManager = await PaletteManager.instance;
-    projectSaves = await ProjectSaves.instance;
-    pathProvider = await PathProvider.instance;
+    // Execute async operations in parallel
+    var futures = [
+      PackageInfo.fromPlatform(),
+      RemoteConfig.initialize(flavor: flavor),
+      Environment.instance,
+      DeviceInfo.instance,
+      Preferences.instance,
+      Analytics.instance,
+      ProjectManager.instance,
+      PaletteManager.instance,
+      ProjectSaves.instance,
+      PathProvider.instance,
+      Crashlytics.init()
+    ];
 
-    await Crashlytics.init();
+    List results = await Future.wait(futures);
 
-    DateTime end = DateTime.now();
+    // Assigning results to respective variables
+    info = results[0];
+    remoteConfig = results[1];
+    environment = results[2];
+    device = results[3];
+    preferences = results[4];
+    analytics = results[5];
+    manager = results[6];
+    paletteManager = results[7];
+    projectSaves = results[8];
+    pathProvider = results[9];
 
-    Duration animationDuration = Duration(seconds: 1, milliseconds: 800);
-
-    if (end.difference(start).inMilliseconds < animationDuration.inMilliseconds) {
-      await Future.delayed(animationDuration - end.difference(start));
-    }
+    print('Initialization took ${DateTime.now().difference(start).inMilliseconds} milliseconds');
   }
 
   /// Executes a list of async functions parallely and returns a list of their results

@@ -150,23 +150,6 @@ class WidgetManager extends ChangeNotifier {
 
   T? get<T extends CreatorWidget>(String uid) => _widgets[uid] as T?;
 
-  Future<void> showAddWidgetModal(BuildContext context) async {
-    // await showModalBottomSheet(
-    //   context: context,
-    //   backgroundColor: Palette.of(context).background.withOpacity(0.5),
-    //   barrierColor: Colors.transparent,
-    //   isScrollControlled: true,
-    //   builder: (context) => WidgetMenu(page: page),
-    //   enableDrag: true
-    // );
-    await Alerts.showModal(
-      context,
-      child: WidgetMenu(page: page),
-    );
-    // if (id == null) return;
-    // await CreatorWidget.create(context, id: id, page: page);
-  }
-
   /// Adds the given widget to the page
   void add(CreatorWidget widget, {
     /// If true, then the widget will be added without calling `init()` on it.
