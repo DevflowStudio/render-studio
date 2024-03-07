@@ -129,6 +129,9 @@ dependencies:
   pull_down_button: ^0.9.3
   encrypt: ^5.0.3
   pro_animated_blur: ^0.0.2+1
+  device_corner_radius:
+    git:
+      url: https://github.com/rehmatsg/device_corner_radius.git
 
 dev_dependencies:
   flutter_test:

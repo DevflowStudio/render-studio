@@ -59,55 +59,20 @@ class Alerts {
     bool isDestructive = false,
   }) async {
     bool? confirm;
-    if (Platform.isAndroid) confirm = await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(cancelButtonText)
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(confirmButtonText),
-            style: TextButton.styleFrom(
-              foregroundColor: isDestructive ? Colors.red : null
-            ),
-          )
-        ].maybeReverse(isDestructive),
-      ),
-    ); else confirm = await showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: Text(
-          title,
-          style: TextStyle(
-            fontFamily: 'SF Pro'
-          ),
-        ),
-        content: Text(message),
-        actions: [
-          CupertinoDialogAction(
-            child: Text(cancelButtonText),
-            onPressed: () => Navigator.of(context).pop(false),
-            textStyle: TextStyle(
-              fontFamily: 'SF Pro',
-              color: Palette.of(context).onBackground
-            ),
-          ),
-          CupertinoDialogAction(
-            child: Text(confirmButtonText),
-            onPressed: () => Navigator.of(context).pop(true),
-            textStyle: isDestructive ? null : TextStyle(
-              fontFamily: 'SF Pro',
-              color: Palette.of(context).onBackground
-            ),
-            isDestructiveAction: isDestructive,
-          )
-        ].maybeReverse(isDestructive),
-      ),
+    confirm = await modal(
+      context,
+      icon: RenderIcons.warning,
+      title: title,
+      message: message,
+      primaryButtonText: 'Discard',
+      secondaryButtonText: 'Back',
+      isDestructive: true,
+      onPrimaryTap: () {
+        Navigator.of(context).pop(true);
+      },
+      onSecondaryTap: () {
+        Navigator.of(context).pop(false);
+      },
     );
     return confirm ?? false;
   }
@@ -303,59 +268,121 @@ class Alerts {
 
   static Future<T?> modal<T>(BuildContext context, {
     String? title,
-    required Widget Function(BuildContext context, void Function(void Function()) setState) childBuilder,
-    List<Widget>? actionButton
+    IconData? icon,
+    String? message,
+    Widget Function(BuildContext context, void Function(void Function()) setState)? childBuilder,
+    String? primaryButtonText = 'Done',
+    String? secondaryButtonText,
+    bool isDestructive = false,
+    void Function()? onPrimaryTap,
+    void Function()? onSecondaryTap,
   }) async {
-    return await showModalBottomSheet(
+    assert(message != null || childBuilder != null);
+    return await showModalBottomSheet<T>(
       context: context,
+      showDragHandle: false,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
-      // barrierColor: Colors.transparent,
+      barrierColor: Colors.black.withOpacity(0.5),
       isScrollControlled: true,
-      builder: (context) => SmoothClipRRect(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        smoothness: 0.6,
+      builder: (context) => ProAnimatedBlur(
+        blur: 20,
+        duration: kAnimationDuration,
         child: StatefulBuilder(
           builder: (context, setState) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Palette.of(context).background,
+            return SmoothContainer(
+              margin: EdgeInsets.only(
+                bottom: Constants.of(context).bottomPadding + MediaQuery.of(context).viewInsets.bottom,
+                left: 12,
+                right: 12,
               ),
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height * 0.2,
+              color: Palette.of(context).background.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(
+                Constants.deviceCornerRadius - 12
               ),
+              smoothness: 0.6,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: _SlideDownBar(),
-                  ),
-                  SizedBox(height: 12),
-                  if (title != null || actionButton != null) ... [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Row(
-                        children: [
-                          if (title != null) Label(
-                            label: title,
-                          ),
-                          if (actionButton != null) ... [
-                            Spacer(),
-                            ...actionButton
-                          ]
-                        ],
+                  if (icon != null) SmoothContainer(
+                    margin: EdgeInsets.only(
+                      top: 30,
+                    ),
+                    height: 70,
+                    width: 70,
+                    color: Palette.of(context).surfaceVariant,
+                    borderRadius: BorderRadius.circular(
+                      Constants.deviceCornerRadius - 12
+                    ),
+                    side: BorderSide(
+                      color: Palette.isDark(context) ? Colors.grey.shade800 : Colors.grey.shade300,
+                      width: 1,
+                    ),
+                    smoothness: 0.6,
+                    child: Center(
+                      child: Icon(
+                        icon,
                       ),
                     ),
-                    SizedBox(height: 12,),
+                  ) else SizedBox(height: 12),
+                  if (title != null) Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Text(
+                      title,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  if (message != null) Padding(
+                    padding: const EdgeInsets.only(
+                      left: 18,
+                      right: 18,
+                      bottom: 12,
+                    ),
+                    child: Text(
+                      message,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  if (childBuilder != null) ... [
+                    childBuilder(context, setState),
+                    SizedBox(height: 12),
                   ],
-                  childBuilder(context, setState),
-                  SizedBox(
-                    height: Constants.of(context).bottomPadding + MediaQuery.of(context).viewInsets.bottom,
-                  )
+                  if (primaryButtonText != null || secondaryButtonText != null) Padding(
+                    padding: const EdgeInsets.only(
+                      left: 12,
+                      right: 12,
+                      bottom: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        if (secondaryButtonText != null) Expanded(
+                          child: SecondaryButton(
+                            child: Text(secondaryButtonText),
+                            onPressed: onSecondaryTap,
+                            padding: EdgeInsets.symmetric(
+                              vertical: 18,
+                            ),
+                            borderRadius: Constants.deviceCornerRadius - 12 - 6,
+                          ),
+                        ),
+                        if (secondaryButtonText != null && primaryButtonText != null) SizedBox(width: 6),
+                        if (primaryButtonText != null) Expanded(
+                          child: PrimaryButton(
+                            child: Text(primaryButtonText),
+                            onPressed: onPrimaryTap ?? () {
+                              Navigator.of(context).pop();
+                            },
+                            padding: EdgeInsets.symmetric(
+                              vertical: 18,
+                            ),
+                            borderRadius: Constants.deviceCornerRadius - 12 - 6,
+                          ),
+                        ),
+                      ].maybeReverse(isDestructive),
+                    ),
+                  ) else SizedBox(height: 18),
                 ],
               ),
             );
@@ -363,6 +390,63 @@ class Alerts {
         ),
       ),
     );
+    // return await showModalBottomSheet(
+    //   context: context,
+    //   backgroundColor: Colors.transparent,
+    //   // barrierColor: Colors.transparent,
+    //   isScrollControlled: true,
+    //   builder: (context) => SmoothClipRRect(
+    //     borderRadius: BorderRadius.only(
+    //       topLeft: Radius.circular(20),
+    //       topRight: Radius.circular(20),
+    //     ),
+    //     smoothness: 0.6,
+    //     child: StatefulBuilder(
+    //       builder: (context, setState) {
+    //         return Container(
+    //           decoration: BoxDecoration(
+    //             color: Palette.of(context).background,
+    //           ),
+    //           constraints: BoxConstraints(
+    //             minHeight: MediaQuery.of(context).size.height * 0.2,
+    //           ),
+    //           child: Column(
+    //             mainAxisSize: MainAxisSize.min,
+    //             crossAxisAlignment: CrossAxisAlignment.start,
+    //             children: [
+    //               Padding(
+    //                 padding: const EdgeInsets.symmetric(vertical: 12),
+    //                 child: _SlideDownBar(),
+    //               ),
+    //               SizedBox(height: 12),
+    //               if (title != null || actionButton != null) ... [
+    //                 Padding(
+    //                   padding: const EdgeInsets.symmetric(horizontal: 12),
+    //                   child: Row(
+    //                     children: [
+    //                       if (title != null) Label(
+    //                         label: title,
+    //                       ),
+    //                       if (actionButton != null) ... [
+    //                         Spacer(),
+    //                         ...actionButton
+    //                       ]
+    //                     ],
+    //                   ),
+    //                 ),
+    //                 SizedBox(height: 12,),
+    //               ],
+    //               childBuilder(context, setState),
+    //               SizedBox(
+    //                 height: Constants.of(context).bottomPadding + MediaQuery.of(context).viewInsets.bottom,
+    //               )
+    //             ],
+    //           ),
+    //         );
+    //       }
+    //     ),
+    //   ),
+    // );
   }
 
   static Future<void> showModal(BuildContext context, {

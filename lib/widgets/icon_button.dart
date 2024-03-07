@@ -449,7 +449,7 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                   child: Text(
                     widget.title!,
                     style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      fontFamily: 'Google Sans',
+                      fontFamily: 'Geist',
                       height: 1.2,
                     ),
                     overflow: TextOverflow.visible,

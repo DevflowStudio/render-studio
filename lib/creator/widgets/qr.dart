@@ -24,12 +24,6 @@ class QRWidget extends CreatorWidget {
     await Alerts.modal(
       context,
       title: 'QR Code',
-      actionButton: [
-        FilledTonalIconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(RenderIcons.done),
-        )
-      ],
       childBuilder: (context, setState) => Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: 12

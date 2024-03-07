@@ -107,15 +107,22 @@ class _StudioState extends State<Studio> with TickerProviderStateMixin {
     return discard;
   }
 
-  Future<void> save({
-    ExportQuality quality = ExportQuality.onex
+  Future<bool> save({
+    ExportQuality quality = ExportQuality.onex,
+    bool showSuccess = true
   }) async {
-    setState(() => isLoading = true);
-    project.pages.current.widgets.select();
-    await project.save(context, quality: quality);
-    _lastSaved = DateTime.now();
-    setState(() => isLoading = false);
-    Alerts.showSuccess(context, message: 'Saved', asset: 'assets/animations/success-2.json');
+    try {
+      setState(() => isLoading = true);
+      project.pages.current.widgets.select();
+      await project.save(context, quality: quality);
+      _lastSaved = DateTime.now();
+      setState(() => isLoading = false);
+      if (showSuccess) Alerts.showSuccess(context, message: 'Saved', asset: 'assets/animations/success-2.json');
+      return true;
+    } catch (e) {
+      setState(() => isLoading = false);
+      return false;
+    }
   }
 
 }

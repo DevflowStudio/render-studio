@@ -47,6 +47,7 @@ class ShapeWidget extends CreatorWidget {
         itemCount: RenderShapeAbstract.names.length,
       ),
     ),
+    primaryButtonText: null
   );
 
   @override

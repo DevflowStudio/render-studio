@@ -88,6 +88,7 @@ class CreatorText extends CreatorWidget {
                 },
                 onSelectedItemChanged: (index) {
                   variableTextType = _VariableTextType.values[index];
+                  variableComments = _VariableTextType.values[index].prompt;
                 },
               ),
               onDismiss: () {
@@ -1525,6 +1526,37 @@ extension VariableTextTypeExtension on _VariableTextType {
       case 'custom':
         return _VariableTextType.custom;
       default:
+        return null;
+    }
+  }
+
+  String? get prompt {
+    switch (this) {
+      case _VariableTextType.heading:
+        return 'Generate a catchy headline that will grab the attention of your audience. It should be short and straight to the point. Make sure the headline is relevant to the content and is between 5 to 10 words.';
+      case _VariableTextType.subtitle:
+        return 'Create a subtitle that will give more context to the headline. It should be a bit longer than the headline and should be between 10 to 20 words.';
+      case _VariableTextType.body:
+        return 'Write the main content of the page. It should be about 30 words and should be informative and engaging. Make sure the content is relevant to the subject of the post.';
+      case _VariableTextType.caption:
+        return 'Write a caption that will give context to the prompt. It should be short and straight to the point. Make sure the caption is relevant to the content and is between 5 to 10 words.';
+      case _VariableTextType.callout:
+        return 'Write a callout text for the post. It should be short and straight to the point. Make sure the callout is relevant to the content and is between 2 to 5 words.';
+      case _VariableTextType.callToAction:
+        return 'Write a call to action text for the post. It should be short and straight to the point. Make sure the call to action is relevant to the content and is between 1 to 5 words.';
+      case _VariableTextType.hashTag:
+        return 'Write a hashtag for the post. It should be short and straight to the point. Make sure the hashtag is relevant to the content. You can use multiple hashtags separated by a space.';
+      case _VariableTextType.date:
+        return 'Write the date for the post. It should be in the format of "Month Day, Year". For example, "January 1, 2022". If there\'s no specific date, you can use the current date.';
+      case _VariableTextType.pageNumber:
+        return 'Write the page number for the post. It should be a number and should be relevant to the content. Only provide a number without any other text.';
+      case _VariableTextType.footer:
+        return 'Write the footer text for the post. It should be short and straight to the point. Make sure the footer text is relevant to the content and is between 3 to 7 words.';
+      case _VariableTextType.emoji:
+        return 'Come up with an emoji that will give more context to the content. It should be relevant to the content and should be a single emoji.';
+      case _VariableTextType.constant:
+        return null;
+      case _VariableTextType.custom:
         return null;
     }
   }

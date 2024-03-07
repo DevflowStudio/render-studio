@@ -88,15 +88,7 @@ class CreativePieChart extends CreatorWidget {
           onTap: (context) async {
             await Alerts.modal(
               context,
-              title: 'Pie Chart Data',
-              actionButton: [
-                FilledTonalIconButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  icon: Icon(RenderIcons.done)
-                )
-              ],
+              title: 'Edit Data',
               childBuilder: (context, setState) => Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

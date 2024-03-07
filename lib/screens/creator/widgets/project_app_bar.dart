@@ -29,7 +29,7 @@ class ProjectAppBar extends StatefulWidget implements PreferredSizeWidget {
 
   final void Function() onLeadingPressed;
 
-  final Future<void> Function({ExportQuality quality}) save;
+  final Future<bool> Function({ExportQuality quality, bool showSuccess}) save;
 
   final bool isLoading;
 
@@ -171,7 +171,7 @@ class _ActionsBuilder extends StatefulWidget {
     this.isLoading = false,
   });
 
-  final Future<void> Function({ExportQuality quality}) save;
+  final Future<bool> Function({ExportQuality quality, bool showSuccess}) save;
 
   final Project project;
 
@@ -239,7 +239,7 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                           title: quality.name,
                           subtitle: quality.getFinalSize(project.size.size),
                           onTap: () {
-                            widget.save(quality: quality);
+                            widget.save(quality: quality, showSuccess: true);
                           },
                         ),
                       ],

@@ -5,6 +5,7 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:smooth_corner/smooth_corner.dart';
+import 'package:sprung/sprung.dart';
 import 'package:universal_io/io.dart';
 import '../../../rehmat.dart';
 
@@ -160,42 +161,53 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
           AnimatedCrossFade(
             duration: Duration(milliseconds: 300),
             crossFadeState: isLoading ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-            firstChild: ClipRRect(
-              child: Container(
-                color: Palette.blurBackground(context),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: Constants.of(context).bottomPadding,
-                    left: 12,
-                    right: 12
-                  ),
-                  child: Row(
-                    children: [
-                      buildIconButton(
-                        icon: RenderIcons.edit,
-                        label: 'Edit',
-                        onPressed: open,
-                        tooltip: 'Edit Project'
-                      ),
-                      if (glance.images.isNotEmpty) buildIconButton(
-                        icon: RenderIcons.share,
-                        label: 'Share',
-                        onPressed: share,
-                        tooltip: 'Share Project'
-                      ),
-                      buildIconButton(
-                        icon: RenderIcons.duplicate,
-                        label: 'Duplicate',
-                        onPressed: duplicate,
-                        tooltip: 'Duplicate this Project'
-                      ),
-                      buildIconButton(
-                        icon: RenderIcons.delete,
-                        label: 'Delete',
-                        onPressed: delete,
-                        tooltip: 'Delete Project'
-                      ),
-                    ],
+            alignment: Alignment.center,
+            firstChild: Padding(
+              padding: EdgeInsets.only(
+                left: 12,
+                right: 12,
+                bottom: Constants.of(context).bottomPadding
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(66),
+                child: Container(
+                  color: Palette.blurBackground(context),
+                  child: Padding(
+                    padding: EdgeInsets.all(6),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        buildIconButton(
+                          icon: RenderIcons.edit,
+                          label: 'Edit',
+                          onPressed: open,
+                          tooltip: 'Edit'
+                        ),
+                        SizedBox(width: 6),
+                        if (glance.images.isNotEmpty) ... [
+                          buildIconButton(
+                            icon: RenderIcons.share,
+                            label: 'Share',
+                            onPressed: share,
+                            tooltip: 'Share'
+                          ),
+                          SizedBox(width: 6),
+                        ],
+                        buildIconButton(
+                          icon: RenderIcons.duplicate,
+                          label: 'Duplicate',
+                          onPressed: duplicate,
+                          tooltip: 'Duplicate Project'
+                        ),
+                        SizedBox(width: 6),
+                        buildIconButton(
+                          icon: RenderIcons.delete,
+                          label: 'Delete',
+                          onPressed: delete,
+                          tooltip: 'Delete Project'
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -301,33 +313,21 @@ class _ProjectAtGlanceModalState extends State<ProjectAtGlanceModal> {
     required String label,
     required VoidCallback onPressed,
     String? tooltip
-  }) => Expanded(
-    child: GestureDetector(
-      onTap: () {
-        onPressed();
-        TapFeedback.light();
-      },
-      child: Container(
-        padding: EdgeInsets.only(
-          top: 12
-        ),
-        child: Tooltip(
-          message: tooltip,
-          child: Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon),
-                SizedBox(height: 4,),
-                Text(
-                  label,
-                  style: Theme.of(context).textTheme.labelMedium,
-                )
-              ],
-            ),
-          ),
-        ),
+  }) => GestureDetector(
+    onTap: () {
+      onPressed();
+      TapFeedback.light();
+    },
+    child: Container(
+      height: 60,
+      width: 60,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(60),
+        color: Palette.of(context).surfaceVariant.withOpacity(0.3)
+      ),
+      child: Tooltip(
+        message: tooltip,
+        child: Icon(icon),
       ),
     ),
   );

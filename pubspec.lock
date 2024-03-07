@@ -345,6 +345,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.6"
+  device_corner_radius:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "7a02e7b24b5b393f91a58ce6a2a50056c6014d6b"
+      url: "https://github.com/rehmatsg/device_corner_radius.git"
+    source: git
+    version: "0.0.1"
   device_info_plus:
     dependency: "direct main"
     description:

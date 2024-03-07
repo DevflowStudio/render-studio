@@ -45,6 +45,7 @@ class _PageIndicatorState extends State<PageIndicator> {
       child: InkWell(
         onTap: () {
           TapFeedback.light();
+          project.pages.current.widgets.select();
           Alerts.showModal(context, child: ProjectPageView(project: project));
         },
         borderRadius: BorderRadius.circular(20),

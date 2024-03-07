@@ -12,6 +12,14 @@ class Constants {
 
   static BorderRadius get borderRadius => BorderRadius.circular(kBorderRadius);
 
+  static double get deviceCornerRadius {
+    if (device.cornerRadius.topLeft == 0) {
+      return kBorderRadius;
+    } else {
+      return device.cornerRadius.topLeft.x;
+    }
+  }
+
   Size get gridSize {
     Size size = Size(MediaQuery.of(context).size.width / 2, MediaQuery.of(context).size.width / 2);
     if ((MediaQuery.of(context).size.width / 2) > 300) {
@@ -40,19 +48,6 @@ class Constants {
   static double get nudgeSensitivity => 2;
 
   static double get appBarExpandedHeight => 150;
-
-  static Future<Map> get device async {
-    DeviceInfo deviceInfo = await DeviceInfo.instance;
-    return {
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-      'brand': deviceInfo.brand,
-      'model': deviceInfo.model,
-      'version': deviceInfo.version,
-      'device': deviceInfo.device,
-      'emulator': deviceInfo.isEmulator,
-      'os': deviceInfo.os,
-    };
-  }
 
   static T getThemedObject<T>(BuildContext context, {
     required T light,

@@ -119,7 +119,8 @@ class PrimaryButton extends StatefulWidget {
     this.disabled = false,
     /// If true, the button will show a loading indicator when pressed until the onPressed function finishes
     this.autoLoading = false,
-    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 24)
+    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+    this.borderRadius = 40
   }) : super(key: key);
 
   final Widget child;
@@ -129,6 +130,7 @@ class PrimaryButton extends StatefulWidget {
   final bool disabled;
   final bool autoLoading;
   final EdgeInsetsGeometry padding;
+  final double borderRadius;
 
   @override
   State<PrimaryButton> createState() => _PrimaryButtonState();
@@ -148,6 +150,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
       backgroundColor: Palette.of(context).onBackground,
       textColor: Palette.of(context).background,
       padding: widget.padding,
+      borderRadius: widget.borderRadius,
     );
   }
 
@@ -164,7 +167,8 @@ class SecondaryButton extends StatefulWidget {
     this.disabled = false,
     /// If true, the button will show a loading indicator when pressed until the onPressed function finishes
     this.autoLoading = false,
-    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 24)
+    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+    this.borderRadius = 40
   }) : super(key: key);
 
   final Widget child;
@@ -174,6 +178,7 @@ class SecondaryButton extends StatefulWidget {
   final bool disabled;
   final bool autoLoading;
   final EdgeInsetsGeometry padding;
+  final double borderRadius;
 
   @override
   State<SecondaryButton> createState() => _SecondaryButtonState();
@@ -192,7 +197,7 @@ class _SecondaryButtonState extends State<SecondaryButton> {
       onLongPress: widget.onLongPress,
       onPressed: widget.onPressed,
       border: BorderSide(
-        color: Palette.of(context).onBackground.withOpacity(0.1),
+        color: Palette.isDark(context) ? Colors.grey.shade800 : Colors.grey.shade400,
         width: 1
       ),
       backgroundColor: Palette.of(context).surfaceVariant,
@@ -217,7 +222,8 @@ class Button extends StatefulWidget {
     this.backgroundColor,
     this.textColor,
     this.shadow,
-    this.border
+    this.border,
+    this.borderRadius = 40
   }) : super(key: key);
 
   final Widget child;
@@ -231,6 +237,7 @@ class Button extends StatefulWidget {
   final Color? textColor;
   final BoxShadow? shadow;
   final BorderSide? border;
+  final double borderRadius;
 
   @override
   State<Button> createState() => _ButtonState();
@@ -251,7 +258,7 @@ class _ButtonState extends State<Button> {
       backgroundColor: widget.backgroundColor ?? Palette.of(context).surfaceVariant,
       textColor: widget.textColor ?? Palette.of(context).onSurfaceVariant,
       shadow: widget.shadow,
-      border: widget.border
+      border: widget.border,
     );
   }
 
@@ -271,7 +278,8 @@ class RawButton extends StatefulWidget {
     this.border,
     this.autoLoading = false,
     this.shadow,
-    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 24)
+    this.padding = const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+    this.borderRadius = 40
   }) : super(key: key);
 
   final Widget child;
@@ -285,14 +293,13 @@ class RawButton extends StatefulWidget {
   final bool autoLoading;
   final BoxShadow? shadow;
   final EdgeInsetsGeometry padding;
+  final double borderRadius;
 
   @override
   State<RawButton> createState() => RawButtonState();
 }
 
 class RawButtonState extends State<RawButton> {
-
-  double radius = 60;
 
   bool isLoading = false;
 
@@ -333,7 +340,7 @@ class RawButtonState extends State<RawButton> {
           // ),
           decoration: ShapeDecoration(
             shape: SmoothRectangleBorder(
-              borderRadius: BorderRadius.circular(40),
+              borderRadius: BorderRadius.circular(widget.borderRadius),
               smoothness: 0.6,
               side: widget.border?.copyWith(
                 color: widget.border?.color.withOpacity(widget.disabled ? 0.5 : 1)
