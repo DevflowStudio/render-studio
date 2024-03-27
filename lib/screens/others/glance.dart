@@ -5,7 +5,6 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:octo_image/octo_image.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:smooth_corner/smooth_corner.dart';
-import 'package:sprung/sprung.dart';
 import 'package:universal_io/io.dart';
 import '../../../rehmat.dart';
 

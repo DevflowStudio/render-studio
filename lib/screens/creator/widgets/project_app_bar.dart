@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pull_down_button/pull_down_button.dart';
-import 'package:render_studio/models/project/templatex.dart';
+import 'package:render_studio/screens/creator/publish_template_kit.dart';
 import 'package:sprung/sprung.dart';
 
 import '../../../rehmat.dart';
@@ -280,27 +280,16 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
               ),
               PullDownMenuItem(
                 title: 'Test Template Kit',
-                onTap: () async {
-                  print(project.id);
-                  try {
-                    var data = TemplateKit.buildTemplateData(project);
-                    print(data);
-                  } catch (e, stacktrace) {
-                    Alerts.dialog(
-                      context,
-                      title: 'Error',
-                      content: e.toString(),
-                    );
-                    print(e);
-                    print(stacktrace);
-                  }
-                },
+                onTap: () async { },
               ),
               PullDownMenuItem(
                 title: 'Publish Template',
                 icon: RenderIcons.upload,
                 onTap: () async {
-                  await TemplateKit.publish(context, project: project);
+                  if (await widget.save(quality: ExportQuality.twox, showSuccess: false)) {
+                    AppRouter.push(context, page: PublishTemplateKit(project: project));
+                  }
+                  // await TemplateKit.publish(context, project: project);
                 },
               ),
               if (kDebugMode) PullDownMenuItem.selectable(

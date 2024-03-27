@@ -189,7 +189,11 @@ class Project extends ChangeNotifier {
 
     project.assetManager = await AssetManagerX.fromCompiled(project, data: data['assets']);
 
-    for (Map pageKit in data['template-kit']['pages']) {
+    if (data['template-kit']['is-multi-page'] ?? true) {
+      // TODO: Implement multi-page template kit
+      throw ProjectCreationException('Multi-page template kits are not supported yet');
+    } else {
+      Map pageKit = data['template-kit']['page'];
       String pageID = pageKit['id'];
       Map pageData = data['pages'].firstWhere((page) => page['id'] == pageID);
 
@@ -203,7 +207,13 @@ class Project extends ChangeNotifier {
     }
 
     for (CreatorPage page in project.pages.pages) {
-      Map pageKit = data['template-kit']['pages'].firstWhere((pageKit) => pageKit['id'] == page.id);
+      Map pageKit;
+
+      if (data['template-kit']['is-multi-page'] ?? true) {
+        pageKit = data['template-kit']['pages'].firstWhere((pageKit) => pageKit['id'] == page.id);
+      } else {
+        pageKit = data['template-kit']['page']['id'] == page.id ? data['template-kit']['page'] : null;
+      }
       
       Future<void> handleWidgetVariableLoad(CreatorWidget widget) async {
         Map? variable = List.from(pageKit['variables']).firstWhereOrNull((variable) => variable['uid'] == widget.uid);
@@ -226,7 +236,7 @@ class Project extends ChangeNotifier {
     project.pages.updateListeners();
 
     await project.assetManager.precache(context);
-    await project.generateImages(context, saveToGallery: false);
+    // await project.generateImages(context, saveToGallery: false);
 
     return project;
   }

@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:render_studio/models/cloud.dart';
+import 'package:render_studio/models/project/category.dart';
 import 'package:sprung/sprung.dart';
 
 import '../../rehmat.dart';
@@ -44,7 +43,9 @@ class TemplateKit {
   }
 
 
-  static (List<Map<String, dynamic>>, List<String>) buildTemplateData(Project project) {
+  static (List<Map<String, dynamic>>, List<String>) buildTemplateData(Project project, {
+    required List<ProjectCategory> categories,
+  }) {
     List<Map<String, dynamic>> pageData = [];
     List<String> projectFeatures = [];
 
@@ -90,79 +91,12 @@ class TemplateKit {
         'features': features,
         'variables': variables,
         'comments': page.pageTypeComment,
+        'categories': categories.map((category) => category.id).toList(),
+        'named_categories': categories.map((category) => category.name).toList(),
       });
     }
 
     return (pageData, projectFeatures);
-  }
-
-  static Future<void> publish(BuildContext context, {
-    required Project project
-  }) async {
-    if (!await _showConfirmationDialog(context)) return;
-
-    bool isSuccessful = true;
-
-    await Spinner.fullscreen(
-      context,
-      task: () async {
-        try {
-          var (pageData, features) = buildTemplateData(project);
-          Map<String, dynamic> rawData = await project.getJSON(publish: true, context: context, quality: ExportQuality.twox);
-          await project.save(context, exportImages: false);
-
-          Map<String, dynamic> data = Map.from(rawData);
-          data['assets'] = AssetManagerX.cleanFileFromAssets(data['assets']);
-
-          data['features'] = features;
-          data['template-kit'] = {
-            'id': project.id,
-            'size': {
-              'width': project.size.size.width,
-              'height': project.size.size.height,
-              'name': '${project.size.size.width.toInt()}x${project.size.size.height.toInt()}'
-            },
-            'pages': pageData
-          };
-
-          Map<String, dynamic> formData = {
-            "template": json.encode(data),
-            "images": []
-          };
-
-          for (String _path in project.images) {
-            String path = await pathProvider.generateRelativePath('${project.imagesSavePath}$_path');
-            formData['images'].add(await MultipartFile.fromFile(path, filename: 'image-${Constants.generateID()}.png'));
-          }
-
-          await Cloud.post(
-            'template/publish',
-            data: FormData.fromMap(formData),
-          );
-        } catch (e, stacktrace) {
-          analytics.logError(e, cause: 'publish failed', stacktrace: stacktrace);
-          isSuccessful = false;
-        }
-      }
-    );
-    
-    if (isSuccessful) {
-      TapFeedback.normal();
-      Alerts.showSuccess(context, message: 'Published');
-    }
-    else Alerts.dialog(
-      context,
-      title: 'Error',
-      content: 'An error occurred while publishing the template. Please try again later.',
-    );
-  }
-
-  static Future<bool> _showConfirmationDialog(BuildContext context) async {
-    return await Alerts.modal<bool>(
-      context,
-      title: 'Publish Template',
-      childBuilder: (context, setState) => _ConfirmationDialog(),
-    ) ?? false;
   }
 
 }

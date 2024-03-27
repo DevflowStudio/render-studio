@@ -82,7 +82,7 @@ class _StudioState extends State<Studio> with TickerProviderStateMixin {
         bottomNavigationBar: AnimatedSize(
           duration: kAnimationDuration * 2,
           curve: Sprung(),
-          child: _BottomNavBuilder(project: project, save: save, isLoading: isLoading)
+          child: _BottomNavBuilder(project: project, isLoading: isLoading)
         ),
       ),
     );
@@ -132,12 +132,10 @@ class _BottomNavBuilder extends StatefulWidget {
   _BottomNavBuilder({
     Key? key,
     required this.project,
-    this.save,
     this.isLoading = false
   }) : super(key: key);
 
   final Project project;
-  final Future<void> Function({ExportQuality quality})? save;
   final bool isLoading;
 
   @override

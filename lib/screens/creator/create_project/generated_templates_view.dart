@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:octo_image/octo_image.dart';
 import 'package:pull_down_button/pull_down_button.dart';
 import 'package:render_studio/models/project/templatex.dart';
-import 'package:universal_io/io.dart';
 
 import '../../../rehmat.dart';
 
@@ -37,6 +35,7 @@ class _GeneratedTemplatesViewState extends State<GeneratedTemplatesView> {
         isLoading = false;
       });
     } catch (e, stacktrace) {
+      print(e);
       analytics.logError(e, cause: 'template generation error', stacktrace: stacktrace);
       await Alerts.dialog(
         context,
@@ -78,33 +77,11 @@ class _GeneratedTemplatesViewState extends State<GeneratedTemplatesView> {
           child: PageView.builder(
             controller: controller,
             scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) => OctoImage(
-              width: projects[index].contentSize.width,
-              height: projects[index].contentSize.height,
-              image: FileImage(File(pathProvider.generateRelativePath(projects[index].imagesSavePath + (projects[index].images.firstOrNull ?? '')))),
-              errorBuilder: (context, error, stackTrace) => Center(
-                child: Container(
-                  width: projects[index].contentSize.width,
-                  height: projects[index].contentSize.height,
-                  decoration: BoxDecoration(
-                    color: Palette.of(context).surfaceVariant,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        RenderIcons.error,
-                        color: Palette.of(context).onSurfaceVariant,
-                        size: Theme.of(context).textTheme.titleLarge?.fontSize,
-                      ),
-                      SizedBox(width: 6),
-                      Text(
-                        'Image Not Found',
-                        style: Theme.of(context).textTheme.titleLarge
-                      ),
-                    ],
-                  ),
-                ),
+            itemBuilder: (context, index) => IgnorePointer(
+              child: SizedBox(
+                width: projects[index].contentSize.width,
+                height: projects[index].contentSize.height,
+                child: CreatorView(project: projects[index])
               ),
             ),
             itemCount: projects.length,
