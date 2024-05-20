@@ -34,12 +34,11 @@ dependencies:
   dotted_border: ^2.0.0+2
   dotted_line: ^3.0.0
   file_picker: ^5.2.2
-  flutter_colorpicker: ^1.0.3
-  flutter_staggered_grid_view: ^0.6.0
+  flutter_staggered_grid_view: ^0.7.0
   flutter_svg: ^2.0.0
   font_awesome_flutter: ^10.1.0
   get: ^4.1.4
-  google_fonts: ^5.1.0
+  google_fonts: ^6.2.1
   hive: ^2.0.4
   hive_flutter: ^1.1.0
   image_cropper: ^5.0.0
@@ -49,11 +48,8 @@ dependencies:
   path_provider: ^2.0.2
   permission_handler: ^10.2.0
   provider: ^6.0.2
-  screenshot:
-    git:
-      url: https://github.com/Mayb3Nots/screenshot.git
-      ref: master
-  share_plus: ^7.0.0
+  screenshot: ^3.0.0
+  share_plus: ^9.0.0
   shared_preferences: ^2.2.0
   supercharged: ^2.1.1
   timeago: ^3.1.0
@@ -64,7 +60,6 @@ dependencies:
   flutter_palette: ^1.1.0+1
   universal_io: ^2.0.4
   image_picker: ^1.0.1
-  skeletons: ^0.0.3
   device_info_plus: ^9.0.0
   flutter_dotenv: ^5.0.2
   flutter_slidable: ^3.0.0
@@ -73,7 +68,7 @@ dependencies:
   image_pixels: ^3.0.0
   colorfilter_generator: ^0.0.8
   image_editor: ^1.3.0
-  infinite_scroll_pagination: ^3.2.0
+  infinite_scroll_pagination: ^4.0.0
   flutter_blurhash: ^0.8.2
   sprung: ^3.0.1
   star_menu: ^3.1.0+1
@@ -97,8 +92,7 @@ dependencies:
   flutter_slider_drawer: ^2.1.2
   flutter_advanced_drawer: ^1.3.2
   flutter_scrolling_fab_animated: ^0.1.4
-  google_sign_in: ^6.1.0
-  sign_in_with_apple: ^5.0.0
+  sign_in_with_apple: ^6.1.0
   animated_text_kit: ^4.2.2
   animate_do: ^3.0.2
   animate_gradient: ^0.0.2
@@ -115,7 +109,6 @@ dependencies:
   zwidget: ^0.0.2
   flutter_native_splash: ^2.3.10
   lottie: ^2.2.0
-  google_mobile_ads: ^3.0.0
   package_info_plus: ^4.0.0
   open_store: ^0.5.0
   reorderable_grid_view: ^2.2.5
@@ -132,6 +125,8 @@ dependencies:
   device_corner_radius:
     git:
       url: https://github.com/rehmatsg/device_corner_radius.git
+  google_sign_in: ^6.2.1
+  flex_color_picker: ^3.5.0
 
 dev_dependencies:
   flutter_test:
@@ -145,7 +140,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icons/starry.png"
+  image_path: "assets/icons/painted.png"
   remove_alpha_ios: true
   min_sdk_android: 21
 

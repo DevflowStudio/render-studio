@@ -55,7 +55,7 @@ class _PageIndicatorState extends State<PageIndicator> {
             controller: widget.project.pages.controller,
             count: widget.project.pages.length,
             effect: SwapEffect(
-              activeDotColor: Palette.of(context).onBackground,
+              activeDotColor: Palette.of(context).onSurface,
               dotHeight: 8,
               dotWidth: 8,
               spacing: 4

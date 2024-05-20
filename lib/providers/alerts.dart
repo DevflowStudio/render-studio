@@ -97,7 +97,7 @@ class Alerts {
             child: Text(okButtonText),
             textStyle: TextStyle(
               fontFamily: 'SF Pro',
-              color: Palette.of(context).onBackground
+              color: Palette.of(context).onSurface
             ),
             onPressed: () => Navigator.of(context).pop(),
           ),
@@ -139,7 +139,7 @@ class Alerts {
         ),
         child: Container(
           decoration: BoxDecoration(
-            color: Palette.of(context).surfaceVariant,
+            color: Palette.of(context).surfaceContainerLow,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -207,7 +207,7 @@ class Alerts {
     required ValueChanged<int> onSelectedItemChanged,
   }) => showModalBottomSheet(
     context: context,
-    backgroundColor: Palette.of(context).background,
+    backgroundColor: Palette.of(context).surface,
     elevation: 0,
     builder: (context) => Column(
       mainAxisSize: MainAxisSize.min,
@@ -296,7 +296,7 @@ class Alerts {
                 left: 12,
                 right: 12,
               ),
-              color: Palette.of(context).background.withOpacity(0.9),
+              color: Palette.of(context).surface.withOpacity(0.9),
               borderRadius: BorderRadius.circular(
                 Constants.deviceCornerRadius - 12
               ),
@@ -310,7 +310,7 @@ class Alerts {
                     ),
                     height: 70,
                     width: 70,
-                    color: Palette.of(context).surfaceVariant,
+                    color: Palette.of(context).surfaceContainerLow,
                     borderRadius: BorderRadius.circular(
                       Constants.deviceCornerRadius - 12
                     ),
@@ -405,7 +405,7 @@ class Alerts {
     //       builder: (context, setState) {
     //         return Container(
     //           decoration: BoxDecoration(
-    //             color: Palette.of(context).background,
+    //             color: Palette.of(context).surface,
     //           ),
     //           constraints: BoxConstraints(
     //             minHeight: MediaQuery.of(context).size.height * 0.2,
@@ -460,7 +460,7 @@ class Alerts {
     ),
     barrierDismissible: isDismissible,
     barrierLabel: 'Dismiss',
-    barrierColor: Palette.of(context).background.withOpacity(0.5),
+    barrierColor: Palette.of(context).surface.withOpacity(0.5),
     transitionDuration: Duration(milliseconds: 250),
     transitionBuilder: (context, animation, animation2, child) => BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 20 * animation.value, sigmaY: 20 * animation.value),
@@ -527,7 +527,7 @@ class Alerts {
             child: Text(cancelButtonText),
             textStyle: TextStyle(
               fontFamily: 'SF Pro',
-              color: Palette.of(context).onBackground
+              color: Palette.of(context).onSurface
             ),
             onPressed: () => Navigator.of(context).pop(),
           ),
@@ -535,7 +535,7 @@ class Alerts {
             child: Text(confirmButtonText),
             textStyle: TextStyle(
               fontFamily: 'SF Pro',
-              color: Palette.of(context).onBackground
+              color: Palette.of(context).onSurface
             ),
             onPressed: () => Navigator.of(context).pop(),
           )
@@ -561,7 +561,7 @@ class Alerts {
           child: Container(
             height: double.infinity,
             width: double.infinity,
-            color: Palette.of(context).background.withOpacity(0.5),
+            color: Palette.of(context).surface.withOpacity(0.5),
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

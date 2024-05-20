@@ -198,7 +198,7 @@ class CustomSearchDelegate extends SearchDelegate {
       itemCount: results.length,
       itemBuilder: (context, index) => ListTile(
         title: Text(results[index]),
-        tileColor: Palette.of(context).background,
+        tileColor: Palette.of(context).surface,
         onTap: () {
           query = results[index];
           showResults(context);
@@ -231,7 +231,7 @@ class _FontPreviewBuilder extends StatelessWidget {
           padding: EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: Palette.of(context).surfaceVariant,
+            color: Palette.of(context).surfaceContainerLow,
             border: Border.all(
               color: Palette.of(context).outline.withOpacity(0.1)
             )

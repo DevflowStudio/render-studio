@@ -14,6 +14,8 @@ Future<void> main() async {
 
 Future<void> run(Flavor flavor) async {
 
+  print('Starting app with flavor: $flavor');
+
   WidgetsFlutterBinding.ensureInitialized();
 
   DateTime start = DateTime.now();

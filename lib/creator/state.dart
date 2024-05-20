@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:property_change_notifier/property_change_notifier.dart';
 import '../rehmat.dart';
 
-class WidgetStateController extends PropertyChangeNotifier<WidgetChange> {
+class RenderWidgetStateController extends PropertyChangeNotifier<WidgetChange> {
 
   final CreatorWidget widget;
   // Key key = UniqueKey();
 
-  WidgetStateController(this.widget);
+  RenderWidgetStateController(this.widget);
 
   // void renewKey() => key = UniqueKey();
 
@@ -15,24 +15,24 @@ class WidgetStateController extends PropertyChangeNotifier<WidgetChange> {
 
 }
 
-class WidgetState extends StatefulWidget {
+class RenderWidgetState extends StatefulWidget {
   
-  WidgetState({
+  RenderWidgetState({
     Key? key,
     required this.controller,
     required this.widget,
     required this.page,
   }) : super(key: key);
 
-  final WidgetStateController controller;
+  final RenderWidgetStateController controller;
   final CreatorWidget widget;
   final CreatorPage page;
 
   @override
-  State<WidgetState> createState() => _WidgetStateState();
+  State<RenderWidgetState> createState() => _RenderWidgetStateState();
 }
 
-class _WidgetStateState extends State<WidgetState> {
+class _RenderWidgetStateState extends State<RenderWidgetState> {
 
   @override
   void initState() {

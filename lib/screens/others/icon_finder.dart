@@ -1,4 +1,3 @@
-import 'package:skeletons/skeletons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:octo_image/octo_image.dart';
@@ -197,7 +196,7 @@ class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Palette.isDark(context) ? Palette.of(context).surfaceVariant : null,
+          color: Palette.isDark(context) ? Palette.of(context).surfaceContainerLow : null,
           borderRadius: BorderRadius.circular(12),
         ),
         child: SizedBox.square(
@@ -211,11 +210,12 @@ class __IconFinderIconWidgetState extends State<_IconFinderIconWidget> {
           ) : OctoImage(
             image: NetworkImage(icon.previewURLs.reversed.toList()[2]),
             fit: BoxFit.cover,
-            placeholderBuilder: (context) => SkeletonAvatar(
-              style: SkeletonAvatarStyle(
-                shape: BoxShape.rectangle
-              ),
-            ),
+            // TODO: Add placeholder and error builders
+            // placeholderBuilder: (context) => SkeletonAvatar(
+            //   style: SkeletonAvatarStyle(
+            //     shape: BoxShape.rectangle
+            //   ),
+            // ),
             errorBuilder: (context, error, stackTrace) => Icon(
               RenderIcons.error
             ),

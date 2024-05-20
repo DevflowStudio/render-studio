@@ -24,7 +24,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     BuildInfo buildInfo = BuildInfo.unknown,
   }) {
     uid = generateUID(prefix: id);
-    stateCtrl = WidgetStateController(this);
+    stateCtrl = RenderWidgetStateController(this);
     onInitialize();
     onPaletteUpdate();
     if (data != null) try {
@@ -45,7 +45,7 @@ abstract class CreatorWidget extends PropertyChangeNotifier<WidgetChange> {
     String prefix = 'widget#'
   }) => '$prefix${Constants.generateID(6)}';
 
-  late WidgetStateController stateCtrl;
+  late RenderWidgetStateController stateCtrl;
 
   late String uid;
 

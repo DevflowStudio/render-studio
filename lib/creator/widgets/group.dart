@@ -485,7 +485,7 @@ class WidgetGroup extends CreatorWidget {
     children: [
       ... List.generate(
         widgets.length,
-        (index) => WidgetState(
+        (index) => RenderWidgetState(
           key: UniqueKey(),
           controller: widgets[index].stateCtrl,
           widget: widgets[index],

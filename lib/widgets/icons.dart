@@ -293,4 +293,8 @@ abstract class RenderIcons {
 
   static const IconData thums_up = CupertinoIcons.hand_thumbsup;
 
+  static const IconData copy = CupertinoIcons.doc_on_clipboard;
+
+  static const IconData paste = CupertinoIcons.text_insert;
+
 }

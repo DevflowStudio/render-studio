@@ -1,4 +1,4 @@
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -34,12 +34,11 @@ class App {
   Future<void> initialize() async {
     DateTime start = DateTime.now();
 
-    MobileAds.instance.initialize();
+    // MobileAds.instance.initialize();
 
     // Add Rehmat's iPhone for testing
-    // TODO: Remove this before publishing
-    RequestConfiguration configuration = RequestConfiguration(testDeviceIds: ['6c8a2f17950b8ca93295b564b7439715']);
-    MobileAds.instance.updateRequestConfiguration(configuration);
+    // RequestConfiguration configuration = RequestConfiguration(testDeviceIds: ['6c8a2f17950b8ca93295b564b7439715']);
+    // MobileAds.instance.updateRequestConfiguration(configuration);
 
     await Hive.initFlutter();
 

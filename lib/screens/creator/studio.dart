@@ -49,7 +49,7 @@ class _StudioState extends State<Studio> with TickerProviderStateMixin {
     return WillPopScope(
       onWillPop: canPagePop,
       child: Scaffold(
-        backgroundColor: context.isDarkMode ? Palette.of(context).background : Palette.of(context).surfaceVariant,
+        backgroundColor: context.isDarkMode ? Palette.of(context).surface : Palette.of(context).surfaceContainerLow,
         resizeToAvoidBottomInset: false,
         appBar: ProjectAppBar(
           project: project,

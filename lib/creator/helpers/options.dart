@@ -284,7 +284,6 @@ class Option {
                   'PT Sans',
                   'PT Serif',
                   'Roboto Slab',
-                  'Source Sans Pro',
                   'Fira Sans',
                   'Work Sans',
                   'Barlow Condensed',
@@ -322,7 +321,7 @@ class Option {
                                   duration: Duration(milliseconds: 100),
                                   padding: EdgeInsets.all(3),
                                   decoration: BoxDecoration(
-                                    color: font == fontFamily ? Palette.of(context).surfaceVariant : null,
+                                    color: font == fontFamily ? Palette.of(context).surfaceContainerLow : null,
                                     border: font == fontFamily ? Border.all(
                                       color: Palette.of(context).outline,
                                       width: 2

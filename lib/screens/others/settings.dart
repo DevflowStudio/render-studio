@@ -46,17 +46,17 @@ class _SettingsState extends State<Settings> {
                   },
                 ),
               ),
-              // ListTile(
-              //   title: const Text('Action Bar'),
-              //   subtitle: const Text('Show an action bar for quick access to some options'),
-              //   trailing: Switch.adaptive(
-              //     value: preferences.showActionBar,
-              //     onChanged: (value) async {
-              //       preferences.showActionBar = value;
-              //       setState(() { });
-              //     },
-              //   ),
-              // ),
+              ListTile(
+                title: const Text('Action Bar'),
+                subtitle: const Text('Show an action bar for quick access to some options'),
+                trailing: Switch.adaptive(
+                  value: preferences.showActionBar,
+                  onChanged: (value) async {
+                    preferences.showActionBar = value;
+                    setState(() { });
+                  },
+                ),
+              ),
               ListTile(
                 title: const Text('Collect Usage Data'),
                 trailing: Switch.adaptive(
@@ -83,7 +83,10 @@ class _SettingsState extends State<Settings> {
                     confirmButtonText: 'Sign Out',
                     isDestructive: true
                   );
-                  if (signout) AuthState.of(context).signOut();
+                  if (signout) {
+                    await AuthState.of(context).signOut();
+                    Navigator.of(context).pop();
+                  }
                 },
               ),
 
@@ -97,8 +100,8 @@ class _SettingsState extends State<Settings> {
                 trailing: FilledTonalIconButton(
                   secondary: true,
                   onPressed: () async {
-                    if (await canLaunchUrl(Uri.parse('https://devflow.studio/about'))) {
-                      await launchUrl(Uri.parse('https://devflow.studio/about'));
+                    if (await canLaunchUrl(Uri.parse('https://renderstudio.app/about'))) {
+                      await launchUrl(Uri.parse('https://renderstudio.app/about'));
                     } else {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
@@ -115,8 +118,8 @@ class _SettingsState extends State<Settings> {
                 trailing: FilledTonalIconButton(
                   secondary: true,
                   onPressed: () async {
-                    if (await canLaunchUrl(Uri.parse('https://devflow.studio'))) {
-                      await launchUrl(Uri.parse('https://devflow.studio'));
+                    if (await canLaunchUrl(Uri.parse('https://renderstudio.app/about'))) {
+                      await launchUrl(Uri.parse('https://renderstudio.app/about'));
                     } else {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
@@ -133,8 +136,8 @@ class _SettingsState extends State<Settings> {
                 trailing: FilledTonalIconButton(
                   secondary: true,
                   onPressed: () async {
-                    if (await canLaunchUrl(Uri.parse('https://devflow.studio/terms-of-use'))) {
-                      await launchUrl(Uri.parse('https://devflow.studio/terms-of-use'));
+                    if (await canLaunchUrl(Uri.parse('https://renderstudio.app/terms'))) {
+                      await launchUrl(Uri.parse('https://renderstudio.app/terms'));
                     } else {
                       Alerts.snackbar(context, text: 'Failed to launch url');
                     }
@@ -144,6 +147,10 @@ class _SettingsState extends State<Settings> {
               ),
               const ListTile(
                 title: Text('Made with ❤️ in India'),
+                contentPadding: EdgeInsets.only(
+                  left: 18,
+                  right: 6
+                ),
               ),
             ])
           )

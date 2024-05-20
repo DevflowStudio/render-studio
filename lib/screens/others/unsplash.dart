@@ -132,7 +132,7 @@ class _UnsplashImagePickerState extends State<UnsplashImagePicker> {
                                 child: Container(
                                   height: 30,
                                   decoration: BoxDecoration(
-                                    color: Palette.of(context).surfaceVariant,
+                                    color: Palette.of(context).surfaceContainerLow,
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
                                       color: Palette.of(context).outline,
@@ -262,8 +262,9 @@ class UnsplashResultBuilder<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PagedSliverBuilder<int, T>(
+    return PagedLayoutBuilder<int, T>(
       pagingController: pagingController,
+      layoutProtocol: PagedLayoutProtocol.sliver,
       builderDelegate: PagedChildBuilderDelegate(
         itemBuilder: itemBuilder,
         firstPageErrorIndicatorBuilder: (context) => Padding(

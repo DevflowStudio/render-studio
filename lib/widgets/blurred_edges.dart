@@ -71,7 +71,7 @@ class _BlurredEdgesViewState extends State<BlurredEdgesView> {
     );
   }
 
-  Color get color => Palette.of(context).background;
+  Color get color => Palette.of(context).surface;
 
   Color get initialColor {
     double scrolled = controller.position.extentBefore;

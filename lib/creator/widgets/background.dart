@@ -47,7 +47,7 @@ class BackgroundWidget extends CreatorWidget {
         //     title: 'Add Widget',
         //     tooltip: 'Add a widget to the canvas',
         //     backgroundColor: Palette.of(context).onSurfaceVariant,
-        //     foregroundColor: Palette.of(context).surfaceVariant,
+        //     foregroundColor: Palette.of(context).surfaceContainerLow,
         //     showBorder: true,
         //     animateBorderRadius: false
         //   ),
@@ -149,6 +149,8 @@ class BackgroundWidget extends CreatorWidget {
         Option.color(
           this,
           palette: page.palette,
+          allowClear: false,
+          allowOpacity: false,
           onChange: (color) {
             if (color == null) return;
             this.color = color;

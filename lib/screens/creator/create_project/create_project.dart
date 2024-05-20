@@ -32,7 +32,7 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
 
   PostSizePresets sizePreset = PostSizePresets.square;
 
-  bool isAIAvaliable = true;
+  bool isAIAvaliable = false;
 
   List<ProjectGlance> templates = [];
   String? selectedTemplate;
@@ -60,6 +60,9 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
       tabCtrl.index = 1;
       isAIAvaliable = false;
     }
+    if (isAIAvaliable) {
+      tabCtrl.index = 0;
+    }
     setTitle();
     super.initState();
   }
@@ -70,7 +73,7 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           RenderAppBar(title: Text('Create Project')),
-          SliverPadding(
+          if (isAIAvaliable) SliverPadding(
             padding: const EdgeInsets.only(bottom: 6),
             sliver: SliverToBoxAdapter(
               child: _CustomTabBar(tabCtrl: tabCtrl),
@@ -267,8 +270,8 @@ class _Custom_TabBarState extends State<_CustomTabBar> {
     bool isSelected = false,
     void Function(bool value)? onSelect
   }) {
-    Color background = Palette.of(context).onBackground;
-    Color foreground = Palette.of(context).background;
+    Color background = Palette.of(context).onSurface;
+    Color foreground = Palette.of(context).surface;
     return ChoiceChip(
       label: Text(
         label,
@@ -282,11 +285,11 @@ class _Custom_TabBarState extends State<_CustomTabBar> {
         icon,
         color: isSelected ? foreground : Palette.of(context).onSurfaceVariant,
       ) : null,
-      color: MaterialStateProperty.resolveWith((states) {
-        if (states.contains(MaterialState.selected)) {
+      color: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
           return background;
         }
-        return Palette.of(context).background;
+        return Palette.of(context).surface;
       }),
       shape: StadiumBorder(),
       labelPadding: EdgeInsets.only(left: 6),

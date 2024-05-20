@@ -4,7 +4,7 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:get/utils.dart';
+import 'package:get/utils.dart' hide ContextExtensionss;
 import 'package:render_studio/creator/helpers/editor_manager.dart';
 import 'package:sprung/sprung.dart';
 
@@ -140,10 +140,11 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                   )
                 ],
               ),
-              const Divider(
+              Divider(
                 indent: 0,
                 endIndent: 0,
                 height: 0,
+                color: context.isDarkMode ? HexColor.fromHex('#374049') : HexColor.fromHex('#fafafa'),
               ),
               AnimatedSize(
                 duration: kAnimationDuration * 2,
@@ -196,7 +197,7 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                         vertical: 9
                       ),
                       decoration: BoxDecoration(
-                        color: Palette.of(context).onBackground,
+                        color: Palette.of(context).onSurface,
                         borderRadius: BorderRadius.circular(40),
                       ),
                       child: Row(
@@ -205,13 +206,13 @@ class _EditorState extends State<Editor> with TickerProviderStateMixin {
                           Icon(
                             CupertinoIcons.lock_fill,
                             size: Theme.of(context).textTheme.titleLarge?.fontSize,
-                            color: Palette.onBlurBackground(context)
+                            color: Palette.of(context).surface,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             'Locked',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Palette.onBlurBackground(context)
+                              color: Palette.of(context).surface,
                             ),
                           ),
                         ],
@@ -1481,7 +1482,7 @@ class __ProjectResizeTabState extends State<_ProjectResizeTab> {
                     duration: Duration(milliseconds: 100),
                     padding: EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: Palette.of(context).surfaceVariant,
+                      color: Palette.of(context).surfaceContainerLow,
                       border: current == preset ? Border.all(
                         color: Palette.of(context).outline,
                         width: 2

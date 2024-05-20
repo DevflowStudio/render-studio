@@ -40,7 +40,7 @@ class _FilledIconButtonState extends State<FilledIconButton> {
       tooltip: widget.tooltip,
       style: IconButton.styleFrom(
         foregroundColor: widget.selected ? colors.onPrimary : colors.primary,
-        backgroundColor: widget.selected ? colors.primary : colors.surfaceVariant,
+        backgroundColor: widget.selected ? colors.primary : colors.surfaceContainerLow,
         hoverColor: widget.selected ? colors.onPrimary.withOpacity(0.08) : colors.primary.withOpacity(0.08),
         focusColor: widget.selected ? colors.onPrimary.withOpacity(0.12) : colors.primary.withOpacity(0.12),
         highlightColor: widget.selected ? colors.onPrimary.withOpacity(0.12) : colors.primary.withOpacity(0.12),
@@ -90,11 +90,11 @@ class _FilledTonalIconButtonState extends State<FilledTonalIconButton> {
       tooltip: widget.tooltip,
       padding: widget.padding,
       style: IconButton.styleFrom(
-        foregroundColor: widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onBackground : colors.onSurfaceVariant),
-        backgroundColor: widget.selected ? colors.primaryContainer : (widget.secondary ? colors.background : colors.surfaceVariant),
-        hoverColor: (widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onBackground : colors.onSurfaceVariant).withOpacity(0.08)).withOpacity(0.08),
-        focusColor: (widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onBackground : colors.onSurfaceVariant).withOpacity(0.08)).withOpacity(0.08),
-        highlightColor: (widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onBackground : colors.onSurfaceVariant).withOpacity(0.08)).withOpacity(0.08),
+        foregroundColor: widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onSurface : colors.onSurfaceVariant),
+        backgroundColor: widget.selected ? colors.primaryContainer : (widget.secondary ? colors.surface : colors.surfaceContainerLow),
+        hoverColor: (widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onSurface : colors.onSurfaceVariant).withOpacity(0.08)).withOpacity(0.08),
+        focusColor: (widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onSurface : colors.onSurfaceVariant).withOpacity(0.08)).withOpacity(0.08),
+        highlightColor: (widget.selected ? colors.onPrimaryContainer : (widget.secondary ? colors.onSurface : colors.onSurfaceVariant).withOpacity(0.08)).withOpacity(0.08),
       ),
     );
   }
@@ -145,11 +145,11 @@ class _OutlinedIconButtonsState extends State<OutlinedIconButtons> {
           width: 0
         ),
       ).copyWith(
-        foregroundColor: MaterialStateProperty.resolveWith((Set<MaterialState> states) {
-          if (states.contains(MaterialState.selected)) {
+        foregroundColor: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+          if (states.contains(WidgetState.selected)) {
             return colors.onInverseSurface;
           }
-          if (states.contains(MaterialState.pressed)) {
+          if (states.contains(WidgetState.pressed)) {
             return colors.onSurface;
           }
           return null;
@@ -407,7 +407,7 @@ class _ButtonWithIconState extends State<ButtonWithIcon> {
                   height: widget.size?.height ?? 70,
                   width: widget.size?.width ?? 70,
                   decoration: BoxDecoration(
-                    color: widget.backgroundColor ?? Palette.of(context).surfaceVariant,
+                    color: widget.backgroundColor ?? Palette.of(context).surfaceContainerLow,
                     // color: widget.backgroundColor ?? Constants.getThemedObject(context, light: Color.lerp(HexColor.fromHex('#fafafa'), Palette.of(context).primaryContainer, 0.2), dark: Colors.grey[900]),
                     // color: context.isDarkMode ? Colors.grey[900] : null,
                     // gradient: context.isDarkMode ? null : LinearGradient(
@@ -600,11 +600,11 @@ class _DragHandlerState extends State<DragHandler> {
         height: isHovering ? 35 : 25,
         width: isHovering ? 35 : 25,
         decoration: BoxDecoration(
-          color: widget.backgroundColor ?? Palette.of(context).background,
+          color: widget.backgroundColor ?? Palette.of(context).surface,
           borderRadius: BorderRadius.circular(40),
           boxShadow: [
             BoxShadow(
-              color: (widget.iconColor ?? Palette.of(context).onBackground).withOpacity(0.1),
+              color: (widget.iconColor ?? Palette.of(context).onSurface).withOpacity(0.1),
               blurRadius: 5,
               spreadRadius: 1,
             )
@@ -614,7 +614,7 @@ class _DragHandlerState extends State<DragHandler> {
           child: Icon(
             RenderIcons.drag,
             size: 18,
-            color: widget.iconColor ?? Palette.of(context).onBackground,
+            color: widget.iconColor ?? Palette.of(context).onSurface,
           ),
         ),
       ),

@@ -278,11 +278,7 @@ class __ActionsBuilderState extends State<_ActionsBuilder> {
                   AppRouter.push(context, page: ProjectMeta(project: project));
                 },
               ),
-              PullDownMenuItem(
-                title: 'Test Template Kit',
-                onTap: () async { },
-              ),
-              PullDownMenuItem(
+              if (project.isTemplateKit && app.remoteConfig.enableTemplateKit) PullDownMenuItem(
                 title: 'Publish Template',
                 icon: RenderIcons.upload,
                 onTap: () async {

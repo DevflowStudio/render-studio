@@ -54,6 +54,8 @@ class RemoteConfig {
       'minimum_version': 'unavailable',
       'show_watermark': false,
       'allow_delete_watermark': true,
+      'enable_template_kit': false,
+      'enable_anonymous_login': true,
     });
   }
 
@@ -100,6 +102,12 @@ class RemoteConfig {
 
   /// Returns false if the watermark should be hidden
   bool get allowDeleteWatermark => _firebaseConfig.getBool('allow_delete_watermark');
+
+  /// Returns true if the template kit should be enabled
+  bool get enableTemplateKit => _firebaseConfig.getBool('enable_template_kit');
+
+  /// Returns true if the anonymous login should be enabled
+  bool get enableAnonymousLogin => _firebaseConfig.getBool('enable_anonymous_login');
 
 }
 

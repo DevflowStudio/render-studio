@@ -173,7 +173,7 @@ class Analytics {
     required String route
   }) async {
     if (!preferences.allowAnalytics) return;
-    await firebase.setCurrentScreen(screenName: route);
+    await firebase.logScreenView(screenName: route);
   }
 
   Future<void> setUser(String id) async {

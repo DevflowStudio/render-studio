@@ -90,10 +90,10 @@ class _GeneratedTemplatesViewState extends State<GeneratedTemplatesView> {
       ),
       bottomNavigationBar: isLoading ? null : Container(
         decoration: BoxDecoration(
-          color: Palette.of(context).surfaceVariant,
+          color: Palette.of(context).surfaceContainerLow,
           border: Border(
             top: BorderSide(
-              color: Palette.of(context).onBackground.withOpacity(0.1),
+              color: Palette.of(context).onSurface.withOpacity(0.1),
               width: 0.5
             )
           )

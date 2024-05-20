@@ -70,6 +70,36 @@ class _OnboardingState extends State<Onboarding> {
               );
             },
           ),
+          if (app.remoteConfig.enableAnonymousLogin) Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top,
+                right: 6
+              ),
+              child: Button(
+                onPressed: () async {
+                  try {
+                    await AuthState.of(context).signInAnonymously();
+                  } catch (e) {
+                    Alerts.dialog(
+                      context,
+                      title: 'Error',
+                      content: 'There was an error signing in. Please try again later'
+                    );
+                  }
+                },
+                autoLoading: true,
+                child: Text('Skip'),
+                backgroundColor: Colors.transparent,
+                textColor: Colors.black,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6
+                ),
+              ),
+            ),
+          ),
           Column(
             children: [
               Spacer(),

@@ -63,12 +63,13 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAwp_JgWBBmHK2SW31Y31uHEukqAH6OYVc',
-    appId: '1:583685461758:ios:5b633e401991a3528337af',
+    appId: '1:583685461758:ios:078cebbcf74aec698337af',
     messagingSenderId: '583685461758',
     projectId: 'app-render-studio',
     storageBucket: 'app-render-studio.appspot.com',
-    iosClientId: '583685461758-30nvkndne7gfatnr4p3opr91251bs3ll.apps.googleusercontent.com',
-    iosBundleId: 'app.studio.render',
+    androidClientId: '583685461758-ev86j3iimpav8if96ukgprvqn9s72iia.apps.googleusercontent.com',
+    iosClientId: '583685461758-5edrjkmgr14gc290k22ekbvl5jaree28.apps.googleusercontent.com',
+    iosBundleId: 'app.renderstudio',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

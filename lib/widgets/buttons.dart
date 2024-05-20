@@ -41,7 +41,7 @@ class _TextIconButtonState extends State<TextIconButton> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: Constants.borderRadius,
-          color: widget.color ?? Palette.of(context).surfaceVariant,
+          color: widget.color ?? Palette.of(context).surfaceContainerLow,
           border: Border.all(
             color: Palette.of(context).onSurfaceVariant.withOpacity(0.2),
             width: 0
@@ -147,8 +147,8 @@ class _PrimaryButtonState extends State<PrimaryButton> {
       feedback: widget.feedback,
       onLongPress: widget.onLongPress,
       onPressed: widget.onPressed,
-      backgroundColor: Palette.of(context).onBackground,
-      textColor: Palette.of(context).background,
+      backgroundColor: Palette.of(context).onSurface,
+      textColor: Palette.of(context).surface,
       padding: widget.padding,
       borderRadius: widget.borderRadius,
     );
@@ -200,7 +200,7 @@ class _SecondaryButtonState extends State<SecondaryButton> {
         color: Palette.isDark(context) ? Colors.grey.shade800 : Colors.grey.shade400,
         width: 1
       ),
-      backgroundColor: Palette.of(context).surfaceVariant,
+      backgroundColor: Palette.of(context).surfaceContainerLow,
       textColor: Palette.of(context).onSurfaceVariant,
       padding: widget.padding,
     );
@@ -223,7 +223,8 @@ class Button extends StatefulWidget {
     this.textColor,
     this.shadow,
     this.border,
-    this.borderRadius = 40
+    this.borderRadius = 40,
+    this.padding
   }) : super(key: key);
 
   final Widget child;
@@ -238,6 +239,7 @@ class Button extends StatefulWidget {
   final BoxShadow? shadow;
   final BorderSide? border;
   final double borderRadius;
+  final EdgeInsetsGeometry? padding;
 
   @override
   State<Button> createState() => _ButtonState();
@@ -255,10 +257,11 @@ class _ButtonState extends State<Button> {
       feedback: widget.feedback,
       onLongPress: widget.onLongPress,
       onPressed: widget.onPressed,
-      backgroundColor: widget.backgroundColor ?? Palette.of(context).surfaceVariant,
+      backgroundColor: widget.backgroundColor ?? Palette.of(context).surfaceContainerLow,
       textColor: widget.textColor ?? Palette.of(context).onSurfaceVariant,
       shadow: widget.shadow,
       border: widget.border,
+      padding: widget.padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
     );
   }
 
@@ -346,7 +349,7 @@ class RawButtonState extends State<RawButton> {
                 color: widget.border?.color.withOpacity(widget.disabled ? 0.5 : 1)
               ) ?? BorderSide.none
             ),
-            color: widget.backgroundColor.withOpacity(widget.disabled ? 0.5 : 1),
+            color: widget.backgroundColor.opacity == 0 ? widget.backgroundColor : widget.backgroundColor.withOpacity(widget.disabled ? 0.5 : 1),
           ),
           padding: widget.padding,
           child: DefaultTextStyle(
@@ -451,7 +454,7 @@ class _RenderDropdownButtonState<T> extends State<RenderDropdownButton<T>> {
         ),
         enableFeedback: true,
         underline: Container(),
-        dropdownColor: Palette.of(context).surfaceVariant,
+        dropdownColor: Palette.of(context).surfaceContainerLow,
       );
     } else {
       return _IOSRenderDropdownButton<T>(
@@ -547,7 +550,7 @@ class _IOSRenderDropdownButtonState<T> extends State<_IOSRenderDropdownButton<T>
                 )
               ],
             ),
-            backgroundColor: Palette.of(context).surfaceVariant,
+            backgroundColor: Palette.of(context).surfaceContainerLow,
             textColor: Palette.of(context).onSurfaceVariant,
             onPressed: showMenu,
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),

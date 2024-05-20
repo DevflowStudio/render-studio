@@ -38,7 +38,7 @@ class TemplateGlance extends StatelessWidget {
               cornerRadius: 20
             ),
             border: Border.all(
-              color: Palette.of(context).onBackground.withOpacity(isSelected ? 1 : 0),
+              color: Palette.of(context).onSurface.withOpacity(isSelected ? 1 : 0),
               width: 2
             )
           ),
@@ -51,7 +51,7 @@ class TemplateGlance extends StatelessWidget {
                 image: FileImage(File(glance.thumbnail ?? '')),
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Material(
-                  color: Palette.of(context).surfaceVariant,
+                  color: Palette.of(context).surfaceContainerLow,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 20,

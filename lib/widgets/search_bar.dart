@@ -29,7 +29,7 @@ class RenderSearchBar extends StatelessWidget {
         left: 9,
       ),
       style: TextStyle(
-        color: Palette.of(context).onBackground
+        color: Palette.of(context).onSurface
       ),
       onSuffixTap: onSuffixTap,
       onSubmitted: onSubmitted,
@@ -47,7 +47,7 @@ class RenderSearchBar extends StatelessWidget {
           borderSide: BorderSide.none
         ),
         prefixIcon: Icon(RenderIcons.search),
-        prefixIconColor: Palette.of(context).onBackground,
+        prefixIconColor: Palette.of(context).onSurface,
         suffixIcon: IconButton(
           onPressed: onSuffixTap,
           icon: Icon(RenderIcons.clear)

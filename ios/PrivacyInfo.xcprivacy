@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+   PrivacyInfo.xcprivacy
+   Runner
+
+   Created by Rehmat Singh Gill on 18/05/24.
+   Copyright (c) 2024 . All rights reserved.
+-->
+<plist version="1.0">
+	<dict>
+		<key>NSPrivacyAccessedAPITypes</key>
+		<array>
+			<dict>
+				<key>NSPrivacyAccessedAPIType</key>
+				<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+				<key>NSPrivacyAccessedAPITypeReasons</key>
+				<array>
+ 					<string>CA92.1</string>
+ 					<string>C56D.1</string>
+				</array>
+			</dict>
+		</array>
+		<key>NSPrivacyCollectedDataTypes</key>
+		<array>
+			<dict>
+				<key>NSPrivacyCollectedDataType</key>
+				<string>NSPrivacyCollectedDataTypeCrashData</string>
+				<key>NSPrivacyCollectedDataTypePurposes</key>
+				<array>
+					<string>
+						NSPrivacyCollectedDataTypePurposeAnalytics
+					</string>
+				</array>
+			</dict>
+			<dict>
+				<key>NSPrivacyCollectedDataType</key>
+				<string>NSPrivacyCollectedDataTypePerformanceData</string>
+				<key>NSPrivacyCollectedDataTypePurposes</key>
+				<array>
+					<string>
+						NSPrivacyCollectedDataTypePurposeAnalytics
+					</string>
+				</array>
+			</dict>
+		</array>
+      
+	</dict>
+</plist>

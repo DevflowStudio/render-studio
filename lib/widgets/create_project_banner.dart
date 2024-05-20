@@ -24,7 +24,7 @@ class CreateProjectBannerState extends State<CreateProjectBanner> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Palette.of(context).surfaceVariant,
+        color: Palette.of(context).surfaceContainerLow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,7 +98,7 @@ class _CreateButton extends StatelessWidget {
             width: 70,
             child: Container(
               decoration: BoxDecoration(
-                color: Palette.of(context).background,
+                color: Palette.of(context).surface,
                 borderRadius: SmoothBorderRadius(
                   cornerRadius: kBorderRadius - 8,
                   cornerSmoothing: 0.5,

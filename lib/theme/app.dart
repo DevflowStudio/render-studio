@@ -21,10 +21,10 @@ class AppTheme {
       // primary: seed,
       // primaryContainer: seed,
       // onPrimaryContainer: HexColor.fromHex('#cad2fc'),
-      background: background,
-      surfaceVariant: surfaceVariant,
+      surface: background,
+      surfaceContainerLow: surfaceVariant,
       outline: outline,
-      surface: brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#131417')
+      // surface: brightness == Brightness.light ? HexColor.fromHex('#ffffff') : HexColor.fromHex('#131417')
     );
     return ThemeData(
       visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -40,11 +40,11 @@ class AppTheme {
         backgroundColor: background,
         titleTextStyle: TextStyle(
           fontSize: 22,
-          fontFamily: 'SF Pro',
-          fontWeight: FontWeight.w500,
-          color: colorScheme.onBackground
+          fontFamily: 'SF Pro Rounded',
+          fontWeight: FontWeight.w600,
+          color: colorScheme.onSurface
         ),
-        surfaceTintColor: colorScheme.surfaceVariant
+        surfaceTintColor: colorScheme.surfaceContainerLow
       ),
       popupMenuTheme: PopupMenuThemeData(
         shape: RoundedRectangleBorder(
@@ -82,7 +82,7 @@ class AppTheme {
         preferBelow: true,
         enableFeedback: true,
         decoration: BoxDecoration(
-          color: colorScheme.onBackground,
+          color: colorScheme.onSurface,
           borderRadius: BorderRadius.circular(9),
         )
       ),
@@ -103,33 +103,33 @@ class AppTheme {
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.resolveWith((states) {
-            if (states.contains(MaterialState.selected)) {
-              return colorScheme!.surfaceVariant;
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return colorScheme!.surfaceContainerLow;
             }
-            if (states.contains(MaterialState.disabled)) {
+            if (states.contains(WidgetState.disabled)) {
               return colorScheme!.onSurfaceVariant.withOpacity(0.2);
             }
             return colorScheme!.surface;
           }),
-          foregroundColor: MaterialStateProperty.resolveWith((states) {
-            if (states.contains(MaterialState.selected)) {
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
               return colorScheme!.onSurfaceVariant;
             }
-            if (states.contains(MaterialState.disabled)) {
+            if (states.contains(WidgetState.disabled)) {
               return colorScheme!.onSurfaceVariant.withOpacity(0.2);
             }
-            return colorScheme!.onBackground;
+            return colorScheme!.onSurface;
           }),
-          shape: MaterialStateProperty.all(
+          shape: WidgetStateProperty.all(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30)
             )
           ),
-          padding: MaterialStateProperty.all(
+          padding: WidgetStateProperty.all(
             EdgeInsets.symmetric(horizontal: 12, vertical: 3)
           ),
-          elevation: MaterialStateProperty.all(0),
+          elevation: WidgetStateProperty.all(0),
         )
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -170,6 +170,16 @@ class AppTheme {
         //   borderRadius: BorderRadius.circular(30),
         // ),
         minLeadingWidth: 12,
+        titleTextStyle: TextStyle(
+          fontFamily: 'Geist',
+          color: contrastTextColor,
+          fontSize: 17
+        ),
+        subtitleTextStyle: TextStyle(
+          fontFamily: 'SF Pro',
+          color: contrastTextColorLight,
+          fontSize: 15
+        ),
       ),
       textTheme: TextTheme(
         displayLarge: TextStyle(
@@ -209,15 +219,15 @@ class AppTheme {
           color: contrastTextColorLight
         ),
         bodyLarge: TextStyle(
-          fontFamily: 'Geist',
+          fontFamily: 'SF Pro',
           color: contrastTextColor
         ),
         bodyMedium: TextStyle(
-          fontFamily: 'Geist',
+          fontFamily: 'SF Pro',
           color: contrastTextColor
         ),
         bodySmall: TextStyle(
-          fontFamily: 'Geist',
+          fontFamily: 'SF Pro',
           color: contrastTextColorLight
         ),
       ),
@@ -301,7 +311,7 @@ class AppTheme {
       sliderTheme: SliderThemeData(
         showValueIndicator: ShowValueIndicator.always,
         trackHeight: 1,
-        activeTrackColor: colorScheme.onBackground,
+        activeTrackColor: colorScheme.onSurface,
         thumbColor: colorScheme.onSurfaceVariant,
         trackShape: RoundedRectSliderTrackShape(),
         overlayShape: RoundSliderOverlayShape(overlayRadius: 0),

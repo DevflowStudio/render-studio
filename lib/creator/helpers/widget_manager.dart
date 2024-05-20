@@ -325,7 +325,7 @@ class WidgetManager extends ChangeNotifier {
           child: Stack(
             clipBehavior: Clip.hardEdge,
             children: [
-              ... sortedUIDs.map((uid) => WidgetState(
+              ... sortedUIDs.map((uid) => RenderWidgetState(
                 key: UniqueKey(),
                 controller: _widgets[uid]!.stateCtrl,
                 widget: _widgets[uid]!,

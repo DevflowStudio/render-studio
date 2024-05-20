@@ -731,7 +731,7 @@ class CreatorText extends CreatorWidget {
                     bottom: MediaQuery.of(context).viewInsets.bottom + 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Palette.of(context).background,
+                    color: Palette.of(context).surface,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Column(
@@ -810,7 +810,7 @@ class CreatorText extends CreatorWidget {
                       ),
                       Container(
                         decoration: BoxDecoration(
-                          color: Palette.of(context).surfaceVariant,
+                          color: Palette.of(context).surfaceContainerLow,
                           borderRadius: BorderRadius.only(
                             bottomLeft: Radius.circular(20),
                             bottomRight: Radius.circular(20),

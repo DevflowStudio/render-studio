@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:render_studio/creator/helpers/editor_manager.dart';
 import 'package:sprung/sprung.dart';
 import '../rehmat.dart';
@@ -8,13 +7,10 @@ class CreativeWidgetsShowcase extends StatefulWidget {
 
   const CreativeWidgetsShowcase({
     super.key,
-    required this.page,
-    this.ad
+    required this.page
   });
 
   final CreatorPage page;
-
-  final BannerAd? ad;
 
   @override
   State<CreativeWidgetsShowcase> createState() => CreativeWidgetsShowcaseState();
@@ -105,7 +101,7 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
                       left: 20,
                       right: 20,
                       top: 12,
-                      bottom: 12 + (widget.ad != null ? 0 : Constants.of(context).bottomPadding),
+                      bottom: 12 + Constants.of(context).bottomPadding,
                     ),
                     scrollDirection: Axis.horizontal,
                     separatorBuilder: (context, index) => SizedBox(width: 1),
@@ -138,19 +134,6 @@ class CreativeWidgetsShowcaseState extends State<CreativeWidgetsShowcase> {
                   ),
                 ),
               ),
-              if (widget.ad != null) Expanded(
-                child: FadeInUp(
-                  duration: Duration(milliseconds: 300),
-                  child: Container(
-                    width: double.maxFinite,
-                    padding: EdgeInsets.only(
-                      bottom: Constants.of(context).bottomPadding,
-                    ),
-                    alignment: Alignment.center,
-                    child: AdWidget(ad: widget.ad!),
-                  ),
-                ),
-              )
             ],
           ),
         ),

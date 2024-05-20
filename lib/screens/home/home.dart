@@ -118,7 +118,7 @@ class _HomeState extends State<Home> {
         tooltip: 'Create Project',
         icon: Icon(
           RenderIcons.add,
-          color: Palette.of(context).background,
+          color: Palette.of(context).surface,
           size: 20,
         ),
         label: Text(
@@ -126,15 +126,16 @@ class _HomeState extends State<Home> {
           style: TextStyle(
             fontFamily: 'SF Pro Rounded',
             fontSize: 18,
-            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
-        backgroundColor: Palette.of(context).onBackground,
-        foregroundColor: Palette.of(context).background,
+        backgroundColor: Palette.of(context).onSurface,
+        foregroundColor: Palette.of(context).surface,
         shape: SmoothRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           smoothness: 0.6,
         ),
+        elevation: 0,
       ) : null,
     );
   }

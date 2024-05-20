@@ -81,27 +81,27 @@ class _ProjectsViewState extends State<ProjectsView> {
                 fontWeight: FontWeight.w500
               ),
             ),
-            SizedBox(height: 6),
             Text(
               'Your design journey starts here.',
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-            TextButton.icon(
-              onPressed: () async {
-                PostSizePresets preset = PostSizePresets.square;
-                await Alerts.picker(
-                  context,
-                  children: [
-                    for (PostSizePresets preset in PostSizePresets.values) Text(preset.title)
-                  ],
-                  onSelectedItemChanged: (value) {
-                    preset = PostSizePresets.values[value];
-                  },
-                );
-                Project.createNewProject(context, preset.toSize());
-              },
-              icon: Icon(RenderIcons.arrow_right_2),
-              label: Text('Get Started')
+            // TextButton.icon(
+            //   onPressed: () => AppRouter.push(context, page: CreateProject()),
+            //   icon: Icon(RenderIcons.arrow_right_2),
+            //   label: Text(
+            //     'Get Started',
+            //     style: TextStyle(
+            //     )
+            //   )
+            // )
+            SizedBox(height: 6),
+            PrimaryButton(
+              onPressed: () => AppRouter.push(context, page: CreateProject()),
+              child: Text('Get Started'),
+              padding: EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 12
+              ),
             )
           ],
         ),

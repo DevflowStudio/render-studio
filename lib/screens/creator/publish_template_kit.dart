@@ -158,7 +158,7 @@ class _PublishTemplateKitState extends State<PublishTemplateKit> {
             child: Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Palette.of(context).surfaceVariant,
+                color: Palette.of(context).surfaceContainerLow,
                 borderRadius: BorderRadius.circular(10)
               ),
               child: Row(

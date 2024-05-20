@@ -91,7 +91,7 @@ class CustomNewProjectPage extends StatelessWidget {
               },
             ),
           ),
-          if (isTemplate) ListTile(
+          if (isTemplate && app.remoteConfig.enableTemplateKit) ListTile(
             title: Text(
               'Template Kit',
               style: Theme.of(context).textTheme.bodyLarge
@@ -108,7 +108,7 @@ class CustomNewProjectPage extends StatelessWidget {
               },
             ),
           ),
-          if (!isTemplate) Padding(
+          if (!isTemplate && templates.isNotEmpty) Padding(
             padding: EdgeInsets.only(
               bottom: 6,
               top: 12,
