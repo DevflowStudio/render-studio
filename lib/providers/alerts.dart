@@ -64,8 +64,8 @@ class Alerts {
       icon: RenderIcons.warning,
       title: title,
       message: message,
-      primaryButtonText: 'Discard',
-      secondaryButtonText: 'Back',
+      primaryButtonText: confirmButtonText,
+      secondaryButtonText: cancelButtonText,
       isDestructive: true,
       onPrimaryTap: () {
         Navigator.of(context).pop(true);
@@ -369,8 +369,10 @@ class Alerts {
                         ),
                         if (secondaryButtonText != null && primaryButtonText != null) SizedBox(width: 6),
                         if (primaryButtonText != null) Expanded(
-                          child: PrimaryButton(
+                          child: Button(
                             child: Text(primaryButtonText),
+                            backgroundColor: isDestructive ? Palette.of(context).error : Palette.of(context).onSurface,
+                            textColor: isDestructive ? Palette.of(context).surface : Palette.of(context).onSurface,
                             onPressed: onPrimaryTap ?? () {
                               Navigator.of(context).pop();
                             },

@@ -62,6 +62,8 @@ class _CreateProjectState extends State<CreateProject> with TickerProviderStateM
     }
     if (isAIAvaliable) {
       tabCtrl.index = 0;
+    } else {
+      tabCtrl.index = 1;
     }
     setTitle();
     super.initState();

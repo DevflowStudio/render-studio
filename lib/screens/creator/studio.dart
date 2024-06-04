@@ -97,7 +97,7 @@ class _StudioState extends State<Studio> with TickerProviderStateMixin {
     
     bool discard = await Alerts.showConfirmationDialog(
       context,
-      title: 'Saved Project?',
+      title: 'Save Project?',
       message: 'You have unsaved changes. Do you want to discard them? This action cannot be undone.',
       cancelButtonText: 'Back',
       confirmButtonText: 'Discard',

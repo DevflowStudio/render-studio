@@ -88,20 +88,20 @@ class CreativeImageProvider {
         onChangeEnd: () => onChange(WidgetChange.update),
         showValueEditor: true
       ),
-      Option.showSlider(
-        widget,
-        icon: RenderIcons.exposure,
-        title: 'Exposure',
-        max: 1,
-        min: -1,
-        value: exposure,
-        onChange: (value) {
-          exposure = value;
-          onChange(WidgetChange.misc);
-        },
-        onChangeEnd: () => onChange(WidgetChange.update),
-        showValueEditor: true
-      ),
+      // Option.showSlider(
+      //   widget,
+      //   icon: RenderIcons.exposure,
+      //   title: 'Exposure',
+      //   max: 1,
+      //   min: -1,
+      //   value: exposure,
+      //   onChange: (value) {
+      //     exposure = value;
+      //     onChange(WidgetChange.misc);
+      //   },
+      //   onChangeEnd: () => onChange(WidgetChange.update),
+      //   showValueEditor: true
+      // ),
       Option.showSlider(
         widget,
         icon: RenderIcons.saturation,
@@ -199,16 +199,16 @@ class CreativeImageProvider {
                           ],
                         ),
                       ),
-                      // SwitchListTile.adaptive(
-                      //   title: Text('Smooth Blur'),
-                      //   value: blurFade,
-                      //   onChanged: (value) {
-                      //     setState(() {
-                      //       blurFade = value;
-                      //     });
-                      //     onChange(WidgetChange.misc);
-                      //   },
-                      // ),
+                      SwitchListTile.adaptive(
+                        title: Text('Smooth Blur'),
+                        value: blurFade,
+                        onChanged: (value) {
+                          setState(() {
+                            blurFade = value;
+                          });
+                          onChange(WidgetChange.misc);
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -245,8 +245,6 @@ class CreativeImageProvider {
                   widget: (context) {
                     List<ColorFilterGenerator> filters = [
                       PresetFilters.none,
-                      PresetFilters.addictiveBlue,
-                      PresetFilters.addictiveRed,
                       PresetFilters.aden,
                       PresetFilters.amaro,
                       PresetFilters.ashby,
@@ -288,6 +286,8 @@ class CreativeImageProvider {
                       PresetFilters.walden,
                       PresetFilters.willow,
                       PresetFilters.xProII,
+                      PresetFilters.addictiveBlue,
+                      PresetFilters.addictiveRed,
                     ];
                     return Padding(
                       padding: EdgeInsets.only(

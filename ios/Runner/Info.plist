@@ -38,15 +38,17 @@
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSCameraUsageDescription</key>
-		<string>Please allow camera permission to continue</string>
+		<string>Camera permission allows you to capture photos and add them into your designs</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Please allow Location permission to continue</string>
+		<string>Location permission allows you to add a location widget to your designs</string>
 		<key>NSMicrophoneUsageDescription</key>
 		<string>Please allow Mic permission to continue</string>
 		<key>NSPhotoLibraryAddUsageDescription</key>
-		<string>Allow permission to save your creations</string>
+		<string>Render needs access to your photo library to allow you to import photos from your library into your design projects.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>Please allow photo library permission to continue</string>
+		<string>Render needs access to your photo library to allow you to import photos from your library into your design projects.</string>
+		<key>NSAppleMusicUsageDescription</key>
+		<string>This permission is not needed by the app, but it is required by an underlying API. If you see this dialog, contact us.</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>UILaunchStoryboardName</key>
