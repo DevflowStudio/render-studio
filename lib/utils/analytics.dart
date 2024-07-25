@@ -17,7 +17,7 @@ class Analytics {
 
   /// Logs a custom Flutter Analytics event with the given [name] and event [parameters].
   Future<void> logEvent(String name, {
-    Map<String, dynamic>? parameters,
+    Map<String, Object>? parameters,
     AnalyticsCallOptions? callOptions
   }) async {
     if (!preferences.allowAnalytics) return;
@@ -26,7 +26,7 @@ class Analytics {
 
   Future<void> logProcessingTime(String name, {
     required Duration duration,
-    Map<String, Object?>? parameters,
+    Map<String, Object>? parameters,
     AnalyticsCallOptions? callOptions
   }) async {
     if (!preferences.allowAnalytics) return;

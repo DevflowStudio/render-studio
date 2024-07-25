@@ -454,6 +454,7 @@ class Alerts {
   static Future<void> showModal(BuildContext context, {
     required Widget child,
     bool isDismissible = true,
+    double opacity = 0.5,
   }) => showGeneralDialog(
     context: context,
     pageBuilder: (context, animation, secondaryAnimation) => Material(
@@ -462,7 +463,7 @@ class Alerts {
     ),
     barrierDismissible: isDismissible,
     barrierLabel: 'Dismiss',
-    barrierColor: Palette.of(context).surface.withOpacity(0.5),
+    barrierColor: Palette.of(context).surface.withOpacity(opacity),
     transitionDuration: Duration(milliseconds: 250),
     transitionBuilder: (context, animation, animation2, child) => BackdropFilter(
       filter: ImageFilter.blur(sigmaX: 20 * animation.value, sigmaY: 20 * animation.value),

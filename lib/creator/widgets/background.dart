@@ -5,6 +5,134 @@ import 'package:render_studio/creator/helpers/image_provider.dart';
 import 'package:universal_io/io.dart';
 import '../../rehmat.dart';
 
+Future<void> showAddWidgetModal(BuildContext context, CreatorPage page) async {
+  final Map<String, dynamic> widgets = {
+    'text': {
+      'title': 'Text',
+      'icon': RenderIcons.text,
+    },
+    'image': {
+      'title': 'Image',
+      'icon': RenderIcons.image,
+      'onTap': () async {
+        await ImageWidget.create(context, page: page);
+      }
+    },
+    'design_asset': {
+      'title': 'Design Asset',
+      'icon': RenderIcons.design_asset,
+      'onTap': () async {
+        await CreatorDesignAsset.create(context, page: page);
+      }
+    },
+    'pie-chart': {
+      'title': 'Pie Chart',
+      'icon': RenderIcons.pieChart
+    },
+    'shape': {
+      'title': 'Shapes',
+      'icon': RenderIcons.shapes,
+      'onTap': () async {
+        await ShapeWidget.create(context, page: page);
+      }
+    },
+    'qr_code': {
+      'title': 'QR Code',
+      'icon': RenderIcons.qr,
+      'onTap': () async {
+        await QRWidget.create(context, page: page);
+      }
+    },
+    'progress': {
+      'title': 'Progress',
+      'icon': RenderIcons.progress,
+    },
+    'box': {
+      'title': 'Box',
+      'icon': RenderIcons.box
+    },
+    'blob': {
+      'title': 'Blob',
+      'widget': Blob.random(
+        size: 25,
+        styles: BlobStyles(
+          color: Palette.of(context).onSecondaryContainer,
+        ),
+      ),
+    },
+  };
+  Widget buttonBuilder(BuildContext context, {
+    required data
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 6
+      ),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Palette.of(context).secondaryContainer,
+              borderRadius: BorderRadius.circular(30),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: data['icon'] != null ? Icon(
+              data['icon'],
+              color: Palette.of(context).onSecondaryContainer,
+            ) : data['widget'],
+          ),
+          const SizedBox(width: 15),
+          Text(
+            data['title'],
+            style: Theme.of(context).textTheme.titleLarge,
+          )
+        ],
+      ),
+    );
+  }
+  await Alerts.showModal(
+    context,
+    opacity: 0.7,
+    child: SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: FilledIconButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: Icon(RenderIcons.close),
+            ),
+          ),
+          Spacer(flex: 3),
+          ... widgets.entries.map((entry) {
+            return FadeIn(
+              blur: false,
+              scale: false,
+              child: GestureDetector(
+                onTap: () async {
+                  TapFeedback.light();
+                  if (entry.value['onTap'] != null) await entry.value['onTap']();
+                  else CreatorWidget.create(context, page: page, id: entry.key);
+                  Navigator.of(context).pop();
+                },
+                child: buttonBuilder(
+                  context,
+                  data: entry.value
+                ),
+              ),
+            );
+          }).toList(),
+          Spacer(flex: 1,)
+        ],
+      ),
+    )
+  );
+}
+
 class BackgroundWidget extends CreatorWidget {
 
   BackgroundWidget({required CreatorPage page, Map? data, BuildInfo buildInfo = BuildInfo.unknown}) : super(page, data: data, buildInfo: buildInfo);
@@ -40,18 +168,20 @@ class BackgroundWidget extends CreatorWidget {
     EditorTab(
       name: 'Page',
       options: [
-        // Option.custom(
-        //   widget: (context) => ButtonWithIcon(
-        //     onTap: (context) => page.widgets.showAddWidgetModal(context),
-        //     icon: RenderIcons.add,
-        //     title: 'Add Widget',
-        //     tooltip: 'Add a widget to the canvas',
-        //     backgroundColor: Palette.of(context).onSurfaceVariant,
-        //     foregroundColor: Palette.of(context).surfaceContainerLow,
-        //     showBorder: true,
-        //     animateBorderRadius: false
-        //   ),
-        // ),
+        Option.custom(
+          widget: (context) => ButtonWithIcon(
+            onTap: (context) async {
+              await showAddWidgetModal(context, page);
+            },
+            icon: RenderIcons.add,
+            title: 'Add Widget',
+            tooltip: 'Add a widget to the canvas',
+            backgroundColor: Palette.of(context).onSurfaceVariant,
+            foregroundColor: Palette.of(context).surfaceContainerLow,
+            showBorder: false,
+            animateBorderRadius: false
+          ),
+        ),
         Option.button(
           icon: RenderIcons.palette,
           title: 'Palette',

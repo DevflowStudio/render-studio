@@ -26,7 +26,7 @@ class EditorManager extends ChangeNotifier {
   Editor? _editor;
   List<_EditorModal> modals = [];
 
-  Editor? get editor => _editor;
+  Editor get editor => _editor ?? Editor(widget: page.widgets.background);
 
   bool isHidden = false;
 
@@ -236,12 +236,10 @@ class PageEditorViewState extends State<PageEditorView> {
               ),
             ),
           ),
-        ) else CreativeWidgetsShowcase(
-          page: widget.manager.page,
         ),
-        if (widget.manager.editor != null) FadeInUp(
+        FadeInUp(
           duration: kAnimationDuration,
-          child: widget.manager.editor!
+          child: widget.manager.editor
         ),
         for (var modal in widget.manager.modals) EditorManager._modalWidget(
           context,

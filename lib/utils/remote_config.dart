@@ -54,7 +54,7 @@ class RemoteConfig {
       'minimum_version': 'unavailable',
       'show_watermark': false,
       'allow_delete_watermark': true,
-      'enable_template_kit': false,
+      'enable_template_kit': true,
       'enable_anonymous_login': true,
     });
   }
@@ -116,13 +116,12 @@ bool checkVersionCompatibility({
   String? minimumVersion,
   required String currentVersion,
 }) {
-  if (minimumVersion == null || minimumVersion == 'unavailable') return true;
-  final minimumVersionParts = minimumVersion.split('.');
-  final currentVersionParts = currentVersion.split('.');
-  for (int i = 0; i < minimumVersionParts.length; i++) {
-    if (int.parse(currentVersionParts[i]) < int.parse(minimumVersionParts[i])) {
-      return false;
-    }
+  if (minimumVersion == 'unavailable') return true;
+  final current = currentVersion.split('.').map(int.parse).toList();
+  final minimum = minimumVersion!.split('.').map(int.parse).toList();
+  for (int i = 0; i < current.length; i++) {
+    if (current[i] > minimum[i]) return true;
+    if (current[i] < minimum[i]) return false;
   }
   return true;
 }

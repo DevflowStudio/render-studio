@@ -13,7 +13,11 @@ class QRWidget extends CreatorWidget {
     required CreatorPage page
   }) async {
     QRWidget qr = QRWidget(page: page);
-    String? _data = await openQRDataEditor(context);
+    String? _data = await Alerts.requestText(
+      context,
+      title: 'QR Code',
+      hintText: 'Enter data for QR Code',
+    );
     if (_data == null) return;
     qr.data = _data;
     page.widgets.add(qr);
